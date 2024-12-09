@@ -87,8 +87,9 @@ const WelcomePage = () => {
           </Button>
 
           <Stack direction={"row"} justifyContent={"center"} spacing={2} mt={2}>
-            {SocialArray.map((e) => (
+            {SocialArray.map((e, index) => (
               <Box
+                key={index}
                 sx={{
                   borderRadius: 20,
                   width: 40,

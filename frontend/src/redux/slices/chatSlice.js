@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, current } from "@reduxjs/toolkit";
 import {
   CreateOpenConversation,
   GetConversations,
@@ -20,6 +20,8 @@ const initialState = {
 
   messages: [],
   typingConversation: [],
+
+  files: [],
 };
 
 const slice = createSlice({
@@ -84,6 +86,21 @@ const slice = createSlice({
           typing,
           conversation_id,
         });
+      }
+    },
+
+    // add list of files for chat
+    addFiles: (state, action) => {
+      const existingFiles = current(state.files);
+
+      // Check if the file is already present
+      const isFilePresent = existingFiles.some(
+        (existingFile) => existingFile?.fileName === action.payload.fileName
+      );
+
+      // If the file is not present, add it to the state
+      if (!isFilePresent) {
+        state.files = [...state.files, action.payload];
       }
     },
   },
@@ -180,6 +197,7 @@ export const {
   closeActiveConversation,
   updateMsgConvo,
   updateTypingConvo,
+  addFiles,
   // --------- Optimistic Approach ---------
   setIsOptimistic,
   // ---------------------------------------
