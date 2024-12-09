@@ -1,13 +1,13 @@
-import { imageSelectHandler } from "../upload/UploadImage";
+import { imageSelectHandler } from "../upload/handlers/imageSelectHandler";
 
-const actionHandler = (type, dispatch) => {
+const actionHandler = (type) => {
   switch (type) {
     case "gaming":
       return console.log("gaming click");
 
     case "photo":
       // handling photo click
-      imageSelectHandler(dispatch);
+      imageSelectHandler();
       break;
 
     case "document":

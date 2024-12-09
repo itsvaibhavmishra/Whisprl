@@ -14,7 +14,6 @@ import { LinkSimple, Smiley } from "phosphor-react";
 import { Actions } from "../../../../../data";
 import { socket } from "../../../../../utils/socket";
 import actionHandler from "../../../../ChatMediaActions/actionClickHandler";
-import { useDispatch } from "react-redux";
 
 const ChatInput = ({
   openPicker,
@@ -30,9 +29,6 @@ const ChatInput = ({
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
-
-  // from redux
-  const dispatch = useDispatch();
 
   // -------------- Inner Functions --------------
   const handlePopoverOpen = (event) => {
@@ -76,7 +72,7 @@ const ChatInput = ({
 
   // fn() to handle actions click
   const handleActions = (type) => {
-    actionHandler(type.toLowerCase(), dispatch);
+    actionHandler(type.toLowerCase());
 
     handlePopoverClose();
   };
