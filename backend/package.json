@@ -20,32 +20,32 @@
   "author": "Vaibhaw Mishra",
   "license": "MIT",
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.1.7"
   },
   "dependencies": {
-    "axios": "^1.6.2",
+    "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
-    "cloudinary": "^1.41.1",
-    "compression": "^1.7.4",
-    "cookie-parser": "^1.4.6",
+    "cloudinary": "^2.5.1",
+    "compression": "^1.7.5",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0",
-    "express-rate-limit": "^7.1.5",
-    "express-xss-sanitizer": "^1.1.6",
-    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.4.1",
+    "express-xss-sanitizer": "^1.2.1",
+    "helmet": "^8.0.0",
     "http-errors": "^2.0.0",
-    "image-size": "^1.0.2",
+    "image-size": "^1.1.1",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.0.3",
+    "mongoose": "^8.8.4",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^6.9.16",
     "otp-generator": "^4.0.1",
-    "socket.io": "^4.7.4",
+    "socket.io": "^4.8.1",
     "streamifier": "^0.1.1",
     "trim-request": "^1.0.6",
-    "validator": "^13.11.0"
+    "validator": "^13.12.0"
   }
 }
