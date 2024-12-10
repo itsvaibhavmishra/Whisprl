@@ -30,8 +30,9 @@ export const imageSelectHandler = () => {
       if (!acceptedFileTypes.includes(file.type)) {
         dispatch(
           ShowSnackbar({
-            severity: "info",
-            message: "Some selected file types are not allowed",
+            severity: "warning",
+            message: `File type ${file.type} is not allowed`,
+            description: `Allowed types: ${acceptedFileTypes.join(", ")}`,
           })
         );
 
@@ -41,7 +42,7 @@ export const imageSelectHandler = () => {
       } else if (file.size > 1024 * 1024 * 5) {
         dispatch(
           ShowSnackbar({
-            severity: "info",
+            severity: "warning",
             message: "Images size should not exceed 5mb",
           })
         );
