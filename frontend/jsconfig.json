@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    }
   },
   "include": ["src"],
-  "exclude": ["src/theme/*", "node_modules"]
+  "exclude": ["src/theme", "node_modules"]
 }

@@ -11,9 +11,9 @@ import {
 } from "@mui/material";
 import { LinkSimple, Smiley } from "phosphor-react";
 
-import { Actions } from "../../../../../data";
-import { socket } from "../../../../../utils/socket";
-import actionHandler from "../../../../ChatMediaActions/actionClickHandler";
+import { Actions } from "@/data";
+import { socket } from "@/utils/socket";
+import actionHandler from "@/components/ChatMediaActions/actionClickHandler";
 
 const ChatInput = ({
   openPicker,

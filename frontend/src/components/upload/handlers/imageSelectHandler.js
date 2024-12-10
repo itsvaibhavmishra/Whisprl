@@ -1,6 +1,6 @@
-import { addFiles } from "src/redux/slices/chatSlice";
-import { ShowSnackbar } from "src/redux/slices/userSlice";
-import { store } from "src/redux/store";
+import { store } from "@/redux/store";
+import { addFiles } from "@/redux/slices/chatSlice";
+import { ShowSnackbar } from "@/redux/slices/userSlice";
 
 export const imageSelectHandler = () => {
   const { dispatch } = store;
