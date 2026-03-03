@@ -1,3 +1,4 @@
+import { docSelectHandler } from "../upload/handlers/docSelectHandler";
 import { imageSelectHandler } from "../upload/handlers/imageSelectHandler";
 
 const actionHandler = (type) => {
@@ -6,12 +7,13 @@ const actionHandler = (type) => {
       return console.log("gaming click");
 
     case "photo":
-      // handling photo click
+      // handling photo/video click
       imageSelectHandler();
       break;
 
     case "document":
-      return console.log("doc click");
+      docSelectHandler();
+      break;
 
     case "contact":
       return console.log("contact click");

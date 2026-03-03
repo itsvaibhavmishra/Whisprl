@@ -2,23 +2,11 @@ import { store } from "@/redux/store";
 import { addFiles } from "@/redux/slices/chatSlice";
 import { ShowSnackbar } from "@/redux/slices/userSlice";
 
-export const imageSelectHandler = () => {
+export const docSelectHandler = () => {
   const { dispatch } = store;
-
-  const acceptedFileTypes = [
-    "image/png",
-    "image/jpeg",
-    "image/gif",
-    "image/webp",
-    "video/mp4",
-    "video/mpeg",
-    "video/webm",
-    "video/webp",
-  ];
 
   const fileInput = document.createElement("input");
   fileInput.type = "file";
-  fileInput.accept = acceptedFileTypes.join(",");
   fileInput.multiple = true;
   fileInput.click();
 
@@ -27,19 +15,7 @@ export const imageSelectHandler = () => {
     let selectedFiles = Array.from(e.target.files);
 
     selectedFiles.forEach((file) => {
-      if (!acceptedFileTypes.includes(file.type)) {
-        dispatch(
-          ShowSnackbar({
-            severity: "info",
-            message: `File type ${file.type} is not allowed`,
-            description: `Allowed types: ${acceptedFileTypes.join(", ")}`,
-          })
-        );
-
-        // filtering out invalid type images
-        selectedFiles = selectedFiles.filter((item) => item.name !== file.name);
-        return;
-      } else if (file.size > 1024 * 1024 * 5) {
+      if (file.size > 1024 * 1024 * 5) {
         dispatch(
           ShowSnackbar({
             severity: "info",
@@ -60,8 +36,8 @@ export const imageSelectHandler = () => {
           dispatch(
             addFiles({
               fileName: file.name,
-              type: file.type?.split("/")[0].toUpperCase(),
-              actionType: "image",
+              type: file.name.split(".").pop().toUpperCase(),
+              actionType: "doc",
               file: file,
             })
           );

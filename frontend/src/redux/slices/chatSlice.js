@@ -38,15 +38,17 @@ const slice = createSlice({
       state.activeConversation = null;
       state.activeConvoFriendship = null;
       state.messages = [];
+      state.files = [];
     },
 
     // clear conversation
     clearConversation: (state, action) => {
-      state.conversations = [];
-      state.activeConversation = null;
-      state.activeConvoFriendship = null;
-      state.messages = [];
-      state.typingConversation = [];
+      state = initialState;
+    },
+
+    // clear files
+    clearFiles: (state, action) => {
+      state.files = [];
     },
 
     // update messages from socket
@@ -198,6 +200,7 @@ export const {
   updateMsgConvo,
   updateTypingConvo,
   addFiles,
+  clearFiles,
   // --------- Optimistic Approach ---------
   setIsOptimistic,
   // ---------------------------------------

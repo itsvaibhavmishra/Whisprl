@@ -17,7 +17,7 @@ if (process.env.REACT_APP_GA_ID !== "") {
 
 function App() {
   const theme = useTheme();
-  const { themeMode } = useSettings();
+  const { themeMode, themeDirection } = useSettings();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
@@ -28,6 +28,8 @@ function App() {
           <Toaster
             position={isSmallScreen ? "top-center" : "top-right"}
             theme={themeMode}
+            dir={themeDirection}
+            visibleToasts={5}
             richColors
             closeButton
             duration={5000}
