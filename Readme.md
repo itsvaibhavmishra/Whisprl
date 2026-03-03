@@ -3,14 +3,16 @@
 
 # TwinkConnect 😺
 
-A Real-Time web-based Chat App built using MERN Stack.
+A Real-Time web-based MERN Chat App by Vaibhaw Mishra.
 { Development in Progress }
 
 ![TwinkConnect](https://i.imgur.com/CMGzVa3.png)
 
 ## ✅ Site Status
 
-Live At: <a href=""></a>
+Live At: <a href="https://twinkconnect.netlify.app">Netlify | TwinkConnect</a>
+ > [!TIP]
+[![Netlify Status](https://api.netlify.com/api/v1/badges/11d93069-5655-4db9-b73d-b34de9c5deab/deploy-status)](https://app.netlify.com/sites/twinkconnect/deploys)
 
 ## 💻 Tech Stack
 
@@ -177,7 +179,21 @@ $ npm run build
 ## 🪜 Folder Structure
 
 <details>
-  <summary>View Structure</summary>
+  <summary>Main Structure</summary>
+
+  ```
+├──backend/
+│   ├── ...
+├──frontend/
+│   ├── ...
+├── .gitignore
+├── LICENSE
+├── Readme.md
+  ```
+</details>
+
+<details>
+  <summary>Backend</summary>
 
 ```
 ├── backend/
@@ -231,6 +247,13 @@ $ npm run build
 │   ├── server.js
 │   ├── socket.js
 │   ├── vercel.json
+```
+</details>
+
+<details>
+<summary>Frontend</summary>
+
+```
 ├── frontend/
 │   ├── public/
 │   │   ├── favicon.ico
@@ -531,11 +554,7 @@ $ npm run build
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── README.md
-├── .gitignore
-├── LICENSE
-├── Readme.md
 ```
-
 </details>
 <br/>
 
