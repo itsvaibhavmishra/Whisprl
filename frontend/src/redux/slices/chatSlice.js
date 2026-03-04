@@ -6,9 +6,8 @@ import {
   SendMessage,
 } from "./actions/chatActions";
 
-// initial state for contacts menu
 const initialState = {
-  isOptimistic: true, // default approach set to optimistic
+  isOptimistic: true,
   isLoading: false,
   sendMsgLoading: false,
   error: false,
@@ -21,86 +20,118 @@ const initialState = {
   messages: [],
   typingConversation: [],
 
+  // file selection state (for upload preview screen)
   files: [],
+  activeFileIndex: 0,
+
+  // per-message upload tracking
+  // { localId, batchId, batchIndex, batchTotal, dataUrl, fileName,
+  //   actionType, caption, status, file, convo_id }
+  // status: 'uploading' | 'failed' | 'cancelled'
+  pendingMessages: [],
 };
 
 const slice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    // update approach to use (true: Optimistic, false: Pessimistic)
     setIsOptimistic: (state, action) => {
       state.isOptimistic = action.payload.isOptimistic;
     },
 
-    // close active conversation
-    closeActiveConversation: (state, action) => {
+    closeActiveConversation: (state) => {
       state.activeConversation = null;
       state.activeConvoFriendship = null;
       state.messages = [];
       state.files = [];
+      state.activeFileIndex = 0;
+      // don't clear pendingMessages here — they keep uploading even if conversation closes
     },
 
-    // clear conversation
-    clearConversation: (state, action) => {
-      state = initialState;
+    clearConversation: (state) => {
+      return initialState;
     },
 
-    // clear files
-    clearFiles: (state, action) => {
+    clearFiles: (state) => {
       state.files = [];
+      state.activeFileIndex = 0;
     },
 
-    // update messages from socket
-    updateMsgConvo: (state, action) => {
-      const currentConvo = state.activeConversation;
+    removeFile: (state, action) => {
+      state.files = state.files.filter((file) => file.fileName !== action.payload);
+      if (state.activeFileIndex >= state.files.length) {
+        state.activeFileIndex = Math.max(0, state.files.length - 1);
+      }
+    },
 
-      // updating messages
+    setActiveFileIndex: (state, action) => {
+      state.activeFileIndex = action.payload;
+    },
+
+    // ---------- Pending message reducers ----------
+    addPendingMessage: (state, action) => {
+      state.pendingMessages.push(action.payload);
+    },
+
+    updatePendingMessage: (state, action) => {
+      const { localId, status } = action.payload;
+      const index = state.pendingMessages.findIndex((m) => m.localId === localId);
+      if (index !== -1) {
+        state.pendingMessages[index].status = status;
+      }
+    },
+
+    removePendingMessage: (state, action) => {
+      state.pendingMessages = state.pendingMessages.filter(
+        (m) => m.localId !== action.payload
+      );
+    },
+
+    // Called by component after successful file upload — adds real message
+    addMessageFromUpload: (state, action) => {
+      const currentConvo = state.activeConversation;
       if (currentConvo?._id === action.payload.conversation._id) {
         state.messages = [...state.messages, action.payload];
       }
-      // update conversations
-      const conversation = {
-        ...action.payload.conversation,
-      };
+      const conversation = { ...action.payload.conversation };
       let newConvos = [...state.conversations].filter(
         (e) => e._id !== conversation._id
       );
       newConvos.unshift(conversation);
-
       state.conversations = newConvos;
     },
 
-    // update typing state from socket
+    // ---------- Socket / typing reducers ----------
+    updateMsgConvo: (state, action) => {
+      const currentConvo = state.activeConversation;
+      if (currentConvo?._id === action.payload.conversation._id) {
+        state.messages = [...state.messages, action.payload];
+      }
+      const conversation = { ...action.payload.conversation };
+      let newConvos = [...state.conversations].filter(
+        (e) => e._id !== conversation._id
+      );
+      newConvos.unshift(conversation);
+      state.conversations = newConvos;
+    },
+
     updateTypingConvo: (state, action) => {
       const { typing, conversation_id } = action.payload;
-
       const index = state.typingConversation.findIndex(
         (convo) => convo.conversation_id === conversation_id
       );
-
       if (index !== -1) {
-        // If typing data is present for that convo
         state.typingConversation[index].typing = typing;
       } else {
-        // If typing data doesn't exist
-        state.typingConversation.push({
-          typing,
-          conversation_id,
-        });
+        state.typingConversation.push({ typing, conversation_id });
       }
     },
 
-    // add list of files for chat
     addFiles: (state, action) => {
       const existingFiles = current(state.files);
-
-      // Check if the file is already present
       const isFilePresent = existingFiles.some(
         (existingFile) => existingFile?.fileName === action.payload.fileName
       );
-
-      // If the file is not present, add it to the state
       if (!isFilePresent) {
         state.files = [...state.files, action.payload];
       }
@@ -108,8 +139,7 @@ const slice = createSlice({
   },
   extraReducers(builder) {
     builder
-      // --------- Get Conversations Builder ---------
-      .addCase(GetConversations.pending, (state, action) => {
+      .addCase(GetConversations.pending, (state) => {
         state.isLoading = true;
         state.error = false;
       })
@@ -118,12 +148,12 @@ const slice = createSlice({
         state.isLoading = false;
         state.error = false;
       })
-      .addCase(GetConversations.rejected, (state, action) => {
+      .addCase(GetConversations.rejected, (state) => {
         state.isLoading = false;
         state.error = true;
       })
-      // --------- Create Open Conversation Builder ---------
-      .addCase(CreateOpenConversation.pending, (state, action) => {
+
+      .addCase(CreateOpenConversation.pending, (state) => {
         state.isLoading = true;
         state.error = false;
       })
@@ -133,13 +163,12 @@ const slice = createSlice({
         state.isLoading = false;
         state.error = false;
       })
-      .addCase(CreateOpenConversation.rejected, (state, action) => {
+      .addCase(CreateOpenConversation.rejected, (state) => {
         state.isLoading = false;
         state.error = true;
       })
 
-      // --------- Get Messages Builder ---------
-      .addCase(GetMessages.pending, (state, action) => {
+      .addCase(GetMessages.pending, (state) => {
         state.error = false;
       })
       .addCase(GetMessages.fulfilled, (state, action) => {
@@ -147,40 +176,30 @@ const slice = createSlice({
         state.isLoading = false;
         state.error = false;
       })
-      .addCase(GetMessages.rejected, (state, action) => {
+      .addCase(GetMessages.rejected, (state) => {
         state.isLoading = false;
         state.error = true;
       })
 
-      // --------- Send Message Builder ---------
-      .addCase(SendMessage.pending, (state, action) => {
+      .addCase(SendMessage.pending, (state) => {
         state.error = false;
-        state.sendMsgLoading = state.isOptimistic ? false : true; //change to true for Pessimistic Approach
+        state.sendMsgLoading = state.isOptimistic ? false : true;
       })
       .addCase(SendMessage.fulfilled, (state, action) => {
-        // Uncomment for Pessimistic Approach
-
         if (!state.isOptimistic) {
-          // updating messages list
           state.messages = [...state.messages, action.payload.message];
-
-          // updating conversations
-          const conversation = {
-            ...action.payload.message.conversation,
-          };
+          const conversation = { ...action.payload.message.conversation };
           let newConvos = [...state.conversations].filter(
             (e) => e._id !== conversation._id
           );
           newConvos.unshift(conversation);
-
           state.conversations = newConvos;
         }
-
         state.sendMsgLoading = false;
         state.isLoading = false;
         state.error = false;
       })
-      .addCase(SendMessage.rejected, (state, action) => {
+      .addCase(SendMessage.rejected, (state) => {
         state.sendMsgLoading = false;
         state.isLoading = false;
         state.error = true;
@@ -188,9 +207,8 @@ const slice = createSlice({
   },
 });
 
-// snackbar functions
 export function clearChat() {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     dispatch(slice.actions.clearConversation());
   };
 }
@@ -201,9 +219,13 @@ export const {
   updateTypingConvo,
   addFiles,
   clearFiles,
-  // --------- Optimistic Approach ---------
+  removeFile,
+  setActiveFileIndex,
+  addPendingMessage,
+  updatePendingMessage,
+  removePendingMessage,
+  addMessageFromUpload,
   setIsOptimistic,
-  // ---------------------------------------
 } = slice.actions;
 
 export default slice.reducer;

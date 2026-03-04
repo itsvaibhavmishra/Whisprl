@@ -1,5 +1,16 @@
 import mongoose from "mongoose";
 
+const fileSchema = mongoose.Schema(
+  {
+    url: { type: String, required: true },
+    fileName: { type: String, required: true },
+    fileType: { type: String, enum: ["image", "document"], required: true },
+    mimeType: { type: String, required: true },
+    size: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const messageSchema = mongoose.Schema(
   {
     sender: { type: mongoose.Schema.ObjectId, ref: "User" },
@@ -8,7 +19,12 @@ const messageSchema = mongoose.Schema(
 
     conversation: { type: mongoose.Schema.ObjectId, ref: "Conversation" },
 
-    files: [],
+    files: [fileSchema],
+
+    // batch fields — images sent together share a batchId for grouping
+    batchId: { type: String },
+    batchIndex: { type: Number },
+    batchTotal: { type: Number },
   },
   {
     timestamps: true,

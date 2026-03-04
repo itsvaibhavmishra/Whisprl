@@ -2,8 +2,21 @@ import { store } from "@/redux/store";
 import { addFiles } from "@/redux/slices/chatSlice";
 import { ShowSnackbar } from "@/redux/slices/userSlice";
 
+const MAX_FILES = 5;
+
 export const imageSelectHandler = () => {
-  const { dispatch } = store;
+  const { dispatch, getState } = store;
+  const currentFiles = getState().chat.files;
+
+  if (currentFiles.length >= MAX_FILES) {
+    dispatch(
+      ShowSnackbar({
+        severity: "info",
+        message: `Maximum ${MAX_FILES} files allowed per message`,
+      })
+    );
+    return;
+  }
 
   const acceptedFileTypes = [
     "image/png",
@@ -50,12 +63,20 @@ export const imageSelectHandler = () => {
         // filtering out invalid size images
         selectedFiles = selectedFiles.filter((item) => item.name !== file.name);
         return;
+      } else if (getState().chat.files.length >= MAX_FILES) {
+        dispatch(
+          ShowSnackbar({
+            severity: "info",
+            message: `Maximum ${MAX_FILES} files allowed per message`,
+          })
+        );
+        return;
       } else {
-        // converting file to base64
+        // converting file to base64 for preview
         const reader = new FileReader();
         reader.readAsDataURL(file);
 
-        reader.onload = (e) => {
+        reader.onload = (readerEvent) => {
           // adding file data to redux
           dispatch(
             addFiles({
@@ -63,6 +84,7 @@ export const imageSelectHandler = () => {
               type: file.type?.split("/")[0].toUpperCase(),
               actionType: "image",
               file: file,
+              dataUrl: readerEvent.target.result,
             })
           );
         };

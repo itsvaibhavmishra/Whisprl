@@ -22,6 +22,44 @@ export const validateFriendship = async (sender_id, conversation) => {
   }
 };
 
+// validate files before uploading
+const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+const allowedDocTypes = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "application/zip",
+  "application/x-rar-compressed",
+];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+// validates a single file object
+export const validateMessageFiles = (file) => {
+  if (file.size > MAX_FILE_SIZE) {
+    throw createHttpError.BadRequest(
+      `File "${file.originalname}" exceeds the 5MB size limit`
+    );
+  }
+
+  const isImage = allowedImageTypes.includes(file.mimetype);
+  const isDoc = allowedDocTypes.includes(file.mimetype);
+
+  if (!isImage && !isDoc) {
+    throw createHttpError.BadRequest(
+      `File type "${file.mimetype}" is not allowed`
+    );
+  }
+};
+
+export const getFileType = (mimetype) => {
+  return allowedImageTypes.includes(mimetype) ? "image" : "document";
+};
+
 // send a new message with conversation id
 export const createMessage = async (data) => {
   const newMessage = await MessageModel.create(data);

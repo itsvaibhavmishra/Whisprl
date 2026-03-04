@@ -73,7 +73,7 @@ const Conversation = () => {
           )}
         </>
       ) : (
-        <FileUploadCont />
+        <FileUploadCont convo_id={activeConversation?._id} />
       )}
     </Stack>
   );
