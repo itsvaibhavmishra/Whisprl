@@ -1,7 +1,7 @@
 > [!IMPORTANT]
 > Please leave a ⭐ if you like this project.
 
-# TwinkConnect 😺
+# Whisprl / TwinkConnect 😺
 
 A Real-Time web-based MERN Chat App by Vaibhaw Mishra.
 { Development in Progress }
