@@ -1,7 +1,7 @@
 import { Container, Stack } from "@mui/material";
 import { Outlet } from "react-router-dom";
 
-import Logo from "../../assets/icons/logo/TwinkConnect.png";
+import Logo from "../../assets/icons/logo/Whisprl.png";
 
 const DocsLayout = () => {
   return (
@@ -15,7 +15,7 @@ const DocsLayout = () => {
           <Stack
             component={"img"}
             src={Logo}
-            alt={"TwinkConnect Logo"}
+            alt={"Whisprl Logo"}
             sx={{ height: 120, width: 120 }}
           />
         </Stack>

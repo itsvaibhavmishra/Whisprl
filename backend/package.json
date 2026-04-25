@@ -1,14 +1,14 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "TwinkConnect Backend",
+  "description": "Whisprl Backend",
   "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "nodemon server.js"
   },
   "keywords": [
-    "TwinkConnect",
+    "Whisprl",
     "Chat",
     "ChatApp",
     "MERN",

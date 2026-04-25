@@ -218,9 +218,9 @@ export const sendOtp = async (req, res, next) => {
 
     // Sending email
     const emailDetails = {
-      from: `TwinkConnect <${process.env.MAIL_USER}>`,
+      from: `Whisprl <${process.env.MAIL_USER}>`,
       to: user.email,
-      subject: "TwinkConnect - Here's your OTP",
+      subject: "Whisprl - Here's your OTP",
       html: otp(user.firstName, new_otp),
     };
 
@@ -371,9 +371,9 @@ export const forgotPassword = async (req, res, next) => {
 
     // sending email
     const emailDetails = {
-      from: `TwinkConnect <${process.env.MAIL_USER}>`,
+      from: `Whisprl <${process.env.MAIL_USER}>`,
       to: user.email,
-      subject: "TwinkConnect - Here's your Password Reset Link",
+      subject: "Whisprl - Here's your Password Reset Link",
       html: reset(user.firstName, resetURL),
     };
 

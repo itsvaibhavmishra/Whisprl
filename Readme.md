@@ -1,18 +1,18 @@
 > [!IMPORTANT]
 > Please leave a ⭐ if you like this project.
 
-# TwinkConnect 😺
+# Whisprl 😺
 
 A Real-Time web-based MERN Chat App by Vaibhaw Mishra.
 { Development in Progress }
 
-![TwinkConnect](https://i.imgur.com/CMGzVa3.png)
+![Whisprl](https://i.imgur.com/CMGzVa3.png)
 
 ## ✅ Site Status
 
-Live At: <a href="https://twinkconnect.netlify.app">Netlify | TwinkConnect</a>
+Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
  > [!TIP]
-[![Netlify Status](https://api.netlify.com/api/v1/badges/11d93069-5655-4db9-b73d-b34de9c5deab/deploy-status)](https://app.netlify.com/sites/twinkconnect/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/11d93069-5655-4db9-b73d-b34de9c5deab/deploy-status)](https://app.netlify.com/sites/whisprl/deploys)
 
 ## 💻 Tech Stack
 
@@ -277,9 +277,9 @@ $ npm run build
 │   │   │   │   │   ├── flag_ja.svg
 │   │   │   │   │   ├── flag_vn.svg
 │   │   │   │   ├── logo/
-│   │   │   │   │   ├── TwinkConnect-old.png
-│   │   │   │   │   ├── TwinkConnect.png
-│   │   │   │   │   ├── TwinkConnectSub.png
+│   │   │   │   │   ├── Whisprl-old.png
+│   │   │   │   │   ├── Whisprl.png
+│   │   │   │   │   ├── WhisprlSub.png
 │   │   │   │   │   ├── VaibhawMishra.ico
 │   │   │   ├── Illustration/
 │   │   │   │   ├── Animations/

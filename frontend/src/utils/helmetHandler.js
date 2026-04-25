@@ -32,37 +32,37 @@ const HelmetHandler = () => {
       case "auth":
         if (lastSegment === "welcome") {
           return {
-            title: "TwinkConnect | Real-Time MERN Chat App by Vaibhaw Mishra",
+            title: "Whisprl | Real-Time MERN Chat App by Vaibhaw Mishra",
             description:
-              "Welcome to TwinkConnect, a Real-Time web based Chat App developed by Vaibhaw Mishra with advanced features. Make friends, connect and enjoy your stay.",
+              "Welcome to Whisprl, a Real-Time web based Chat App developed by Vaibhaw Mishra with advanced features. Make friends, connect and enjoy your stay.",
             keywords:
-              "twinkconnect, vaibhaw mishra, chat, chat app, mern, message, welcome",
+              "whisprl, vaibhaw mishra, chat, chat app, mern, message, welcome",
           };
         } else {
           return {
-            title: `${capitalizedLastSegment} | TwinkConnect`,
+            title: `${capitalizedLastSegment} | Whisprl`,
             description:
-              "Robust authentication system of TwinkConnect | Login or Register and connect with your friends on an exciting journey.",
+              "Robust authentication system of Whisprl | Login or Register and connect with your friends on an exciting journey.",
             keywords:
-              "login, register, create account, twinkconnect, vaibhaw mishra, chat, chat app, mern, message, welcome",
+              "login, register, create account, whisprl, vaibhaw mishra, chat, chat app, mern, message, welcome",
           };
         }
 
       case "app":
         return {
-          title: `All Chats | TwinkConnect`,
+          title: `All Chats | Whisprl`,
           description:
-            "Chat, share memes and video call with all your friends with TwinkConnect's robust communication system on the go.",
+            "Chat, share memes and video call with all your friends with Whisprl's robust communication system on the go.",
         };
 
       // metadata for all default routes
       default:
         return {
-          title: `${capitalizedLastSegment} | TwinkConnect`,
+          title: `${capitalizedLastSegment} | Whisprl`,
           description:
-            "Welcome to TwinkConnect, a Real-Time web based Chat App developed by Vaibhaw Mishra with advanced features. Make friends, connect and enjoy your stay.",
+            "Welcome to Whisprl, a Real-Time web based Chat App developed by Vaibhaw Mishra with advanced features. Make friends, connect and enjoy your stay.",
           keywords:
-            "twinkconnect, vaibhaw mishra, chat, chat app, mern, message, welcome",
+            "whisprl, vaibhaw mishra, chat, chat app, mern, message, welcome",
         };
     }
   };
