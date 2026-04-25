@@ -1,0 +1,48 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [staging, production]
+
+jobs:
+  devlog-updated:
+    name: DEVLOG.md must be updated
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check DEVLOG.md was modified
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.event.pull_request.head.sha }}
+          if ! git diff --name-only "$BASE" "$HEAD" | grep -q "^DEVLOG.md$"; then
+            echo "::error::DEVLOG.md was not updated in this PR. Add an entry under the current 'Temporary changelog' block before merging."
+            exit 1
+          fi
+          echo "DEVLOG.md updated — good to go."
+
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  format:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run format

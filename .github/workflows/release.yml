@@ -1,0 +1,96 @@
+name: Release (staging → production)
+
+on:
+  pull_request:
+    branches: [production]
+    types: [closed]
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'staging'
+    name: Finalise changelog and bump version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Extract version from package.json
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Format today's date
+        id: date
+        run: |
+          # e.g. "16th March 2026"
+          DAY=$(date +%-d)
+          case $DAY in
+            1|21|31) SUFFIX="st" ;;
+            2|22)    SUFFIX="nd" ;;
+            3|23)    SUFFIX="rd" ;;
+            *)       SUFFIX="th" ;;
+          esac
+          echo "pretty=${DAY}${SUFFIX} $(date +'%B %Y')" >> $GITHUB_OUTPUT
+
+      - name: Append DEVLOG entries to CHANGELOG
+        run: |
+          VERSION="${{ steps.pkg.outputs.version }}"
+          DATE="${{ steps.date.outputs.pretty }}"
+
+          # Extract everything after the first line (the "# Temporary changelog" header)
+          ENTRIES=$(tail -n +2 DEVLOG.md)
+
+          # Prepend new versioned block to CHANGELOG (after the header block)
+          HEADER=$(head -5 CHANGELOG.md)
+          REST=$(tail -n +6 CHANGELOG.md)
+
+          {
+            echo "$HEADER"
+            echo ""
+            echo "${VERSION} - ${DATE}"
+            echo "$ENTRIES"
+            echo ""
+            echo "$REST"
+          } > CHANGELOG.md
+
+      - name: Reset DEVLOG to blank template
+        run: |
+          # Compute next patch version for the new devlog header
+          VERSION="${{ steps.pkg.outputs.version }}"
+          NEXT=$(node -p "
+            const [ma,mi,pa] = '$VERSION'.split('.').map(Number);
+            \`\${ma}.\${mi}.\${pa+1}\`
+          ")
+
+          cat > DEVLOG.md << EOF
+          # Temporary changelog - ${NEXT}
+
+          - New:
+
+          - Improvements:
+
+          - Fixed:
+
+          - Developers:
+
+          - Internal:
+          EOF
+
+      - name: Bump patch version in package.json
+        run: npm version patch --no-git-tag-version
+
+      - name: Commit changelog + version bump
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md DEVLOG.md package.json
+          git commit -m "chore: 🔖 release v$(node -p "require('./package.json').version")"
+          git push
