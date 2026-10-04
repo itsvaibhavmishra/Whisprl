@@ -26,6 +26,7 @@
     - Redesigned log in, sign up, email verification and password reset pages
     - Password fields show the rules as you type, and each has its own show button
     - Redesigned settings, with a live preview of your theme and accent colour
+    - Pick your theme and accent colour from the welcome and log in pages
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
@@ -35,6 +36,7 @@
     - Changing or resetting your password now logs out every other device
     - Saving your profile no longer deletes your photo
     - Other people can no longer see private account details when they open your profile
+    - Opening a menu or dialog no longer shifts the page sideways
 
   - Developers:
     - The frontend has its first tests, and the gate runs them

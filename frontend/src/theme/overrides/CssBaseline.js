@@ -1,5 +1,9 @@
 export default function CssBaseline() {
   return {
+    // The window never scrolls behind a modal here, and locking it would pad the page into the reserved scrollbar gutter.
+    MuiModal: {
+      defaultProps: { disableScrollLock: true },
+    },
     MuiCssBaseline: {
       styleOverrides: {
         '*': {
@@ -11,6 +15,7 @@ export default function CssBaseline() {
           width: '100%',
           height: '100%',
           WebkitOverflowScrolling: 'touch',
+          scrollbarGutter: 'stable',
         },
         body: {
           width: '100%',

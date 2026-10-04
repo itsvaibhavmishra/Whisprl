@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ArrowsCounterClockwise } from "phosphor-react";
 
 import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
+import AppearanceMenu from "@/components/AppearanceMenu";
 import BrandPanel from "@/layouts/auth/BrandPanel";
 import { StartServer } from "@/redux/slices/actions/authActions";
 import { PATH_AUTH } from "@/routes/paths";
@@ -52,13 +53,14 @@ const AuthLayout = () => {
       <BrandPanel />
 
       <Stack sx={{ px: { xs: 2.5, sm: 4 }, py: { xs: 3, md: 6 } }}>
-        <Box
-          component={Link}
-          to={PATH_AUTH.general.welcome}
-          sx={{ display: { xs: "flex", md: "none" }, width: "fit-content" }}
-        >
-          <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
-        </Box>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Box component={Link} to={PATH_AUTH.general.welcome} sx={{ display: { xs: "flex", md: "none" } }}>
+            <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
+          </Box>
+          <Box sx={{ ml: "auto" }}>
+            <AppearanceMenu />
+          </Box>
+        </Stack>
         <Box component="main" sx={{ width: "100%", maxWidth: 420, mx: "auto", my: "auto", py: 4 }}>
           <Outlet />
         </Box>
@@ -71,7 +73,7 @@ const AuthLayout = () => {
             aria-label="Reload Whisprl"
             sx={{
               position: "fixed",
-              top: 16,
+              bottom: 16,
               right: 16,
               bgcolor: "primary.main",
               color: "primary.contrastText",

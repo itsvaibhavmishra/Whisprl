@@ -3,6 +3,7 @@ import { GithubLogo, InstagramLogo, LinkedinLogo } from "phosphor-react";
 import { Link as RouterLink } from "react-router-dom";
 
 import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
+import AppearanceMenu from "@/components/AppearanceMenu";
 import { PORTFOLIO_URL, SOURCE_URL } from "@/config";
 import { PATH_AUTH, PATH_DOCS } from "@/routes/paths";
 
@@ -29,13 +30,14 @@ const SiteHeader = () => (
         height={52}
       />
     </Box>
-    <Stack component="nav" aria-label="Account" direction="row" spacing={1}>
+    <Stack component="nav" aria-label="Account" direction="row" spacing={1} alignItems="center">
       <Button component={RouterLink} to={PATH_AUTH.general.login} color="inherit">
         Log in
       </Button>
       <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained">
         Create account
       </Button>
+      <AppearanceMenu />
     </Stack>
   </Stack>
 );
