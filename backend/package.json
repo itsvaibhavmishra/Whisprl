@@ -18,7 +18,7 @@
     "MERNChat"
   ],
   "author": "Vaibhaw Mishra",
-  "license": "MIT",
+  "license": "CC0-1.0",
   "devDependencies": {
     "nodemon": "^3.1.7"
   },
