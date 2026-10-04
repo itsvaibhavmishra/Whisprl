@@ -68,10 +68,12 @@ upsert_pull_request() {
     if [[ -z "$existing" ]]; then
         local create_labels=()
         for label in "$@"; do create_labels+=(--label "$label"); done
-        gh pr create --base "$base" --head "$head" --title "$title" --body "$body" "${create_labels[@]}"
+        # bash 3.2, which macOS ships, counts an empty array as unset and set -u then aborts.
+        gh pr create --base "$base" --head "$head" --title "$title" --body "$body" \
+            ${create_labels[@]+"${create_labels[@]}"}
         return
     fi
 
     printf '\nupdating the open %s into %s pull request, #%s\n' "$head" "$base" "$existing"
-    gh pr edit "$existing" --title "$title" --body "$body" "${labels[@]}"
+    gh pr edit "$existing" --title "$title" --body "$body" ${labels[@]+"${labels[@]}"}
 }
