@@ -19,7 +19,6 @@
     - Renamed throughout from TwinkConnect to Whisprl: the page title and social metadata, the sidebar and welcome screens, the OTP and password reset emails, and every link
 
   - Fixed:
-    - The frontend `.env` template still greeted a new contributor with the old project name
 
   - Developers:
     - One gate, `scripts/check.sh`, run by CI on every pull request: loads every backend module, runs the frontend tests and builds the frontend
