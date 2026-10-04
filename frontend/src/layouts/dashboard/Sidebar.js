@@ -19,7 +19,7 @@ import { SignOut } from "phosphor-react";
 import { useSelector, useDispatch } from "react-redux";
 import { LogoutUser } from "../../redux/slices/actions/authActions";
 
-import WhisprlLogo from "../../assets/icons/logo/Whisprl.png";
+import WhisprlLogo from "@/assets/icons/logo/WhisprlMark.webp";
 import { Nav_Buttons, Profile_Menu } from "../../data";
 import ThemeSwitch from "../../components/ThemeSwitch";
 import useSettings from "../../hooks/useSettings";

@@ -16,6 +16,7 @@
   - New:
 
   - Improvements:
+    - The artwork loads several times faster, just as sharp
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

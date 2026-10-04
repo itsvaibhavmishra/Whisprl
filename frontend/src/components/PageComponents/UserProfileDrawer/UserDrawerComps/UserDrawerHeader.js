@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { XCircle } from "phosphor-react";
 
-import catDoodle from "../../../../assets/backgrounds/catDoodle.png";
+import catDoodle from "@/assets/backgrounds/catDoodle.webp";
 import getAvatar from "../../../../utils/createAvatar";
 
 const UserDrawerHeader = ({ toggleDrawer, userData, isLoading }) => {
