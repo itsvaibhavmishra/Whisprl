@@ -161,19 +161,17 @@ const Composer = () => (
   </Stack>
 );
 
-const HeroConversation = () => (
+export const ChatWindow = ({ label, children, sx }) => (
   <Box
     sx={{
       width: "100%",
-      maxWidth: 440,
-      mx: { xs: "auto", md: 0 },
-      ml: { md: "auto" },
       bgcolor: "background.paper",
       border: 1,
       borderColor: "divider",
       borderRadius: "28px",
       boxShadow: (theme) => theme.customShadows?.z24,
       overflow: "hidden",
+      ...sx,
     }}
   >
     <Stack
@@ -209,19 +207,23 @@ const HeroConversation = () => (
       </Box>
     </Stack>
 
-    <Stack
-      component="ol"
-      aria-label="An example conversation on Whisprl"
-      spacing={1.25}
-      sx={{ listStyle: "none", m: 0, px: 2.5, py: 3 }}
-    >
-      {SCHEDULE.map((message, position) => (
-        <Message key={position} {...message} />
-      ))}
+    <Stack component="ol" aria-label={label} spacing={1.25} sx={{ listStyle: "none", m: 0, px: 2.5, py: 3 }}>
+      {children}
     </Stack>
 
     <Composer />
   </Box>
+);
+
+const HeroConversation = () => (
+  <ChatWindow
+    label="An example conversation on Whisprl"
+    sx={{ maxWidth: 440, mx: { xs: "auto", md: 0 }, ml: { md: "auto" } }}
+  >
+    {SCHEDULE.map((message, position) => (
+      <Message key={position} {...message} />
+    ))}
+  </ChatWindow>
 );
 
 export default HeroConversation;

@@ -4,10 +4,7 @@ import { PATH_AUTH, PATH_DASHBOARD, PATH_DOCS } from "./routes/paths";
 export const defaultSettings = {
   themeMode: "dark",
   themeDirection: "ltr",
-  themeContrast: "default",
-  themeLayout: "horizontal",
   themeColorPresets: "default",
-  themeStretch: false,
 };
 
 export const NAVBAR = {

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, useMediaQuery } from '@mui/material';
 import {
   createTheme,
   ThemeProvider as MUIThemeProvider,
@@ -20,7 +20,8 @@ ThemeProvider.propTypes = {
 export default function ThemeProvider({ children }) {
   const { themeMode, themeDirection } = useSettings();
 
-  const isLight = themeMode === 'light';
+  const deviceIsDark = useMediaQuery('(prefers-color-scheme: dark)');
+  const isLight = themeMode === 'system' ? !deviceIsDark : themeMode === 'light';
 
   const themeOptions = useMemo(
     () => ({

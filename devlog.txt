@@ -16,6 +16,8 @@
   - New:
     - Terms and conditions, in plain language
     - Cover pictures, on a redesigned profile page that is the card your friends see
+    - A System theme that follows your device
+    - Change your password from settings
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -23,6 +25,7 @@
     - Search results and shared links show a proper title, description and preview image for each page
     - Redesigned log in, sign up, email verification and password reset pages
     - Password fields show the rules as you type, and each has its own show button
+    - Redesigned settings, with a live preview of your theme and accent colour
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
