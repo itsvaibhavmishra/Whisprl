@@ -15,6 +15,8 @@ export const PATH_AUTH = {
   root: ROOTS_DASHBOARD,
   general: {
     welcome: path(ROOTS_DASHBOARD, "auth/welcome"),
+    login: path(ROOTS_DASHBOARD, "auth/login"),
+    register: path(ROOTS_DASHBOARD, "auth/register"),
   },
 };
 
