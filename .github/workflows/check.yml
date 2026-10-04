@@ -1,0 +1,46 @@
+name: Check
+
+# The gate for every change. Builds from a clean checkout and runs the same command used
+# locally, so a missing source file or a lint regression fails here rather than at release.
+
+on:
+  pull_request:
+    branches: [production, rc]
+  push:
+    branches: [production, rc]
+  workflow_dispatch:
+
+# One in-flight run per branch: a newer push cancels the older run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install backend
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend
+        run: npm ci
+        working-directory: frontend
+
+      # One invocation, so a single failure surfaces everything rather than stopping at the
+      # first task.
+      - name: Gate
+        run: scripts/check.sh
