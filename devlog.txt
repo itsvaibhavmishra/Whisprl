@@ -27,6 +27,7 @@
     - Password fields show the rules as you type, and each has its own show button
     - Redesigned settings, with a live preview of your theme and accent colour
     - Pick your theme and accent colour from the welcome and log in pages
+    - One Whisprl logo everywhere, including the browser tab
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

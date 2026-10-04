@@ -261,11 +261,15 @@ $ npm run build
 ```
 ├── frontend/
 │   ├── public/
+│   │   ├── apple-touch-icon.png
 │   │   ├── favicon.ico
+│   │   ├── icon-192.png
+│   │   ├── icon-512.png
 │   │   ├── index.html
-│   │   ├── logo.ico
 │   │   ├── manifest.json
+│   │   ├── og-image.png
 │   │   ├── robots.txt
+│   │   ├── sitemap.txt
 │   │   ├── sitemap.xml
 │   │   ├── _redirects
 │   ├── src/
@@ -286,10 +290,10 @@ $ npm run build
 │   │   │   │   │   ├── flag_ja.svg
 │   │   │   │   │   ├── flag_vn.svg
 │   │   │   │   ├── logo/
-│   │   │   │   │   ├── Whisprl-old.png
 │   │   │   │   │   ├── Whisprl.png
-│   │   │   │   │   ├── WhisprlSub.png
-│   │   │   │   │   ├── VaibhawMishra.ico
+│   │   │   │   │   ├── Whisprl.webp
+│   │   │   │   │   ├── WhisprlAvatar.webp
+│   │   │   │   │   ├── WhisprlMark.webp
 │   │   │   ├── Illustration/
 │   │   │   │   ├── Animations/
 │   │   │   │   │   ├── Cat404.json
