@@ -68,7 +68,7 @@ export const defaultLang = allLangs[0]; // Default Language => English
 
 export const DEFAULT_PATH = PATH_DASHBOARD.general.app;
 export const DEFAULT_AUTH = PATH_AUTH.general.welcome;
-export const DEFAULT_DOCS = PATH_DOCS.general.docs;
+export const DEFAULT_DOCS = PATH_DOCS.general.tnc;
 
 export const SITE_URL = "https://whisprl.netlify.app";
 export const SOURCE_URL = "https://github.com/itsvaibhavmishra/Whisprl";

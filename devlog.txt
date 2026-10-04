@@ -14,6 +14,7 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Terms and conditions, in plain language
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -24,6 +25,7 @@
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
     - The terms link on the sign up page opens the terms rather than the log in page
+    - /docs opens the terms instead of a page that does not exist
 
   - Developers:
     - The frontend has its first tests, and the gate runs them
