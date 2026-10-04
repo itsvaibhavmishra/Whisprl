@@ -1,50 +1,30 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  IconButton,
-  InputAdornment,
-  Stack,
-} from "@mui/material";
-import { Eye, EyeSlash } from "phosphor-react";
+import { Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RegisterUser } from "../../redux/slices/actions/authActions";
 
-import FormProvider, { RHFTextField } from "../../components/hook-form";
+import { nameRule, newPasswordRule } from "@/utils/formRules";
+import FormProvider, { PasswordChecklist, RHFPasswordField, RHFTextField } from "@/components/hook-form";
 
 const RegisterForm = () => {
   const { isLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  const [showPassword, setShowPassword] = useState(false);
   const recaptchaRef = useRef(null);
 
   const RegisterSchema = Yup.object().shape({
-    firstName: Yup.string()
-      .required("First name required")
-      .min(3, "First name must be at least 3 characters long")
-      .max(16, "First name cannot be more than 16 characters long")
-      .matches(/^[a-zA-Z]+$/, "Name can only contain alphabets"),
-    lastName: Yup.string()
-      .required("Last name required")
-      .min(3, "Last name must be at least 3 characters long")
-      .max(16, "Last name cannot be more than 16 characters long")
-      .matches(/^[a-zA-Z]+$/, "Name can only contain alphabets"),
+    firstName: nameRule("First name"),
+    lastName: nameRule("Last name"),
 
     email: Yup.string().required("Email Required").email("Invalid Email"),
 
-    password: Yup.string()
-      .required("Password Required")
-      .min(8, "Password must be 8 characters long")
-      .max(16, "Password cannot be more than 16 characters")
-      .matches(/[0-9]/, "Password requires a number")
-      .matches(/[a-z]/, "Password requires a lowercase letter")
-      .matches(/[A-Z]/, "Password requires an uppercase letter")
-      .matches(/[^\w]/, "Password requires a symbol"),
+    password: newPasswordRule,
   });
 
   const defaultValues = {
@@ -83,25 +63,8 @@ const RegisterForm = () => {
           <RHFTextField name="lastName" label="Last name" />
         </Stack>
         <RHFTextField name="email" label="Email address" />
-        <RHFTextField
-          name="password"
-          label="Password"
-          type={showPassword ? "text" : "password"}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => {
-                    setShowPassword(!showPassword);
-                  }}
-                >
-                  {showPassword ? <Eye /> : <EyeSlash />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <RHFPasswordField name="password" label="Password" autoComplete="new-password" />
+        <PasswordChecklist name="password" />
 
         <ReCAPTCHA
           ref={recaptchaRef}

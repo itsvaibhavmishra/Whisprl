@@ -1,20 +1,15 @@
 import * as Yup from "yup";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  IconButton,
-  InputAdornment,
-  Stack,
-} from "@mui/material";
-import { Eye, EyeSlash } from "phosphor-react";
+import { Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { useSearchParams } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import { ResetPassword } from "../../redux/slices/actions/authActions";
 
-import FormProvider, { RHFTextField } from "../../components/hook-form";
+import { newPasswordRule } from "@/utils/formRules";
+import FormProvider, { PasswordChecklist, RHFPasswordField } from "@/components/hook-form";
 
 const ResetPasswordForm = () => {
   const { isLoading } = useSelector((state) => state.auth);
@@ -22,17 +17,9 @@ const ResetPasswordForm = () => {
 
   const [queryParameters] = useSearchParams();
 
-  const [showPassword, setShowPassword] = useState(false);
 
   const NewPasswordSchema = Yup.object().shape({
-    password: Yup.string()
-      .required("Password Required")
-      .min(8, "Password must be at least 8 characters long")
-      .max(16, "Password cannot be more than 16 characters")
-      .matches(/[0-9]/, "Password requires a number")
-      .matches(/[a-z]/, "Password requires a lowercase letter")
-      .matches(/[A-Z]/, "Password requires an uppercase letter")
-      .matches(/[^\w]/, "Password requires a symbol"),
+    password: newPasswordRule,
 
     passwordConfirm: Yup.string()
       .required("Password Required")
@@ -63,30 +50,9 @@ const ResetPasswordForm = () => {
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2}>
-        <RHFTextField
-          name="password"
-          label="New password"
-          type={showPassword ? "text" : "password"}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => {
-                    setShowPassword(!showPassword);
-                  }}
-                >
-                  {showPassword ? <Eye /> : <EyeSlash />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-        <RHFTextField
-          name="passwordConfirm"
-          label="Confirm new password"
-          type={showPassword ? "text" : "password"}
-        />
+        <RHFPasswordField name="password" label="New password" autoComplete="new-password" />
+        <PasswordChecklist name="password" />
+        <RHFPasswordField name="passwordConfirm" label="Confirm new password" autoComplete="new-password" />
         <LoadingButton
           loading={isLoading}
           fullWidth

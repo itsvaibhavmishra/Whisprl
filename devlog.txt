@@ -21,6 +21,7 @@
     - A new welcome page: an example conversation, what Whisprl does, how it is built and the questions people ask
     - Search results and shared links show a proper title, description and preview image for each page
     - Redesigned log in, sign up, email verification and password reset pages
+    - Password fields show the rules as you type, and each has its own show button
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

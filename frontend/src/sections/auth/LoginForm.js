@@ -1,39 +1,26 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { Link as RouterLink } from "react-router-dom";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import {
-  IconButton,
-  InputAdornment,
-  Link,
-  Stack,
-} from "@mui/material";
+import { Link, Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
-import { Eye, EyeSlash } from "phosphor-react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { LoginUser } from "../../redux/slices/actions/authActions";
 
-import FormProvider, { RHFTextField } from "../../components/hook-form";
+import FormProvider, { RHFPasswordField, RHFTextField } from "@/components/hook-form";
 
 const LoginForm = () => {
   const { isLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  const [showPassword, setShowPassword] = useState(false);
   const recaptchaRef = useRef(null);
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required("Email Required").email("Invalid Email"),
-    password: Yup.string()
-      .required("Password Required")
-      .min(8, "Password must be at least 8 characters long")
-      .matches(/[0-9]/, "Password requires a number")
-      .matches(/[a-z]/, "Password requires a lowercase letter")
-      .matches(/[A-Z]/, "Password requires an uppercase letter")
-      .matches(/[^\w]/, "Password requires a symbol"),
+    password: Yup.string().required("Password required"),
   });
 
   const defaultValues = {
@@ -61,25 +48,7 @@ const LoginForm = () => {
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2}>
         <RHFTextField name="email" label="Email address" />
-        <RHFTextField
-          name="password"
-          label="Password"
-          type={showPassword ? "text" : "password"}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => {
-                    setShowPassword(!showPassword);
-                  }}
-                >
-                  {showPassword ? <Eye /> : <EyeSlash />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <RHFPasswordField name="password" label="Password" autoComplete="current-password" />
       </Stack>
       <Stack alignItems="flex-end" sx={{ mt: 1.5 }}>
         <Link
