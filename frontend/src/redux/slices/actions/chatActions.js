@@ -4,7 +4,10 @@ import { SetLoading, ShowSnackbar } from "../userSlice";
 
 import axios from "../../../utils/axios";
 import { socket } from "../../../utils/socket";
-import { closeActiveConversation } from "../chatSlice";
+import { closeActiveConversation, updatePendingMessage, removePendingMessage } from "../chatSlice";
+
+// Module-level map: localId → AbortController (non-serializable, not in Redux)
+export const uploadAbortControllers = new Map();
 
 // ------------- Get Conversation Thunk -------------
 export const GetConversations = createAsyncThunk(
@@ -87,16 +90,15 @@ export const GetMessages = createAsyncThunk(
   }
 );
 
-// ------------- Get Messages -------------
+// ------------- Send Message (text only) -------------
 export const SendMessage = createAsyncThunk(
   "message/send-message",
   async (messageData, { rejectWithValue, dispatch, getState }) => {
     try {
       const { data } = await axios.post("/message/send-message", messageData);
 
-      // Approach check
+      // For pessimistic mode, emit via socket
       if (!getState().chat.isOptimistic) {
-        // emit send message to socket
         socket.emit("send_message", data.message);
       }
       return data;
@@ -109,6 +111,52 @@ export const SendMessage = createAsyncThunk(
         })
       );
       return rejectWithValue(error.error);
+    }
+  }
+);
+
+// ------------- Upload File Message (per-file, async) -------------
+export const UploadFileMessage = createAsyncThunk(
+  "message/upload-file-message",
+  async (
+    { file, convo_id, caption, localId, batchId, batchIndex, batchTotal, signal },
+    { rejectWithValue, dispatch }
+  ) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("convo_id", convo_id);
+      if (caption) formData.append("message", caption);
+      if (batchId) {
+        formData.append("batchId", batchId);
+        formData.append("batchIndex", batchIndex);
+        formData.append("batchTotal", batchTotal);
+      }
+
+      const { data } = await axios.post("/message/send-message", formData, {
+        signal,
+      });
+
+      dispatch(removePendingMessage(localId));
+      return data;
+    } catch (error) {
+      // AbortError / CanceledError means user cancelled — keep status as 'cancelled'
+      if (
+        error?.name === "CanceledError" ||
+        error?.name === "AbortError" ||
+        error?.code === "ERR_CANCELED"
+      ) {
+        return rejectWithValue({ cancelled: true });
+      }
+
+      dispatch(updatePendingMessage({ localId, status: "failed" }));
+      dispatch(
+        ShowSnackbar({
+          severity: "error",
+          message: error?.error?.message || "Failed to upload file",
+        })
+      );
+      return rejectWithValue(error?.error || error);
     }
   }
 );

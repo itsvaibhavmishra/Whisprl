@@ -48,9 +48,9 @@ export const handleSocialUser = async (
       firstName = nameParts[0];
       lastName = nameParts.slice(1).join(" ");
     } else {
-      // If only one word in name, set firstName to the name and lastName to onTwink
+      // If only one word in name, set firstName to the name and lastName to onWhisprl
       firstName = name;
-      lastName = "onTwink";
+      lastName = "onWhisprl";
     }
 
     const newPass = generatePassword();

@@ -7,17 +7,12 @@ import {
   SearchFriends,
   UpdateProfile,
 } from "./actions/userActions";
+import { toast } from "sonner";
 
 // initial state for contacts menu
 const initialState = {
   isLoading: false,
   error: false,
-
-  snackbar: {
-    open: false,
-    message: null,
-    severity: null,
-  },
 
   showFriendsMenu: false,
 
@@ -44,9 +39,10 @@ const slice = createSlice({
   reducers: {
     // toggle snackbar
     openSnackbar(state, action) {
-      state.snackbar.open = true;
-      state.snackbar.severity = action.payload.severity;
-      state.snackbar.message = action.payload.message;
+      const { severity, message, description } = action.payload;
+      toast[severity](message, {
+        description,
+      });
     },
     closeSnackbar(state, action) {
       state.snackbar.open = false;
@@ -184,9 +180,9 @@ function handleRejected(state, action) {
 }
 
 // snackbar functions
-export function ShowSnackbar({ message, severity }) {
+export function ShowSnackbar({ severity, message, description }) {
   return async (dispatch, getState) => {
-    dispatch(slice.actions.openSnackbar({ message, severity }));
+    dispatch(slice.actions.openSnackbar({ severity, message, description }));
   };
 }
 

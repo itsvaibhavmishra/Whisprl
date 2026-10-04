@@ -31,3 +31,14 @@ body:hover::-webkit-scrollbar-thumb {
 body {
   transition: all 0.3s ease;
 }
+
+/* ------------- Toast styles ------------- */
+:where([data-sonner-toast]) :where([data-title]) {
+  font-size: medium;
+}
+
+:where([data-sonner-toast]) :where([data-description]) {
+  font-size: smaller;
+  opacity: 70%;
+}
+/* ----------------------------------------- */

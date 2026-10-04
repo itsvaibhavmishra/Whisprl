@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 Disallow:
-Sitemap: https://twinkconnect.netlify.app/sitemap.xml
+Sitemap: https://whisprl.netlify.app/sitemap.xml

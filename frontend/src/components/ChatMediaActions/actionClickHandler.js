@@ -1,47 +1,19 @@
-import { ShowSnackbar } from "../../redux/slices/userSlice";
+import { docSelectHandler } from "../upload/handlers/docSelectHandler";
+import { imageSelectHandler } from "../upload/handlers/imageSelectHandler";
 
-const actionHandler = (type, dispatch) => {
+const actionHandler = (type) => {
   switch (type) {
     case "gaming":
       return console.log("gaming click");
 
-    // handling photo click
     case "photo":
-      const acceptedFileTypes = [
-        "image/png",
-        "image/jpeg",
-        "image/gif",
-        "image/webp",
-      ];
-
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.accept = acceptedFileTypes.join(",");
-      fileInput.multiple = true;
-      fileInput.click();
-
-      // handling selected file
-      fileInput.addEventListener("change", (e) => {
-        const selectedFiles = Array.from(e.target.files);
-
-        selectedFiles.forEach((img) => {
-          console.log("image types: ", img.type);
-          if (!acceptedFileTypes.includes(img.type)) {
-            dispatch(
-              ShowSnackbar({
-                severity: "info",
-                message: "Selected file types are not allowed",
-              })
-            );
-          }
-        });
-
-        // console.log(selectedFiles);
-      });
+      // handling photo/video click
+      imageSelectHandler();
       break;
 
     case "document":
-      return console.log("doc click");
+      docSelectHandler();
+      break;
 
     case "contact":
       return console.log("contact click");

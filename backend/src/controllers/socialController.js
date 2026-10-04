@@ -68,7 +68,7 @@ export const githubAuth = async (req, res, next) => {
     const userEmail = await axios.get("https://api.github.com/user/emails", {
       headers: {
         Authorization: `Bearer ${githubToken.data.access_token}`,
-        "User-Agent": "TwinkConnect",
+        "User-Agent": "Whisprl",
       },
     });
 
@@ -77,7 +77,7 @@ export const githubAuth = async (req, res, next) => {
     const { data } = await axios.get("https://api.github.com/user", {
       headers: {
         Authorization: `Bearer ${githubToken.data.access_token}`,
-        "User-Agent": "TwinkConnect",
+        "User-Agent": "Whisprl",
       },
     });
 
@@ -124,7 +124,7 @@ export const linkedinAuth = async (req, res, next) => {
     const { data } = await axios.get("https://api.linkedin.com/v2/userinfo", {
       headers: {
         Authorization: `Bearer ${linkedinToken.data.access_token}`,
-        "User-Agent": "TwinkConnect",
+        "User-Agent": "Whisprl",
       },
     });
 

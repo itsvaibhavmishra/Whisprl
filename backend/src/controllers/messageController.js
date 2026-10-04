@@ -2,19 +2,23 @@ import createHttpError from "http-errors";
 import {
   createMessage,
   getConvoMessages,
+  getFileType,
   populateMessage,
   updateLatestMessage,
   validateFriendship,
+  validateMessageFiles,
 } from "../services/messageService.js";
+import { uploadFiles } from "../services/fileUploadService.js";
 import { ConversationModel } from "../models/index.js";
 
 // -------------------------- Send Message --------------------------
 export const sendMessage = async (req, res, next) => {
   try {
     const user_id = req.user._id;
-    const { message, convo_id, files } = req.body;
+    const { message, convo_id, batchId, batchIndex, batchTotal } = req.body;
+    const uploadedFile = req.file; // single file from multer
 
-    if (!convo_id || (!message && !files)) {
+    if (!convo_id || (!message && !uploadedFile)) {
       throw createHttpError.BadRequest("Invalid conversation id or message");
     }
 
@@ -35,11 +39,32 @@ export const sendMessage = async (req, res, next) => {
       await validateFriendship(user_id, convo_exists);
     }
 
+    // Handle single file upload to Cloudinary
+    let filesData = [];
+    if (uploadedFile) {
+      validateMessageFiles(uploadedFile);
+
+      const uploadResult = await uploadFiles(
+        "Chat Files",
+        uploadedFile,
+        convo_id.toString()
+      );
+
+      filesData = [{
+        url: uploadResult.fileUrls[0],
+        fileName: uploadedFile.originalname,
+        fileType: getFileType(uploadedFile.mimetype),
+        mimeType: uploadedFile.mimetype,
+        size: uploadedFile.size,
+      }];
+    }
+
     const msgData = {
       sender: user_id,
-      message,
+      message: message || "",
       conversation: convo_id,
-      files: files || [],
+      files: filesData,
+      ...(batchId && { batchId, batchIndex: Number(batchIndex), batchTotal: Number(batchTotal) }),
     };
 
     const newMessage = await createMessage(msgData);
@@ -80,7 +105,7 @@ export const socketSendMessage = async (socket, user_id, messageData) => {
 
     const convo_id = conversation._id;
 
-    if (!convo_id || (!message && !files)) {
+    if (!convo_id || (!message && (!files || files.length === 0))) {
       throw createHttpError.BadRequest("Invalid conversation id or message");
     }
 
