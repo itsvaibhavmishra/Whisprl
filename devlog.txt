@@ -18,7 +18,9 @@
   - Improvements:
 
   - Fixed:
+    - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
 
   - Developers:
+    - The frontend has its first tests, and the gate runs them
 
   - Internal:
