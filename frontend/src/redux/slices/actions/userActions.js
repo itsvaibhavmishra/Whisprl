@@ -3,57 +3,74 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ShowSnackbar } from "../userSlice";
 
 import axios from "../../../utils/axios";
-// Helper function to convert Blob URL to File
-const blobUrlToFile = async (blobUrl, fileName) => {
-  const response = await fetch(blobUrl);
-  const blob = await response.blob();
 
+const blobUrlToFile = async (blobUrl, fileName) => {
+  const blob = await (await fetch(blobUrl)).blob();
   return new File([blob], fileName, { type: blob.type });
 };
+
+const showError = (dispatch, error) =>
+  dispatch(
+    ShowSnackbar({
+      severity: error?.error?.status || "error",
+      message: error?.error?.message || "Something went wrong, please try again",
+    })
+  );
 
 // ------------- Update Profile Thunk -------------
 export const UpdateProfile = createAsyncThunk(
   "user/update-profile",
-  async (formValues, { rejectWithValue, dispatch }) => {
+  async ({ firstName, lastName, activityStatus, ...images }, { rejectWithValue, dispatch, getState }) => {
     try {
-      // Check if avatar is a Blob URL and convert it to File
-      if (formValues.avatar && formValues.avatar.startsWith("blob:")) {
-        const file = await blobUrlToFile(
-          formValues.avatar,
-          `${formValues.firstName}Avatar${Date.now()}`
-        );
-
-        formValues.avatar = file;
+      const saved = getState().user.user;
+      const formData = new FormData();
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("activityStatus", activityStatus);
+      for (const [kind, removeField] of [["avatar", "removeAvatar"], ["cover", "removeCover"]]) {
+        if (images[kind].startsWith("blob:")) {
+          formData.append(kind, await blobUrlToFile(images[kind], `${kind}.jpg`));
+        } else if (!images[kind] && saved[kind]) {
+          formData.append(removeField, "true");
+        }
       }
 
-      const formData = new FormData();
-      formData.append("avatar", formValues.avatar);
-      formData.append("userId", formValues.userId);
-      formData.append("firstName", formValues.firstName);
-      formData.append("lastName", formValues.lastName);
-      formData.append("activityStatus", formValues.activityStatus);
-
       const { data } = await axios.post("/user/update-profile", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
+      dispatch(ShowSnackbar({ severity: data.status, message: data.message }));
       return data;
     } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
+      showError(dispatch, error);
+      return rejectWithValue(error.error);
+    }
+  }
+);
+
+// ------------- Get My Profile Thunk -------------
+export const GetMyProfile = createAsyncThunk(
+  "user/me",
+  async (arg, { rejectWithValue, dispatch }) => {
+    try {
+      const { data } = await axios.get("/user/me");
+      return data;
+    } catch (error) {
+      showError(dispatch, error);
+      return rejectWithValue(error.error);
+    }
+  }
+);
+
+// ------------- Change Password Thunk -------------
+export const ChangePassword = createAsyncThunk(
+  "user/change-password",
+  async (passwords, { rejectWithValue, dispatch }) => {
+    try {
+      const { data } = await axios.post("/user/change-password", passwords);
+      dispatch(ShowSnackbar({ severity: data.status, message: data.message }));
+      return data;
+    } catch (error) {
+      showError(dispatch, error);
       return rejectWithValue(error.error);
     }
   }
@@ -72,12 +89,7 @@ export const SearchFriends = createAsyncThunk(
 
       return data;
     } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
+      showError(dispatch, error);
       return rejectWithValue(error.error);
     }
   }
@@ -92,12 +104,7 @@ export const GetFriends = createAsyncThunk(
 
       return data;
     } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
+      showError(dispatch, error);
       return rejectWithValue(error.error);
     }
   }
@@ -112,12 +119,7 @@ export const GetOnlineFriends = createAsyncThunk(
 
       return data;
     } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
+      showError(dispatch, error);
       return rejectWithValue(error.error);
     }
   }

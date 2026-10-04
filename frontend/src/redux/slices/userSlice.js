@@ -2,7 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 import axios from "../../utils/axios";
 
 import {
+  ChangePassword,
   GetFriends,
+  GetMyProfile,
   GetOnlineFriends,
   SearchFriends,
   UpdateProfile,
@@ -21,10 +23,12 @@ const initialState = {
     firstName: "",
     lastName: "",
     avatar: "",
+    cover: "",
     email: "",
     activityStatus: "",
     token: "",
   },
+  accountSummary: null,
 
   friends: [],
   onlineFriends: [],
@@ -114,10 +118,12 @@ const slice = createSlice({
         firstName: "",
         lastName: "",
         avatar: "",
+        cover: "",
         email: "",
         activityStatus: "",
         token: "",
       };
+      state.accountSummary = null;
       state.friends = [];
       state.onlineFriends = [];
     },
@@ -132,6 +138,23 @@ const slice = createSlice({
         state.error = false;
       })
       .addCase(UpdateProfile.rejected, handleRejected)
+
+      // --------- My Profile Builder ---------
+      .addCase(GetMyProfile.fulfilled, (state, action) => {
+        const { firstName, lastName, avatar, cover, email, activityStatus, ...summary } = action.payload.user;
+        state.user = { ...state.user, firstName, lastName, avatar, cover, email, activityStatus };
+        state.accountSummary = summary;
+      })
+
+      // --------- Change Password Builder ---------
+      .addCase(ChangePassword.pending, handlePending)
+      .addCase(ChangePassword.fulfilled, (state, action) => {
+        state.user.token = action.payload.token;
+        axios.defaults.headers.common.Authorization = `Bearer ${action.payload.token}`;
+        state.isLoading = false;
+        state.error = false;
+      })
+      .addCase(ChangePassword.rejected, handleRejected)
 
       // --------- Search Friends Builder ---------
       .addCase(SearchFriends.pending, handlePending)

@@ -15,6 +15,7 @@
 
   - New:
     - Terms and conditions, in plain language
+    - Cover pictures, on a redesigned profile page that is the card your friends see
 
   - Improvements:
     - The artwork loads several times faster, just as sharp

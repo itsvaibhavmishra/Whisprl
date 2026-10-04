@@ -1,101 +1,43 @@
-export const createImage = (url) =>
+const loadImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues on CodeSandbox
+    image.addEventListener("error", reject);
     image.src = url;
   });
 
-export function getRadianAngle(degreeValue) {
-  return (degreeValue * Math.PI) / 180;
-}
+const toRadians = (degrees) => (degrees * Math.PI) / 180;
 
-/**
- * Returns the new bounding area of a rotated rectangle.
- */
-export function rotateSize(width, height, rotation) {
-  const rotRad = getRadianAngle(rotation);
+const rotatedBounds = (width, height, radians) => ({
+  width: Math.abs(Math.cos(radians) * width) + Math.abs(Math.sin(radians) * height),
+  height: Math.abs(Math.sin(radians) * width) + Math.abs(Math.cos(radians) * height),
+});
 
-  return {
-    width:
-      Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
-    height:
-      Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
-  };
-}
+const cropImage = async (imageUrl, crop, rotation, maxWidth) => {
+  const image = await loadImage(imageUrl);
+  const radians = toRadians(rotation);
+  const bounds = rotatedBounds(image.width, image.height, radians);
 
-/**
- * This function was adapted from the one in the ReadMe of https://github.com/DominicTobias/react-image-crop
- */
-export default async function getCroppedImg(
-  imageSrc,
-  pixelCrop,
-  rotation = 0,
-  flip = { horizontal: false, vertical: false }
-) {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  const rotated = document.createElement("canvas");
+  rotated.width = bounds.width;
+  rotated.height = bounds.height;
+  const rotatedContext = rotated.getContext("2d");
+  rotatedContext.translate(bounds.width / 2, bounds.height / 2);
+  rotatedContext.rotate(radians);
+  rotatedContext.drawImage(image, -image.width / 2, -image.height / 2);
 
-  if (!ctx) {
-    return null;
-  }
+  const width = Math.min(crop.width, maxWidth);
+  const height = Math.round((width * crop.height) / crop.width);
+  const cropped = document.createElement("canvas");
+  cropped.width = width;
+  cropped.height = height;
+  cropped
+    .getContext("2d")
+    .drawImage(rotated, crop.x, crop.y, crop.width, crop.height, 0, 0, width, height);
 
-  const rotRad = getRadianAngle(rotation);
-
-  // calculate bounding box of the rotated image
-  const { width: bBoxWidth, height: bBoxHeight } = rotateSize(
-    image.width,
-    image.height,
-    rotation
+  return new Promise((resolve) =>
+    cropped.toBlob((blob) => resolve(URL.createObjectURL(blob)), "image/jpeg", 0.9)
   );
+};
 
-  // set canvas size to match the bounding box
-  canvas.width = bBoxWidth;
-  canvas.height = bBoxHeight;
-
-  // translate canvas context to a central location to allow rotating and flipping around the center
-  ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
-  ctx.rotate(rotRad);
-  ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
-  ctx.translate(-image.width / 2, -image.height / 2);
-
-  // draw rotated image
-  ctx.drawImage(image, 0, 0);
-
-  const croppedCanvas = document.createElement("canvas");
-
-  const croppedCtx = croppedCanvas.getContext("2d");
-
-  if (!croppedCtx) {
-    return null;
-  }
-
-  // Set the size of the cropped canvas
-  croppedCanvas.width = pixelCrop.width;
-  croppedCanvas.height = pixelCrop.height;
-
-  // Draw the cropped image onto the new canvas
-  croppedCtx.drawImage(
-    canvas,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height
-  );
-
-  // As Base64 string
-  // return croppedCanvas.toDataURL('image/jpeg');
-
-  // As a blob
-  return new Promise((resolve, reject) => {
-    croppedCanvas.toBlob((file) => {
-      resolve(URL.createObjectURL(file));
-    }, "image/jpeg");
-  });
-}
+export default cropImage;

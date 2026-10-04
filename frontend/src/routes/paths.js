@@ -8,6 +8,9 @@ export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
   general: {
     app: path(ROOTS_DASHBOARD, "app"),
+    profile: path(ROOTS_DASHBOARD, "profile"),
+    contact: path(ROOTS_DASHBOARD, "contact"),
+    settings: path(ROOTS_DASHBOARD, "settings"),
   },
 };
 

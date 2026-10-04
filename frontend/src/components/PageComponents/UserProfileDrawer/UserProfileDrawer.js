@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 
-import { Drawer, Box, useTheme } from "@mui/material";
+import { Drawer, Box, IconButton, Skeleton, useTheme } from "@mui/material";
+import { X } from "phosphor-react";
 
-import { UserDrawerHeader, UserDrawerMain } from "./UserDrawerComps";
+import ProfileHero from "@/components/ProfileHero";
+import { UserDrawerMain } from "./UserDrawerComps";
 
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
@@ -47,12 +49,20 @@ const UserProfileDrawer = ({
           overflowX: "hidden",
         }}
       >
-        {/* Header */}
-        <UserDrawerHeader
-          toggleDrawer={toggleDrawer}
-          userData={userData}
-          isLoading={isUserDataLoading}
-        />
+        <Box sx={{ position: "relative", maxWidth: 1040, mx: "auto", p: { xs: 2, md: 3 } }}>
+          {isUserDataLoading || !userData ? (
+            <Skeleton variant="rounded" sx={{ aspectRatio: "3 / 1", height: "auto", borderRadius: "28px" }} />
+          ) : (
+            <ProfileHero profile={userData} />
+          )}
+          <IconButton
+            aria-label="Close profile"
+            onClick={toggleDrawer}
+            sx={{ position: "absolute", top: { xs: 28, md: 36 }, left: { xs: 28, md: 36 }, bgcolor: "background.paper", "&:hover": { bgcolor: "background.default" } }}
+          >
+            <X size={20} />
+          </IconButton>
+        </Box>
 
         {/* Main */}
         <UserDrawerMain
