@@ -6,6 +6,7 @@ import ThemeProvider from "./theme";
 import { Toaster } from "sonner";
 
 import HelmetHandler from "./utils/helmetHandler";
+import ScrollToTop from "@/components/ScrollToTop";
 
 import ReactGA from "react-ga4";
 import useSettings from "./hooks/useSettings";
@@ -40,6 +41,7 @@ function App() {
       </ThemeProvider>
 
       <HelmetHandler />
+      <ScrollToTop />
     </>
   );
 }
