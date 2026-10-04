@@ -482,10 +482,16 @@ export const refreshToken = async (req, res, next) => {
       process.env.JWT_REFRESH_SECRET
     );
 
+    if (!check) throw createHttpError.Forbidden("Please login");
+
     const user = await UserModel.findOne({ _id: check.userId, verified: true });
 
     if (!user) {
       throw createHttpError.NotFound("User not verified/does not exist");
+    }
+
+    if (user.changedPasswordAfter(check.iat)) {
+      throw createHttpError.Unauthorized("Password changed, please log in again");
     }
 
     // generating user token
