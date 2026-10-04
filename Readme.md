@@ -179,11 +179,20 @@ $ npm run build
 ## 🪜 Folder Structure
 
   ```
+├── .github/
+│   ├── ...
 ├──backend/
 │   ├── ...
+├── docs/
+│   ├── development.md
 ├──frontend/
 │   ├── ...
+├── scripts/
+│   ├── ...
+├── .gitattributes
 ├── .gitignore
+├── CHANGELOG.md
+├── devlog.txt
 ├── LICENSE
 ├── Readme.md
   ```

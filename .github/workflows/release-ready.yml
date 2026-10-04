@@ -1,0 +1,77 @@
+# Merging into production publishes, so a release that was going to fail should fail while it is
+# still a pull request somebody can fix, rather than as a red run against production.
+#
+# The `skip release` label turns all of this off, because that label means the merge is not a
+# release and none of these questions apply to it.
+name: release-ready
+
+on:
+  pull_request:
+    branches: [production]
+    # labeled and unlabeled matter: adding `skip release` has to re-run this, or the pull
+    # request keeps a red check it can never clear.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  ready:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check the release is ready to cut
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SKIPPED: ${{ contains(github.event.pull_request.labels.*.name, 'skip release') }}
+        shell: bash
+        run: |
+          if [[ "${SKIPPED}" == "true" ]]; then
+            echo "::notice::skip release is on this pull request, so it is not a release"
+            exit 0
+          fi
+
+          VERSION=$(node -p "require('./frontend/package.json').version")
+          BASE=$(git show "origin/${GITHUB_BASE_REF}:frontend/package.json" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
+          echo "production is on ${BASE}, this pull request is on ${VERSION}"
+
+          FAILED=0
+
+          # Equal means somebody forgot, lower means a bad merge. Neither can be published.
+          if ! printf '%s\n%s\n' "${BASE}" "${VERSION}" | sort -C -V || [[ "${VERSION}" == "${BASE}" ]]; then
+            echo "::error::the version is ${VERSION}, which is not above ${BASE}. Bump frontend/package.json frontend/package-lock.json backend/package.json backend/package-lock.json, or add the skip release label."
+            FAILED=1
+          fi
+
+          # release.sh bumps both packages together, so a mismatch means one was edited by hand.
+          BACKEND_VERSION=$(node -p "require('./backend/package.json').version")
+          if [[ "${BACKEND_VERSION}" != "${VERSION}" ]]; then
+            echo "::error::backend/package.json is on ${BACKEND_VERSION} but frontend/package.json is on ${VERSION}. They have to match."
+            FAILED=1
+          fi
+
+          if ! grep -qE "^## \[${VERSION}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no dated '## [${VERSION}] - YYYY-MM-DD' heading."
+            FAILED=1
+          fi
+
+          # Release prep empties it. Entries still sitting here mean the changelog is missing
+          # something that is about to ship. Entries are indented and the headings they sit
+          # under are not, so anchoring on the indent is what tells them apart.
+          if grep -qE '^ {4,}- \S' devlog.txt; then
+            echo "::error::devlog.txt still has entries, so they are not in the changelog."
+            FAILED=1
+          fi
+
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::v${VERSION} has already been released. Pick a higher version."
+            FAILED=1
+          fi
+
+          if [[ "${FAILED}" == "1" ]]; then
+            exit 1
+          fi
+          echo "ready to release ${VERSION}"

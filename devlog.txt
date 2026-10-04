@@ -1,0 +1,28 @@
+# Temporary changelog - x.x.x
+#
+# Every pull request into rc adds its line here, under the heading that matches who the
+# change is for. Releasing empties this file into CHANGELOG.md under the new version, so
+# nothing has to be remembered or reconstructed from commit messages at release time.
+#
+#   New          something you could not do before
+#   Improvements something you could do, now better
+#   Fixed        something that was wrong
+#   Developers   anything that changes how the app is built or tested
+#   Internal     refactors and housekeeping nobody outside would notice
+#
+# Headings sit at two spaces, entries at four. release-ready.yml relies on that difference to
+# tell an entry from an empty heading, so keep the indentation as it is.
+
+  - New:
+
+  - Improvements:
+
+  - Fixed:
+
+  - Developers:
+    - One gate, `scripts/check.sh`, run by CI on every pull request: loads every backend module, runs the frontend tests and builds the frontend
+    - Release flow: `scripts/release.sh` and `scripts/skip-release.sh`, this devlog, `CHANGELOG.md`, the `release-ready` check and version-controlled branch rulesets
+
+  - Internal:
+    - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
+    - `frontend/build` and `frontend/coverage` are ignored where they are actually written
