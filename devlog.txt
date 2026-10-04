@@ -16,14 +16,9 @@
   - New:
 
   - Improvements:
-    - Renamed throughout from TwinkConnect to Whisprl: the page title and social metadata, the sidebar and welcome screens, the OTP and password reset emails, and every link
 
   - Fixed:
 
   - Developers:
-    - One gate, `scripts/check.sh`, run by CI on every pull request: loads every backend module, runs the frontend tests and builds the frontend
-    - Release flow: `scripts/release.sh` and `scripts/skip-release.sh`, this devlog, `CHANGELOG.md`, the `release-ready` check and version-controlled branch rulesets
 
   - Internal:
-    - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
-    - `frontend/build` and `frontend/coverage` are ignored where they are actually written
