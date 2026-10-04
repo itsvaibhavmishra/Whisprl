@@ -1,103 +1,99 @@
 import createHttpError from "http-errors";
 import validator from "validator";
 
-import { deleteFile, uploadFiles } from "../services/fileUploadService.js";
-import { searchForUsers, validateAvatar } from "../services/userService.js";
+import { generateLoginTokens } from "../services/authService.js";
+import {
+  changePassword,
+  getOwnProfile,
+  PUBLIC_PROFILE_FIELDS,
+  saveProfile,
+  searchForUsers,
+} from "../services/userService.js";
 import { UserModel } from "../models/index.js";
 
 // -------------------------- Update Profile --------------------------
 export const updateProfile = async (req, res, next) => {
   try {
     const { firstName, lastName, activityStatus } = req.body;
-    const avatar = req.file;
     const user = req.user;
 
-    // check for empty fields
     if (!firstName || !lastName || !activityStatus) {
       throw createHttpError.BadRequest(
         "Required fields: firstName, lastName, activityStatus"
       );
     }
 
-    // Name validation
     if (
       !validator.isLength(firstName, { min: 3, max: 16 }) ||
       !validator.isLength(lastName, { min: 3, max: 16 })
     ) {
       throw createHttpError.BadRequest(
-        "First and Last Name each must be between 3-16 characters long"
+        "First and last name must each be 3 to 16 characters long"
       );
     }
 
     if (!validator.isAlpha(firstName) || !validator.isAlpha(lastName)) {
       throw createHttpError.BadRequest(
-        "First Name and Last Name can only contain alphabetic characters"
+        "First and last name can only contain letters"
       );
     }
 
-    // Activity Status validation
     if (!validator.isLength(activityStatus, { min: 3, max: 50 })) {
       throw createHttpError.BadRequest(
-        "Activity Status must be between 3-50 characters long"
+        "Status must be 3 to 50 characters long"
       );
     }
 
-    // url for avatar will be stored here
-    let fileUrls = [];
-
-    if (avatar) {
-      // validate avatar
-      validateAvatar(avatar);
-
-      // set main folder for cloudinary
-      const mainFolder = "User Avatars";
-
-      // delete existing avatar
-      if (user.avatar) {
-        const fileName = user.avatar.split("/").pop().split(".")[0];
-
-        await deleteFile(mainFolder, `${firstName} ${user._id}`, fileName);
-      }
-
-      // Upload files to Cloudinary
-      const uploadResult = await uploadFiles(
-        mainFolder,
-        avatar,
-        `${firstName} ${user._id}`
-      );
-
-      fileUrls = uploadResult.fileUrls;
-    } else {
-      // set main folder for cloudinary
-      const mainFolder = "User Avatars";
-
-      // delete existing avatar
-      if (user.avatar) {
-        const fileName = user.avatar.split("/").pop().split(".")[0];
-
-        await deleteFile(mainFolder, `${firstName} ${user._id}`, fileName);
-      }
-    }
-
-    // updating user
-    user.set({
-      firstName: firstName,
-      lastName: lastName,
-      avatar: avatar ? fileUrls[0] : "",
-      activityStatus: activityStatus,
-    });
-
-    user.save();
+    const uploads = { avatar: req.files?.avatar?.[0], cover: req.files?.cover?.[0] };
+    const removals = { avatar: req.body.removeAvatar === "true", cover: req.body.removeCover === "true" };
+    await saveProfile(user, { firstName, lastName, activityStatus }, uploads, removals);
 
     return res.status(200).json({
       status: "success",
-      message: "Profile updated successfully",
+      message: "Profile saved",
       user: {
         firstName: user.firstName,
         lastName: user.lastName,
         avatar: user.avatar,
+        cover: user.cover,
         activityStatus: user.activityStatus,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Own Profile --------------------------
+export const getMyProfile = async (req, res, next) => {
+  try {
+    const user = await getOwnProfile(req.user);
+    return res.status(200).json({ status: "success", user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Change Password --------------------------
+export const updatePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      throw createHttpError.BadRequest(
+        "Required fields: currentPassword, newPassword"
+      );
+    }
+
+    await changePassword(req.user, currentPassword, newPassword);
+
+    // Changing the password expires every older token, this session's included.
+    const token = await generateLoginTokens(req.user, res);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Password changed",
+      token,
     });
   } catch (error) {
     next(error);
@@ -146,9 +142,7 @@ export const getUserData = async (req, res, next) => {
       throw createHttpError.BadRequest("Query required");
     }
 
-    const userData = await UserModel.findById(id).select(
-      "-password -passwordChangedAt -verified -onlineStatus -friends"
-    );
+    const userData = await UserModel.findById(id).select(PUBLIC_PROFILE_FIELDS);
 
     res.status(200).json({
       status: "success",

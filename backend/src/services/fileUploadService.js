@@ -55,36 +55,23 @@ export const uploadFiles = async (mainFolder, files, subFolder) => {
   }
 };
 
-// delete a single file
-export const deleteFile = async (mainFolder, subFolder, fileName) => {
-  try {
-    const result = await cloudinary.v2.uploader.destroy(
-      `${mainFolder}/${subFolder}/${fileName}`
-    );
+// Cloudinary names a file by the path after "/upload/", minus the version and the extension.
+const publicIdFromUrl = (fileUrl) => {
+  const [, path] = fileUrl.split("/upload/");
+  return decodeURIComponent(path.replace(/^v\d+\//, "").replace(/\.[^/.]+$/, ""));
+};
 
-    if (result.result === "ok") {
-      // File deleted successfully, check if the folder is empty
-      const folderResult = await cloudinary.v2.api.resources({
-        type: "upload",
-        prefix: `${mainFolder}/${subFolder}/`,
-      });
+export const isCloudinaryFile = (fileUrl) =>
+  typeof fileUrl === "string" && fileUrl.includes("res.cloudinary.com") && fileUrl.includes("/upload/");
 
-      if (folderResult.resources.length === 0) {
-        // Folder is empty, delete the folder
-        await cloudinary.v2.api.delete_folder(`${mainFolder}/${subFolder}`);
-      }
+export const deleteFile = async (fileUrl) => {
+  const publicId = publicIdFromUrl(fileUrl);
+  const { result } = await cloudinary.v2.uploader.destroy(publicId);
+  if (result !== "ok") return;
 
-      return {
-        status: "success",
-        message: `File ${fileName} deleted successfully`,
-      };
-    } else {
-      return {
-        status: "info",
-        message: "File does not exist. No actions executed",
-      };
-    }
-  } catch (error) {
-    throw error;
+  const folder = publicId.slice(0, publicId.lastIndexOf("/"));
+  const { resources } = await cloudinary.v2.api.resources({ type: "upload", prefix: `${folder}/` });
+  if (resources.length === 0) {
+    await cloudinary.v2.api.delete_folder(folder);
   }
 };

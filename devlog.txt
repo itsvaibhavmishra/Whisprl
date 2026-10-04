@@ -28,6 +28,8 @@
     - /docs opens the terms instead of a page that does not exist
     - Following a link opens the next page at the top, not partway down
     - Changing or resetting your password now logs out every other device
+    - Saving your profile no longer deletes your photo
+    - Other people can no longer see private account details when they open your profile
 
   - Developers:
     - The frontend has its first tests, and the gate runs them
