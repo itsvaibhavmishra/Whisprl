@@ -1,0 +1,99 @@
+name: Build & Release
+
+# Builds the release artifact and, depending on the trigger:
+#  - push to rc: a sandbox that exercises the whole build and publish path and updates a
+#    rolling "rc" pre-release. This is the pre-merge gate, so a broken release pipeline
+#    fails before production rather than after it.
+#  - push to production: publishes a real GitHub Release tagged v<VERSION>, and only when that tag
+#    does not already exist, so an ordinary merge that did not bump the version cannot cut a
+#    duplicate release.
+
+on:
+  push:
+    branches: [production, rc]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version & channel
+        id: cfg
+        run: |
+          VN=$(node -p "require('./frontend/package.json').version")
+          echo "name=$VN" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.ref_name }}" = "production" ]; then
+            echo "title=Whisprl $VN" >> "$GITHUB_OUTPUT"
+            if git ls-remote --tags origin "refs/tags/v$VN" | grep -q .; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::v$VN already released — bump the version to cut a new one."
+            else
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "title=Whisprl $VN (rc sandbox)" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.skip == 'false'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        if: steps.cfg.outputs.skip == 'false'
+        working-directory: frontend
+
+      - name: Build release artifact
+        if: steps.cfg.outputs.skip == 'false'
+        env:
+          REACT_APP_NODE: ${{ vars.REACT_APP_NODE }}
+          REACT_APP_API_ORIGIN: ${{ vars.REACT_APP_API_ORIGIN }}
+          REACT_APP_GA_ID: ${{ vars.REACT_APP_GA_ID }}
+          REACT_APP_GOOGLE_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GOOGLE_AUTH_CLIENT_ID }}
+          REACT_APP_GITHUB_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GITHUB_AUTH_CLIENT_ID }}
+          REACT_APP_LINKEDIN_AUTH_CLIENT_ID: ${{ vars.REACT_APP_LINKEDIN_AUTH_CLIENT_ID }}
+          REACT_APP_RECAPTCHA_CLIENT: ${{ vars.REACT_APP_RECAPTCHA_CLIENT }}
+        run: |
+          cd frontend
+          npm run build
+          tar -czf "../whisprl-frontend-${{ steps.cfg.outputs.name }}.tar.gz" -C build .
+
+      - name: Upload artifact
+        if: steps.cfg.outputs.skip == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisprl-frontend-${{ steps.cfg.outputs.name }}-${{ github.run_id }}
+          path: whisprl-frontend-${{ steps.cfg.outputs.name }}.tar.gz
+
+      - name: Publish rc sandbox pre-release
+        if: steps.cfg.outputs.skip == 'false' && github.ref_name == 'rc'
+        run: |
+          gh release delete rc --yes --cleanup-tag 2>/dev/null || true
+          gh release create rc "whisprl-frontend-${{ steps.cfg.outputs.name }}.tar.gz" \
+            --prerelease --target "${{ github.sha }}" \
+            --title "${{ steps.cfg.outputs.title }}" \
+            --notes "Sandbox build from rc — verifies the release pipeline. Not a stable release."
+
+      - name: Publish release
+        if: steps.cfg.outputs.skip == 'false' && github.ref_name == 'production'
+        run: |
+          # Release notes are that version's CHANGELOG section. Same script the release
+          # command uses, so the notes and the pull request body cannot drift apart.
+          python3 scripts/changelog.py section "${{ steps.cfg.outputs.name }}" > notes.md
+          gh release create "v${{ steps.cfg.outputs.name }}" "whisprl-frontend-${{ steps.cfg.outputs.name }}.tar.gz" \
+            --title "${{ steps.cfg.outputs.title }}" --notes-file notes.md

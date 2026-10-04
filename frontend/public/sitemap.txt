@@ -1,16 +1,16 @@
-https://twinkconnect.netlify.app/
+https://whisprl.netlify.app/
 
-https://twinkconnect.netlify.app/auth/welcome/
-https://twinkconnect.netlify.app/auth/login/
-https://twinkconnect.netlify.app/auth/register/
-https://twinkconnect.netlify.app/auth/verify/
-https://twinkconnect.netlify.app/auth/forgot-password/
-https://twinkconnect.netlify.app/auth/reset-password/
+https://whisprl.netlify.app/auth/welcome/
+https://whisprl.netlify.app/auth/login/
+https://whisprl.netlify.app/auth/register/
+https://whisprl.netlify.app/auth/verify/
+https://whisprl.netlify.app/auth/forgot-password/
+https://whisprl.netlify.app/auth/reset-password/
 
-https://twinkconnect.netlify.app/auth/app/
-https://twinkconnect.netlify.app/auth/group/
-https://twinkconnect.netlify.app/auth/profile/
-https://twinkconnect.netlify.app/auth/contact/
-https://twinkconnect.netlify.app/auth/settings/
+https://whisprl.netlify.app/auth/app/
+https://whisprl.netlify.app/auth/group/
+https://whisprl.netlify.app/auth/profile/
+https://whisprl.netlify.app/auth/contact/
+https://whisprl.netlify.app/auth/settings/
 
-https://twinkconnect.netlify.app/docs/tnc/
+https://whisprl.netlify.app/docs/tnc/

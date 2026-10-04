@@ -4,7 +4,7 @@ import { Navigate, Outlet, Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowsCounterClockwise } from "phosphor-react";
 
-import Logo from "../../assets/icons/logo/TwinkConnectSub.png";
+import Logo from "../../assets/icons/logo/WhisprlSub.png";
 import { StartServer } from "../../redux/slices/actions/authActions";
 
 const AuthLayout = () => {
@@ -62,7 +62,7 @@ const AuthLayout = () => {
             <Stack
               component="img"
               src={Logo}
-              alt={"TwinkConnect Logo"}
+              alt={"Whisprl Logo"}
               sx={{ height: 120, width: 120 }}
             />
           </Link>

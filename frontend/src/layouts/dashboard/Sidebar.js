@@ -19,7 +19,7 @@ import { SignOut } from "phosphor-react";
 import { useSelector, useDispatch } from "react-redux";
 import { LogoutUser } from "../../redux/slices/actions/authActions";
 
-import TwinkLogo from "../../assets/icons/logo/TwinkConnect.png";
+import WhisprlLogo from "../../assets/icons/logo/Whisprl.png";
 import { Nav_Buttons, Profile_Menu } from "../../data";
 import ThemeSwitch from "../../components/ThemeSwitch";
 import useSettings from "../../hooks/useSettings";
@@ -119,14 +119,14 @@ const Sidebar = () => {
             hidden={isSmallScreen}
           >
             <a
-              href="https://github.com/itsvaibhavmishra/TwinkConnect"
+              href="https://github.com/itsvaibhavmishra/Whisprl"
               target="_blank"
               rel={"noreferrer"}
             >
               <Box
                 component={"img"}
-                src={TwinkLogo}
-                alt="TwinkConnect_Logo"
+                src={WhisprlLogo}
+                alt="Whisprl_Logo"
                 sx={{ padding: "2px 0px" }}
               />
             </a>

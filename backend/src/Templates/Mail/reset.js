@@ -115,10 +115,10 @@ export default (name, reset) => {
     </head>
     <body>
       <div class="container">
-        <div class="header">Welcome to TwinkConnect</div>
+        <div class="header">Welcome to Whisprl</div>
         <div class="logo">
-          <a href="https://twinkconnect.netlify.app/">
-            <img src="https://i.imgur.com/KZkoFRO.png" alt="TwinkConnect Logo" />
+          <a href="https://whisprl.netlify.app/">
+            <img src="https://i.imgur.com/KZkoFRO.png" alt="Whisprl Logo" />
           </a>
         </div>
         <div class="reset-content">
@@ -176,7 +176,7 @@ export default (name, reset) => {
         <p>If you didn't request this Reset Link, please ignore this email.</p>
         <p>
           For any assistance, please contact
-          <a href="mailto:twinkconnect@gmail.com">twinkconnect@gmail.com</a>.
+          <a href="mailto:whisprl@gmail.com">whisprl@gmail.com</a>.
         </p>
       </div>
     </body>

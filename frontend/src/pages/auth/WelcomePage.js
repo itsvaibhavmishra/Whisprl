@@ -9,7 +9,7 @@ import {
 import { Link } from "react-router-dom";
 import { GithubLogo, InstagramLogo, LinkedinLogo } from "phosphor-react";
 
-import CatLogo from "../../assets/icons/logo/TwinkConnect.png";
+import CatLogo from "../../assets/icons/logo/Whisprl.png";
 
 const WelcomePage = () => {
   const SocialArray = [
@@ -53,7 +53,7 @@ const WelcomePage = () => {
             variant="h1"
             sx={{ fontSize: { xs: 35, md: 45 }, textAlign: "center" }}
           >
-            Welcome to TwinkConnect 😺
+            Welcome to Whisprl 😺
           </Typography>
           <Typography
             component="h2"
@@ -114,7 +114,7 @@ const WelcomePage = () => {
         <Box
           component="img"
           src={CatLogo}
-          alt={"TwinkConnect Logo"}
+          alt={"Whisprl Logo"}
           sx={{ width: { xs: 200, md: 400 }, height: "100%" }}
         />
       </Stack>
@@ -141,18 +141,18 @@ const WelcomePage = () => {
               variant="h2"
               sx={{ fontSize: { xs: 25, md: 35 } }}
             >
-              What is TwinkConnect?
+              What is Whisprl?
             </Typography>
           </Divider>
           <Typography variant="body1">
-            TwinkConnect is a real-time web-based chat application developed by
+            Whisprl is a real-time web-based chat application developed by
             Vaibhaw Mishra. Boasting not only a visually appealing UI but also
-            packed with an array of enticing features, TwinkConnect is designed
+            packed with an array of enticing features, Whisprl is designed
             to provide with the best user experience. Powered by the dynamic
             MERN stack and enriched with the sleek design elements of
             Material-UI (MUI), this application delivers a seamless chatting
             experience. From connecting with friends to instant messaging
-            system, TwinkConnect ensures not just connectivity but a symphony of
+            system, Whisprl ensures not just connectivity but a symphony of
             interactivity and speed for its users.
           </Typography>
         </Stack>

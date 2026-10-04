@@ -1,0 +1,14 @@
+# Check every text file out with LF on all platforms, so a Windows clone does not
+# rewrite the tree and make every file look modified.
+* text=auto eol=lf
+
+# Never let line-ending normalisation touch binaries.
+*.png binary
+*.webp binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary

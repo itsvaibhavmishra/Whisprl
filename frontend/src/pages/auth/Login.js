@@ -10,7 +10,7 @@ const Login = () => {
       {/* Head section */}
       <Stack justifyContent={"center"} alignItems={"center"} spacing={1}>
         <Typography component={"h1"} variant="h4">
-          Login to TwinkConnect
+          Login to Whisprl
         </Typography>
         <Stack direction={"row"} spacing={0.5}>
           <Typography variant="body2">New User?</Typography>
