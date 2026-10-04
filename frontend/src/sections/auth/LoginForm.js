@@ -9,39 +9,33 @@ import {
   InputAdornment,
   Link,
   Stack,
-  useMediaQuery,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { Eye, EyeSlash } from "phosphor-react";
 
-// redux imports
 import { useDispatch, useSelector } from "react-redux";
 import { LoginUser } from "../../redux/slices/actions/authActions";
 
 import FormProvider, { RHFTextField } from "../../components/hook-form";
 
 const LoginForm = () => {
-  // dispatch from redux
   const { isLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  // hide and show password controller
   const [showPassword, setShowPassword] = useState(false);
   const recaptchaRef = useRef(null);
 
-  // Login Schema
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required("Email Required").email("Invalid Email"),
     password: Yup.string()
       .required("Password Required")
-      .min(8, "Password must be atleast 8 characters long")
+      .min(8, "Password must be at least 8 characters long")
       .matches(/[0-9]/, "Password requires a number")
       .matches(/[a-z]/, "Password requires a lowercase letter")
       .matches(/[A-Z]/, "Password requires an uppercase letter")
       .matches(/[^\w]/, "Password requires a symbol"),
   });
 
-  // Labels
   const defaultValues = {
     email: "",
     password: "",
@@ -63,12 +57,9 @@ const LoginForm = () => {
     }
   };
 
-  // breakpoint
-  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
-
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={isSmallScreen ? 0 : 3}>
+      <Stack spacing={2}>
         <RHFTextField name="email" label="Email address" />
         <RHFTextField
           name="password"
@@ -78,6 +69,7 @@ const LoginForm = () => {
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => {
                     setShowPassword(!showPassword);
                   }}
@@ -89,7 +81,7 @@ const LoginForm = () => {
           }}
         />
       </Stack>
-      <Stack alignItems={isSmallScreen ? "center" : "flex-end"} sx={{ my: 2 }}>
+      <Stack alignItems="flex-end" sx={{ mt: 1.5 }}>
         <Link
           to="/auth/forgot-password"
           component={RouterLink}
@@ -97,7 +89,7 @@ const LoginForm = () => {
           color="inherit"
           underline="hover"
         >
-          Forgot Password?
+          Forgot your password?
         </Link>
       </Stack>
 
@@ -114,19 +106,9 @@ const LoginForm = () => {
         size="large"
         type="submit"
         variant="contained"
-        sx={{
-          mt: 3,
-          bgcolor: "text.primary",
-          color: (theme) =>
-            theme.palette.mode === "light" ? "common.white" : "grey.800",
-          "&:hover": {
-            bgcolor: "text.primary",
-            color: (theme) =>
-              theme.palette.mode === "light" ? "common.white" : "grey.800",
-          },
-        }}
+        sx={{ mt: 3 }}
       >
-        Login
+        Log in
       </LoadingButton>
     </FormProvider>
   );

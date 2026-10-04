@@ -19,9 +19,11 @@
     - The artwork loads several times faster, just as sharp
     - A new welcome page: an example conversation, what Whisprl does, how it is built and the questions people ask
     - Search results and shared links show a proper title, description and preview image for each page
+    - Redesigned log in, sign up, email verification and password reset pages
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
+    - The terms link on the sign up page opens the terms rather than the log in page
 
   - Developers:
     - The frontend has its first tests, and the gate runs them

@@ -6,35 +6,29 @@ import {
   IconButton,
   InputAdornment,
   Stack,
-  useMediaQuery,
 } from "@mui/material";
 import { Eye, EyeSlash } from "phosphor-react";
 import { LoadingButton } from "@mui/lab";
 import { useSearchParams } from "react-router-dom";
 
-// redux imports
 import { useDispatch, useSelector } from "react-redux";
 import { ResetPassword } from "../../redux/slices/actions/authActions";
 
 import FormProvider, { RHFTextField } from "../../components/hook-form";
 
 const ResetPasswordForm = () => {
-  // dispatch from redux
   const { isLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  // for getting token from url
   const [queryParameters] = useSearchParams();
 
-  // hide and show password controller
   const [showPassword, setShowPassword] = useState(false);
 
-  //  Login Schema
   const NewPasswordSchema = Yup.object().shape({
     password: Yup.string()
       .required("Password Required")
-      .min(8, "Password must be atleast 8 characters long")
-      .max(16, "Password cannot be more that 16 characters")
+      .min(8, "Password must be at least 8 characters long")
+      .max(16, "Password cannot be more than 16 characters")
       .matches(/[0-9]/, "Password requires a number")
       .matches(/[a-z]/, "Password requires a lowercase letter")
       .matches(/[A-Z]/, "Password requires an uppercase letter")
@@ -45,7 +39,6 @@ const ResetPasswordForm = () => {
       .oneOf([Yup.ref("password"), null], "Password does not match"),
   });
 
-  //   Labels
   const defaultValues = {
     password: "",
     passwordConfirm: "",
@@ -61,27 +54,24 @@ const ResetPasswordForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      // api request to backend for new password using redux
       dispatch(ResetPassword({ ...data, token: queryParameters.get("code") }));
     } catch (error) {
       console.error(error);
     }
   };
 
-  // breakpoint
-  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
-
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={isSmallScreen ? 0 : 3}>
+      <Stack spacing={2}>
         <RHFTextField
           name="password"
-          label="Password"
+          label="New password"
           type={showPassword ? "text" : "password"}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => {
                     setShowPassword(!showPassword);
                   }}
@@ -94,7 +84,7 @@ const ResetPasswordForm = () => {
         />
         <RHFTextField
           name="passwordConfirm"
-          label="Confirm Password"
+          label="Confirm new password"
           type={showPassword ? "text" : "password"}
         />
         <LoadingButton
@@ -103,19 +93,9 @@ const ResetPasswordForm = () => {
           size="large"
           type="submit"
           variant="contained"
-          sx={{
-            mt: 3,
-            bgcolor: "text.primary",
-            color: (theme) =>
-              theme.palette.mode === "light" ? "common.white" : "grey.800",
-            "&:hover": {
-              bgcolor: "text.primary",
-              color: (theme) =>
-                theme.palette.mode === "light" ? "common.white" : "grey.800",
-            },
-          }}
+          sx={{ mt: 3 }}
         >
-          Reset Password
+          Set new password
         </LoadingButton>
       </Stack>
     </FormProvider>

@@ -1,95 +1,88 @@
-import React, { useEffect, useState } from "react";
-import { Container, Stack, IconButton, Grow, Tooltip } from "@mui/material";
-import { Navigate, Outlet, Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useEffect, useState } from "react";
+import { Box, Grow, IconButton, Stack, Tooltip } from "@mui/material";
+import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { ArrowsCounterClockwise } from "phosphor-react";
 
-import Logo from "../../assets/icons/logo/WhisprlSub.png";
-import { StartServer } from "../../redux/slices/actions/authActions";
+import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
+import BrandPanel from "@/layouts/auth/BrandPanel";
+import { StartServer } from "@/redux/slices/actions/authActions";
+import { PATH_AUTH } from "@/routes/paths";
+
+const SLOW_START_AFTER = 10000;
 
 const AuthLayout = () => {
   const dispatch = useDispatch();
+  const { pathname } = useLocation();
   const { isLoggedIn, isLoading } = useSelector((state) => state.auth);
-
-  const [showClear, setShowClear] = useState(false);
-
-  const handleClearData = () => {
-    setShowClear(false);
-
-    localStorage.removeItem("redux-root");
-    window.location.reload();
-  };
+  const [showReload, setShowReload] = useState(false);
 
   useEffect(() => {
-    const timer = 10000;
-    if (isLoading) {
-      setTimeout(() => {
-        setShowClear(true);
-      }, timer);
-    }
-
-    return () => {
-      clearTimeout(timer);
-    };
+    if (!isLoading) return;
+    const timer = setTimeout(() => setShowReload(true), SLOW_START_AFTER);
+    return () => clearTimeout(timer);
   }, [isLoading]);
 
-  // start server
   useEffect(() => {
-    setTimeout(() => {
-      dispatch(StartServer());
-    }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    dispatch(StartServer());
+  }, [dispatch]);
 
   if (isLoggedIn) {
     return <Navigate to={"/"} />;
   }
 
-  const welcomeScreen = window.location.pathname === "/auth/welcome";
+  if (pathname.replace(/\/+$/, "") === PATH_AUTH.general.welcome) {
+    return <Outlet />;
+  }
+
+  const reloadWithFreshState = () => {
+    setShowReload(false);
+    localStorage.removeItem("redux-root");
+    window.location.reload();
+  };
 
   return (
-    <Container
-      sx={{ pt: welcomeScreen ? 0 : 5 }}
-      maxWidth={welcomeScreen ? "xl" : "sm"}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { md: "5fr 7fr" },
+        minHeight: "100vh",
+      }}
     >
-      <Stack spacing={5} display={welcomeScreen ? "none" : "flex"}>
-        <Stack
-          direction={"column"}
-          alignItems={"center"}
-          sx={{ width: "100%" }}
-        >
-          <Link to={"/auth/welcome"}>
-            <Stack
-              component="img"
-              src={Logo}
-              alt={"Whisprl Logo"}
-              sx={{ height: 120, width: 120 }}
-            />
-          </Link>
-        </Stack>
+      <BrandPanel />
 
-        {/* Trash icon button with tooltip */}
-        <Grow in={showClear}>
-          <Tooltip title="Click Here to Reload" placement="left">
-            <Stack
-              sx={{
-                position: "absolute",
-                top: -30,
-                right: 20,
-                backgroundColor: (theme) => theme.palette.primary.main,
-                borderRadius: 20,
-              }}
-            >
-              <IconButton onClick={handleClearData}>
-                <ArrowsCounterClockwise color="#fff" />
-              </IconButton>
-            </Stack>
-          </Tooltip>
-        </Grow>
+      <Stack sx={{ px: { xs: 2.5, sm: 4 }, py: { xs: 3, md: 6 } }}>
+        <Box
+          component={Link}
+          to={PATH_AUTH.general.welcome}
+          sx={{ display: { xs: "flex", md: "none" }, width: "fit-content" }}
+        >
+          <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
+        </Box>
+        <Box component="main" sx={{ width: "100%", maxWidth: 420, mx: "auto", my: "auto", py: 4 }}>
+          <Outlet />
+        </Box>
       </Stack>
 
-      <Outlet />
-    </Container>
+      <Grow in={showReload}>
+        <Tooltip title="Taking a while? Reload" placement="left">
+          <IconButton
+            onClick={reloadWithFreshState}
+            aria-label="Reload Whisprl"
+            sx={{
+              position: "fixed",
+              top: 16,
+              right: 16,
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              "&:hover": { bgcolor: "primary.dark" },
+            }}
+          >
+            <ArrowsCounterClockwise />
+          </IconButton>
+        </Tooltip>
+      </Grow>
+    </Box>
   );
 };
 
