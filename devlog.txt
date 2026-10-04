@@ -18,6 +18,7 @@
   - Improvements:
     - The artwork loads several times faster, just as sharp
     - A new welcome page: an example conversation, what Whisprl does, how it is built and the questions people ask
+    - Search results and shared links show a proper title, description and preview image for each page
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

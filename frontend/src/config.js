@@ -70,6 +70,7 @@ export const DEFAULT_PATH = PATH_DASHBOARD.general.app;
 export const DEFAULT_AUTH = PATH_AUTH.general.welcome;
 export const DEFAULT_DOCS = PATH_DOCS.general.docs;
 
+export const SITE_URL = "https://whisprl.netlify.app";
 export const SOURCE_URL = "https://github.com/itsvaibhavmishra/Whisprl";
 export const PORTFOLIO_URL = "https://vaibhaw.vercel.app";
 

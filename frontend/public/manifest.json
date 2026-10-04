@@ -1,6 +1,7 @@
 {
-  "short_name": "Whisprl | MERN Chat",
-  "name": "MERN Chat App by Vaibhaw Mishra",
+  "short_name": "Whisprl",
+  "name": "Whisprl: Real-Time MERN Chat App",
+  "description": "A free, real-time MERN chat app. Message friends instantly, share photos and documents, and see who is online and typing.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -11,12 +12,12 @@
   "start_url": ".",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff",
+  "theme_color": "#1C232B",
+  "background_color": "#1C232B",
   "orientation": "any",
   "lang": "en",
   "prefer_related_applications": false,
   "related_applications": [],
   "shortcuts": [],
-  "categories": ["mern", "chat-app", "whisprl", "communication", "chat"]
+  "categories": ["social", "communication"]
 }
