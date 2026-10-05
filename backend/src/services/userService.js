@@ -4,6 +4,7 @@ import validator from "validator";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "../models/index.js";
 import { deleteFile, isCloudinaryFile, uploadFiles } from "./fileUploadService.js";
+import { escapeRegex } from "../utils/escapeRegex.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -120,7 +121,7 @@ export const searchForUsers = async (
     searchCriteria.email = keyword;
   } else {
     // If the keyword is not an email, search by combined firstName and lastName
-    const combinedNameRegex = new RegExp(keyword, "i"); // 'i' for case-insensitive
+    const combinedNameRegex = new RegExp(escapeRegex(keyword), "i"); // 'i' for case-insensitive
     searchCriteria.$or = [
       { firstName: combinedNameRegex },
       { lastName: combinedNameRegex },

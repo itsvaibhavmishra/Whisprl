@@ -1,5 +1,6 @@
 import validator from "validator";
 import { UserModel } from "../models/index.js";
+import { escapeRegex } from "../utils/escapeRegex.js";
 
 // search friends
 export const searchForFriends = async (populatedFriends, keyword, page) => {
@@ -20,7 +21,7 @@ export const searchForFriends = async (populatedFriends, keyword, page) => {
     searchCriteria.email = keyword;
   } else {
     // If the keyword is not an email, search by combined firstName and lastName
-    const combinedNameRegex = new RegExp(keyword, "i"); // 'i' for case-insensitive
+    const combinedNameRegex = new RegExp(escapeRegex(keyword), "i"); // 'i' for case-insensitive
     searchCriteria.$or = [
       {
         $or: [

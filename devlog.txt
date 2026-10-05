@@ -38,6 +38,8 @@
     - Saving your profile no longer deletes your photo
     - Other people can no longer see private account details when they open your profile
     - Opening a menu or dialog no longer shifts the page sideways
+    - Searching for a name with symbols like ( or * in it no longer fails
+    - A profile picture over the size limit is refused with a clear message
 
   - Developers:
     - The frontend has its first tests, and the gate runs them

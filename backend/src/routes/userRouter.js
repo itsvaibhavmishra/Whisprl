@@ -14,7 +14,7 @@ import {
 const userRouter = express.Router();
 
 // multer setup
-const upload = multer();
+const upload = multer({ limits: { fileSize: 5 * 1024 * 1024, files: 2 } });
 const profileImages = upload.fields([
   { name: "avatar", maxCount: 1 },
   { name: "cover", maxCount: 1 },
