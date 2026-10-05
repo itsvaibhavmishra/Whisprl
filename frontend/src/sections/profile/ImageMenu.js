@@ -2,10 +2,9 @@ import { useRef, useState } from "react";
 import { Button, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Camera, Trash, UploadSimple } from "phosphor-react";
-import { useDispatch } from "react-redux";
 
 import ImageCropper from "@/components/image-cropper/ImageCropper";
-import { ShowSnackbar } from "@/redux/slices/userSlice";
+import { notify } from "@/utils/notify";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -22,7 +21,6 @@ const glass = (theme) => ({
 
 const ImageMenu = ({ kind, hasImage, onChange }) => {
   const { noun, crop } = KINDS[kind];
-  const dispatch = useDispatch();
   const fileInput = useRef(null);
   const [anchor, setAnchor] = useState(null);
   const [imageToCrop, setImageToCrop] = useState(null);
@@ -39,7 +37,7 @@ const ImageMenu = ({ kind, hasImage, onChange }) => {
     event.target.value = "";
     if (!file) return;
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      dispatch(ShowSnackbar({ severity: "error", message: "Choose a JPG, PNG or WebP image" }));
+      notify({ severity: "error", message: "Choose a JPG, PNG or WebP image" });
       return;
     }
     setImageToCrop(URL.createObjectURL(file));

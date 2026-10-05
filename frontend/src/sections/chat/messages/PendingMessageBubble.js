@@ -1,60 +1,23 @@
-import { useState } from "react";
 import { Box, CircularProgress, IconButton, Stack, Typography, useTheme } from "@mui/material";
 import { X, ArrowCounterClockwise, File as FileIcon } from "phosphor-react";
 import { useDispatch } from "react-redux";
-import { removePendingMessage, updatePendingMessage, addMessageFromUpload } from "@/redux/slices/chatSlice";
-import { UploadFileMessage, uploadAbortControllers } from "@/redux/slices/actions/chatActions";
-// uuidv4 not needed in PendingMessageBubble — retries reuse existing localId
+import { CancelAttachment, RetryAttachment } from "@/redux/slices/actions/attachmentActions";
+import { attachmentPreview } from "@/utils/attachments";
 
-// Renders a single pending file upload bubble (uploading | failed | cancelled)
-const PendingMessageBubble = ({ pending }) => {
+const PendingMessageBubble = ({ entry }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { localId, batchId, batchIndex, batchTotal, dataUrl, fileName, actionType, caption, status, file, convo_id } = pending;
-  const isImage = actionType === "image";
-  const [retrying, setRetrying] = useState(false);
+  const { attachment, caption, status } = entry;
+  const { fileName } = attachment;
+  const isImage = attachment.kind === "image";
+  const preview = attachmentPreview(attachment.id);
+  const isUploading = status === "sending";
 
-  const handleCancel = () => {
-    const controller = uploadAbortControllers.get(localId);
-    if (controller) {
-      controller.abort();
-    }
-    dispatch(updatePendingMessage({ localId, status: "cancelled" }));
-  };
-
-  const handleDiscard = () => {
-    dispatch(removePendingMessage(localId));
-  };
-
-  const handleRetry = async () => {
-    setRetrying(true);
-    dispatch(updatePendingMessage({ localId, status: "uploading" }));
-    const controller = new AbortController();
-    uploadAbortControllers.set(localId, controller);
-
-    const result = await dispatch(
-      UploadFileMessage({
-        file,
-        convo_id,
-        caption,
-        localId,
-        batchId,
-        batchIndex,
-        batchTotal,
-        signal: controller.signal,
-      })
-    );
-
-    uploadAbortControllers.delete(localId);
-    setRetrying(false);
-
-    if (!result.error && result.payload?.message) {
-      dispatch(addMessageFromUpload(result.payload.message));
-    }
-  };
+  const handleCancel = () => dispatch(CancelAttachment(entry));
+  const handleRetry = () => dispatch(RetryAttachment(entry));
 
   const overlayColor =
-    status === "uploading"
+    isUploading
       ? "rgba(0,0,0,0.45)"
       : "rgba(180,0,0,0.55)";
 
@@ -72,10 +35,10 @@ const PendingMessageBubble = ({ pending }) => {
         {isImage ? (
           // Image pending bubble
           <Box sx={{ position: "relative", width: 180, height: 180 }}>
-            {dataUrl && (
+            {preview && (
               <Box
                 component="img"
-                src={dataUrl}
+                src={preview}
                 alt={fileName}
                 sx={{
                   width: "100%",
@@ -83,7 +46,7 @@ const PendingMessageBubble = ({ pending }) => {
                   objectFit: "cover",
                   display: "block",
                   filter:
-                    status === "uploading"
+                    isUploading
                       ? "blur(3px) brightness(0.6)"
                       : "blur(2px) brightness(0.4)",
                 }}
@@ -101,16 +64,11 @@ const PendingMessageBubble = ({ pending }) => {
                 justifyContent: "center",
               }}
             >
-              {status === "uploading" && (
+              {isUploading ? (
                 <CircularProgress size={32} sx={{ color: "#fff" }} />
-              )}
-              {(status === "failed" || status === "cancelled") && (
-                <IconButton onClick={handleRetry} disabled={retrying} sx={{ color: "#fff" }}>
-                  {retrying ? (
-                    <CircularProgress size={24} sx={{ color: "#fff" }} />
-                  ) : (
-                    <ArrowCounterClockwise size={28} weight="bold" />
-                  )}
+              ) : (
+                <IconButton onClick={handleRetry} aria-label={`Try sending ${fileName} again`} sx={{ color: "#fff" }}>
+                  <ArrowCounterClockwise size={28} weight="bold" />
                 </IconButton>
               )}
             </Box>
@@ -118,7 +76,8 @@ const PendingMessageBubble = ({ pending }) => {
             {/* Top-right action button */}
             <IconButton
               size="small"
-              onClick={status === "uploading" ? handleCancel : handleDiscard}
+              onClick={handleCancel}
+              aria-label={isUploading ? `Cancel ${fileName}` : `Discard ${fileName}`}
               sx={{
                 position: "absolute",
                 top: 4,
@@ -152,7 +111,7 @@ const PendingMessageBubble = ({ pending }) => {
                 flexShrink: 0,
               }}
             >
-              {status === "uploading" ? (
+              {isUploading ? (
                 <CircularProgress size={18} sx={{ color: "#fff" }} />
               ) : (
                 <FileIcon size={20} color="#fff" />
@@ -169,7 +128,8 @@ const PendingMessageBubble = ({ pending }) => {
             {/* Action button */}
             <IconButton
               size="small"
-              onClick={status === "uploading" ? handleCancel : handleDiscard}
+              onClick={handleCancel}
+              aria-label={isUploading ? `Cancel ${fileName}` : `Discard ${fileName}`}
               sx={{ color: "#fff", p: 0.3 }}
             >
               <X size={14} weight="bold" />
@@ -178,7 +138,7 @@ const PendingMessageBubble = ({ pending }) => {
         )}
 
         {/* Caption */}
-        {batchIndex === 0 && caption && (
+        {caption && (
           <Typography
             variant="body2"
             sx={{ px: 1.5, pb: 1, pt: 0.5, color: "#fff", wordBreak: "break-word" }}
@@ -187,19 +147,23 @@ const PendingMessageBubble = ({ pending }) => {
           </Typography>
         )}
 
-        {/* Retry label for docs */}
-        {!isImage && (status === "failed" || status === "cancelled") && (
+        {!isImage && !isUploading && (
           <Box sx={{ px: 1.5, pb: 1 }}>
             <Typography
+              component="button"
+              type="button"
               variant="caption"
               sx={{
+                p: 0,
+                border: 0,
+                background: "none",
                 color: "rgba(255,255,255,0.8)",
                 cursor: "pointer",
                 textDecoration: "underline",
               }}
               onClick={handleRetry}
             >
-              {retrying ? "Retrying..." : "Tap to retry"}
+              Not sent. Tap to try again.
             </Typography>
           </Box>
         )}

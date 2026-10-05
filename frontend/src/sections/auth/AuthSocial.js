@@ -10,21 +10,14 @@ import {
 } from "@/redux/slices/actions/authActions";
 
 import { getOAuthCode } from "@/utils/socialLoginHelpers";
-import { ShowSnackbar } from "@/redux/slices/userSlice";
+import { notify } from "@/utils/notify";
 
 const AuthSocial = () => {
   const dispatch = useDispatch();
 
   const baseURL = window.location.origin;
 
-  const showSnackbar = (socialType) => {
-    dispatch(
-      ShowSnackbar({
-        severity: "error",
-        message: `Unable to login using ${socialType}`,
-      })
-    );
-  };
+  const showSnackbar = (socialType) => notify({ severity: "error", message: `Unable to login using ${socialType}` });
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {

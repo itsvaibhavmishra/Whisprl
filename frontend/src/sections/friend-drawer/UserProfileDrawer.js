@@ -9,6 +9,7 @@ import UserDrawerMain from "@/sections/friend-drawer/UserDrawerMain";
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
 import { GetUserData } from "@/redux/slices/actions/contactActions";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const UserProfileDrawer = ({
   openDrawer,
@@ -21,7 +22,8 @@ const UserProfileDrawer = ({
 
   // from redux
   const dispatch = useDispatch();
-  const { userData, isUserDataLoading } = useSelector((state) => state.contact);
+  const userData = useSelector((state) => state.contact.userData);
+  const isUserDataLoading = useIsLoading(GetUserData);
 
   useEffect(() => {
     if (selectedUserData?._id && openDrawer === true) {

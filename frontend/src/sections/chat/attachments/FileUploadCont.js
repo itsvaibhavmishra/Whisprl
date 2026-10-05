@@ -4,9 +4,9 @@ import { useDispatch } from "react-redux";
 import FileHeader from "@/sections/chat/attachments/FileHeader";
 import FileBody from "@/sections/chat/attachments/FileBody";
 import FileFooter from "@/sections/chat/attachments/FileFooter";
-import { clearFiles } from "@/redux/slices/chatSlice";
+import { ClearAttachments } from "@/redux/slices/actions/attachmentActions";
 
-const FileUploadCont = ({ convo_id }) => {
+const FileUploadCont = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
@@ -21,7 +21,7 @@ const FileUploadCont = ({ convo_id }) => {
     >
       {/* Top-right close button */}
       <IconButton
-        onClick={() => dispatch(clearFiles())}
+        onClick={() => dispatch(ClearAttachments())}
         size="small"
         sx={{
           position: "absolute",
@@ -37,7 +37,7 @@ const FileUploadCont = ({ convo_id }) => {
 
       <FileHeader />
       <FileBody />
-      <FileFooter convo_id={convo_id} />
+      <FileFooter />
     </Stack>
   );
 };

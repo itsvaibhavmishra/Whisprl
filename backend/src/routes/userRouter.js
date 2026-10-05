@@ -3,6 +3,7 @@ import trimRequest from "trim-request";
 import multer from "multer";
 
 import { protect } from "../middlewares/authMiddleware.js";
+import { readLimit, searchLimit, uploadLimit, writeLimit } from "../middlewares/rateLimiters.js";
 import {
   getMyProfile,
   getUserData,
@@ -23,18 +24,18 @@ const profileImages = upload.fields([
 // Update Profile Route
 userRouter
   .route("/update-profile")
-  .post(trimRequest.all, protect, profileImages, updateProfile);
+  .post(protect, uploadLimit(), profileImages, trimRequest.all, updateProfile);
 
 // Change Password Route
-userRouter.route("/change-password").post(trimRequest.all, protect, updatePassword);
+userRouter.route("/change-password").post(trimRequest.all, protect, writeLimit(), updatePassword);
 
 // Own Profile Route
-userRouter.route("/me").get(protect, getMyProfile);
+userRouter.route("/me").get(protect, readLimit(), getMyProfile);
 
 // Search Users Route
-userRouter.route("/search").get(trimRequest.all, protect, searchUsers);
+userRouter.route("/search").get(trimRequest.all, protect, searchLimit(), searchUsers);
 
 // Get User Data Route
-userRouter.route("/getUserData").get(trimRequest.all, protect, getUserData);
+userRouter.route("/getUserData").get(trimRequest.all, protect, readLimit(), getUserData);
 
 export default userRouter;

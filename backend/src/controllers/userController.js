@@ -1,15 +1,15 @@
 import createHttpError from "http-errors";
 import validator from "validator";
 
-import { generateLoginTokens } from "../services/authService.js";
 import {
   changePassword,
   getOwnProfile,
-  PUBLIC_PROFILE_FIELDS,
+  getPublicProfile,
   saveProfile,
   searchForUsers,
 } from "../services/userService.js";
-import { UserModel } from "../models/index.js";
+import { endOtherSessions, issueAccessToken, signOutOtherDevices } from "../services/sessionService.js";
+import { assertText, assertValidName } from "../utils/accountRules.js";
 
 // -------------------------- Update Profile --------------------------
 export const updateProfile = async (req, res, next) => {
@@ -23,20 +23,8 @@ export const updateProfile = async (req, res, next) => {
       );
     }
 
-    if (
-      !validator.isLength(firstName, { min: 3, max: 16 }) ||
-      !validator.isLength(lastName, { min: 3, max: 16 })
-    ) {
-      throw createHttpError.BadRequest(
-        "First and last name must each be 3 to 16 characters long"
-      );
-    }
-
-    if (!validator.isAlpha(firstName) || !validator.isAlpha(lastName)) {
-      throw createHttpError.BadRequest(
-        "First and last name can only contain letters"
-      );
-    }
+    assertValidName(firstName, lastName);
+    assertText(activityStatus);
 
     if (!validator.isLength(activityStatus, { min: 3, max: 50 })) {
       throw createHttpError.BadRequest(
@@ -85,15 +73,16 @@ export const updatePassword = async (req, res, next) => {
       );
     }
 
-    await changePassword(req.user, currentPassword, newPassword);
+    await changePassword(req.user._id, currentPassword, newPassword);
 
-    // Changing the password expires every older token, this session's included.
-    const token = await generateLoginTokens(req.user, res);
+    // every other device is signed out; this one carries on with a token newer than the change
+    await endOtherSessions(req.user._id, req.sessionId);
+    await signOutOtherDevices(req.app.get("io"), req.user._id, req.sessionId);
 
     return res.status(200).json({
       status: "success",
       message: "Password changed",
-      token,
+      accessToken: issueAccessToken(req.user._id, req.sessionId),
     });
   } catch (error) {
     next(error);
@@ -104,29 +93,12 @@ export const updatePassword = async (req, res, next) => {
 export const searchUsers = async (req, res, next) => {
   try {
     const keyword = req.query.search;
-    const page = req.query.page || "0";
+    if (!keyword) throw createHttpError.BadRequest("Query required");
+    assertText(keyword);
 
-    const currentUser_id = req.user?._id;
-    const friends_ids = req.user?.friends;
+    const { users, totalCount } = await searchForUsers(keyword, req.query.page, req.user);
 
-    // check for required fields
-    if (!keyword) {
-      throw createHttpError.BadRequest("Query required");
-    }
-
-    // get list of users matching keyword
-    const { users, totalCount } = await searchForUsers(
-      keyword,
-      page,
-      friends_ids,
-      currentUser_id
-    );
-
-    res.status(200).json({
-      status: "success",
-      usersFound: totalCount,
-      users: users,
-    });
+    res.status(200).json({ status: "success", usersFound: totalCount, users });
   } catch (error) {
     next(error);
   }
@@ -135,19 +107,9 @@ export const searchUsers = async (req, res, next) => {
 // -------------------------- Get User Data --------------------------
 export const getUserData = async (req, res, next) => {
   try {
-    const id = req.query.userId;
+    const userData = await getPublicProfile(req.query.userId);
 
-    // check for required fields
-    if (!id) {
-      throw createHttpError.BadRequest("Query required");
-    }
-
-    const userData = await UserModel.findById(id).select(PUBLIC_PROFILE_FIELDS);
-
-    res.status(200).json({
-      status: "success",
-      userData: userData,
-    });
+    res.status(200).json({ status: "success", userData });
   } catch (error) {
     next(error);
   }

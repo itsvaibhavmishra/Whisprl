@@ -1,20 +1,23 @@
 import { useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { Link, Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { LoginUser } from "@/redux/slices/actions/authActions";
 
 import FormProvider, { RHFPasswordField, RHFTextField } from "@/components/hook-form";
+import { PATH_AUTH } from "@/routes/paths";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const LoginForm = () => {
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(LoginUser);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const recaptchaRef = useRef(null);
 
@@ -37,11 +40,8 @@ const LoginForm = () => {
   const { handleSubmit } = methods;
 
   const onSubmit = async (data) => {
-    try {
-      dispatch(LoginUser({ ...data, recaptchaRef }));
-    } catch (error) {
-      console.log(error);
-    }
+    const result = await dispatch(LoginUser({ ...data, recaptchaRef }));
+    if (LoginUser.fulfilled.match(result) && !result.payload.user) navigate(PATH_AUTH.general.verify);
   };
 
   return (

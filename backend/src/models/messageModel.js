@@ -22,7 +22,10 @@ const cipherSchema = mongoose.Schema(
 
 const messageSchema = mongoose.Schema(
   {
-    sender: { type: mongoose.Schema.ObjectId, ref: "User" },
+    sender: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+
+    // made by the sender's browser, so a resend after a lost acknowledgement finds the saved copy
+    clientId: { type: String },
 
     message: { type: String, trim: true },
 
@@ -34,11 +37,11 @@ const messageSchema = mongoose.Schema(
     deliveredAt: { type: Date },
     seenAt: { type: Date },
 
-    conversation: { type: mongoose.Schema.ObjectId, ref: "Conversation" },
+    conversation: { type: mongoose.Schema.ObjectId, ref: "Conversation", required: true },
 
     files: [fileSchema],
 
-    // batch fields — images sent together share a batchId for grouping
+    // images sent together share a batchId, so they render as one group
     batchId: { type: String },
     batchIndex: { type: Number },
     batchTotal: { type: Number },
@@ -48,6 +51,8 @@ const messageSchema = mongoose.Schema(
   }
 );
 
+messageSchema.index({ conversation: 1, _id: 1 });
+messageSchema.index({ sender: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: "string" } } });
 messageSchema.index({ sender: 1 }, { partialFilterExpression: { awaitingKey: true } });
 
 // creating model for schema

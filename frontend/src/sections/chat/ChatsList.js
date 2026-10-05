@@ -4,7 +4,8 @@ import { MagnifyingGlass } from "phosphor-react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
-import { ClearSearch } from "@/redux/slices/userSlice";
+import { GetConversations } from "@/redux/slices/actions/chatActions";
+import { clearSearch } from "@/redux/slices/userSlice";
 
 import { MembersList } from "@/data";
 import { Search, SearchIconWrapper, StyledInputBase } from "@/components/search";
@@ -12,6 +13,7 @@ import AllChatElement from "@/sections/chat/AllChatElement";
 import ChatSearchResults from "@/sections/chat/ChatSearchResults";
 import { getOtherUser } from "@/utils/getOtherUser";
 import OnlineFriendsElement from "@/components/OnlineFriendsElement";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const ChatsList = () => {
   // using theme
@@ -19,8 +21,10 @@ const ChatsList = () => {
 
   // from redux
   const dispatch = useDispatch();
-  const { user, onlineFriends, searchResults, searchCount, isLoading } =
+  const { user, onlineFriends, searchResults, searchCount } =
     useSelector((state) => state.user);
+  const isLoading = useIsLoading(SearchFriends);
+  const isLoadingConversations = useIsLoading(GetConversations);
   const { conversations, activeConversation } = useSelector(
     (state) => state.chat
   );
@@ -45,7 +49,7 @@ const ChatsList = () => {
         const searchData = { keyword: searchTerm, page: 0 };
         dispatch(SearchFriends(searchData));
       } else {
-        dispatch(ClearSearch());
+        dispatch(clearSearch());
       }
     }, 500);
 
@@ -141,13 +145,13 @@ const ChatsList = () => {
             {/* All Chats */}
             <Stack spacing={2.4}>
               {/* loding skeleton */}
-              {isLoading
+              {isLoadingConversations && !conversations.length
                 ? MembersList.map((e) => {
                     return (
                       <AllChatElement
                         key={e._id}
                         {...e}
-                        isLoading={isLoading}
+                        isLoading
                       />
                     );
                   })
@@ -173,7 +177,6 @@ const ChatsList = () => {
                             convo_id={conversation._id}
                             latestMessage={conversation.latestMessage}
                             {...chatElementProps}
-                            isLoading={isLoading}
                           />
                         )
                       );

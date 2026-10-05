@@ -20,6 +20,7 @@ export const PATH_AUTH = {
     welcome: path(ROOTS_DASHBOARD, "auth/welcome"),
     login: path(ROOTS_DASHBOARD, "auth/login"),
     register: path(ROOTS_DASHBOARD, "auth/register"),
+    verify: path(ROOTS_DASHBOARD, "auth/verify"),
   },
 };
 

@@ -1,12 +1,11 @@
 import io from "socket.io-client";
 
-let socket;
+import { getAccessToken } from "@/utils/axios";
 
-// connecting to socket io server from backend
-const connectSocket = (token) => {
-  socket = io(process.env.REACT_APP_API_ORIGIN.split("/api")[0], {
-    query: `token=${token}`,
-  });
-};
+const API_ORIGIN = new URL(process.env.REACT_APP_API_ORIGIN || "http://localhost:8000/api").origin;
 
-export { socket, connectSocket };
+// the token is read on every connection attempt, so a reconnect always carries the latest one
+export const socket = io(API_ORIGIN, {
+  autoConnect: false,
+  auth: (provide) => provide({ token: getAccessToken() }),
+});

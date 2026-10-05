@@ -1,32 +1,18 @@
 import { configureStore } from "@reduxjs/toolkit";
-import {
-  useDispatch as useAppDispatch,
-  useSelector as useAppSelector,
-} from "react-redux";
-import { persistStore, persistReducer } from "redux-persist";
+import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer, persistStore } from "redux-persist";
 import { rootPersistConfig, rootReducer } from "@/redux/rootReducer";
-
-const isProduction = process.env.REACT_APP_NODE !== "local";
-
-// If it's production, exclude Redux DevTools Extension
-const devToolsOptions = {
-  devTools: !isProduction,
-};
 
 const store = configureStore({
   reducer: persistReducer(rootPersistConfig, rootReducer),
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      // only development builds run these checks, and the message list is too long for the immutability one
       immutableCheck: false,
+      serializableCheck: { ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER] },
     }),
-  ...devToolsOptions,
+  devTools: process.env.REACT_APP_NODE === "local",
 });
 
 const persistor = persistStore(store);
-const { dispatch } = store;
 
-const useSelector = useAppSelector;
-const useDispatch = () => useAppDispatch();
-
-export { store, persistor, dispatch, useSelector, useDispatch };
+export { store, persistor };

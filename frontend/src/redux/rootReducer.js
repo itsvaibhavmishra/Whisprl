@@ -7,23 +7,22 @@ import {
   chatReducer,
   contactReducer,
   encryptionReducer,
+  requestReducer,
   userReducer,
 } from "@/redux/slices";
 
-// Decrypted text must never reach disk, a stored chat would carry stale keys, and an upload's preview would eat the quota.
-const keepOnlyWhatIsSafeToStore = (chat) => ({
-  ...chat,
-  messages: [],
-  conversations: [],
-  activeConversation: null,
-  activeConvoFriendship: null,
-  files: [],
-  activeFileIndex: 0,
-  pendingMessages: [],
-});
+// loading flags and decrypted text never reach disk: a saved flag would keep a button spinning on every later visit
+const PERSISTED_FIELDS = { auth: ["isLoggedIn", "otpEmail"], user: ["user"] };
 
-const chatStoredWithoutMessages = createTransform(keepOnlyWhatIsSafeToStore, keepOnlyWhatIsSafeToStore, {
-  whitelist: ["chat"],
+const lastingFieldsOf = (slice, key) =>
+  Object.fromEntries((PERSISTED_FIELDS[key] ?? []).filter((field) => field in slice).map((field) => [field, slice[field]]));
+
+// a profile stored by an older build can still carry an access token, and the token must stay in memory only
+const withoutToken = ({ token, ...profile }) => profile;
+
+const onlyLastingFields = createTransform(lastingFieldsOf, (slice, key) => {
+  const kept = lastingFieldsOf(slice, key);
+  return kept.user ? { ...kept, user: withoutToken(kept.user) } : kept;
 });
 
 const rootPersistConfig = {
@@ -32,8 +31,8 @@ const rootPersistConfig = {
   keyPrefix: "redux-",
   // Merging onto initial state gives a field added since a user's last visit its default.
   stateReconciler: autoMergeLevel2,
-  transforms: [chatStoredWithoutMessages],
-  blacklist: ["encryption"],
+  transforms: [onlyLastingFields],
+  whitelist: Object.keys(PERSISTED_FIELDS),
 };
 
 const rootReducer = combineReducers({
@@ -42,6 +41,7 @@ const rootReducer = combineReducers({
   chat: chatReducer,
   contact: contactReducer,
   encryption: encryptionReducer,
+  requests: requestReducer,
 });
 
 export { rootPersistConfig, rootReducer };

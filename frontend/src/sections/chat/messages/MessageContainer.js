@@ -11,14 +11,17 @@ const UNREADABLE = "This message can't be opened on this device";
 const WAITING = "This message arrives when the sender is next online";
 
 const MessageContainer = ({
+  anchorKey,
   message,
   me,
+  isQueued,
   isStartOfSequence,
   isEndOfSequence,
   msgType,
   isTyping,
   showTime,
   statusLabel,
+  footer,
   marker,
   onToggleDetails,
 }) => {
@@ -92,9 +95,10 @@ const MessageContainer = ({
       )}
       <Stack
         direction="row"
+        data-message-key={anchorKey}
         justifyContent={me ? "flex-end" : "flex-start"}
         alignItems="center"
-        sx={{ position: "relative" }}
+        sx={{ position: "relative", opacity: isQueued ? 0.7 : 1 }}
       >
         {!me && isEndOfSequence && !isTyping && (
           <Box
@@ -173,11 +177,12 @@ const MessageContainer = ({
         </Box>
         {marker && <SeenMarker {...marker} messageId={message._id} />}
       </Stack>
-      {statusLabel && (
-        <Typography variant="caption" sx={{ alignSelf: "flex-end", color: "text.secondary" }}>
-          {statusLabel}
-        </Typography>
-      )}
+      {footer ??
+        (statusLabel && (
+          <Typography variant="caption" sx={{ alignSelf: "flex-end", color: "text.secondary" }}>
+            {statusLabel}
+          </Typography>
+        ))}
     </Stack>
   );
 };

@@ -1,31 +1,47 @@
-import { createSlice, current } from "@reduxjs/toolkit";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
 import {
   CreateOpenConversation,
   GetConversations,
   GetMessages,
+  LoadOlderMessages,
 } from "@/redux/slices/actions/chatActions";
 
 const initialState = {
-  isLoading: false,
-  error: false,
-
   conversations: [],
   activeConversation: null,
   activeConvoFriendship: null,
-  notifications: [],
 
   messages: [],
-  typingConversation: [],
+  hasOlderMessages: false,
+  // worked out when the chat opens, because opening it marks those messages seen
+  unreadMarker: null,
 
-  // file selection state (for upload preview screen)
+  // sent from this tab and not yet confirmed by the server, oldest first: text carries `text`, a file `attachment`
+  outbox: [],
+
+  typingConversation: [],
+  connection: "connecting",
+
+  // attachments chosen for the next message; the files themselves are held outside the store
   files: [],
   activeFileIndex: 0,
+};
 
-  // per-message upload tracking
-  // { localId, batchId, batchIndex, batchTotal, dataUrl, fileName,
-  //   actionType, caption, status, file, convo_id }
-  // status: 'uploading' | 'failed' | 'cancelled'
-  pendingMessages: [],
+const isSameMessage = (message, other) =>
+  message._id === other._id ||
+  Boolean(message.clientId && message.clientId === other.clientId && message.sender._id === other.sender._id);
+
+// a chat opened from search is not in the list until its first message, so that message adds it
+const moveConversationToTop = (state, conversationId, latestMessage) => {
+  const isActive = state.activeConversation?._id === conversationId;
+  const conversation =
+    state.conversations.find((convo) => convo._id === conversationId) ?? (isActive && { ...state.activeConversation });
+  if (!conversation) return;
+
+  if (!conversation.latestMessage || conversation.latestMessage._id <= latestMessage._id) {
+    conversation.latestMessage = latestMessage;
+  }
+  state.conversations = [conversation, ...state.conversations.filter((convo) => convo._id !== conversationId)];
 };
 
 const slice = createSlice({
@@ -36,13 +52,28 @@ const slice = createSlice({
       state.activeConversation = null;
       state.activeConvoFriendship = null;
       state.messages = [];
+      state.hasOlderMessages = false;
+      state.unreadMarker = null;
       state.files = [];
       state.activeFileIndex = 0;
-      // don't clear pendingMessages here — they keep uploading even if conversation closes
     },
 
-    clearConversation: (state) => {
-      return initialState;
+    clearConversation: () => initialState,
+
+    setConnection: (state, action) => {
+      state.connection = action.payload;
+      // a stop_typing sent while this tab was away never arrives, so nobody is left typing forever
+      if (action.payload !== "connected") state.typingConversation = [];
+    },
+
+    // ---------- Draft attachments ----------
+    addFiles: (state, action) => {
+      state.files.push(action.payload);
+    },
+
+    removeFile: (state, action) => {
+      state.files = state.files.filter((file) => file.id !== action.payload);
+      state.activeFileIndex = Math.min(state.activeFileIndex, Math.max(0, state.files.length - 1));
     },
 
     clearFiles: (state) => {
@@ -50,62 +81,53 @@ const slice = createSlice({
       state.activeFileIndex = 0;
     },
 
-    removeFile: (state, action) => {
-      state.files = state.files.filter((file) => file.fileName !== action.payload);
-      if (state.activeFileIndex >= state.files.length) {
-        state.activeFileIndex = Math.max(0, state.files.length - 1);
-      }
-    },
-
     setActiveFileIndex: (state, action) => {
       state.activeFileIndex = action.payload;
     },
 
-    // ---------- Pending message reducers ----------
-    addPendingMessage: (state, action) => {
-      state.pendingMessages.push(action.payload);
+    // ---------- Outbox ----------
+    queueMessage: (state, action) => {
+      state.outbox.push({ status: "sending", error: null, ...action.payload });
     },
 
-    updatePendingMessage: (state, action) => {
-      const { localId, status } = action.payload;
-      const index = state.pendingMessages.findIndex((m) => m.localId === localId);
+    // sending again makes it a new message, so it moves to the end, after anything written since
+    requeueMessage: (state, action) => {
+      const entry = state.outbox.find((queued) => queued.clientId === action.payload);
+      if (!entry) return;
+      state.outbox = [
+        ...state.outbox.filter((queued) => queued !== entry),
+        { ...entry, status: "sending", error: null, createdAt: new Date().toISOString(), afterId: state.messages.at(-1)?._id },
+      ];
+    },
+
+    updateQueuedMessage: (state, action) => {
+      const { clientId, ...changes } = action.payload;
+      const entry = state.outbox.find((queued) => queued.clientId === clientId);
+      if (entry) Object.assign(entry, changes);
+    },
+
+    dropQueuedMessage: (state, action) => {
+      state.outbox = state.outbox.filter((queued) => queued.clientId !== action.payload);
+    },
+
+    // the server's copy, whether it came back as an acknowledgement, an echo or a friend's message
+    messageArrived: (state, action) => {
+      const message = action.payload;
+      const conversationId = message.conversation;
+
+      state.outbox = state.outbox.filter(
+        (queued) => queued.clientId !== message.clientId || queued.senderId !== message.sender._id
+      );
+      moveConversationToTop(state, conversationId, message);
+
+      if (state.activeConversation?._id !== conversationId) return;
+      const index = state.messages.findIndex((existing) => isSameMessage(existing, message));
       if (index !== -1) {
-        state.pendingMessages[index].status = status;
+        state.messages[index] = message;
+        return;
       }
-    },
-
-    removePendingMessage: (state, action) => {
-      state.pendingMessages = state.pendingMessages.filter(
-        (m) => m.localId !== action.payload
-      );
-    },
-
-    // Called by component after successful file upload — adds real message
-    addMessageFromUpload: (state, action) => {
-      const currentConvo = state.activeConversation;
-      if (currentConvo?._id === action.payload.conversation._id) {
-        state.messages = [...state.messages, action.payload];
-      }
-      const conversation = { ...action.payload.conversation };
-      let newConvos = [...state.conversations].filter(
-        (e) => e._id !== conversation._id
-      );
-      newConvos.unshift(conversation);
-      state.conversations = newConvos;
-    },
-
-    // ---------- Socket / typing reducers ----------
-    updateMsgConvo: (state, action) => {
-      const currentConvo = state.activeConversation;
-      if (currentConvo?._id === action.payload.conversation._id) {
-        state.messages = [...state.messages, action.payload];
-      }
-      const conversation = { ...action.payload.conversation };
-      let newConvos = [...state.conversations].filter(
-        (e) => e._id !== conversation._id
-      );
-      newConvos.unshift(conversation);
-      state.conversations = newConvos;
+      const after = state.messages.findLastIndex((existing) => existing._id < message._id);
+      state.messages.splice(after + 1, 0, message);
     },
 
     replaceMessage: (state, action) => {
@@ -151,85 +173,62 @@ const slice = createSlice({
         state.typingConversation.push({ typing, conversation_id });
       }
     },
-
-    addFiles: (state, action) => {
-      const existingFiles = current(state.files);
-      const isFilePresent = existingFiles.some(
-        (existingFile) => existingFile?.fileName === action.payload.fileName
-      );
-      if (!isFilePresent) {
-        state.files = [...state.files, action.payload];
-      }
-    },
   },
   extraReducers(builder) {
     builder
-      .addCase(GetConversations.pending, (state) => {
-        state.isLoading = true;
-        state.error = false;
-      })
       .addCase(GetConversations.fulfilled, (state, action) => {
         state.conversations = action.payload.conversations;
-        state.isLoading = false;
-        state.error = false;
-      })
-      .addCase(GetConversations.rejected, (state) => {
-        state.isLoading = false;
-        state.error = true;
-      })
-
-      .addCase(CreateOpenConversation.pending, (state) => {
-        state.isLoading = true;
-        state.error = false;
       })
       .addCase(CreateOpenConversation.fulfilled, (state, action) => {
         state.activeConversation = action.payload.conversation;
         state.activeConvoFriendship = action.payload.isValidFriendShip;
-        state.isLoading = false;
-        state.error = false;
-      })
-      .addCase(CreateOpenConversation.rejected, (state) => {
-        state.isLoading = false;
-        state.error = true;
       })
 
-      .addCase(GetMessages.pending, (state) => {
-        state.error = false;
-      })
+      // the newest page, joined onto older pages already loaded when the two overlap
       .addCase(GetMessages.fulfilled, (state, action) => {
         if (action.meta.arg !== state.activeConversation?._id) return;
-        state.messages = action.payload.messages;
-        state.isLoading = false;
-        state.error = false;
+        const { messages, hasMore, unread } = action.payload;
+        if (unread) state.unreadMarker = unread;
+
+        const overlaps = messages.some((fetched) => state.messages.some((loaded) => loaded._id === fetched._id));
+        const olderLoaded = overlaps ? state.messages.filter((loaded) => loaded._id < messages[0]._id) : [];
+        // a message that arrived while the page was on its way is newer than all of it
+        const arrivedSince = state.messages.filter((loaded) => !messages.length || loaded._id > messages.at(-1)._id);
+
+        state.messages = [...olderLoaded, ...messages, ...arrivedSince];
+        state.hasOlderMessages = olderLoaded.length ? state.hasOlderMessages : hasMore;
       })
-      .addCase(GetMessages.rejected, (state) => {
-        state.isLoading = false;
-        state.error = true;
+      .addCase(LoadOlderMessages.fulfilled, (state, action) => {
+        if (action.payload.conversationId !== state.activeConversation?._id) return;
+        const known = new Set(state.messages.map((message) => message._id));
+        state.messages = [...action.payload.messages.filter((message) => !known.has(message._id)), ...state.messages];
+        state.hasOlderMessages = action.payload.hasMore;
       });
   },
 });
 
-export function clearChat() {
-  return async (dispatch) => {
-    dispatch(slice.actions.clearConversation());
-  };
-}
+export const selectActiveOutbox = createSelector(
+  [(state) => state.chat.outbox, (state) => state.chat.activeConversation?._id],
+  (outbox, conversationId) => outbox.filter((queued) => queued.conversationId === conversationId)
+);
 
 export const {
   closeActiveConversation,
-  updateMsgConvo,
+  clearConversation: clearChat,
+  setConnection,
+  addFiles,
+  removeFile,
+  clearFiles,
+  setActiveFileIndex,
+  queueMessage,
+  requeueMessage,
+  updateQueuedMessage,
+  dropQueuedMessage,
+  messageArrived,
   replaceMessage,
   applyReceipt,
   updateMemberKeys,
   updateTypingConvo,
-  addFiles,
-  clearFiles,
-  removeFile,
-  setActiveFileIndex,
-  addPendingMessage,
-  updatePendingMessage,
-  removePendingMessage,
-  addMessageFromUpload,
 } = slice.actions;
 
 export default slice.reducer;

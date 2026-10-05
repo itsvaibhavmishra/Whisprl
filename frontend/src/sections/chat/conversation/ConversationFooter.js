@@ -47,14 +47,12 @@ const ConversationFooter = ({ convo_id }) => {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     if (!value.trim()) return;
 
-    const text = value;
+    dispatch(SendTextMessage(value));
     setValue("");
-    const result = await dispatch(SendTextMessage(text));
-    if (SendTextMessage.rejected.match(result)) setValue((typed) => typed || text);
   };
 
   useEffect(() => {

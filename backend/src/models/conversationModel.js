@@ -19,6 +19,8 @@ const conversationSchema = mongoose.Schema(
   }
 );
 
+conversationSchema.index({ users: 1, updatedAt: -1 });
+
 // creating model for schema
 const ConversationModel = mongoose.model("Conversation", conversationSchema);
 

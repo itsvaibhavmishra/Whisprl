@@ -3,6 +3,7 @@ import trimRequest from "trim-request";
 import multer from "multer";
 
 import { protect } from "../middlewares/authMiddleware.js";
+import { readLimit, uploadLimit, writeLimit } from "../middlewares/rateLimiters.js";
 import {
   getDeliverableMessages,
   getMessages,
@@ -17,16 +18,16 @@ const messageRouter = express.Router();
 // Send Message Route
 messageRouter
   .route("/send-message")
-  .post(protect, upload.single("file"), trimRequest.all, sendMessage);
+  .post(protect, uploadLimit(), upload.single("file"), trimRequest.all, sendMessage);
 
 // Get Message Route
 messageRouter
   .route("/get-messages/:convo_id")
-  .get(trimRequest.all, protect, getMessages);
+  .get(trimRequest.all, protect, readLimit(), getMessages);
 
 // Waiting Messages Routes
-messageRouter.route("/deliverable").get(protect, getDeliverableMessages);
+messageRouter.route("/deliverable").get(protect, readLimit(), getDeliverableMessages);
 
-messageRouter.route("/:message_id/reseal").patch(protect, resealWaitingMessage);
+messageRouter.route("/:message_id/reseal").patch(protect, writeLimit(), resealWaitingMessage);
 
 export default messageRouter;

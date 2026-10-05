@@ -1,7 +1,7 @@
 import { IconButton, Stack } from "@mui/material";
 import { XCircle } from "phosphor-react";
 import { useDispatch } from "react-redux";
-import { clearFiles } from "@/redux/slices/chatSlice";
+import { ClearAttachments } from "@/redux/slices/actions/attachmentActions";
 
 const FileHeader = () => {
   const dispatch = useDispatch();
@@ -9,7 +9,7 @@ const FileHeader = () => {
     <Stack direction="row" justifyContent="flex-start" alignItems="center">
       <IconButton
         onClick={() => {
-          dispatch(clearFiles());
+          dispatch(ClearAttachments());
         }}
       >
         <XCircle />

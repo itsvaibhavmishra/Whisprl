@@ -1,10 +1,12 @@
 import createHttpError from "http-errors";
 import sizeOf from "image-size";
+import mongoose from "mongoose";
 import validator from "validator";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "../models/index.js";
-import { deleteFile, isCloudinaryFile, uploadFiles } from "./fileUploadService.js";
+import { deleteFile, isCloudinaryFile, uploadFile } from "./fileUploadService.js";
 import { escapeRegex } from "../utils/escapeRegex.js";
+import { assertStrongPassword, normalizeEmail } from "../utils/accountRules.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -38,18 +40,11 @@ const validateProfileImage = (kind, file) => {
   }
 };
 
-const uploadProfileImage = async (user, kind, file) => {
-  const { fileUrls } = await uploadFiles(
-    PROFILE_IMAGES[kind].folder,
-    { ...file, originalname: `${kind}-${Date.now()}` },
-    user._id.toString()
-  );
-  return fileUrls[0];
-};
+const uploadProfileImage = (user, kind, file) => uploadFile(`${PROFILE_IMAGES[kind].folder}/${user._id}`, file);
 
-// Checks every upload before touching Cloudinary, and deletes replaced images only once the user is saved.
 export const setOnlineStatus = (user_id, onlineStatus) => UserModel.updateOne({ _id: user_id }, { onlineStatus });
 
+// every upload is checked before any reaches Cloudinary, and replaced images go only once the user is saved
 export const saveProfile = async (user, fields, uploads, removals) => {
   const kinds = Object.keys(PROFILE_IMAGES);
   kinds.filter((kind) => uploads[kind]).forEach((kind) => validateProfileImage(kind, uploads[kind]));
@@ -64,6 +59,11 @@ export const saveProfile = async (user, fields, uploads, removals) => {
   user.set(fields);
   await user.save();
   await Promise.allSettled(replaced.filter(isCloudinaryFile).map(deleteFile));
+};
+
+export const getPublicProfile = (user_id) => {
+  if (!mongoose.isValidObjectId(user_id)) throw createHttpError.BadRequest("Query required");
+  return UserModel.findById(user_id).select(PUBLIC_PROFILE_FIELDS);
 };
 
 export const getOwnProfile = async (user) => {
@@ -91,94 +91,64 @@ export const getOwnProfile = async (user) => {
   };
 };
 
-export const changePassword = async (user, currentPassword, newPassword) => {
-  if (!(await user.correctPassword(currentPassword, user.password))) {
+export const changePassword = async (user_id, currentPassword, newPassword) => {
+  const user = await UserModel.findById(user_id).select("+password");
+  if (!user.password) {
+    throw createHttpError.BadRequest("You have no password yet. Log out and use Forgot your password to set one");
+  }
+  if (!(await user.correctPassword(String(currentPassword)))) {
     throw createHttpError.BadRequest("Your current password is incorrect");
   }
-  if (!validator.isStrongPassword(newPassword)) {
-    throw createHttpError.BadRequest(
-      "Password must be at least 8 characters long, with a number, a lowercase letter, an uppercase letter and a symbol"
-    );
-  }
+  assertStrongPassword(newPassword);
+
   user.password = newPassword;
   await user.save();
 };
 
-// search users
-export const searchForUsers = async (
-  keyword,
-  page,
-  friends_ids,
-  currentUser_id
-) => {
-  const pageSize = 10; // maximum users to display at once
-  let users = [];
-  let totalCount = 0;
+const SEARCH_PAGE_SIZE = 10;
 
-  // Build the search criteria
-  const searchCriteria = {};
+const skipFor = (page) => Math.max(0, Number.parseInt(page, 10) || 0) * SEARCH_PAGE_SIZE;
 
-  if (validator.isEmail(keyword)) {
-    // If the keyword is an email address, search by email
-    searchCriteria.email = keyword;
-  } else {
-    // If the keyword is not an email, search by combined firstName and lastName
-    const combinedNameRegex = new RegExp(escapeRegex(keyword), "i"); // 'i' for case-insensitive
-    searchCriteria.$or = [
-      { firstName: combinedNameRegex },
-      { lastName: combinedNameRegex },
-      {
-        $expr: {
-          $regexMatch: {
-            input: { $concat: ["$firstName", " ", "$lastName"] },
-            regex: combinedNameRegex,
-          },
-        },
-      },
-    ];
-  }
+const nameOrEmailFilter = (keyword) => {
+  if (validator.isEmail(keyword)) return { email: normalizeEmail(keyword) };
 
-  // Exclude friends of the current user
-  searchCriteria._id = { $nin: friends_ids };
+  const pattern = new RegExp(escapeRegex(keyword), "i");
+  return {
+    $or: [
+      { firstName: pattern },
+      { lastName: pattern },
+      { $expr: { $regexMatch: { input: { $concat: ["$firstName", " ", "$lastName"] }, regex: pattern } } },
+    ],
+  };
+};
 
-  // Perform the search including requestSent field
-  users = await UserModel.aggregate([
-    { $match: searchCriteria },
-    {
-      $project: {
-        _id: 1,
-        firstName: 1,
-        lastName: 1,
-        email: 1,
-        avatar: 1,
-        activityStatus: 1,
-        onlineStatus: 1,
-        // Check if a friend request has been sent to this user
-        requestSent: {
-          $cond: {
-            if: {
-              $in: ["$_id", friends_ids],
-            },
-            then: false, // If user is already a friend, requestSent is false
-            else: {
-              $in: [
-                "$_id",
-                await FriendRequestModel.find({
-                  sender: currentUser_id,
-                }).distinct("recipient"),
-              ],
-            },
-          },
-        },
-      },
-    },
+export const searchForUsers = async (keyword, page, user) => {
+  const filter = { ...nameOrEmailFilter(keyword), _id: { $nin: user.friends }, verified: true };
+
+  const [users, totalCount, requestedIds] = await Promise.all([
+    UserModel.find(filter)
+      .select("firstName lastName email avatar activityStatus onlineStatus")
+      .skip(skipFor(page))
+      .limit(SEARCH_PAGE_SIZE)
+      .lean(),
+    UserModel.countDocuments(filter),
+    FriendRequestModel.find({ sender: user._id }).distinct("recipient"),
   ]);
 
-  // Get the total count for pagination
-  totalCount = users.length;
+  const requested = new Set(requestedIds.map(String));
+  return { users: users.map((found) => ({ ...found, requestSent: requested.has(String(found._id)) })), totalCount };
+};
 
-  // Paginate the results
-  users = users.slice(page * pageSize, (page + 1) * pageSize);
+export const searchFriendsOf = async (user, keyword, page) => {
+  const filter = { ...nameOrEmailFilter(keyword), _id: { $in: user.friends } };
 
-  return { users, totalCount };
+  const [friends, totalCount] = await Promise.all([
+    UserModel.find(filter)
+      .select("firstName lastName email avatar activityStatus onlineStatus")
+      .skip(skipFor(page))
+      .limit(SEARCH_PAGE_SIZE),
+    UserModel.countDocuments(filter),
+  ]);
+
+  return { friends, totalCount };
 };

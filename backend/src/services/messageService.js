@@ -54,6 +54,8 @@ export const validateCipher = (cipher, conversation, sender_id) => {
   }
 };
 
+export const isClientId = (clientId) => typeof clientId === "string" && /^[\w-]{8,64}$/.test(clientId);
+
 // validate files before uploading
 const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
 const allowedDocTypes = [
@@ -92,22 +94,37 @@ export const getFileType = (mimetype) => {
   return allowedImageTypes.includes(mimetype) ? "image" : "document";
 };
 
-const toClientMessage = (message, conversation) => ({
+const SENDER_FIELDS = ["_id", "firstName", "lastName", "avatar"];
+
+const senderSummaryOf = (member) => Object.fromEntries(SENDER_FIELDS.map((field) => [field, member[field]]));
+
+export const toClientMessage = (message, conversation) => ({
   ...message.toObject(),
-  sender: senderOf(conversation, message.sender).toObject(),
+  sender: senderSummaryOf(senderOf(conversation, message.sender)),
 });
+
+export const findSentMessage = (sender_id, clientId) =>
+  isClientId(clientId) ? MessageModel.findOne({ sender: sender_id, clientId }) : null;
 
 // takes the conversation with its members loaded, so the reply needs no further queries
 export const saveMessage = async (conversation, msgData) => {
   const message = new MessageModel({ ...msgData, conversation: conversation._id });
 
-  await Promise.all([
-    message.save(),
-    ConversationModel.updateOne({ _id: conversation._id }, { latestMessage: message._id }),
-  ]);
+  try {
+    await message.save();
+  } catch (error) {
+    if (error.code !== 11000) throw error;
+    // a resend of a message already saved, so the saved copy is the answer
+    const original = await findSentMessage(msgData.sender, msgData.clientId);
+    return { message: toClientMessage(original, conversation), isNew: false };
+  }
 
-  const sentMessage = toClientMessage(message, conversation);
-  return { ...sentMessage, conversation: { ...conversation.toObject(), latestMessage: sentMessage } };
+  // only ever moves forward, so two members sending at once cannot leave the older message as the preview
+  await ConversationModel.updateOne(
+    { _id: conversation._id, $or: [{ latestMessage: null }, { latestMessage: { $lt: message._id } }] },
+    { latestMessage: message._id }
+  );
+  return { message: toClientMessage(message, conversation), isNew: true };
 };
 
 export const findDeliverableMessages = async (user_id) => {
@@ -166,15 +183,14 @@ export const markSeen = async (conversation_id, reader_id) => {
   return modifiedCount > 0;
 };
 
-// fetch all messages with conversation id
-export const getConvoMessages = async (convo_id) => {
-  const messages = await MessageModel.find({ conversation: convo_id })
-    .populate("sender", "firstName lastName avatar email activityStatus")
-    .populate("conversation");
+const PAGE_SIZE = 50;
 
-  if (!messages) {
-    throw createHttpError.BadRequest("Unable to fetch messages");
-  }
+export const getConvoMessages = async (convo_id, before) => {
+  const olderThan = mongoose.isValidObjectId(before) ? { _id: { $lt: before } } : {};
+  const page = await MessageModel.find({ conversation: convo_id, ...olderThan })
+    .sort({ _id: -1 })
+    .limit(PAGE_SIZE + 1)
+    .populate("sender", SENDER_FIELDS.join(" "));
 
-  return messages;
+  return { messages: page.slice(0, PAGE_SIZE).reverse(), hasMore: page.length > PAGE_SIZE };
 };

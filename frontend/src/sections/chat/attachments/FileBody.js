@@ -2,6 +2,8 @@ import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { File as FileIcon } from "phosphor-react";
 import { useSelector } from "react-redux";
 
+import { attachmentPreview } from "@/utils/attachments";
+
 const FileBody = () => {
   const theme = useTheme();
   const { files, activeFileIndex } = useSelector((state) => state.chat);
@@ -10,7 +12,7 @@ const FileBody = () => {
 
   if (!activeFile) return null;
 
-  const isImage = activeFile.actionType === "image";
+  const isImage = activeFile.kind === "image";
 
   return (
     <Box
@@ -26,7 +28,7 @@ const FileBody = () => {
       {isImage ? (
         <Box
           component="img"
-          src={activeFile.dataUrl || URL.createObjectURL(activeFile.file)}
+          src={attachmentPreview(activeFile.id)}
           alt={activeFile.fileName}
           sx={{
             maxWidth: "100%",
@@ -54,8 +56,7 @@ const FileBody = () => {
             {activeFile.fileName}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {activeFile.type} &middot;{" "}
-            {(activeFile.file.size / (1024 * 1024)).toFixed(2)} MB
+            {activeFile.typeLabel} &middot; {(activeFile.size / (1024 * 1024)).toFixed(2)} MB
           </Typography>
         </Stack>
       )}

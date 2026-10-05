@@ -9,13 +9,15 @@ import HangingBuddy from "@/assets/illustrations/animations/HangingBuddy.json";
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
 import { GetSentRequests } from "@/redux/slices/actions/contactActions";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const SentRequests = () => {
   const theme = useTheme();
 
   // from redux
   const dispatch = useDispatch();
-  const { sentRequests, isSentRequestsLoading } = useSelector(
+  const isSentRequestsLoading = useIsLoading(GetSentRequests);
+  const { sentRequests } = useSelector(
     (state) => state.contact
   );
   const { showFriendsMenu } = useSelector((state) => state.user);

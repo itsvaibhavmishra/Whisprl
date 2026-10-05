@@ -15,42 +15,44 @@ import {
   googleAuth,
   linkedinAuth,
 } from "../controllers/socialController.js";
+import { requireRecaptcha } from "../middlewares/recaptchaMiddleware.js";
+import { codeLimit, emailLimit, loginLimit, sessionLimit, signupLimit, socialLimit } from "../middlewares/rateLimiters.js";
 
 const authRouter = express.Router();
 
 // Login Route
-authRouter.route("/login").post(trimRequest.all, login);
+authRouter.route("/login").post(trimRequest.all, loginLimit(), requireRecaptcha, login);
 
 // Logout Route
-authRouter.route("/logout").post(trimRequest.all, logout);
+authRouter.route("/logout").post(sessionLimit(), logout);
 
 // Register Route
-authRouter.route("/register").post(trimRequest.all, register, sendOtp);
+authRouter.route("/register").post(trimRequest.all, signupLimit(), requireRecaptcha, register);
 
 // Send OTP Route
-authRouter.route("/send-otp").post(trimRequest.all, sendOtp);
+authRouter.route("/send-otp").post(trimRequest.all, emailLimit(), sendOtp);
 
 // Verify OTP Route
-authRouter.route("/verify-otp").post(trimRequest.all, verifyOTP);
+authRouter.route("/verify-otp").post(trimRequest.all, codeLimit(), requireRecaptcha, verifyOTP);
 
 // Forgot Password Route
-authRouter.route("/forgot-password").post(trimRequest.all, forgotPassword);
+authRouter.route("/forgot-password").post(trimRequest.all, emailLimit(), requireRecaptcha, forgotPassword);
 
 // Reset Password Route
-authRouter.route("/reset-password").post(trimRequest.all, resetPassword);
+authRouter.route("/reset-password").post(trimRequest.all, codeLimit(), resetPassword);
 
 // Refresh Token Route
-authRouter.route("/refresh-token").post(trimRequest.all, refreshToken);
+authRouter.route("/refresh-token").post(sessionLimit(), refreshToken);
 
 // ------------- Social Auth -------------
 
 // Google Auth Route
-authRouter.route("/google").post(googleAuth);
+authRouter.route("/google").post(socialLimit(), googleAuth);
 
 // GitHub Auth Route
-authRouter.route("/github").post(githubAuth);
+authRouter.route("/github").post(socialLimit(), githubAuth);
 
 // LinkedIn Auth Route
-authRouter.route("/linkedin").post(linkedinAuth);
+authRouter.route("/linkedin").post(socialLimit(), linkedinAuth);
 
 export default authRouter;

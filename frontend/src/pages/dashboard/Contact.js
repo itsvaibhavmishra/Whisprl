@@ -8,21 +8,23 @@ import ContactList from "@/sections/contacts/ContactList";
 import FriendsMenu from "@/sections/contacts/FriendsMenu";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import LoadingScreen from "@/components/LoadingScreen";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const Contact = () => {
   const theme = useTheme();
   // from redux
-  const { user, showFriendsMenu, isLoading } = useSelector(
+  const { user, showFriendsMenu, friends } = useSelector(
     (state) => state.user
   );
+  const isLoading = useIsLoading(GetFriends) && !friends.length;
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (user.token) {
+    if (user._id) {
       dispatch(GetFriends());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.token, showFriendsMenu]);
+  }, [user._id, showFriendsMenu]);
 
   // breakpoint
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));

@@ -1,59 +1,54 @@
-import { LogoutUser } from "@/redux/slices/actions/authActions";
+import { EndSession } from "@/redux/slices/actions/authActions";
 import { updateUser } from "@/redux/slices/userSlice";
-import axios from "@/utils/axios";
+import axios, { getAccessToken, setAccessToken } from "@/utils/axios";
 
 let store;
+let refreshing = null;
 
-export const injectStore = (_store) => {
-  store = _store;
+export const injectStore = (appStore) => {
+  store = appStore;
 };
 
-// Function to refresh token
-const refreshToken = async () => {
-  // Make a request to your backend to refresh the token
-  // Example:
-  const { data } = await axios.post("/auth/refresh-token/");
-  return data; // Assuming the new token is returned in the response
+const OFFLINE = { error: { status: "error", message: "Could not reach Whisprl, check your connection" } };
+
+// every caller waiting on an expired token shares one refresh, so the session cookie rotates once
+export const refreshAccessToken = () => {
+  refreshing ??= axios
+    .post("/auth/refresh-token", null, { skipSessionRefresh: true })
+    .then(({ data }) => {
+      setAccessToken(data.accessToken);
+      store.dispatch(updateUser(data.user));
+      return data.accessToken;
+    })
+    .catch((error) => {
+      // a busy or waking server is not a reason to sign out and forget this browser's keys
+      if (error.status === 401) store.dispatch(EndSession());
+      throw error;
+    })
+    .finally(() => {
+      refreshing = null;
+    });
+
+  return refreshing;
 };
+
+export const ensureAccessToken = () => (getAccessToken() ? Promise.resolve(getAccessToken()) : refreshAccessToken());
 
 axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-    const { dispatch } = store;
-    const { isLoggedIn } = store.getState().auth;
+    if (!error.response) return Promise.reject(OFFLINE);
 
-    // Check if the error is an unauthorized error
-    if (
-      error.response.status === 401 &&
-      !originalRequest._retry &&
-      isLoggedIn
-    ) {
-      originalRequest._retry = true;
+    const request = error.config;
+    const canRefresh =
+      error.response.status === 401 && !request.skipSessionRefresh && !request.retried && store.getState().auth.isLoggedIn;
 
-      try {
-        // Attempt to refresh the token
-        const { user } = await refreshToken();
-
-        // If successful, add the new token to the request headers
-        originalRequest.headers["Authorization"] = "Bearer " + user.token;
-
-        // Dispatch the updateUser action with the new user data
-        await dispatch(updateUser(user));
-        // Resend the original request with the new token
-        return axios(originalRequest);
-      } catch (refreshError) {
-        // If refresh token fails, logout user
-        alert("Token expired, Please login again...");
-        dispatch(LogoutUser());
-      }
+    if (canRefresh) {
+      request.retried = true;
+      await refreshAccessToken();
+      return axios(request);
     }
 
-    // If the error is not unauthorized or refresh token fails, just throw the error
-    return Promise.reject(
-      (error.response && error.response.data) || "Axios - Something went wrong"
-    );
+    return Promise.reject({ ...(error.response.data || OFFLINE), status: error.response.status });
   }
 );

@@ -8,103 +8,19 @@ import {
 } from "@mui/material";
 import { PaperPlaneTilt, Plus, XCircle } from "phosphor-react";
 import { useSelector, useDispatch } from "react-redux";
-import { removeFile, setActiveFileIndex, clearFiles, addPendingMessage, addMessageFromUpload } from "@/redux/slices/chatSlice";
-import { UploadFileMessage, uploadAbortControllers } from "@/redux/slices/actions/chatActions";
-import { imageSelectHandler } from "@/sections/chat/attachments/imageSelectHandler";
-import { docSelectHandler } from "@/sections/chat/attachments/docSelectHandler";
-import uuidv4 from "@/utils/uuidv4";
+import { setActiveFileIndex } from "@/redux/slices/chatSlice";
+import { ChooseAttachments, RemoveAttachment, SendAttachments } from "@/redux/slices/actions/attachmentActions";
+import { MAX_ATTACHMENTS, attachmentPreview } from "@/utils/attachments";
 
-const MAX_FILES = 5;
-
-const FileFooter = ({ convo_id }) => {
+const FileFooter = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { files, activeFileIndex } = useSelector((state) => state.chat);
   const [caption, setCaption] = useState("");
 
-  const handleAddMore = () => {
-    const firstFileType = files[0]?.actionType;
-    if (firstFileType === "image") {
-      imageSelectHandler();
-    } else {
-      docSelectHandler();
-    }
-  };
-
-  const handleRemoveFile = (fileName) => {
-    dispatch(removeFile(fileName));
-  };
-
   const handleSend = () => {
-    if (files.length === 0) return;
-
-    const batchId = uuidv4();
-    const captionText = caption.trim();
-    const isImages = files[0]?.actionType === "image";
-    const isSingleDoc = !isImages && files.length === 1;
-
-    // Snapshot files before clearing (objects are Immer-frozen — don't mutate them)
-    const filesSnapshot = [...files];
-
-    // Pre-generate a localId for each file
-    const localIds = filesSnapshot.map(() => uuidv4());
-
-    const getCaption = (i) =>
-      isImages && i === 0
-        ? captionText || undefined
-        : isSingleDoc
-        ? captionText || undefined
-        : undefined;
-
-    // 1. Register all pending messages
-    filesSnapshot.forEach((fileObj, i) => {
-      dispatch(
-        addPendingMessage({
-          localId: localIds[i],
-          batchId,
-          batchIndex: i,
-          batchTotal: filesSnapshot.length,
-          dataUrl: fileObj.dataUrl,
-          fileName: fileObj.fileName,
-          actionType: fileObj.actionType,
-          caption: getCaption(i),
-          status: "uploading",
-          file: fileObj.file,
-          convo_id,
-        })
-      );
-    });
-
-    // 2. Close upload screen immediately
-    dispatch(clearFiles());
+    dispatch(SendAttachments(caption.trim() || undefined));
     setCaption("");
-
-    // 3. Upload each file in parallel
-    filesSnapshot.forEach((fileObj, i) => {
-      const localId = localIds[i];
-      const controller = new AbortController();
-      uploadAbortControllers.set(localId, controller);
-
-      const pendingCaption = getCaption(i);
-
-      dispatch(
-        UploadFileMessage({
-          file: fileObj.file,
-          convo_id,
-          caption: pendingCaption,
-          localId,
-          batchId,
-          batchIndex: i,
-          batchTotal: filesSnapshot.length,
-          signal: controller.signal,
-        })
-      ).then((result) => {
-        uploadAbortControllers.delete(localId);
-        if (!result.error && result.payload?.message) {
-          dispatch(addMessageFromUpload(result.payload.message));
-        }
-      });
-    });
   };
 
   return (
@@ -118,9 +34,9 @@ const FileFooter = ({ convo_id }) => {
         className="scrollbar"
       >
         {/* Add more button */}
-        {files.length < MAX_FILES && (
+        {files.length < MAX_ATTACHMENTS && (
           <Box
-            onClick={handleAddMore}
+            onClick={() => dispatch(ChooseAttachments(files[0]?.kind))}
             sx={{
               width: 60,
               height: 60,
@@ -144,7 +60,7 @@ const FileFooter = ({ convo_id }) => {
         {/* File thumbnails */}
         {files.map((fileObj, index) => (
           <Box
-            key={fileObj.fileName}
+            key={fileObj.id}
             sx={{
               position: "relative",
               width: 60,
@@ -160,10 +76,10 @@ const FileFooter = ({ convo_id }) => {
             }}
             onClick={() => dispatch(setActiveFileIndex(index))}
           >
-            {fileObj.actionType === "image" ? (
+            {fileObj.kind === "image" ? (
               <Box
                 component="img"
-                src={fileObj.dataUrl || URL.createObjectURL(fileObj.file)}
+                src={attachmentPreview(fileObj.id)}
                 alt={fileObj.fileName}
                 sx={{
                   width: "100%",
@@ -189,7 +105,7 @@ const FileFooter = ({ convo_id }) => {
                     color: theme.palette.primary.main,
                   }}
                 >
-                  {fileObj.type}
+                  {fileObj.typeLabel}
                 </Box>
               </Box>
             )}
@@ -199,7 +115,7 @@ const FileFooter = ({ convo_id }) => {
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
-                handleRemoveFile(fileObj.fileName);
+                dispatch(RemoveAttachment(fileObj.id));
               }}
               sx={{
                 position: "absolute",

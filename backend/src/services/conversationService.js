@@ -25,86 +25,52 @@ export const findMemberConversation = async (convo_id, user_id) => {
   return conversation;
 };
 
-// find an existing direct conversation
-export const findConversation = async (sender_id, receiver_id) => {
-  let convos;
-  if (sender_id.toString() === receiver_id.toString()) {
-    convos = await ConversationModel.find({
-      isGroup: false,
-      users: { $all: [receiver_id], $size: 1 },
-    })
-      .populate("users", MEMBER_FIELDS)
-      .populate("latestMessage");
-  } else {
-    convos = await ConversationModel.find({
-      isGroup: false,
-      $and: [
-        { users: { $elemMatch: { $eq: sender_id } } },
-        { users: { $elemMatch: { $eq: receiver_id } } },
-      ],
-    })
-      .populate("users", MEMBER_FIELDS)
-      .populate("latestMessage");
-  }
+const withLatestSender = (conversations) =>
+  UserModel.populate(conversations, { path: "latestMessage.sender", select: MEMBER_FIELDS });
 
-  // conversation doesnt exists
-  if (!convos) {
-    throw createHttpError.BadRequest(
-      "Something went wrong in getting conversation"
-    );
-  }
+const membersOf = (sender_id, receiver_id) =>
+  String(sender_id) === String(receiver_id) ? [sender_id] : [sender_id, receiver_id];
 
-  // populating messages model
-  convos = await UserModel.populate(convos, {
-    path: "latestMessage.sender",
-    select: MEMBER_FIELDS,
+// a note to yourself has one member, so the match is on the exact set rather than on containing both
+const findDirectConversation = async (members) => {
+  const conversation = await ConversationModel.findOne({ ...DIRECT, users: { $all: members, $size: members.length } })
+    .populate("users", MEMBER_FIELDS)
+    .populate("latestMessage");
+
+  return conversation && withLatestSender(conversation);
+};
+
+export const openDirectConversation = async (sender, receiver_id) => {
+  if (!mongoose.isValidObjectId(receiver_id)) throw createHttpError.BadRequest("Something went wrong");
+
+  const receiver = await UserModel.findOne({ _id: receiver_id, verified: true });
+  if (!receiver) throw createHttpError.NotFound("Verified Receiver does not exist");
+
+  const isValidFriendShip = sender.friends.some((id) => id.equals(receiver._id)) && receiver.friends.some((id) => id.equals(sender._id));
+  const members = membersOf(sender._id, receiver._id);
+
+  const existing = await findDirectConversation(members);
+  if (existing) return { conversation: existing, isValidFriendShip, isNew: false };
+
+  if (!isValidFriendShip) throw createHttpError.Forbidden("You are not friends with this user");
+
+  const created = await ConversationModel.create({
+    name: `${receiver.firstName} ${receiver.lastName}`,
+    isGroup: false,
+    users: members,
   });
 
-  return convos[0];
+  return { conversation: await created.populate("users", MEMBER_FIELDS), isValidFriendShip, isNew: true };
 };
 
-// create a new direct conversation
-export const createConversation = async (convoData) => {
-  const newConvo = await ConversationModel.create(convoData);
-
-  if (!newConvo) {
-    throw createHttpError.InternalServerError("Unable to create conversation");
-  }
-
-  const populatedConvo = await ConversationModel.findOne({
-    _id: newConvo._id,
-  }).populate("users", MEMBER_FIELDS);
-
-  if (!populatedConvo) {
-    throw createHttpError.BadRequest("Unable to populate conversation");
-  }
-
-  return populatedConvo;
-};
-
-// get all conversations for user
 export const getUserConversations = async (user_id) => {
-  let conversations;
-  await ConversationModel.find({
-    users: { $elemMatch: { $eq: user_id } },
-    ...DIRECT,
-  })
+  const conversations = await ConversationModel.find({ users: user_id, ...DIRECT })
     .populate("users", MEMBER_FIELDS)
-    .populate("admin", MEMBER_FIELDS)
     .populate("latestMessage")
-    .sort({ updatedAt: -1 })
-    .then(async (results) => {
-      results = await UserModel.populate(results, {
-        path: "latestMessage.sender",
-        select: MEMBER_FIELDS,
-      });
-      conversations = results;
-    })
-    .catch((err) => {
-      throw createHttpError.BadRequest(
-        "Error fetching conversations, try again"
-      );
-    });
+    .sort({ updatedAt: -1 });
 
-  return conversations;
+  return withLatestSender(conversations);
 };
+
+export const getUserConversationIds = async (user_id) =>
+  (await ConversationModel.find({ users: user_id, ...DIRECT }).distinct("_id")).map(String);

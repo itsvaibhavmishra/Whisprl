@@ -5,9 +5,12 @@ import { useSelector } from "react-redux";
 
 import { MembersList } from "@/data";
 import OnlineChatElement from "@/sections/chat/OnlineChatElement";
+import useIsLoading from "@/hooks/useIsLoading";
+import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 
 const OnlineFriendsElement = ({ fromContact }) => {
-  const { user, onlineFriends, isLoading } = useSelector((state) => state.user);
+  const { user, onlineFriends } = useSelector((state) => state.user);
+  const isLoading = useIsLoading(GetOnlineFriends) && !onlineFriends.length;
 
   const isMediumScreen = useMediaQuery((theme) => theme.breakpoints.up("md"));
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.up("sm"));

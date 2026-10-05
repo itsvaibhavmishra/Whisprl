@@ -9,13 +9,15 @@ import NoResultsFound from "@/assets/illustrations/animations/NoResultsFound.jso
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
 import { GetFriendRequests } from "@/redux/slices/actions/contactActions";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const FriendRequests = () => {
   const theme = useTheme();
 
   // from redux
   const dispatch = useDispatch();
-  const { friendRequests, isRequestsLoading } = useSelector(
+  const isRequestsLoading = useIsLoading(GetFriendRequests);
+  const { friendRequests } = useSelector(
     (state) => state.contact
   );
   const { showFriendsMenu } = useSelector((state) => state.user);

@@ -1,17 +1,26 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { SetLoading, ShowSnackbar } from "@/redux/slices/userSlice";
-
-import axios from "@/utils/axios";
-import { socket } from "@/utils/socket";
-import { decryptMessage, encryptMessage } from "@/utils/crypto/messageCipher";
+import { createApiThunk } from "@/redux/slices/actions/apiThunk";
+import { ClearAttachments } from "@/redux/slices/actions/attachmentActions";
 import {
   closeActiveConversation,
+  dropQueuedMessage,
+  messageArrived,
+  queueMessage,
   replaceMessage,
-  updateMsgConvo,
-  updatePendingMessage,
-  removePendingMessage,
+  requeueMessage,
+  updateQueuedMessage,
 } from "@/redux/slices/chatSlice";
+import { selectIsLoading } from "@/redux/slices/requestSlice";
+import axios from "@/utils/axios";
+import { socket } from "@/utils/socket";
+import uuidv4 from "@/utils/uuidv4";
+import { decryptMessage, encryptMessage } from "@/utils/crypto/messageCipher";
+
+const ACK_TIMEOUT = 10000;
+// about a minute of trying while connected, and time offline does not count against it
+const RETRY_PAUSES = [1000, 2000, 4000, 8000, 15000, 15000, 15000];
+const UNREAD_LOOKBACK = 200;
 
 const withReadablePreview = async (conversation) =>
   conversation.latestMessage
@@ -21,142 +30,195 @@ const withReadablePreview = async (conversation) =>
 const conversationById = ({ chat }, conversationId) =>
   [chat.activeConversation, ...chat.conversations].find((conversation) => conversation?._id === conversationId);
 
-const SEND_TIMEOUT = 10000;
-
 const isFromSomeoneElse = (message, getState) => message.sender?._id !== getState().user.user._id;
 
-// Module-level map: localId → AbortController (non-serializable, not in Redux)
-export const uploadAbortControllers = new Map();
-
 // ------------- Get Conversation Thunk -------------
-export const GetConversations = createAsyncThunk(
-  "conversation/get-conversations",
-  async (arg, { rejectWithValue, dispatch }) => {
-    try {
-      // set user loading to true
-      dispatch(SetLoading(true));
-
-      const { data } = await axios.get("/conversation/get-conversations/");
-      const conversations = await Promise.all(data.conversations.map(withReadablePreview));
-
-      // set user loading to false
-      dispatch(SetLoading(false));
-      return { ...data, conversations };
-    } catch (error) {
-      // set user loading to false
-      dispatch(SetLoading(false));
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const GetConversations = createApiThunk("conversation/get-conversations", async () => {
+  const { data } = await axios.get("/conversation/get-conversations");
+  return { conversations: await Promise.all(data.conversations.map(withReadablePreview)) };
+});
 
 // ------------- Create or Open Conversation -------------
-export const CreateOpenConversation = createAsyncThunk(
+export const CreateOpenConversation = createApiThunk(
   "conversation/create-open-conversation",
-  async (value, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post(
-        "/conversation/create-open-conversation",
-        {
-          receiver_id: value,
-        }
-      );
-
-      dispatch(closeActiveConversation());
-
-      return { ...data, conversation: await withReadablePreview(data.conversation) };
-    } catch (error) {
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
+  async (receiver_id, { dispatch }) => {
+    const { data } = await axios.post("/conversation/create-open-conversation", { receiver_id });
+    dispatch(CloseConversation());
+    return { ...data, conversation: await withReadablePreview(data.conversation) };
   }
 );
+
+const readablePage = async (data, conversation) => ({
+  messages: await Promise.all(data.messages.map((message) => decryptMessage(message, conversation))),
+  hasMore: data.hasMore,
+});
+
+const fetchPage = async (conversationId, before) =>
+  (await axios.get(`/message/get-messages/${conversationId}`, { params: { before } })).data;
+
+// a friend's message this browser had not seen when the chat opened
+const isUnreadBy = (userId) => (message) => message.sender._id !== userId && !message.seenAt && !message.awaitingKey;
+
+// opening a chat reaches back far enough to show where the unread messages start
+const fetchOpeningPages = async (conversationId, isUnread) => {
+  let { messages, hasMore } = await fetchPage(conversationId);
+  while (hasMore && messages.length < UNREAD_LOOKBACK && isUnread(messages[0])) {
+    const older = await fetchPage(conversationId, messages[0]._id);
+    messages = [...older.messages, ...messages];
+    hasMore = older.hasMore;
+  }
+  return { messages, hasMore };
+};
+
+const unreadMarkerOf = (messages, isUnread) => {
+  const unread = messages.filter(isUnread);
+  return unread.length ? { firstId: unread[0]._id, count: unread.length } : null;
+};
 
 // ------------- Get Messages -------------
-export const GetMessages = createAsyncThunk(
-  "message/get-messages",
-  async (convoId, { rejectWithValue, dispatch, getState }) => {
-    try {
-      const { data } = await axios.get(`/message/get-messages/${convoId}`);
-      const conversation = conversationById(getState(), convoId);
-      const messages = await Promise.all(data.messages.map((message) => decryptMessage(message, conversation)));
-      dispatch(AcknowledgeMessages(convoId));
+export const GetMessages = createApiThunk("message/get-messages", async (convoId, { dispatch, getState }) => {
+  const isOpening = !getState().chat.messages.length;
+  const isUnread = isUnreadBy(getState().user.user._id);
 
-      return { ...data, messages };
-    } catch (error) {
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+  const data = isOpening ? await fetchOpeningPages(convoId, isUnread) : await fetchPage(convoId);
+  const page = await readablePage(data, conversationById(getState(), convoId));
+  dispatch(AcknowledgeMessages(convoId));
 
-// ------------- Send Text Message -------------
-export const SendTextMessage = createAsyncThunk(
-  "message/send-text",
-  async (text, { rejectWithValue, dispatch, getState }) => {
-    const { chat, user } = getState();
-    const fail = (message) => {
-      dispatch(ShowSnackbar({ severity: "error", message }));
-      return rejectWithValue(message);
-    };
+  return { ...page, unread: isOpening ? unreadMarkerOf(data.messages, isUnread) : null };
+});
 
-    const cipher = await encryptMessage(text, chat.activeConversation, user.user._id).catch(() => null);
-    if (!cipher) return fail("That message could not be encrypted. Reload Whisprl and try again.");
-
-    const response = await socket
-      .timeout(SEND_TIMEOUT)
-      .emitWithAck("send_message", { convo_id: chat.activeConversation._id, cipher })
-      .catch(() => ({ status: "error", message: "That message could not be sent. Check your connection and try again." }));
-    if (response.status === "error") return fail(response.message);
+// ------------- Load Older Messages -------------
+export const LoadOlderMessages = createApiThunk(
+  "message/load-older",
+  async (_, { getState }) => {
+    const { activeConversation, messages } = getState().chat;
+    const data = await fetchPage(activeConversation._id, messages[0]?._id);
+    return { conversationId: activeConversation._id, ...(await readablePage(data, activeConversation)) };
+  },
+  {
+    condition: (_, { getState }) => {
+      const { hasOlderMessages, activeConversation } = getState().chat;
+      return Boolean(activeConversation && hasOlderMessages && !selectIsLoading(getState(), LoadOlderMessages));
+    },
   }
 );
 
 // ------------- Acknowledge Messages -------------
-export const AcknowledgeMessages = createAsyncThunk("message/acknowledge", async (conversationId, { getState }) => {
+export const AcknowledgeMessages = (conversationId) => (_, getState) => {
   const { chat, encryption } = getState();
   const isRead =
     encryption.status === "ready" &&
     chat.activeConversation?._id === conversationId &&
     document.visibilityState === "visible";
   socket.emit(isRead ? "messages_seen" : "messages_delivered", conversationId);
-});
+};
+
+// ------------- Typing -------------
+export const StartTyping = (conversationId) => () => socket.emit("start_typing", conversationId);
+
+export const StopTyping = (conversationId) => () => socket.emit("stop_typing", conversationId);
+
+// ------------- Close Conversation -------------
+export const CloseConversation = () => (dispatch) => {
+  dispatch(ClearAttachments());
+  dispatch(closeActiveConversation());
+};
+
+// ------------- Send Text Message -------------
+// shown at once from the outbox; the server's copy replaces it once it is saved
+export const SendTextMessage = (text) => (dispatch, getState) => {
+  dispatch(
+    queueMessage({
+      clientId: uuidv4(),
+      senderId: getState().user.user._id,
+      conversationId: getState().chat.activeConversation._id,
+      afterId: getState().chat.messages.at(-1)?._id,
+      createdAt: new Date().toISOString(),
+      text,
+    })
+  );
+  dispatch(FlushOutbox());
+};
+
+const UNENCRYPTABLE = "That message could not be encrypted. Reload Whisprl and try again.";
+
+// null when the acknowledgement timed out; a resend carries the same clientId, so it is never saved twice
+const sendOnce = (entry, cipher) =>
+  socket
+    .timeout(ACK_TIMEOUT)
+    .emitWithAck("send_message", { convo_id: entry.conversationId, clientId: entry.clientId, cipher })
+    .catch(() => null);
+
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// a slow or busy server keeps the message sending, so a later one never overtakes it; only a refusal fails it
+const deliverQueuedText = async (entry, dispatch, getState) => {
+  const fail = (error) => dispatch(updateQueuedMessage({ clientId: entry.clientId, status: "failed", error }));
+  const conversation = conversationById(getState(), entry.conversationId);
+
+  const cipher = await encryptMessage(entry.text, conversation, getState().user.user._id).catch(() => null);
+  if (!cipher) return fail(UNENCRYPTABLE);
+
+  for (const retryPause of [...RETRY_PAUSES, null]) {
+    if (!socket.connected || !isStillSending(getState, entry.clientId)) return;
+
+    const response = await sendOnce(entry, cipher);
+    if (response?.status === "success") return dispatch(messageArrived({ ...response.message, message: entry.text }));
+    if (response && !response.retryable) return fail(response.message);
+    if (retryPause) await pause(retryPause);
+  }
+
+  fail(null);
+};
+
+const isStillSending = (getState, clientId) =>
+  getState().chat.outbox.some((queued) => queued.clientId === clientId && queued.status === "sending");
+
+const nextQueuedText = (getState) =>
+  getState().chat.outbox.find((queued) => queued.text !== undefined && queued.status === "sending");
+
+const drainOutbox = async (dispatch, getState) => {
+  for (let entry = nextQueuedText(getState); entry && socket.connected; entry = nextQueuedText(getState)) {
+    await deliverQueuedText(entry, dispatch, getState);
+    // still sending means the connection dropped mid-send, and the reconnect flushes it again
+    if (isStillSending(getState, entry.clientId)) return;
+  }
+};
+
+let flushing = Promise.resolve();
+
+// each flush waits for the one before, so messages go one at a time in the order they were written
+export const FlushOutbox = () => (dispatch, getState) => {
+  flushing = flushing.catch(() => {}).then(() => drainOutbox(dispatch, getState));
+  return flushing;
+};
+
+export const SendAgain = (clientId) => (dispatch) => {
+  dispatch(requeueMessage(clientId));
+  dispatch(FlushOutbox());
+};
+
+export const DiscardMessage = (clientId) => (dispatch) => dispatch(dropQueuedMessage(clientId));
 
 // ------------- Receive Message -------------
-export const ReceiveMessage = createAsyncThunk("message/receive", async (message, { dispatch, getState }) => {
-  const readable = await decryptMessage(message, message.conversation);
+export const ReceiveMessage = (message) => async (dispatch, getState) => {
+  // a friend who just started a conversation with us sends a message before we have that conversation
+  if (!conversationById(getState(), message.conversation)) await dispatch(GetConversations());
+  const conversation = conversationById(getState(), message.conversation);
+  if (!conversation) return;
 
-  dispatch(updateMsgConvo({ ...readable, conversation: { ...message.conversation, latestMessage: readable } }));
-  if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(message.conversation._id));
-});
+  dispatch(messageArrived(await decryptMessage(message, conversation)));
+  if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(conversation._id));
+};
 
 // ------------- Receive Re-encrypted Message -------------
-export const ReceiveMessageUpdate = createAsyncThunk("message/receive-update", async (message, { dispatch, getState }) => {
+export const ReceiveMessageUpdate = (message) => async (dispatch, getState) => {
   const conversation = conversationById(getState(), message.conversation);
   if (!conversation) return;
 
   dispatch(replaceMessage(await decryptMessage(message, conversation)));
   if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(conversation._id));
-});
+};
 
 // ------------- Deliver Waiting Messages -------------
 export const DeliverWaitingMessages = createAsyncThunk("message/deliver-waiting", async (_, { getState }) => {
@@ -174,48 +236,10 @@ export const DeliverWaitingMessages = createAsyncThunk("message/deliver-waiting"
   );
 });
 
-// ------------- Upload File Message (per-file, async) -------------
-export const UploadFileMessage = createAsyncThunk(
-  "message/upload-file-message",
-  async (
-    { file, convo_id, caption, localId, batchId, batchIndex, batchTotal, signal },
-    { rejectWithValue, dispatch }
-  ) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("convo_id", convo_id);
-      if (caption) formData.append("message", caption);
-      if (batchId) {
-        formData.append("batchId", batchId);
-        formData.append("batchIndex", batchIndex);
-        formData.append("batchTotal", batchTotal);
-      }
-
-      const { data } = await axios.post("/message/send-message", formData, {
-        signal,
-      });
-
-      dispatch(removePendingMessage(localId));
-      return data;
-    } catch (error) {
-      // AbortError / CanceledError means user cancelled — keep status as 'cancelled'
-      if (
-        error?.name === "CanceledError" ||
-        error?.name === "AbortError" ||
-        error?.code === "ERR_CANCELED"
-      ) {
-        return rejectWithValue({ cancelled: true });
-      }
-
-      dispatch(updatePendingMessage({ localId, status: "failed" }));
-      dispatch(
-        ShowSnackbar({
-          severity: "error",
-          message: error?.error?.message || "Failed to upload file",
-        })
-      );
-      return rejectWithValue(error?.error || error);
-    }
-  }
-);
+// ------------- Catch Up After Reconnecting -------------
+export const CatchUp = () => (dispatch, getState) => {
+  dispatch(GetConversations());
+  dispatch(DeliverWaitingMessages());
+  const { activeConversation } = getState().chat;
+  if (activeConversation) dispatch(GetMessages(activeConversation._id));
+};

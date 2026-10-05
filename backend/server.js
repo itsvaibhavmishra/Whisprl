@@ -1,3 +1,4 @@
+import "dotenv/config";
 import http from "http";
 import mongoose from "mongoose";
 
@@ -21,7 +22,8 @@ mongoose
     console.log("[DB] Connection Success");
   })
   .catch((err) => {
-    console.log(err.message);
+    console.log(`[DB] ${err.message}`);
+    process.exit(1);
   });
 
 // ------------------------------------

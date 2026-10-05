@@ -6,13 +6,14 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { ForgotPassword } from "@/redux/slices/actions/authActions";
 
 import FormProvider, { RHFTextField } from "@/components/hook-form";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const ForgotPasswordForm = () => {
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(ForgotPassword);
   const dispatch = useDispatch();
 
   const recaptchaRef = useRef(null);

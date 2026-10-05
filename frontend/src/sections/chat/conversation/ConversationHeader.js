@@ -10,16 +10,25 @@ import {
 import { VideoCamera, Phone, XCircle } from "phosphor-react";
 
 // redux imports
-import { useDispatch } from "react-redux";
-import { closeActiveConversation } from "@/redux/slices/chatSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { CloseConversation } from "@/redux/slices/actions/chatActions";
 
 import getAvatar from "@/utils/createAvatar";
 import StyledBadge from "@/components/StyledBadge";
+
+// while this tab is disconnected the friend's status is stale, so the header says what is happening instead
+const CONNECTION_NOTICE = {
+  connecting: "Connecting…",
+  offline: "Offline, messages send when you are back",
+};
 
 const ConversationHeader = ({ otherUser }) => {
   const theme = useTheme();
 
   const dispatch = useDispatch();
+  const connection = useSelector((state) => state.chat.connection);
+  const notice = CONNECTION_NOTICE[connection];
+
   return (
     <Box
       p={2}
@@ -60,8 +69,8 @@ const ConversationHeader = ({ otherUser }) => {
 
           <Stack spacing={0.2}>
             <Typography variant="subtitle2">{`${otherUser?.firstName} ${otherUser?.lastName}`}</Typography>
-            <Typography variant="caption" sx={{ textTransform: "capitalize" }}>
-              {otherUser?.onlineStatus}
+            <Typography variant="caption" role="status" sx={{ textTransform: notice ? "none" : "capitalize" }}>
+              {notice ?? otherUser?.onlineStatus}
             </Typography>
           </Stack>
         </Stack>
@@ -86,7 +95,7 @@ const ConversationHeader = ({ otherUser }) => {
           {/* search action */}
           <IconButton
             onClick={() => {
-              dispatch(closeActiveConversation());
+              dispatch(CloseConversation());
             }}
           >
             <XCircle />

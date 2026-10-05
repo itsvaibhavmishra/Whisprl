@@ -1,6 +1,8 @@
 import { Box, Stack, Typography, IconButton, useTheme } from "@mui/material";
 import { DownloadSimple, File as FileIcon } from "phosphor-react";
 
+import { downloadFile } from "@/utils/attachments";
+
 const DocumentMessage = ({ files }) => {
   const theme = useTheme();
   const docFiles = files.filter((f) => f.fileType === "document");
@@ -43,14 +45,7 @@ const DocumentMessage = ({ files }) => {
             {file.fileName}
           </Typography>
 
-          <IconButton
-            size="small"
-            component="a"
-            href={file.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            download
-          >
+          <IconButton size="small" aria-label={`Download ${file.fileName}`} onClick={() => downloadFile(file.url, file.fileName)}>
             <DownloadSimple size={18} />
           </IconButton>
         </Stack>

@@ -3,17 +3,20 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { ResetPassword } from "@/redux/slices/actions/authActions";
 
 import { newPasswordRule } from "@/utils/formRules";
+import { PATH_AUTH } from "@/routes/paths";
 import FormProvider, { PasswordChecklist, RHFPasswordField } from "@/components/hook-form";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const ResetPasswordForm = () => {
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(ResetPassword);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [queryParameters] = useSearchParams();
 
@@ -40,11 +43,8 @@ const ResetPasswordForm = () => {
   const { handleSubmit } = methods;
 
   const onSubmit = async (data) => {
-    try {
-      dispatch(ResetPassword({ ...data, token: queryParameters.get("code") }));
-    } catch (error) {
-      console.error(error);
-    }
+    const result = await dispatch(ResetPassword({ ...data, token: queryParameters.get("code") }));
+    if (ResetPassword.fulfilled.match(result)) navigate(PATH_AUTH.general.login);
   };
 
   return (

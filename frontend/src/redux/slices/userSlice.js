@@ -1,21 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
-import axios from "@/utils/axios";
-
 import {
-  ChangePassword,
   GetFriends,
   GetMyProfile,
   GetOnlineFriends,
   SearchFriends,
   UpdateProfile,
 } from "@/redux/slices/actions/userActions";
-import { toast } from "sonner";
 
 // initial state for contacts menu
 const initialState = {
-  isLoading: false,
-  error: false,
-
   showFriendsMenu: false,
 
   user: {
@@ -26,7 +19,6 @@ const initialState = {
     cover: "",
     email: "",
     activityStatus: "",
-    token: "",
   },
   accountSummary: null,
 
@@ -41,17 +33,6 @@ const slice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    // toggle snackbar
-    openSnackbar(state, action) {
-      const { severity, message, description } = action.payload;
-      toast[severity](message, {
-        description,
-      });
-    },
-    closeSnackbar(state, action) {
-      state.snackbar.open = false;
-    },
-
     setShowFriendsMenu(state, action) {
       state.showFriendsMenu = !state.showFriendsMenu;
     },
@@ -59,7 +40,6 @@ const slice = createSlice({
     // update user information
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
-      axios.defaults.headers.common.Authorization = `Bearer ${action.payload.token}`;
     },
 
     // update online users
@@ -98,12 +78,6 @@ const slice = createSlice({
       }
     },
 
-    // update user information
-    setLoading: (state, action) => {
-      state.isLoading = action.payload;
-    },
-
-    // update user information
     clearSearch: (state, action) => {
       state.searchResults = [];
       state.searchCount = null;
@@ -111,8 +85,6 @@ const slice = createSlice({
 
     // logout reducer | being handled from auth
     logout: (state) => {
-      state.isLoading = false;
-      state.error = false;
       state.user = {
         _id: "",
         firstName: "",
@@ -121,7 +93,6 @@ const slice = createSlice({
         cover: "",
         email: "",
         activityStatus: "",
-        token: "",
       };
       state.accountSummary = null;
       state.friends = [];
@@ -130,113 +101,28 @@ const slice = createSlice({
   },
   extraReducers(builder) {
     builder
-      // --------- Profile Builder ---------
-      .addCase(UpdateProfile.pending, handlePending)
       .addCase(UpdateProfile.fulfilled, (state, action) => {
         state.user = { ...state.user, ...action.payload.user };
-        state.isLoading = false;
-        state.error = false;
       })
-      .addCase(UpdateProfile.rejected, handleRejected)
-
-      // --------- My Profile Builder ---------
       .addCase(GetMyProfile.fulfilled, (state, action) => {
         const { firstName, lastName, avatar, cover, email, activityStatus, ...summary } = action.payload.user;
         state.user = { ...state.user, firstName, lastName, avatar, cover, email, activityStatus };
         state.accountSummary = summary;
       })
-
-      // --------- Change Password Builder ---------
-      .addCase(ChangePassword.pending, handlePending)
-      .addCase(ChangePassword.fulfilled, (state, action) => {
-        state.user.token = action.payload.token;
-        axios.defaults.headers.common.Authorization = `Bearer ${action.payload.token}`;
-        state.isLoading = false;
-        state.error = false;
-      })
-      .addCase(ChangePassword.rejected, handleRejected)
-
-      // --------- Search Friends Builder ---------
-      .addCase(SearchFriends.pending, handlePending)
       .addCase(SearchFriends.fulfilled, (state, action) => {
-        if (action.payload.usersFound === 0) {
-          state.searchResults = null;
-          state.searchCount = null;
-        } else {
-          state.searchResults = action.payload.friends;
-          state.searchCount = action.payload.usersFound;
-        }
-        state.isLoading = false;
-        state.error = false;
+        const found = action.payload.usersFound > 0;
+        state.searchResults = found ? action.payload.friends : null;
+        state.searchCount = found ? action.payload.usersFound : null;
       })
-      .addCase(SearchFriends.rejected, handleRejected)
-
-      // --------- Get Friends Builder ---------
-      .addCase(GetFriends.pending, handlePending)
       .addCase(GetFriends.fulfilled, (state, action) => {
         state.friends = action.payload.friends;
-        state.isLoading = false;
-        state.error = false;
       })
-      .addCase(GetFriends.rejected, handleRejected)
-
-      // --------- Get Online Friends Builder ---------
-      .addCase(GetOnlineFriends.pending, handlePending)
       .addCase(GetOnlineFriends.fulfilled, (state, action) => {
         state.onlineFriends = action.payload.onlineFriends;
-        state.isLoading = false;
-        state.error = false;
-      })
-      .addCase(GetOnlineFriends.rejected, handleRejected);
+      });
   },
 });
 
-// function for pending and rejected handling
-function handlePending(state, action) {
-  state.isLoading = true;
-  state.error = false;
-}
-
-function handleRejected(state, action) {
-  state.isLoading = false;
-  state.error = true;
-}
-
-// snackbar functions
-export function ShowSnackbar({ severity, message, description }) {
-  return async (dispatch, getState) => {
-    dispatch(slice.actions.openSnackbar({ severity, message, description }));
-  };
-}
-
-// snackbar functions
-export function HideSnackbar() {
-  return async (dispatch, getState) => {
-    dispatch(slice.actions.closeSnackbar());
-  };
-}
-
-// set loading functions
-export function SetLoading(value) {
-  return async (dispatch, getState) => {
-    dispatch(slice.actions.setLoading(value));
-  };
-}
-
-// clear search functions
-export function ClearSearch() {
-  return async (dispatch, getState) => {
-    dispatch(slice.actions.clearSearch());
-  };
-}
-
-export const {
-  setShowFriendsMenu,
-  updateUser,
-  updateOnlineUsers,
-  removeFriend,
-  logout,
-  user,
-} = slice.actions;
+export const { setShowFriendsMenu, updateUser, updateOnlineUsers, removeFriend, clearSearch, logout } = slice.actions;
 
 export default slice.reducer;

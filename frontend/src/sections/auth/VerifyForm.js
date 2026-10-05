@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -14,9 +15,11 @@ import {
 } from "@/redux/slices/actions/authActions";
 
 import FormProvider, { RHFOtp, RHFTextField } from "@/components/hook-form";
+import { PATH_DASHBOARD } from "@/routes/paths";
+import useIsLoading from "@/hooks/useIsLoading";
 
 export const EmailForm = () => {
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(SendOTP);
   const { otpEmail } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
@@ -80,9 +83,10 @@ export const EmailForm = () => {
 };
 
 const VerifyForm = () => {
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(VerifyOTP);
   const { otpEmail } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const recaptchaRef = useRef(null);
 
@@ -113,17 +117,14 @@ const VerifyForm = () => {
   const { handleSubmit } = methods;
 
   const onSubmit = async (data) => {
-    try {
-      dispatch(
-        VerifyOTP({
-          email: otpEmail,
-          otp: `${data.otp1}${data.otp2}${data.otp3}${data.otp4}${data.otp5}${data.otp6}`,
-          recaptchaRef,
-        })
-      );
-    } catch (error) {
-      console.error(error);
-    }
+    const result = await dispatch(
+      VerifyOTP({
+        email: otpEmail,
+        otp: `${data.otp1}${data.otp2}${data.otp3}${data.otp4}${data.otp5}${data.otp6}`,
+        recaptchaRef,
+      })
+    );
+    if (VerifyOTP.fulfilled.match(result)) navigate(PATH_DASHBOARD.general.profile, { replace: true });
   };
 
   return (

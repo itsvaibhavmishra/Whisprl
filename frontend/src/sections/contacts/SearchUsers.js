@@ -11,11 +11,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { SearchForUsers } from "@/redux/slices/actions/contactActions";
 import { clearSearchUsers } from "@/redux/slices/contactSlice";
 import UsersSearchResults from "@/sections/contacts/UsersSearchResults";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const SearchUsers = () => {
   // from redux
   const dispatch = useDispatch();
-  const { searchedUsersList, searchedUsersCount, isSearchLoading } =
+  const isSearchLoading = useIsLoading(SearchForUsers);
+  const { searchedUsersList, searchedUsersCount } =
     useSelector((state) => state.contact);
 
   // states

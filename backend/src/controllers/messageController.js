@@ -2,24 +2,27 @@ import createHttpError from "http-errors";
 import {
   findDeliverableMessages,
   findSendableConversation,
+  findSentMessage,
   getConvoMessages,
   getFileType,
+  isClientId,
   markDelivered,
   markSeen,
   peerHasKey,
   resealMessage,
   saveMessage,
+  toClientMessage,
   validateCipher,
   validateMessageFiles,
 } from "../services/messageService.js";
 import { findMemberConversation, memberRooms } from "../services/conversationService.js";
-import { uploadFiles } from "../services/fileUploadService.js";
+import { uploadFile } from "../services/fileUploadService.js";
 
 // -------------------------- Send Message --------------------------
 export const sendMessage = async (req, res, next) => {
   try {
     const user_id = req.user._id;
-    const { message, convo_id, batchId, batchIndex, batchTotal } = req.body;
+    const { message, convo_id, clientId, batchId, batchIndex, batchTotal } = req.body;
     const uploadedFile = req.file; // single file from multer
 
     if (!convo_id || !uploadedFile) {
@@ -28,15 +31,22 @@ export const sendMessage = async (req, res, next) => {
 
     const conversation = await findSendableConversation(convo_id, user_id);
 
-    validateMessageFiles(uploadedFile);
-    const uploadResult = await uploadFiles("Chat Files", uploadedFile, conversation._id.toString());
+    // a retried upload that already went through is answered without uploading the file a second time
+    const alreadySent = await findSentMessage(user_id, clientId);
+    if (alreadySent) {
+      return res.status(200).json({ status: "success", message: toClientMessage(alreadySent, conversation) });
+    }
 
-    const sentMessage = await saveMessage(conversation, {
+    validateMessageFiles(uploadedFile);
+    const fileUrl = await uploadFile(`Chat Files/${conversation._id}`, uploadedFile);
+
+    const { message: sentMessage, isNew } = await saveMessage(conversation, {
       sender: user_id,
+      ...(isClientId(clientId) && { clientId }),
       message: message || "",
       files: [
         {
-          url: uploadResult.fileUrls[0],
+          url: fileUrl,
           fileName: uploadedFile.originalname,
           fileType: getFileType(uploadedFile.mimetype),
           mimeType: uploadedFile.mimetype,
@@ -46,7 +56,8 @@ export const sendMessage = async (req, res, next) => {
       ...(batchId && { batchId, batchIndex: Number(batchIndex), batchTotal: Number(batchTotal) }),
     });
 
-    req.app.get("io").to(memberRooms(conversation, user_id)).emit("message_received", sentMessage);
+    // the sender's other tabs get it too, and the tab that uploaded it matches it to its bubble by clientId
+    if (isNew) req.app.get("io").to(memberRooms(conversation)).emit("message_received", sentMessage);
 
     res.status(200).json({ status: "success", message: sentMessage });
   } catch (error) {
@@ -59,9 +70,9 @@ export const getMessages = async (req, res, next) => {
   try {
     const conversation = await findMemberConversation(req.params.convo_id, req.user._id);
 
-    const messages = await getConvoMessages(conversation._id);
+    const { messages, hasMore } = await getConvoMessages(conversation._id, req.query.before);
 
-    res.status(200).json({ status: "success", messages: messages });
+    res.status(200).json({ status: "success", messages, hasMore });
   } catch (error) {
     next(error);
   }
@@ -92,23 +103,24 @@ export const resealWaitingMessage = async (req, res, next) => {
 // -------------------------------------------------------------------------
 
 // -------------------------- Socket Send Message --------------------------
-export const socketSendMessage = async (io, socket, { convo_id, cipher }, acknowledge) => {
+export const socketSendMessage = async (socket, { convo_id, clientId, cipher }, acknowledge) => {
   try {
     const user_id = socket.user._id;
-
     const conversation = await findSendableConversation(convo_id, user_id);
     validateCipher(cipher, conversation, user_id);
 
-    const sentMessage = await saveMessage(conversation, {
+    const { message, isNew } = await saveMessage(conversation, {
       sender: user_id,
+      ...(isClientId(clientId) && { clientId }),
       cipher,
       awaitingKey: !peerHasKey(conversation, user_id),
     });
 
-    io.to(memberRooms(conversation)).emit("message_received", sentMessage);
-    acknowledge?.({ status: "success" });
+    if (isNew) socket.to(memberRooms(conversation)).emit("message_received", message);
+    acknowledge?.({ status: "success", message });
   } catch (error) {
-    if (acknowledge) acknowledge({ status: "error", message: error.message });
+    // a refusal is final, but a fault on the server's side is worth sending again
+    if (acknowledge) acknowledge({ status: "error", message: error.expose ? error.message : "Could not reach Whisprl", retryable: !error.expose });
     else socket.errorHandler(error.message);
   }
 };

@@ -74,7 +74,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
 <b>Backend:</b>
 
-    - Added security options (Rate Limit, XSS Protection, Sanitization, URL Encoding & more)
+    - Security options (rate limits on each route, XSS Protection, Sanitization, URL Encoding & more)
 
     - Dynamic server & routes error handling
 
@@ -84,7 +84,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
     - Cloudinary file upload system with auto folder structuring
 
-    - Access & Refresh token with cookies support
+    - Short-lived access tokens with a rotating, revocable session cookie
 
     - Structured DB with pre save & validations
 
@@ -100,7 +100,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
     - Custom hooks
 
-    - Auto refresh tokens & auto token verification
+    - Silent session refresh shared by every request and the socket
 
     - Google Ananlytics support
 
@@ -213,12 +213,16 @@ $ npm run build
 │   │   │   ├── userController.js
 │   │   ├── middlewares/
 │   │   │   ├── authMiddleware.js
+│   │   │   ├── rateLimiters.js
+│   │   │   ├── recaptchaMiddleware.js
 │   │   │   ├── socketMiddleware.js
+│   │   │   ├── socketRateLimit.js
 │   │   ├── models/
 │   │   │   ├── conversationModel.js
 │   │   │   ├── friendRequestModel.js
 │   │   │   ├── index.js
 │   │   │   ├── messageModel.js
+│   │   │   ├── sessionModel.js
 │   │   │   ├── userModel.js
 │   │   ├── routes/
 │   │   │   ├── authRouter.js
@@ -236,27 +240,25 @@ $ npm run build
 │   │   │   ├── keyService.js
 │   │   │   ├── mailer.js
 │   │   │   ├── messageService.js
+│   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
-│   │   │   ├── tokenService.js
 │   │   │   ├── userService.js
 │   │   ├── templates/
 │   │   │   ├── mail/
 │   │   │   │   ├── otp.js
 │   │   │   │   ├── reset.js
 │   │   ├── utils/
+│   │   │   ├── accountRules.js
 │   │   │   ├── checkDispose.js
 │   │   │   ├── escapeRegex.js
-│   │   │   ├── filterObj.js
-│   │   │   ├── generatePassword.js
-│   │   │   ├── tokenGenerator.js
-│   ├── .env
+│   │   │   ├── sha256.js
+│   ├── .env copy
 │   ├── app.js
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── server.js
 │   ├── socket.js
 │   ├── vercel.json
-├── copy
 ```
 </details>
 
@@ -363,6 +365,7 @@ $ npm run build
 │   │   ├── data/
 │   │   │   ├── index.js
 │   │   ├── hooks/
+│   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
 │   │   │   ├── useResponsive.js
@@ -397,16 +400,20 @@ $ npm run build
 │   │   ├── redux/
 │   │   │   ├── slices/
 │   │   │   │   ├── actions/
+│   │   │   │   │   ├── apiThunk.js
+│   │   │   │   │   ├── attachmentActions.js
 │   │   │   │   │   ├── authActions.js
 │   │   │   │   │   ├── chatActions.js
 │   │   │   │   │   ├── contactActions.js
 │   │   │   │   │   ├── encryptionActions.js
+│   │   │   │   │   ├── socketActions.js
 │   │   │   │   │   ├── userActions.js
 │   │   │   │   ├── authSlice.js
 │   │   │   │   ├── chatSlice.js
 │   │   │   │   ├── contactSlice.js
 │   │   │   │   ├── encryptionSlice.js
 │   │   │   │   ├── index.js
+│   │   │   │   ├── requestSlice.js
 │   │   │   │   ├── userSlice.js
 │   │   │   ├── rootReducer.js
 │   │   │   ├── rootReducer.test.js
@@ -425,19 +432,17 @@ $ npm run build
 │   │   │   │   ├── VerifyForm.js
 │   │   │   ├── chat/
 │   │   │   │   ├── attachments/
-│   │   │   │   │   ├── actionClickHandler.js
-│   │   │   │   │   ├── docSelectHandler.js
 │   │   │   │   │   ├── FileBody.js
 │   │   │   │   │   ├── FileFooter.js
 │   │   │   │   │   ├── FileHeader.js
 │   │   │   │   │   ├── FileUploadCont.js
-│   │   │   │   │   ├── imageSelectHandler.js
 │   │   │   │   ├── conversation/
 │   │   │   │   │   ├── ChatInput.js
 │   │   │   │   │   ├── Conversation.js
 │   │   │   │   │   ├── ConversationFooter.js
 │   │   │   │   │   ├── ConversationHeader.js
 │   │   │   │   │   ├── ConversationMain.js
+│   │   │   │   │   ├── useChatScroll.js
 │   │   │   │   ├── messages/
 │   │   │   │   │   ├── DocumentMessage.js
 │   │   │   │   │   ├── ImageLightbox.js
@@ -545,6 +550,7 @@ $ npm run build
 │   │   │   │   ├── messageCipher.js
 │   │   │   │   ├── messageCipher.test.js
 │   │   │   │   ├── recoveryKey.js
+│   │   │   ├── attachments.js
 │   │   │   ├── axios.js
 │   │   │   ├── axiosInterceptors.js
 │   │   │   ├── createAvatar.js
@@ -556,6 +562,7 @@ $ npm run build
 │   │   │   ├── getFontValue.js
 │   │   │   ├── getOtherUser.js
 │   │   │   ├── helmetHandler.js
+│   │   │   ├── notify.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
@@ -565,13 +572,12 @@ $ npm run build
 │   │   ├── config.js
 │   │   ├── index.css
 │   │   ├── index.js
-│   ├── .env
+│   ├── .env copy
 │   ├── config-overrides.js
 │   ├── jsconfig.json
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── README.md
-├── copy
 ```
 </details>
 <br/>

@@ -9,13 +9,16 @@ import AppearanceMenu from "@/components/AppearanceMenu";
 import BrandPanel from "@/layouts/auth/BrandPanel";
 import { StartServer } from "@/redux/slices/actions/authActions";
 import { PATH_AUTH } from "@/routes/paths";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const SLOW_START_AFTER = 10000;
 
 const AuthLayout = () => {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
-  const { isLoggedIn, isLoading } = useSelector((state) => state.auth);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  // a free server can take a while to wake, so the wake-up call is what offers a reload
+  const isLoading = useIsLoading(StartServer);
   const [showReload, setShowReload] = useState(false);
 
   useEffect(() => {

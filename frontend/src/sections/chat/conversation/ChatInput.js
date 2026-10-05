@@ -12,8 +12,9 @@ import {
 import { LinkSimple, Smiley } from "phosphor-react";
 
 import { Actions } from "@/data";
-import { socket } from "@/utils/socket";
-import actionHandler from "@/sections/chat/attachments/actionClickHandler";
+import { useDispatch } from "react-redux";
+import { ChooseAttachments } from "@/redux/slices/actions/attachmentActions";
+import { StartTyping, StopTyping } from "@/redux/slices/actions/chatActions";
 
 const TYPING_PAUSE = 1000;
 
@@ -27,6 +28,7 @@ const ChatInput = ({
   theme,
   convo_id,
 }) => {
+  const dispatch = useDispatch();
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef(null);
@@ -49,12 +51,12 @@ const ChatInput = ({
 
   // --------- typing handlers ---------
   const startTyping = () => {
-    socket.emit("start_typing", convo_id);
+    dispatch(StartTyping(convo_id));
     setIsTyping(true);
   };
 
   const stopTyping = () => {
-    socket.emit("stop_typing", convo_id);
+    dispatch(StopTyping(convo_id));
     setIsTyping(false);
   };
 
@@ -70,9 +72,9 @@ const ChatInput = ({
   };
   // ------------------------------------
 
-  // fn() to handle actions click
-  const handleActions = (type) => {
-    actionHandler(type.toLowerCase());
+  const handleActions = (title) => {
+    if (title === "Photo") dispatch(ChooseAttachments("image"));
+    if (title === "Document") dispatch(ChooseAttachments("doc"));
 
     handlePopoverClose();
   };

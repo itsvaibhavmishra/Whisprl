@@ -21,6 +21,10 @@
     - Text messages are end-to-end encrypted, with a recovery key to open them on a new browser
     - See when your message is sent, delivered and seen, with your friend's photo on the last one they read
     - Tap a message to see when it was sent
+    - Send photos and documents, several at a time with a caption, with photos made smaller first so they send and load quickly
+    - Messages show the moment you send them, and wait to go out if your connection drops
+    - Older messages load as you scroll up, and a button counts the new ones below and takes you back down
+    - A chat opens at the first message you have not read, under a line saying how many there are
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -32,6 +36,12 @@
     - Pick your theme and accent colour from the welcome and log in pages
     - One Whisprl logo everywhere, including the browser tab
     - Messages to a friend who has not opened Whisprl since encryption arrived wait, then arrive once they do
+    - Stay logged in as long as you open Whisprl at least once every 90 days, after logging in once more with this update
+    - Long chats open quickly, starting from the newest messages
+    - Logging in and signing up are faster
+    - Each button and list shows its own loading state instead of every one at once
+    - A message that could not be sent stays where you wrote it, with the reason, Send again and Delete
+    - Messages go out in the order you wrote them, even when the connection is slow
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
@@ -49,9 +59,21 @@
     - A message sent straight after reconnecting is no longer lost
     - Two messages sent quickly no longer arrive the wrong way round
     - Each friend appears once in your chats
+    - Logging out ends the session on the server, not only in the browser
+    - A button no longer stays loading forever after the page was closed mid-request
+    - Closing one tab no longer shows you offline while another is still open
+    - Accounts made with GitHub or LinkedIn show the right sign-in method
+    - Signing in with Google, GitHub or LinkedIn needs an email verified there
+    - Signing in with Google only accepts a sign-in made for Whisprl
+    - Someone who signs up with an email they do not own can no longer keep a password on it
+    - Verification codes cannot be guessed past the attempt limit by trying many at once
+    - Friend requests show when they were actually sent
 
   - Developers:
     - The frontend has its first tests, and the gate runs them
+    - The backend needs GOOGLE_AUTH_CLIENT_ID for Google sign-in, and no longer reads JWT_REFRESH_SECRET
 
   - Internal:
     - Frontend code is organised by page, with unused files and assets removed
+    - Rate limits sit on each route instead of one limit for the whole API
+    - Auth, friend and conversation logic lives in services

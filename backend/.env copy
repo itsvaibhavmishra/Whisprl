@@ -2,7 +2,6 @@
 PORT = 8000
 MONGODB_URI = ""
 JWT_ACCESS_SECRET = ""
-JWT_REFRESH_SECRET = ""
 
 # Origin - (Required-Change with your frontend url)
 FRONT_URL = "http://localhost:3000"
@@ -17,11 +16,14 @@ CLOUDINARY_API_KEY = ""
 CLOUDINARY_API_SECRET = ""
 
 # ----Social Auths---- (Can be skipped)
+# Google OAuth (the same client id as the frontend's REACT_APP_GOOGLE_AUTH_CLIENT_ID)
+GOOGLE_AUTH_CLIENT_ID = ""
+
 # GitHub OAuth
 GITHUB_AUTH_CLIENT_ID = ""
 GITHUB_AUTH_CLIENT_SECRET = ""
 
-# GitHub OAuth
+# LinkedIn OAuth
 LINKEDIN_AUTH_CLIENT_ID = ""
 LINKEDIN_AUTH_CLIENT_SECRET = ""
 # -------------------

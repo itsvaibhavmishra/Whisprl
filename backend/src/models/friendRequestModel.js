@@ -1,21 +1,16 @@
-// model for friend requests
 import mongoose from "mongoose";
 
-const requestSchema = new mongoose.Schema({
-  sender: {
-    // reffering to the users id
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
+const requestSchema = new mongoose.Schema(
+  {
+    sender: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+    recipient: { type: mongoose.Schema.ObjectId, ref: "User", required: true, index: true },
   },
-  recipient: {
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
-});
+  {
+    timestamps: true,
+  }
+);
+
+requestSchema.index({ sender: 1, recipient: 1 }, { unique: true });
 
 const FriendRequestModel = mongoose.model("FriendRequest", requestSchema);
 

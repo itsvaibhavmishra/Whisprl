@@ -10,11 +10,8 @@ import { UserPlus, MagnifyingGlass } from "phosphor-react";
 
 // redux imports
 import { useSelector, useDispatch } from "react-redux";
-import { SearchFriends } from "@/redux/slices/actions/userActions";
-import {
-  ClearSearch,
-  setShowFriendsMenu,
-} from "@/redux/slices/userSlice";
+import { GetFriends, SearchFriends } from "@/redux/slices/actions/userActions";
+import { clearSearch, setShowFriendsMenu } from "@/redux/slices/userSlice";
 
 import { Search, SearchIconWrapper, StyledInputBase } from "@/components/search";
 import ChatSearchResults from "@/sections/chat/ChatSearchResults";
@@ -22,6 +19,7 @@ import AllChatElement from "@/sections/chat/AllChatElement";
 import OnlineFriendsElement from "@/components/OnlineFriendsElement";
 import { MembersList } from "@/data";
 import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const ContactList = () => {
   // using theme
@@ -29,9 +27,11 @@ const ContactList = () => {
 
   // from redux
   const dispatch = useDispatch();
-  const { user, friends, searchResults, searchCount, isLoading } = useSelector(
+  const { user, friends, searchResults, searchCount } = useSelector(
     (state) => state.user
   );
+  const isSearching = useIsLoading(SearchFriends);
+  const isLoadingFriends = useIsLoading(GetFriends) && !friends?.length;
 
   // states
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,7 +63,7 @@ const ContactList = () => {
         const searchData = { keyword: searchTerm, page: 0 };
         dispatch(SearchFriends(searchData));
       } else {
-        dispatch(ClearSearch());
+        dispatch(clearSearch());
       }
     }, 500);
 
@@ -178,13 +178,13 @@ const ContactList = () => {
               spacing={4}
               className="scrollbar"
             >
-              {isLoading
+              {isLoadingFriends
                 ? MembersList.map((e) => {
                     return (
                       <AllChatElement
                         key={e._id}
                         {...e}
-                        isLoading={isLoading}
+                        isLoading
                       />
                     );
                   })
@@ -201,7 +201,6 @@ const ContactList = () => {
                               ? { message: "Message yourself" }
                               : contact.latestMessage
                           }
-                          isLoading={isLoading}
                           fromContact={true}
                           toggleDrawer={toggleDrawer}
                         />
@@ -220,7 +219,7 @@ const ContactList = () => {
             </Typography>
 
             <ChatSearchResults
-              isLoading={isLoading}
+              isLoading={isSearching}
               searchResults={usersFound}
               searchCount={searchCount}
               currentPage={page}

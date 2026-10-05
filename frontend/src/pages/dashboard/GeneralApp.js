@@ -7,10 +7,13 @@ import ChatsList from "@/sections/chat/ChatsList";
 import Conversation from "@/sections/chat/conversation/Conversation";
 import NoChat from "@/assets/illustrations/NoChat";
 import LoadingScreen from "@/components/LoadingScreen";
+import useIsLoading from "@/hooks/useIsLoading";
+import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 
 const GeneralApp = () => {
   const theme = useTheme();
-  const { activeConversation, isLoading } = useSelector((state) => state.chat);
+  const activeConversation = useSelector((state) => state.chat.activeConversation);
+  const isLoading = useIsLoading(CreateOpenConversation);
 
   // breakpoint
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
