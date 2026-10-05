@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { m } from 'framer-motion';
 import { Box } from '@mui/material';
-import { varContainer } from './varients';
+import { varContainer } from '@/components/animate/variants';
 
 MotionContainer.propTypes = {
   action: PropTypes.bool,

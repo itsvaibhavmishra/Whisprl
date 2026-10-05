@@ -1,6 +1,6 @@
-import { LogoutUser } from "../redux/slices/actions/authActions";
-import { updateUser } from "../redux/slices/userSlice";
-import axios from "./axios";
+import { LogoutUser } from "@/redux/slices/actions/authActions";
+import { updateUser } from "@/redux/slices/userSlice";
+import axios from "@/utils/axios";
 
 let store;
 

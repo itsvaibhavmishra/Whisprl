@@ -1,12 +1,12 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { ShowSnackbar, logout, updateUser } from "../userSlice";
+import { ShowSnackbar, logout, updateUser } from "@/redux/slices/userSlice";
 
-import axios from "../../../utils/axios";
-import { updateOtpEmail } from "../authSlice";
-import { clearChat } from "../chatSlice";
+import axios from "@/utils/axios";
+import { updateOtpEmail } from "@/redux/slices/authSlice";
+import { clearChat } from "@/redux/slices/chatSlice";
 import { ForgetDeviceKeys } from "@/redux/slices/actions/encryptionActions";
-import { socket } from "../../../utils/socket";
+import { socket } from "@/utils/socket";
 
 // ------------- Login Thunk -------------
 export const LoginUser = createAsyncThunk(

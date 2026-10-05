@@ -4,7 +4,7 @@ import { alpha } from "@mui/material/styles";
 import { Camera, Trash, UploadSimple } from "phosphor-react";
 import { useDispatch } from "react-redux";
 
-import ImageCropper from "@/components/upload/preview/ImageCropper";
+import ImageCropper from "@/components/image-cropper/ImageCropper";
 import { ShowSnackbar } from "@/redux/slices/userSlice";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];

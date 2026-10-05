@@ -3,7 +3,7 @@ import {
   CreateOpenConversation,
   GetConversations,
   GetMessages,
-} from "./actions/chatActions";
+} from "@/redux/slices/actions/chatActions";
 
 const initialState = {
   isLoading: false,

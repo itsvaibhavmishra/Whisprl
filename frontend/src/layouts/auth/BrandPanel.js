@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 
 import mascot from "@/assets/icons/logo/Whisprl.webp";
 import { COMMUNITY } from "@/config";
-import { bubbleShape, TypingDots } from "@/components/PageComponents/WelcomePage/HeroConversation";
-import { NO_MOTION } from "@/components/PageComponents/WelcomePage/styles";
-import Wordmark from "@/components/PageComponents/WelcomePage/Wordmark";
+import { bubbleShape, TypingDots } from "@/sections/welcome/HeroConversation";
+import { NO_MOTION } from "@/sections/welcome/styles";
+import Wordmark from "@/sections/welcome/Wordmark";
 import { PATH_AUTH } from "@/routes/paths";
 
 const drift = keyframes`

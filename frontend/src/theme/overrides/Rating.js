@@ -1,4 +1,4 @@
-import { StarIcon } from './CustomIcons';
+import { StarIcon } from '@/theme/overrides/CustomIcons';
 
 const ICON_SMALL = { width: 20, height: 20 };
 const ICON_LARGE = { width: 28, height: 28 };

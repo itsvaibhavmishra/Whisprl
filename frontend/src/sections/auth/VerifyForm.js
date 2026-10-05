@@ -11,9 +11,9 @@ import {
   AddOtpEmail,
   SendOTP,
   VerifyOTP,
-} from "../../redux/slices/actions/authActions";
+} from "@/redux/slices/actions/authActions";
 
-import FormProvider, { RHFOtp, RHFTextField } from "../../components/hook-form";
+import FormProvider, { RHFOtp, RHFTextField } from "@/components/hook-form";
 
 export const EmailForm = () => {
   const { isLoading } = useSelector((state) => state.auth);

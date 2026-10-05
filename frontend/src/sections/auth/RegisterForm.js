@@ -7,7 +7,7 @@ import { Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 
 import { useDispatch, useSelector } from "react-redux";
-import { RegisterUser } from "../../redux/slices/actions/authActions";
+import { RegisterUser } from "@/redux/slices/actions/authActions";
 
 import { nameRule, newPasswordRule } from "@/utils/formRules";
 import FormProvider, { PasswordChecklist, RHFPasswordField, RHFTextField } from "@/components/hook-form";

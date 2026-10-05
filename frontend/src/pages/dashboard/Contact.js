@@ -4,12 +4,10 @@ import { Stack, Box, useTheme, useMediaQuery } from "@mui/material";
 // redux imports
 import { useSelector, useDispatch } from "react-redux";
 
-import {
-  ContactList,
-  FriendsMenu,
-} from "../../components/PageComponents/ContactPage";
-import { GetFriends } from "../../redux/slices/actions/userActions";
-import LoadingScreen from "../../components/LoadingScreen";
+import ContactList from "@/sections/contacts/ContactList";
+import FriendsMenu from "@/sections/contacts/FriendsMenu";
+import { GetFriends } from "@/redux/slices/actions/userActions";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const Contact = () => {
   const theme = useTheme();

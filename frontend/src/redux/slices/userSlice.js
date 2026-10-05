@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import axios from "../../utils/axios";
+import axios from "@/utils/axios";
 
 import {
   ChangePassword,
@@ -8,7 +8,7 @@ import {
   GetOnlineFriends,
   SearchFriends,
   UpdateProfile,
-} from "./actions/userActions";
+} from "@/redux/slices/actions/userActions";
 import { toast } from "sonner";
 
 // initial state for contacts menu

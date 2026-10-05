@@ -7,10 +7,10 @@ import {
   GithubLogin,
   GoogleLogin,
   LinkedinLogin,
-} from "../../redux/slices/actions/authActions";
+} from "@/redux/slices/actions/authActions";
 
-import { getOAuthCode } from "../../utils/socialLoginHelpers";
-import { ShowSnackbar } from "../../redux/slices/userSlice";
+import { getOAuthCode } from "@/utils/socialLoginHelpers";
+import { ShowSnackbar } from "@/redux/slices/userSlice";
 
 const AuthSocial = () => {
   const dispatch = useDispatch();

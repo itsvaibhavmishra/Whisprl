@@ -2,20 +2,20 @@ import { useEffect } from "react";
 import { Stack, useMediaQuery } from "@mui/material";
 import { Navigate } from "react-router-dom";
 
-import Sidebar from "./Sidebar";
-import { connectSocket, socket } from "../../utils/socket";
+import Sidebar from "@/layouts/dashboard/Sidebar";
+import { connectSocket, socket } from "@/utils/socket";
 
 import { useDispatch, useSelector } from "react-redux";
-import { ShowSnackbar, updateOnlineUsers } from "../../redux/slices/userSlice";
+import { ShowSnackbar, updateOnlineUsers } from "@/redux/slices/userSlice";
 import { applyReceipt, updateMemberKeys, updateTypingConvo } from "@/redux/slices/chatSlice";
-import { GetOnlineFriends } from "../../redux/slices/actions/userActions";
+import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 import {
   DeliverWaitingMessages,
   GetConversations,
   ReceiveMessage,
   ReceiveMessageUpdate,
 } from "@/redux/slices/actions/chatActions";
-import { StartServer } from "../../redux/slices/actions/authActions";
+import { StartServer } from "@/redux/slices/actions/authActions";
 import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
 import EncryptionGate from "@/sections/encryption/EncryptionGate";
 

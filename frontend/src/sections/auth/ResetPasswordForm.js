@@ -6,7 +6,7 @@ import { LoadingButton } from "@mui/lab";
 import { useSearchParams } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
-import { ResetPassword } from "../../redux/slices/actions/authActions";
+import { ResetPassword } from "@/redux/slices/actions/authActions";
 
 import { newPasswordRule } from "@/utils/formRules";
 import FormProvider, { PasswordChecklist, RHFPasswordField } from "@/components/hook-form";

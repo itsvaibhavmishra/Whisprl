@@ -8,7 +8,7 @@ import {
   SearchForUsers,
   SendRequest,
   UnsendRequest,
-} from "./actions/contactActions";
+} from "@/redux/slices/actions/contactActions";
 
 // initial state for contacts menu
 const initialState = {

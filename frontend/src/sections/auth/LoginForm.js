@@ -8,7 +8,7 @@ import { Link, Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 
 import { useDispatch, useSelector } from "react-redux";
-import { LoginUser } from "../../redux/slices/actions/authActions";
+import { LoginUser } from "@/redux/slices/actions/authActions";
 
 import FormProvider, { RHFPasswordField, RHFTextField } from "@/components/hook-form";
 

@@ -1,6 +1,6 @@
 import { Box, Link, Stack, Typography } from "@mui/material";
 
-import { INTRO, LAST_UPDATED, SECTIONS } from "@/components/PageComponents/TermsPage/sections";
+import { INTRO, LAST_UPDATED, SECTIONS } from "@/sections/terms/content";
 
 const prose = { color: "text.secondary", lineHeight: 1.75, maxWidth: "68ch", textWrap: "pretty" };
 

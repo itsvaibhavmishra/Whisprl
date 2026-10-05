@@ -6,10 +6,10 @@ import crypto from "crypto";
 import { UserModel } from "../models/index.js";
 import { isDisposableEmail } from "../utils/checkDispose.js";
 import { filterObj } from "../utils/filterObj.js";
-import otp from "../Templates/Mail/otp.js";
+import otp from "../templates/mail/otp.js";
 import { formatRemainingTime, transporter } from "../services/mailer.js";
 import { generateToken, verifyToken } from "../services/tokenService.js";
-import reset from "../Templates/Mail/reset.js";
+import reset from "../templates/mail/reset.js";
 import { generateLoginTokens } from "../services/authService.js";
 import { verifyreCAPTCHA } from "../services/authService.js";
 

@@ -1,8 +1,8 @@
-import Closing from "@/components/PageComponents/WelcomePage/Closing";
-import Faq from "@/components/PageComponents/WelcomePage/Faq";
-import Features from "@/components/PageComponents/WelcomePage/Features";
-import Hero from "@/components/PageComponents/WelcomePage/Hero";
-import MernStack from "@/components/PageComponents/WelcomePage/MernStack";
+import Closing from "@/sections/welcome/Closing";
+import Faq from "@/sections/welcome/Faq";
+import Features from "@/sections/welcome/Features";
+import Hero from "@/sections/welcome/Hero";
+import MernStack from "@/sections/welcome/MernStack";
 import SitePage from "@/components/SitePage";
 
 const WelcomePage = () => (

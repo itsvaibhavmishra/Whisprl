@@ -1,8 +1,8 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { ShowSnackbar } from "../userSlice";
+import { ShowSnackbar } from "@/redux/slices/userSlice";
 
-import axios from "../../../utils/axios";
+import axios from "@/utils/axios";
 
 const blobUrlToFile = async (blobUrl, fileName) => {
   const blob = await (await fetch(blobUrl)).blob();

@@ -1,4 +1,4 @@
-import { InputSelectIcon } from './CustomIcons';
+import { InputSelectIcon } from '@/theme/overrides/CustomIcons';
 
 export default function Select() {
   return {

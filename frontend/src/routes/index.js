@@ -1,11 +1,11 @@
 import { Suspense, lazy } from "react";
 import { useRoutes, Navigate } from "react-router-dom";
 
-import LoadingScreen from "../components/LoadingScreen";
-import { DEFAULT_AUTH, DEFAULT_DOCS, DEFAULT_PATH } from "../config";
-import DashboardLayout from "../layouts/dashboard";
-import AuthLayout from "../layouts/auth";
-import DocsLayout from "../layouts/docs";
+import LoadingScreen from "@/components/LoadingScreen";
+import { DEFAULT_AUTH, DEFAULT_DOCS, DEFAULT_PATH } from "@/config";
+import DashboardLayout from "@/layouts/dashboard";
+import AuthLayout from "@/layouts/auth";
+import DocsLayout from "@/layouts/docs";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -58,26 +58,26 @@ export default function Router() {
 }
 // app pages
 const GeneralApp = Loadable(
-  lazy(() => import("../pages/dashboard/GeneralApp"))
+  lazy(() => import("@/pages/dashboard/GeneralApp"))
 );
-const GroupChat = Loadable(lazy(() => import("../pages/dashboard/GroupChat")));
-const ProfilePage = Loadable(lazy(() => import("../pages/dashboard/Profile")));
-const ContactPage = Loadable(lazy(() => import("../pages/dashboard/Contact")));
-const Settings = Loadable(lazy(() => import("../pages/dashboard/Settings")));
+const GroupChat = Loadable(lazy(() => import("@/pages/dashboard/GroupChat")));
+const ProfilePage = Loadable(lazy(() => import("@/pages/dashboard/Profile")));
+const ContactPage = Loadable(lazy(() => import("@/pages/dashboard/Contact")));
+const Settings = Loadable(lazy(() => import("@/pages/dashboard/Settings")));
 
 // auth pages
-const WelcomePage = Loadable(lazy(() => import("../pages/auth/WelcomePage")));
-const LoginPage = Loadable(lazy(() => import("../pages/auth/Login")));
-const RegisterPage = Loadable(lazy(() => import("../pages/auth/Register")));
-const VerifyPage = Loadable(lazy(() => import("../pages/auth/Verify")));
+const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));
+const LoginPage = Loadable(lazy(() => import("@/pages/auth/Login")));
+const RegisterPage = Loadable(lazy(() => import("@/pages/auth/Register")));
+const VerifyPage = Loadable(lazy(() => import("@/pages/auth/Verify")));
 const ForgotPasswordPage = Loadable(
-  lazy(() => import("../pages/auth/ForgotPassword"))
+  lazy(() => import("@/pages/auth/ForgotPassword"))
 );
 const ResetPasswordPage = Loadable(
-  lazy(() => import("../pages/auth/ResetPassword"))
+  lazy(() => import("@/pages/auth/ResetPassword"))
 );
 
 // docs pages
-const TnCPage = Loadable(lazy(() => import("../pages/docs/TnC")));
+const TnCPage = Loadable(lazy(() => import("@/pages/docs/TnC")));
 
-const Page404 = Loadable(lazy(() => import("../pages/404")));
+const Page404 = Loadable(lazy(() => import("@/pages/404")));

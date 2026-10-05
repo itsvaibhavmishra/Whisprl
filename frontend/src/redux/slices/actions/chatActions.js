@@ -1,9 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { SetLoading, ShowSnackbar } from "../userSlice";
+import { SetLoading, ShowSnackbar } from "@/redux/slices/userSlice";
 
-import axios from "../../../utils/axios";
-import { socket } from "../../../utils/socket";
+import axios from "@/utils/axios";
+import { socket } from "@/utils/socket";
 import { decryptMessage, encryptMessage } from "@/utils/crypto/messageCipher";
 import {
   closeActiveConversation,

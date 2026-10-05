@@ -1,7 +1,7 @@
 import { createContext, useEffect } from "react";
-import { defaultSettings } from "../config";
-import getColorPresets, { defaultPreset } from "../utils/getColorPresets";
-import useLocalStorage from "../hooks/useLocalStorage";
+import { defaultSettings } from "@/config";
+import getColorPresets, { defaultPreset } from "@/utils/getColorPresets";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 const initialState = {
   ...defaultSettings,

@@ -3,12 +3,10 @@ import { Stack, Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 // redux imports
 import { useSelector } from "react-redux";
 
-import {
-  ChatsList,
-  Conversation,
-} from "../../components/PageComponents/GeneralAppPage";
-import NoChat from "../../assets/Illustration/NoChat";
-import LoadingScreen from "../../components/LoadingScreen";
+import ChatsList from "@/sections/chat/ChatsList";
+import Conversation from "@/sections/chat/conversation/Conversation";
+import NoChat from "@/assets/illustrations/NoChat";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const GeneralApp = () => {
   const theme = useTheme();

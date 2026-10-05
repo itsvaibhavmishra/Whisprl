@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import useSettings from "./useSettings";
-import { allLangs, defaultLang } from "../config";
+import useSettings from "@/hooks/useSettings";
+import { allLangs, defaultLang } from "@/config";
 
 export default function useLocales() {
   const { i18n, t: translate } = useTranslation();

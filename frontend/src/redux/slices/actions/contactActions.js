@@ -1,9 +1,9 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { ShowSnackbar, removeFriend } from "../userSlice";
+import { ShowSnackbar, removeFriend } from "@/redux/slices/userSlice";
 
-import axios from "../../../utils/axios";
-import { GetFriends } from "./userActions";
+import axios from "@/utils/axios";
+import { GetFriends } from "@/redux/slices/actions/userActions";
 
 // ------------- Get Conversation Thunk -------------
 export const GetUserData = createAsyncThunk(

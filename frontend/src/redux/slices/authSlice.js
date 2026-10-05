@@ -14,7 +14,7 @@ import {
   SendOTP,
   StartServer,
   VerifyOTP,
-} from "./actions/authActions";
+} from "@/redux/slices/actions/authActions";
 
 // initial state for logged in status
 const initialState = {

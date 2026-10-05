@@ -1,4 +1,4 @@
-import { pxToRem, responsiveFontSizes } from '../utils/getFontValue';
+import { pxToRem, responsiveFontSizes } from '@/utils/getFontValue';
 
 const FONT_PRIMARY = 'Manrope, Public Sans, sans-serif';
 

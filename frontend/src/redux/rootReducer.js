@@ -8,7 +8,7 @@ import {
   contactReducer,
   encryptionReducer,
   userReducer,
-} from "./slices";
+} from "@/redux/slices";
 
 // Decrypted text must never reach disk, a stored chat would carry stale keys, and an upload's preview would eat the quota.
 const keepOnlyWhatIsSafeToStore = (chat) => ({

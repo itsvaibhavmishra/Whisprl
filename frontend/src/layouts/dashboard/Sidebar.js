@@ -17,13 +17,13 @@ import { SignOut } from "phosphor-react";
 
 // redux imports
 import { useSelector, useDispatch } from "react-redux";
-import { LogoutUser } from "../../redux/slices/actions/authActions";
+import { LogoutUser } from "@/redux/slices/actions/authActions";
 
 import WhisprlLogo from "@/assets/icons/logo/WhisprlMark.webp";
-import { Nav_Buttons, Profile_Menu } from "../../data";
-import ThemeSwitch from "../../components/ThemeSwitch";
-import useSettings from "../../hooks/useSettings";
-import getAvatar from "../../utils/createAvatar";
+import { Nav_Buttons, Profile_Menu } from "@/data";
+import ThemeSwitch from "@/components/ThemeSwitch";
+import useSettings from "@/hooks/useSettings";
+import getAvatar from "@/utils/createAvatar";
 
 const Sidebar = () => {
   // using redux

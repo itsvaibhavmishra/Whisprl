@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import { useSelector } from "react-redux";
 
-import { bubbleShape, ChatWindow } from "@/components/PageComponents/WelcomePage/HeroConversation";
+import { bubbleShape, ChatWindow } from "@/sections/welcome/HeroConversation";
 import useSettings from "@/hooks/useSettings";
 import { ACCENT_NAMES, MODES } from "@/components/AppearancePickers";
 

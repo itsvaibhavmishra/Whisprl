@@ -6,12 +6,12 @@ import {
   ThemeProvider as MUIThemeProvider,
   StyledEngineProvider,
 } from '@mui/material/styles';
-import useSettings from '../hooks/useSettings.js';
-import palette from './palette';
-import typography from './typography';
-import breakpoints from './breakpoints';
-import componentsOverride from './overrides';
-import shadows, { customShadows } from './shadows';
+import useSettings from '@/hooks/useSettings';
+import palette from '@/theme/palette';
+import typography from '@/theme/typography';
+import breakpoints from '@/theme/breakpoints';
+import componentsOverride from '@/theme/overrides';
+import shadows, { customShadows } from '@/theme/shadows';
 
 ThemeProvider.propTypes = {
   children: PropTypes.node,

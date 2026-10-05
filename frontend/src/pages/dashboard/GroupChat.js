@@ -1,6 +1,6 @@
 import { Stack, Typography } from "@mui/material";
 
-import NoChat from "../../assets/Illustration/NoChat";
+import NoChat from "@/assets/illustrations/NoChat";
 
 const GroupChat = () => {
   return (
