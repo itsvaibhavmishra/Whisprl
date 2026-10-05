@@ -365,6 +365,7 @@ $ npm run build
 │   │   ├── data/
 │   │   │   ├── index.js
 │   │   ├── hooks/
+│   │   │   ├── useFileUrl.js
 │   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
@@ -414,6 +415,7 @@ $ npm run build
 │   │   │   │   ├── encryptionSlice.js
 │   │   │   │   ├── index.js
 │   │   │   │   ├── requestSlice.js
+│   │   │   │   ├── requestSlice.test.js
 │   │   │   │   ├── userSlice.js
 │   │   │   ├── rootReducer.js
 │   │   │   ├── rootReducer.test.js
@@ -448,7 +450,8 @@ $ npm run build
 │   │   │   │   │   ├── ImageLightbox.js
 │   │   │   │   │   ├── ImageMessage.js
 │   │   │   │   │   ├── MessageContainer.js
-│   │   │   │   │   ├── PendingMessageBubble.js
+│   │   │   │   │   ├── MessageImage.js
+│   │   │   │   │   ├── MessageProblems.js
 │   │   │   │   │   ├── SeenMarker.js
 │   │   │   │   ├── AllChatElement.js
 │   │   │   │   ├── ChatSearchResults.js
@@ -546,6 +549,8 @@ $ npm run build
 │   │   │   ├── crypto/
 │   │   │   │   ├── deviceKeyStore.js
 │   │   │   │   ├── encoding.js
+│   │   │   │   ├── fileCipher.js
+│   │   │   │   ├── fileCipher.test.js
 │   │   │   │   ├── keys.js
 │   │   │   │   ├── messageCipher.js
 │   │   │   │   ├── messageCipher.test.js
@@ -562,6 +567,7 @@ $ npm run build
 │   │   │   ├── getFontValue.js
 │   │   │   ├── getOtherUser.js
 │   │   │   ├── helmetHandler.js
+│   │   │   ├── messageFiles.js
 │   │   │   ├── notify.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── socialLoginHelpers.js

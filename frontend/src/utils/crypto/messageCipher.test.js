@@ -139,3 +139,14 @@ describe("recovery key", () => {
     await expect(unlockPrivateKey(backup, parseRecoveryKey(createRecoveryKey()))).rejects.toThrow();
   });
 });
+
+test("an attachment's caption and file details come back from its encrypted content", async () => {
+  setDeviceKeys(deviceOf(alice));
+  const file = { name: "beach.jpg", kind: "image", key: "a-file-key", iv: "an-iv" };
+  const cipher = await encryptMessage(JSON.stringify({ caption: "look", file }), conversation, alice.id);
+
+  setDeviceKeys(deviceOf(bob));
+  const readable = await decryptMessage({ sender: { _id: alice.id }, cipher, attachment: { status: "uploading" } }, conversation);
+
+  expect(readable).toEqual(expect.objectContaining({ message: "look", file }));
+});

@@ -2,7 +2,7 @@ import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { File as FileIcon } from "phosphor-react";
 import { useSelector } from "react-redux";
 
-import { attachmentPreview } from "@/utils/attachments";
+import { attachmentUrl } from "@/utils/attachments";
 
 const FileBody = () => {
   const theme = useTheme();
@@ -28,7 +28,7 @@ const FileBody = () => {
       {isImage ? (
         <Box
           component="img"
-          src={attachmentPreview(activeFile.id)}
+          src={attachmentUrl(activeFile.id)}
           alt={activeFile.fileName}
           sx={{
             maxWidth: "100%",

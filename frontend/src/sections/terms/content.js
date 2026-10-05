@@ -47,7 +47,7 @@ export const SECTIONS = [
     blocks: [
       "What you send stays yours. By sending it, you let Whisprl store it and deliver it to the people in that conversation, and that is all it is used for.",
       "You are responsible for what you send, and for having the right to share it.",
-      "Messages are stored on Whisprl's servers so they are there when you come back. End-to-end encryption, so that only the people in a conversation can read it, is on the way, and these terms will say so once it is live.",
+      "Messages, photos and documents are end-to-end encrypted: they are locked in your browser before they leave it, and only the people in the conversation can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
     ],
   },
   {
@@ -59,7 +59,7 @@ export const SECTIONS = [
         list: [
           "your name, email address, profile picture and status, so friends can find and recognise you",
           "your password and one-time codes, stored only as one-way hashes, so nobody can read your password, including the people who run Whisprl",
-          "your friends list, conversations, messages and files, so they are there when you come back",
+          "your friends list and conversations, and your messages and files, encrypted so only the people in each conversation can open them",
           "whether you are online, so your friends can see it",
           "which sign-in methods you have connected",
         ],
@@ -70,12 +70,12 @@ export const SECTIONS = [
           "Google, GitHub and LinkedIn, if you sign in with them. Whisprl receives your name, email address and profile picture from them.",
           "Google reCAPTCHA, to keep bots out of sign-up and log-in",
           "Google Analytics, to count visits and see which pages are used",
-          "Cloudinary, to store the photos and documents you send",
+          "Cloudinary, to store the photos and documents you send, which it receives encrypted",
           "Gmail, to send your verification codes and password reset emails",
-          "Netlify and Vercel, which host the app",
+          "Netlify and Render, which host the app",
         ],
       },
-      "Whisprl sets one cookie, to keep you logged in, and keeps preferences such as dark mode in your browser's local storage. Google Analytics sets cookies of its own. Your data is not sold, and Whisprl shows no ads.",
+      "Whisprl sets one cookie, to keep you logged in, and keeps your encryption key and preferences such as dark mode in your browser's storage. Google Analytics sets cookies of its own. Your data is not sold, and Whisprl shows no ads.",
     ],
   },
   {

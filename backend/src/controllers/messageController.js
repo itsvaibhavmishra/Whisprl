@@ -1,65 +1,44 @@
-import createHttpError from "http-errors";
 import {
+  attachSealedFile,
+  batchOf,
   findDeliverableMessages,
   findSendableConversation,
-  findSentMessage,
   getConvoMessages,
-  getFileType,
   isClientId,
   markDelivered,
   markSeen,
   peerHasKey,
+  removeUnsentAttachment,
   resealMessage,
   saveMessage,
-  toClientMessage,
   validateCipher,
-  validateMessageFiles,
 } from "../services/messageService.js";
 import { findMemberConversation, memberRooms } from "../services/conversationService.js";
-import { uploadFile } from "../services/fileUploadService.js";
 
-// -------------------------- Send Message --------------------------
-export const sendMessage = async (req, res, next) => {
+// -------------------------- Attach Encrypted File --------------------------
+export const attachFile = async (req, res, next) => {
   try {
-    const user_id = req.user._id;
-    const { message, convo_id, clientId, batchId, batchIndex, batchTotal } = req.body;
-    const uploadedFile = req.file; // single file from multer
+    const { conversation, message } = await attachSealedFile(req.params.message_id, req.user._id, req.file);
 
-    if (!convo_id || !uploadedFile) {
-      throw createHttpError.BadRequest("Attach a file to send");
-    }
+    req.app.get("io").to(memberRooms(conversation)).emit("message_updated", message);
 
-    const conversation = await findSendableConversation(convo_id, user_id);
+    res.status(200).json({ status: "success", message });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    // a retried upload that already went through is answered without uploading the file a second time
-    const alreadySent = await findSentMessage(user_id, clientId);
-    if (alreadySent) {
-      return res.status(200).json({ status: "success", message: toClientMessage(alreadySent, conversation) });
-    }
+// -------------------------- Remove Unsent Attachment --------------------------
+export const removeAttachment = async (req, res, next) => {
+  try {
+    const { conversation, message } = await removeUnsentAttachment(req.params.message_id, req.user._id);
 
-    validateMessageFiles(uploadedFile);
-    const fileUrl = await uploadFile(`Chat Files/${conversation._id}`, uploadedFile);
-
-    const { message: sentMessage, isNew } = await saveMessage(conversation, {
-      sender: user_id,
-      ...(isClientId(clientId) && { clientId }),
-      message: message || "",
-      files: [
-        {
-          url: fileUrl,
-          fileName: uploadedFile.originalname,
-          fileType: getFileType(uploadedFile.mimetype),
-          mimeType: uploadedFile.mimetype,
-          size: uploadedFile.size,
-        },
-      ],
-      ...(batchId && { batchId, batchIndex: Number(batchIndex), batchTotal: Number(batchTotal) }),
+    req.app.get("io").to(memberRooms(conversation)).emit("message_removed", {
+      _id: message._id,
+      conversation: message.conversation,
     });
 
-    // the sender's other tabs get it too, and the tab that uploaded it matches it to its bubble by clientId
-    if (isNew) req.app.get("io").to(memberRooms(conversation)).emit("message_received", sentMessage);
-
-    res.status(200).json({ status: "success", message: sentMessage });
+    res.status(200).json({ status: "success", message: "Removed" });
   } catch (error) {
     next(error);
   }
@@ -103,7 +82,7 @@ export const resealWaitingMessage = async (req, res, next) => {
 // -------------------------------------------------------------------------
 
 // -------------------------- Socket Send Message --------------------------
-export const socketSendMessage = async (socket, { convo_id, clientId, cipher }, acknowledge) => {
+export const socketSendMessage = async (socket, { convo_id, clientId, cipher, attachment, batch }, acknowledge) => {
   try {
     const user_id = socket.user._id;
     const conversation = await findSendableConversation(convo_id, user_id);
@@ -114,6 +93,8 @@ export const socketSendMessage = async (socket, { convo_id, clientId, cipher }, 
       ...(isClientId(clientId) && { clientId }),
       cipher,
       awaitingKey: !peerHasKey(conversation, user_id),
+      ...(attachment === true && { attachment: { status: "uploading" } }),
+      ...batchOf(batch),
     });
 
     if (isNew) socket.to(memberRooms(conversation)).emit("message_received", message);

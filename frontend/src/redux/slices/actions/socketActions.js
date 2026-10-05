@@ -3,6 +3,7 @@ import {
   DeliverWaitingMessages,
   FlushOutbox,
   ReceiveMessage,
+  RemovedMessage,
   ReceiveMessageUpdate,
 } from "@/redux/slices/actions/chatActions";
 import { applyReceipt, setConnection, updateMemberKeys, updateTypingConvo } from "@/redux/slices/chatSlice";
@@ -34,6 +35,8 @@ const listen = (dispatch, getState) => {
     dispatch(updateMemberKeys(keys));
     if (keys.userId !== getState().user.user._id) dispatch(DeliverWaitingMessages());
   });
+
+  socket.on("message_removed", (message) => dispatch(RemovedMessage(message)));
 
   socket.on("error", (error) => notify({ severity: "error", message: error.message }));
 

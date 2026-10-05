@@ -6,6 +6,8 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
+import MessageImage from "@/sections/chat/messages/MessageImage";
+
 const THUMB_SIZE = 56;
 
 const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
@@ -138,17 +140,7 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
               key={i}
               style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
             >
-              <Box
-                component="img"
-                src={img.url}
-                alt={img.fileName}
-                sx={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  display: "block",
-                }}
-              />
+              <MessageImage file={img} fit="contain" />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -188,12 +180,7 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
                 "&:hover": { opacity: 1 },
               }}
             >
-              <Box
-                component="img"
-                src={img.url}
-                alt={img.fileName}
-                sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
+              <MessageImage file={img} />
             </Box>
           ))}
         </Box>

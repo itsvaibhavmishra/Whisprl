@@ -21,6 +21,7 @@ import { getOtherUser } from "@/utils/getOtherUser";
 const previewOf = (message) => {
   if (message.undecryptable) return message.awaitingKey ? "Message on its way" : "Encrypted message";
   if (message.message) return message.message;
+  if (message.file) return message.file.kind === "image" ? "Sent a photo" : "Sent a document";
   return message.files?.length ? "Sent a file" : "";
 };
 

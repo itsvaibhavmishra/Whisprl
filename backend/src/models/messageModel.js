@@ -20,6 +20,16 @@ const cipherSchema = mongoose.Schema(
   { _id: false }
 );
 
+// the file itself is encrypted in the browser; its name, type and key travel inside the message's cipher
+const attachmentSchema = mongoose.Schema(
+  {
+    url: { type: String },
+    size: { type: Number },
+    status: { type: String, enum: ["uploading", "ready"], required: true },
+  },
+  { _id: false }
+);
+
 const messageSchema = mongoose.Schema(
   {
     sender: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
@@ -39,7 +49,9 @@ const messageSchema = mongoose.Schema(
 
     conversation: { type: mongoose.Schema.ObjectId, ref: "Conversation", required: true },
 
+    // files sent before attachments were encrypted
     files: [fileSchema],
+    attachment: { type: attachmentSchema, default: undefined },
 
     // images sent together share a batchId, so they render as one group
     batchId: { type: String },

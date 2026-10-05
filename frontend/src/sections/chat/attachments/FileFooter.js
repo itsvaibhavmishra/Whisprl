@@ -10,7 +10,7 @@ import { PaperPlaneTilt, Plus, XCircle } from "phosphor-react";
 import { useSelector, useDispatch } from "react-redux";
 import { setActiveFileIndex } from "@/redux/slices/chatSlice";
 import { ChooseAttachments, RemoveAttachment, SendAttachments } from "@/redux/slices/actions/attachmentActions";
-import { MAX_ATTACHMENTS, attachmentPreview } from "@/utils/attachments";
+import { MAX_ATTACHMENTS, attachmentUrl } from "@/utils/attachments";
 
 const FileFooter = () => {
   const theme = useTheme();
@@ -79,7 +79,7 @@ const FileFooter = () => {
             {fileObj.kind === "image" ? (
               <Box
                 component="img"
-                src={attachmentPreview(fileObj.id)}
+                src={attachmentUrl(fileObj.id)}
                 alt={fileObj.fileName}
                 sx={{
                   width: "100%",

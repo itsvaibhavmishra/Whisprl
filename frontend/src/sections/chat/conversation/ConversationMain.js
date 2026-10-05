@@ -6,10 +6,11 @@ import { useDispatch, useSelector } from "react-redux";
 
 import MessageContainer from "@/sections/chat/messages/MessageContainer";
 import { MotionLazyContainer } from "@/components/animate";
-import PendingMessageBubble from "@/sections/chat/messages/PendingMessageBubble";
+import { DidNotUpload, NotSent } from "@/sections/chat/messages/MessageProblems";
 import { useChatScroll } from "@/sections/chat/conversation/useChatScroll";
-import { DiscardMessage, LoadOlderMessages, SendAgain } from "@/redux/slices/actions/chatActions";
+import { LoadOlderMessages } from "@/redux/slices/actions/chatActions";
 import { selectActiveOutbox } from "@/redux/slices/chatSlice";
+import { filesOf } from "@/utils/messageFiles";
 import useIsLoading from "@/hooks/useIsLoading";
 
 // Groups consecutive messages with the same batchId (images only) from the same sender
@@ -19,9 +20,7 @@ const buildDisplayGroups = (messages) => {
   let i = 0;
   while (i < messages.length) {
     const msg = messages[i];
-    const isImageBatch =
-      msg.batchId &&
-      msg.files?.some((f) => f.fileType === "image");
+    const isImageBatch = msg.batchId && filesOf(msg).some((file) => file.fileType === "image");
 
     if (isImageBatch) {
       const batch = [msg];
@@ -37,12 +36,14 @@ const buildDisplayGroups = (messages) => {
 
       if (batch.length > 1) {
         // Merge all files into the lead message; use caption from batchIndex 0
-        const mergedFiles = batch.flatMap((m) => m.files || []);
+        const mergedFiles = batch.flatMap(filesOf);
         const captionMsg = batch.find((m) => m.batchIndex === 0);
         groups.push({
           type: "batch",
+          members: batch,
           message: {
             ...batch[0],
+            file: undefined,
             files: mergedFiles,
             message: captionMsg?.message || "",
           },
@@ -69,6 +70,8 @@ const queuedMessage = (entry, me) => ({
   sender: me,
   message: entry.text ?? entry.caption ?? "",
   createdAt: entry.createdAt,
+  file: entry.file,
+  attachment: entry.file && { status: "uploading" },
   outboxEntry: entry,
 });
 
@@ -91,29 +94,7 @@ const withQueued = (messages, outbox, me) => {
   ];
 };
 
-const itemTypeOf = (group) => {
-  const entry = group.message.outboxEntry;
-  if (!entry) return group.type;
-  return entry.attachment ? "upload" : "queued";
-};
-
-const NotSent = ({ entry }) => {
-  const dispatch = useDispatch();
-
-  return (
-    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ alignSelf: "flex-end" }}>
-      <Typography variant="caption" sx={{ color: "error.main" }}>
-        {entry.error ? `Not sent: ${entry.error}` : "Not sent"}
-      </Typography>
-      <Button size="small" onClick={() => dispatch(SendAgain(entry.clientId))}>
-        Send again
-      </Button>
-      <Button size="small" color="inherit" onClick={() => dispatch(DiscardMessage(entry.clientId))}>
-        Delete
-      </Button>
-    </Stack>
-  );
-};
+const itemTypeOf = (group) => (group.message.outboxEntry ? "queued" : group.type);
 
 const ConversationMain = () => {
   const theme = useTheme();
@@ -143,7 +124,7 @@ const ConversationMain = () => {
   };
 
   const getMessageType = (msg) => {
-    const hasFiles = msg.files && msg.files.length > 0;
+    const hasFiles = filesOf(msg).length > 0;
     if (hasFiles && msg.message) return "file_with_caption";
     if (hasFiles) return "file";
     return containsOnlyEmojis(msg.message) ? "emoji" : "text";
@@ -204,6 +185,15 @@ const ConversationMain = () => {
   const toggleDetails = (message) => {
     holdStill(keyOf(message));
     setDetailsId((openId) => (openId === message._id ? null : message._id));
+  };
+
+  // a group of photos shows as one bubble, but each photo uploads, and can fail, on its own
+  const footerFor = (item) => {
+    if (item.entry) return item.entry.status === "failed" ? <NotSent entry={item.entry} /> : undefined;
+    const ownUploads = (item.members ?? [item.message]).filter(
+      (message) => message.sender._id === user._id && message.attachment?.status === "uploading"
+    );
+    return ownUploads.length ? ownUploads.map((message) => <DidNotUpload key={message._id} message={message} />) : undefined;
   };
 
   const tapHandlerFor = (item) => (item.type === "queued" ? undefined : () => toggleDetails(item.message));
@@ -278,24 +268,20 @@ const ConversationMain = () => {
                 return (
                   <Fragment key={keyOf(message)}>
                     {divider}
-                    {item.type === "upload" ? (
-                      <PendingMessageBubble entry={item.entry} />
-                    ) : (
-                      <MessageContainer
-                        anchorKey={keyOf(message)}
-                        message={message}
-                        me={user._id === message.sender._id}
-                        isQueued={item.type === "queued"}
-                        isStartOfSequence={isStartOfSequence}
-                        isEndOfSequence={isEndOfSequence}
-                        msgType={getMessageType(message)}
-                        showTime={detailsId === message._id}
-                        statusLabel={statusLabelFor(item)}
-                        footer={item.entry?.status === "failed" ? <NotSent entry={item.entry} /> : undefined}
-                        marker={item.type === "queued" ? null : markerFor(message)}
-                        onToggleDetails={tapHandlerFor(item)}
-                      />
-                    )}
+                    <MessageContainer
+                      anchorKey={keyOf(message)}
+                      message={message}
+                      me={user._id === message.sender._id}
+                      isQueued={item.type === "queued"}
+                      isStartOfSequence={isStartOfSequence}
+                      isEndOfSequence={isEndOfSequence}
+                      msgType={getMessageType(message)}
+                      showTime={detailsId === message._id}
+                      statusLabel={statusLabelFor(item)}
+                      footer={footerFor(item)}
+                      marker={item.type === "queued" ? null : markerFor(message)}
+                      onToggleDetails={tapHandlerFor(item)}
+                    />
                   </Fragment>
                 );
               })}

@@ -21,7 +21,7 @@
     - Text messages are end-to-end encrypted, with a recovery key to open them on a new browser
     - See when your message is sent, delivered and seen, with your friend's photo on the last one they read
     - Tap a message to see when it was sent
-    - Send photos and documents, several at a time with a caption, with photos made smaller first so they send and load quickly
+    - Send photos and documents, several at a time with a caption, end-to-end encrypted like messages
     - Messages show the moment you send them, and wait to go out if your connection drops
     - Older messages load as you scroll up, and a button counts the new ones below and takes you back down
     - A chat opens at the first message you have not read, under a line saying how many there are
@@ -42,6 +42,8 @@
     - Each button and list shows its own loading state instead of every one at once
     - A message that could not be sent stays where you wrote it, with the reason, Send again and Delete
     - Messages go out in the order you wrote them, even when the connection is slow
+    - A photo keeps its place in the chat from the moment you send it, showing a blurred preview until it arrives
+    - Photos are made smaller before sending, so they send and load quickly
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

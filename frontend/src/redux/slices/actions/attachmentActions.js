@@ -1,35 +1,42 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
+import { FlushOutbox, ReceiveMessageUpdate } from "@/redux/slices/actions/chatActions";
 import {
   addFiles,
   clearFiles,
-  dropQueuedMessage,
-  messageArrived,
+  clearUploadFailed,
+  markUploadFailed,
   queueMessage,
   removeFile,
-  requeueMessage,
-  updateQueuedMessage,
+  removeMessage,
 } from "@/redux/slices/chatSlice";
 import {
   ATTACHMENT_TYPES,
   MAX_ATTACHMENTS,
   MAX_ATTACHMENT_SIZE,
   attachmentFile,
+  dropSealedCopy,
   holdAttachment,
+  keepSealedCopy,
   pickFiles,
+  prepareImage,
   releaseAttachment,
-  shrinkImage,
+  sealedCopyOf,
+  sentMessageIdOf,
 } from "@/utils/attachments";
 import axios from "@/utils/axios";
-import { errorMessageOf, notify, notifyError } from "@/utils/notify";
+import { sealFile } from "@/utils/crypto/fileCipher";
+import { notify, notifyError } from "@/utils/notify";
 import uuidv4 from "@/utils/uuidv4";
 
-const uploadsInFlight = new Map();
+const UPLOAD_PAUSES = [2000, 5000];
 
 const typeLabelOf = (kind, file) =>
   (kind === "image" ? file.type.split("/")[1] : file.name.split(".").pop()).toUpperCase();
 
 const signatureOf = (file) => `${file.name}:${file.size}:${file.lastModified}`;
+
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ------------- Choose Attachments -------------
 export const ChooseAttachments = (kind) => async (dispatch, getState) => {
@@ -52,14 +59,17 @@ export const ChooseAttachments = (kind) => async (dispatch, getState) => {
     return !known.has(signatureOf(file));
   });
   const ready = await Promise.all(
-    fresh.map(async (file) => ({ signature: signatureOf(file), file: kindInUse === "image" ? await shrinkImage(file) : file }))
+    fresh.map(async (file) => ({
+      signature: signatureOf(file),
+      ...(kindInUse === "image" ? await prepareImage(file) : { file }),
+    }))
   );
   const accepted = ready.filter(({ file }) => file.size <= MAX_ATTACHMENT_SIZE || refused(`${file.name} is larger than 5 MB`));
 
   const room = MAX_ATTACHMENTS - getState().chat.files.length;
   if (accepted.length > room) refused(`Maximum ${MAX_ATTACHMENTS} files allowed per message`);
 
-  accepted.slice(0, room).forEach(({ file, signature }) =>
+  accepted.slice(0, room).forEach(({ file, signature, width, height, preview }) =>
     dispatch(
       addFiles({
         id: holdAttachment(file),
@@ -69,6 +79,9 @@ export const ChooseAttachments = (kind) => async (dispatch, getState) => {
         size: file.size,
         typeLabel: typeLabelOf(kindInUse, file),
         signature,
+        width,
+        height,
+        preview,
       })
     )
   );
@@ -85,68 +98,76 @@ export const ClearAttachments = () => (dispatch, getState) => {
   dispatch(clearFiles());
 };
 
-// ------------- Upload One Attachment -------------
-export const UploadAttachment = createAsyncThunk("message/upload-attachment", async (entry, { dispatch }) => {
-  const controller = new AbortController();
-  uploadsInFlight.set(entry.clientId, controller);
+const sealedDetailsOf = async (attachment) => {
+  const { data, key, iv } = await sealFile(await attachmentFile(attachment.id).arrayBuffer());
+  keepSealedCopy(attachment.id, data);
 
-  const formData = new FormData();
-  formData.append("file", attachmentFile(entry.attachment.id));
-  formData.append("convo_id", entry.conversationId);
-  formData.append("clientId", entry.clientId);
-  if (entry.caption) formData.append("message", entry.caption);
-  if (entry.batch) Object.entries(entry.batch).forEach(([field, value]) => formData.append(field, value));
-
-  try {
-    const { data } = await axios.post("/message/send-message", formData, { signal: controller.signal });
-    dispatch(messageArrived(data.message));
-    releaseAttachment(entry.attachment.id);
-  } catch (error) {
-    if (controller.signal.aborted) return;
-    dispatch(updateQueuedMessage({ clientId: entry.clientId, status: "failed", error: errorMessageOf(error) }));
-    notifyError(error);
-  } finally {
-    uploadsInFlight.delete(entry.clientId);
-  }
-});
+  const { fileName, mimeType, size, width, height, preview } = attachment;
+  return { name: fileName, mimeType, size, width, height, preview, kind: attachment.kind === "image" ? "image" : "document", key, iv };
+};
 
 // ------------- Send Chosen Attachments -------------
 // images go as one captioned group; a single document carries the caption itself
-export const SendAttachments = (caption) => (dispatch, getState) => {
+export const SendAttachments = (caption) => async (dispatch, getState) => {
   const { files, activeConversation, messages } = getState().chat;
   if (!files.length) return;
+  dispatch(clearFiles());
 
-  const batchId = uuidv4();
   const isImages = files[0].kind === "image";
   const captionFor = (index) => ((isImages && index === 0) || (!isImages && files.length === 1) ? caption : undefined);
+  const batchId = uuidv4();
+  const details = await Promise.all(files.map(sealedDetailsOf));
 
-  const senderId = getState().user.user._id;
-  const entries = files.map((attachment, index) => ({
-    clientId: uuidv4(),
-    senderId,
-    conversationId: activeConversation._id,
-    afterId: messages.at(-1)?._id,
-    createdAt: new Date().toISOString(),
-    attachment,
-    caption: captionFor(index),
-    batch: { batchId, batchIndex: index, batchTotal: files.length },
-  }));
-
-  dispatch(clearFiles());
-  entries.forEach((entry) => {
-    dispatch(queueMessage(entry));
-    dispatch(UploadAttachment(entry));
-  });
+  files.forEach((attachment, index) =>
+    dispatch(
+      queueMessage({
+        clientId: attachment.id,
+        senderId: getState().user.user._id,
+        conversationId: activeConversation._id,
+        afterId: messages.at(-1)?._id,
+        createdAt: new Date().toISOString(),
+        caption: captionFor(index),
+        file: details[index],
+        batch: { batchId, batchIndex: index, batchTotal: files.length },
+      })
+    )
+  );
+  dispatch(FlushOutbox());
 };
 
-// ------------- Retry, Cancel -------------
-export const RetryAttachment = (entry) => (dispatch, getState) => {
-  dispatch(requeueMessage(entry.clientId));
-  dispatch(UploadAttachment(getState().chat.outbox.find((queued) => queued.clientId === entry.clientId)));
+// ------------- Upload An Attachment's File -------------
+export const UploadAttachment = createAsyncThunk("message/upload-attachment", async (clientId, { dispatch }) => {
+  const form = new FormData();
+  form.append("file", sealedCopyOf(clientId));
+
+  for (const retryPause of [...UPLOAD_PAUSES, null]) {
+    try {
+      const { data } = await axios.post(`/message/${sentMessageIdOf(clientId)}/attachment`, form);
+      dispatch(clearUploadFailed(clientId));
+      await dispatch(ReceiveMessageUpdate(data.message));
+      dropSealedCopy(clientId);
+      return;
+    } catch (error) {
+      if (!retryPause) break;
+      await pause(retryPause);
+    }
+  }
+  dispatch(markUploadFailed(clientId));
+});
+
+export const RetryUpload = (clientId) => (dispatch) => {
+  dispatch(clearUploadFailed(clientId));
+  dispatch(UploadAttachment(clientId));
 };
 
-export const CancelAttachment = (entry) => (dispatch) => {
-  uploadsInFlight.get(entry.clientId)?.abort();
-  releaseAttachment(entry.attachment.id);
-  dispatch(dropQueuedMessage(entry.clientId));
+// ------------- Remove An Attachment That Did Not Upload -------------
+export const RemoveUnsentAttachment = (message) => async (dispatch) => {
+  try {
+    await axios.delete(`/message/${message._id}`);
+    dispatch(removeMessage(message));
+    dispatch(clearUploadFailed(message.clientId));
+    releaseAttachment(message.clientId);
+  } catch (error) {
+    notifyError(error);
+  }
 };

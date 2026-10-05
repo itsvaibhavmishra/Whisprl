@@ -6,6 +6,7 @@ import ImageMessage from "@/sections/chat/messages/ImageMessage";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
 import SeenMarker from "@/sections/chat/messages/SeenMarker";
 import { formatMessageTime } from "@/utils/formatMessageTime";
+import { filesOf } from "@/utils/messageFiles";
 
 const UNREADABLE = "This message can't be opened on this device";
 const WAITING = "This message arrives when the sender is next online";
@@ -45,9 +46,9 @@ const MessageContainer = ({
     borderRadiusStyle = "5px 20px 20px 5px";
   }
 
-  const hasFiles = message.files && message.files.length > 0;
-  const hasImages = hasFiles && message.files.some((f) => f.fileType === "image");
-  const hasDocs = hasFiles && message.files.some((f) => f.fileType === "document");
+  const files = filesOf(message);
+  const hasImages = files.some((file) => file.fileType === "image");
+  const hasDocs = files.some((file) => file.fileType === "document");
   const isFileMsg = msgType === "file" || msgType === "file_with_caption";
   const hasCaption = isFileMsg && Boolean(message.message);
 
@@ -144,12 +145,12 @@ const MessageContainer = ({
           ) : (
             <>
               {/* Render image attachments */}
-              {hasImages && <ImageMessage files={message.files} />}
+              {hasImages && <ImageMessage files={files} />}
 
               {/* Render document attachments */}
               {hasDocs && (
-                <Box sx={{ mt: hasImages ? 0.5 : 0, p: hasDocs && !hasImages ? 0 : 0 }}>
-                  <DocumentMessage files={message.files} />
+                <Box sx={{ mt: hasImages ? 0.5 : 0 }}>
+                  <DocumentMessage files={files} />
                 </Box>
               )}
 
@@ -177,12 +178,12 @@ const MessageContainer = ({
         </Box>
         {marker && <SeenMarker {...marker} messageId={message._id} />}
       </Stack>
-      {footer ??
-        (statusLabel && (
-          <Typography variant="caption" sx={{ alignSelf: "flex-end", color: "text.secondary" }}>
-            {statusLabel}
-          </Typography>
-        ))}
+      {footer}
+      {statusLabel && (
+        <Typography variant="caption" sx={{ alignSelf: "flex-end", color: "text.secondary" }}>
+          {statusLabel}
+        </Typography>
+      )}
     </Stack>
   );
 };

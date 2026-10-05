@@ -40,18 +40,29 @@ export const encryptMessage = async (text, conversation, userId) => {
   return { ...sealed, keyIds: [deviceKeys.keyId, peerKey.keyId] };
 };
 
+// the text as it was sent: a message's words, or for an attachment the JSON holding its caption and file key
+export const openMessage = async (message, conversation) => {
+  const senderId = message.sender?._id ?? message.sender;
+  const { keyIds } = message.cipher;
+  const myIndex = keyIds.indexOf(deviceKeys?.keyId);
+  const peerKey = myIndex !== -1 && findPublicKey(conversation, keyIds[1 - myIndex]);
+  if (!peerKey) throw new Error("No key for this message");
+
+  const key = await conversationKeyFor(conversation, peerKey);
+  return decryptText(key, message.cipher, contextOf(conversation._id, senderId));
+};
+
+const readableOf = (message, plaintext) => {
+  if (!message.attachment) return { ...message, message: plaintext };
+  const { caption, file } = JSON.parse(plaintext);
+  return { ...message, message: caption ?? "", file };
+};
+
 export const decryptMessage = async (message, conversation) => {
   if (!message?.cipher) return message;
 
-  const senderId = message.sender?._id ?? message.sender;
   try {
-    const { keyIds } = message.cipher;
-    const myIndex = keyIds.indexOf(deviceKeys?.keyId);
-    const peerKey = myIndex !== -1 && findPublicKey(conversation, keyIds[1 - myIndex]);
-    if (!peerKey) throw new Error("No key for this message");
-
-    const key = await conversationKeyFor(conversation, peerKey);
-    return { ...message, message: await decryptText(key, message.cipher, contextOf(conversation._id, senderId)) };
+    return readableOf(message, await openMessage(message, conversation));
   } catch {
     return { ...message, message: "", undecryptable: true };
   }

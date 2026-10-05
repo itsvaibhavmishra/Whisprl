@@ -16,8 +16,10 @@ const initialState = {
   // worked out when the chat opens, because opening it marks those messages seen
   unreadMarker: null,
 
-  // sent from this tab and not yet confirmed by the server, oldest first: text carries `text`, a file `attachment`
+  // sent from this tab and not yet confirmed by the server, oldest first: text carries `text`, a file `file`
   outbox: [],
+  // this tab's attachments whose message was saved but whose file did not upload, by clientId
+  failedUploads: [],
 
   typingConversation: [],
   connection: "connecting",
@@ -130,6 +132,18 @@ const slice = createSlice({
       state.messages.splice(after + 1, 0, message);
     },
 
+    markUploadFailed: (state, action) => {
+      if (!state.failedUploads.includes(action.payload)) state.failedUploads.push(action.payload);
+    },
+
+    clearUploadFailed: (state, action) => {
+      state.failedUploads = state.failedUploads.filter((clientId) => clientId !== action.payload);
+    },
+
+    removeMessage: (state, action) => {
+      state.messages = state.messages.filter((message) => message._id !== action.payload._id);
+    },
+
     replaceMessage: (state, action) => {
       const index = state.messages.findIndex((message) => message._id === action.payload._id);
       if (index !== -1) state.messages[index] = action.payload;
@@ -225,6 +239,9 @@ export const {
   updateQueuedMessage,
   dropQueuedMessage,
   messageArrived,
+  markUploadFailed,
+  clearUploadFailed,
+  removeMessage,
   replaceMessage,
   applyReceipt,
   updateMemberKeys,

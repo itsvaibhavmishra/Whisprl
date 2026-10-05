@@ -1,12 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
-import { ClearAttachments } from "@/redux/slices/actions/attachmentActions";
+import { ClearAttachments, UploadAttachment } from "@/redux/slices/actions/attachmentActions";
 import {
   closeActiveConversation,
   dropQueuedMessage,
   messageArrived,
   queueMessage,
+  removeMessage,
   replaceMessage,
   requeueMessage,
   updateQueuedMessage,
@@ -15,7 +16,8 @@ import { selectIsLoading } from "@/redux/slices/requestSlice";
 import axios from "@/utils/axios";
 import { socket } from "@/utils/socket";
 import uuidv4 from "@/utils/uuidv4";
-import { decryptMessage, encryptMessage } from "@/utils/crypto/messageCipher";
+import { decryptMessage, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
+import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
 
 const ACK_TIMEOUT = 10000;
 // about a minute of trying while connected, and time offline does not count against it
@@ -146,24 +148,39 @@ const UNENCRYPTABLE = "That message could not be encrypted. Reload Whisprl and t
 const sendOnce = (entry, cipher) =>
   socket
     .timeout(ACK_TIMEOUT)
-    .emitWithAck("send_message", { convo_id: entry.conversationId, clientId: entry.clientId, cipher })
+    .emitWithAck("send_message", {
+      convo_id: entry.conversationId,
+      clientId: entry.clientId,
+      cipher,
+      ...(entry.file && { attachment: true, batch: entry.batch }),
+    })
     .catch(() => null);
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // a slow or busy server keeps the message sending, so a later one never overtakes it; only a refusal fails it
-const deliverQueuedText = async (entry, dispatch, getState) => {
+// an attachment's message carries its caption and the file's key, and the file follows once the message is saved
+const plaintextOf = (entry) => entry.text ?? JSON.stringify({ caption: entry.caption, file: entry.file });
+
+const confirmQueued = (entry, saved, dispatch) => {
+  dispatch(messageArrived({ ...saved, message: entry.text ?? entry.caption ?? "", file: entry.file }));
+  if (!entry.file) return;
+  markAttachmentSent(entry.clientId, saved._id);
+  dispatch(UploadAttachment(entry.clientId));
+};
+
+const deliverQueued = async (entry, dispatch, getState) => {
   const fail = (error) => dispatch(updateQueuedMessage({ clientId: entry.clientId, status: "failed", error }));
   const conversation = conversationById(getState(), entry.conversationId);
 
-  const cipher = await encryptMessage(entry.text, conversation, getState().user.user._id).catch(() => null);
+  const cipher = await encryptMessage(plaintextOf(entry), conversation, getState().user.user._id).catch(() => null);
   if (!cipher) return fail(UNENCRYPTABLE);
 
   for (const retryPause of [...RETRY_PAUSES, null]) {
     if (!socket.connected || !isStillSending(getState, entry.clientId)) return;
 
     const response = await sendOnce(entry, cipher);
-    if (response?.status === "success") return dispatch(messageArrived({ ...response.message, message: entry.text }));
+    if (response?.status === "success") return confirmQueued(entry, response.message, dispatch);
     if (response && !response.retryable) return fail(response.message);
     if (retryPause) await pause(retryPause);
   }
@@ -174,12 +191,11 @@ const deliverQueuedText = async (entry, dispatch, getState) => {
 const isStillSending = (getState, clientId) =>
   getState().chat.outbox.some((queued) => queued.clientId === clientId && queued.status === "sending");
 
-const nextQueuedText = (getState) =>
-  getState().chat.outbox.find((queued) => queued.text !== undefined && queued.status === "sending");
+const nextQueued = (getState) => getState().chat.outbox.find((queued) => queued.status === "sending");
 
 const drainOutbox = async (dispatch, getState) => {
-  for (let entry = nextQueuedText(getState); entry && socket.connected; entry = nextQueuedText(getState)) {
-    await deliverQueuedText(entry, dispatch, getState);
+  for (let entry = nextQueued(getState); entry && socket.connected; entry = nextQueued(getState)) {
+    await deliverQueued(entry, dispatch, getState);
     // still sending means the connection dropped mid-send, and the reconnect flushes it again
     if (isStillSending(getState, entry.clientId)) return;
   }
@@ -198,7 +214,10 @@ export const SendAgain = (clientId) => (dispatch) => {
   dispatch(FlushOutbox());
 };
 
-export const DiscardMessage = (clientId) => (dispatch) => dispatch(dropQueuedMessage(clientId));
+export const DiscardMessage = (clientId) => (dispatch) => {
+  dispatch(dropQueuedMessage(clientId));
+  releaseAttachment(clientId);
+};
 
 // ------------- Receive Message -------------
 export const ReceiveMessage = (message) => async (dispatch, getState) => {
@@ -209,6 +228,13 @@ export const ReceiveMessage = (message) => async (dispatch, getState) => {
 
   dispatch(messageArrived(await decryptMessage(message, conversation)));
   if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(conversation._id));
+};
+
+// ------------- Message Removed Before Its File Arrived -------------
+export const RemovedMessage = (message) => (dispatch, getState) => {
+  dispatch(removeMessage(message));
+  const isPreview = conversationById(getState(), message.conversation)?.latestMessage?._id === message._id;
+  if (isPreview) dispatch(GetConversations());
 };
 
 // ------------- Receive Re-encrypted Message -------------
@@ -227,10 +253,10 @@ export const DeliverWaitingMessages = createAsyncThunk("message/deliver-waiting"
 
   await Promise.all(
     data.messages.map(async (message) => {
-      const readable = await decryptMessage(message, message.conversation);
-      if (readable.undecryptable) return;
+      const plaintext = await openMessage(message, message.conversation).catch(() => null);
+      if (plaintext === null) return;
 
-      const cipher = await encryptMessage(readable.message, message.conversation, userId);
+      const cipher = await encryptMessage(plaintext, message.conversation, userId);
       await axios.patch(`/message/${message._id}/reseal`, { cipher });
     })
   );

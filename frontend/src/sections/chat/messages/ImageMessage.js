@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Typography } from "@mui/material";
 import ImageLightbox from "@/sections/chat/messages/ImageLightbox";
+import MessageImage from "@/sections/chat/messages/MessageImage";
 
 const GRID_CELL_SIZE = 130;
 const MAX_VISIBLE = 4;
@@ -32,7 +33,8 @@ const ImageMessage = ({ files }) => {
 
   const getCellStyle = (index) => {
     if (total === 1) {
-      return { gridColumn: "1 / -1", height: "auto", maxHeight: 300 };
+      const { width, height } = imageFiles[0];
+      return { gridColumn: "1 / -1", maxHeight: 300, ...(width && height && { aspectRatio: `${width} / ${height}` }) };
     }
     if (total === 3 && index === 0) {
       return { gridColumn: "1 / -1", height: GRID_CELL_SIZE };
@@ -67,19 +69,7 @@ const ImageMessage = ({ files }) => {
                 ...getCellStyle(index),
               }}
             >
-              <Box
-                component="img"
-                src={file.url}
-                alt={file.fileName}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                  transition: "opacity 0.2s",
-                  "&:hover": { opacity: showOverlay ? 1 : 0.9 },
-                }}
-              />
+              <MessageImage file={file} />
               {showOverlay && (
                 <Box
                   sx={{

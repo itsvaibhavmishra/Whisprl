@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "../models/index.js";
 import { MEMBER_FIELDS, findMemberConversation } from "./conversationService.js";
+import { uploadFile } from "./fileUploadService.js";
 import { currentKeyIdOf, isSealed } from "./keyService.js";
 
 const MAX_CIPHER_LENGTH = 64 * 1024;
@@ -56,54 +57,22 @@ export const validateCipher = (cipher, conversation, sender_id) => {
 
 export const isClientId = (clientId) => typeof clientId === "string" && /^[\w-]{8,64}$/.test(clientId);
 
-// validate files before uploading
-const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-const allowedDocTypes = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "text/plain",
-  "application/zip",
-  "application/x-rar-compressed",
-];
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+// an encrypted file is unreadable here, so only its size is checked; its type was checked by the browser that chose it
+export const MAX_SEALED_FILE_SIZE = 5 * 1024 * 1024 + 1024;
 
-// validates a single file object
-export const validateMessageFiles = (file) => {
-  if (file.size > MAX_FILE_SIZE) {
-    throw createHttpError.BadRequest(
-      `File "${file.originalname}" exceeds the 5MB size limit`
-    );
-  }
-
-  const isImage = allowedImageTypes.includes(file.mimetype);
-  const isDoc = allowedDocTypes.includes(file.mimetype);
-
-  if (!isImage && !isDoc) {
-    throw createHttpError.BadRequest(
-      `File type "${file.mimetype}" is not allowed`
-    );
-  }
-};
-
-export const getFileType = (mimetype) => {
-  return allowedImageTypes.includes(mimetype) ? "image" : "document";
-};
+export const batchOf = ({ batchId, batchIndex, batchTotal } = {}) =>
+  isClientId(batchId) && Number.isInteger(batchIndex) && Number.isInteger(batchTotal) ? { batchId, batchIndex, batchTotal } : {};
 
 const SENDER_FIELDS = ["_id", "firstName", "lastName", "avatar"];
 
 const senderSummaryOf = (member) => Object.fromEntries(SENDER_FIELDS.map((field) => [field, member[field]]));
 
-export const toClientMessage = (message, conversation) => ({
+const toClientMessage = (message, conversation) => ({
   ...message.toObject(),
   sender: senderSummaryOf(senderOf(conversation, message.sender)),
 });
 
-export const findSentMessage = (sender_id, clientId) =>
+const findSentMessage = (sender_id, clientId) =>
   isClientId(clientId) ? MessageModel.findOne({ sender: sender_id, clientId }) : null;
 
 // takes the conversation with its members loaded, so the reply needs no further queries
@@ -181,6 +150,40 @@ export const markSeen = async (conversation_id, reader_id) => {
     [{ $set: { seenAt: now, deliveredAt: { $ifNull: ["$deliveredAt", now] } } }]
   );
   return modifiedCount > 0;
+};
+
+const ownAttachmentMessage = (message_id, user_id, filter = {}) =>
+  mongoose.isValidObjectId(message_id)
+    ? MessageModel.findOne({ _id: message_id, sender: user_id, attachment: { $exists: true }, ...filter })
+    : null;
+
+// a retried upload of a file already attached answers with the message as it is
+export const attachSealedFile = async (message_id, user_id, file) => {
+  const message = await ownAttachmentMessage(message_id, user_id);
+  if (!message) throw createHttpError.NotFound("Message does not exist");
+  const conversation = await findSendableConversation(message.conversation, user_id);
+
+  if (message.attachment.status === "uploading") {
+    if (!file) throw createHttpError.BadRequest("Attach the file to upload");
+    const url = await uploadFile(`Chat Files/${conversation._id}`, { buffer: file.buffer, mimetype: "application/octet-stream" });
+    message.attachment = { url, size: file.size, status: "ready" };
+    await message.save();
+  }
+
+  return { conversation, message: toClientMessage(message, conversation) };
+};
+
+// only a message whose file never arrived can go, so nothing anyone has seen disappears
+export const removeUnsentAttachment = async (message_id, user_id) => {
+  const message = await ownAttachmentMessage(message_id, user_id, { "attachment.status": "uploading" });
+  if (!message) throw createHttpError.NotFound("Message does not exist");
+
+  const conversation = await findMemberConversation(message.conversation, user_id);
+  await message.deleteOne();
+  const newest = await MessageModel.findOne({ conversation: conversation._id }).sort({ _id: -1 }).select("_id");
+  await ConversationModel.updateOne({ _id: conversation._id, latestMessage: message._id }, { latestMessage: newest?._id ?? null });
+
+  return { conversation, message };
 };
 
 const PAGE_SIZE = 50;
