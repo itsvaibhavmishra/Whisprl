@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 import {
   GetFriends,
   GetMyProfile,
@@ -6,6 +6,7 @@ import {
   SearchFriends,
   UpdateProfile,
 } from "@/redux/slices/actions/userActions";
+import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 
 // initial state for contacts menu
 const initialState = {
@@ -21,6 +22,7 @@ const initialState = {
     activityStatus: "",
   },
   accountSummary: null,
+  passkeys: [],
 
   friends: [],
   onlineFriends: [],
@@ -95,6 +97,7 @@ const slice = createSlice({
         activityStatus: "",
       };
       state.accountSummary = null;
+      state.passkeys = [];
       state.friends = [];
       state.onlineFriends = [];
     },
@@ -119,7 +122,13 @@ const slice = createSlice({
       })
       .addCase(GetOnlineFriends.fulfilled, (state, action) => {
         state.onlineFriends = action.payload.onlineFriends;
-      });
+      })
+      .addMatcher(
+        isAnyOf(GetPasskeys.fulfilled, AddPasskey.fulfilled, LinkPasskey.fulfilled, RemovePasskey.fulfilled),
+        (state, action) => {
+          state.passkeys = action.payload.passkeys;
+        }
+      );
   },
 });
 

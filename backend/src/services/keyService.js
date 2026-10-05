@@ -2,7 +2,7 @@ import crypto from "crypto";
 import createHttpError from "http-errors";
 import validator from "validator";
 
-import { UserModel } from "../models/index.js";
+import { PasskeyModel, UserModel } from "../models/index.js";
 
 // an uncompressed P-256 point: one marker byte, then 32 bytes each of x and y
 const PUBLIC_KEY_BYTES = 65;
@@ -60,6 +60,8 @@ export const addAccountKey = async (user, { publicKey, backup, replacing = null 
     $push: { publicKeys: entry },
     $set: { keyBackup: { keyId: entry.keyId, iv: backup.iv, data: backup.data } },
   });
+  // each passkey locked the old private key, so none can unlock until it is linked again
+  await PasskeyModel.updateMany({ user: user._id }, { $unset: { keyBackup: 1 } });
 
   return [...user.publicKeys, entry];
 };
@@ -72,4 +74,20 @@ export const replaceKeyBackup = async (user, backup) => {
   }
 
   await updateIfKeysUnchanged(user, { $set: { keyBackup: { keyId: backup.keyId, iv: backup.iv, data: backup.data } } });
+};
+
+export const savePasskeyBackup = async (user, credentialId, backup) => {
+  validateBackup(backup);
+  if (backup.keyId !== currentKeyIdOf(user)) throw createHttpError.Conflict(KEYS_CHANGED);
+
+  const { matchedCount } = await PasskeyModel.updateOne(
+    { user: user._id, credentialId: String(credentialId) },
+    { keyBackup: { keyId: backup.keyId, iv: backup.iv, data: backup.data } }
+  );
+  if (!matchedCount) throw createHttpError.NotFound("Passkey not found");
+};
+
+export const getPasskeyBackups = async (user_id) => {
+  const passkeys = await PasskeyModel.find({ user: user_id, keyBackup: { $exists: true } }).select("credentialId transports +keyBackup");
+  return passkeys.map(({ credentialId, transports, keyBackup }) => ({ credentialId, transports, keyBackup }));
 };

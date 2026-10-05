@@ -1,4 +1,4 @@
-import { deriveSecretKey, encryptBytes, decryptBytes, exportPrivateKey, importPrivateKey } from "@/utils/crypto/keys";
+import { unwrapPrivateKey, wrapPrivateKey } from "@/utils/crypto/keyWrap";
 
 // Crockford's base32 leaves out I, L, O and U, so a key copied by hand cannot be misread
 const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -47,10 +47,8 @@ export const parseRecoveryKey = (input) => {
   return isValid ? decodeBase32(cleaned) : null;
 };
 
-const wrappingKeyFor = (recoveryBytes) => deriveSecretKey(recoveryBytes, "whisprl recovery key v1");
+const RECOVERY_KEY = "whisprl recovery key v1";
 
-export const lockPrivateKey = async (privateKey, recoveryBytes, keyId) =>
-  encryptBytes(await wrappingKeyFor(recoveryBytes), await exportPrivateKey(privateKey), keyId);
+export const lockPrivateKey = (privateKey, recoveryBytes, keyId) => wrapPrivateKey(privateKey, recoveryBytes, keyId, RECOVERY_KEY);
 
-export const unlockPrivateKey = async (backup, recoveryBytes) =>
-  importPrivateKey(await decryptBytes(await wrappingKeyFor(recoveryBytes), backup, backup.keyId));
+export const unlockPrivateKey = (backup, recoveryBytes) => unwrapPrivateKey(backup, recoveryBytes, RECOVERY_KEY);

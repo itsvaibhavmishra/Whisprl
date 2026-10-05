@@ -1,9 +1,10 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 
 import {
   CreateAccountKey,
   ForgetDeviceKeys,
   PrepareEncryption,
+  UnlockWithPasskey,
   UnlockWithRecoveryKey,
 } from "@/redux/slices/actions/encryptionActions";
 
@@ -35,10 +36,10 @@ const slice = createSlice({
         state.status = "ready";
         state.currentKeyId = action.payload.currentKeyId;
       })
-      .addCase(UnlockWithRecoveryKey.fulfilled, (state) => {
+      .addCase(ForgetDeviceKeys.fulfilled, () => initialState)
+      .addMatcher(isAnyOf(UnlockWithRecoveryKey.fulfilled, UnlockWithPasskey.fulfilled), (state) => {
         state.status = "ready";
-      })
-      .addCase(ForgetDeviceKeys.fulfilled, () => initialState);
+      });
   },
 });
 

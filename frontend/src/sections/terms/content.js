@@ -61,7 +61,7 @@ export const SECTIONS = [
           "your password and one-time codes, stored only as one-way hashes, so nobody can read your password, including the people who run Whisprl",
           "your friends list and conversations, and your messages and files, encrypted so only the people in each conversation can open them",
           "whether you are online, so your friends can see it",
-          "which sign-in methods you have connected",
+          "which sign-in methods you have connected, and the public half of any passkey you add, which can only check a sign-in, never make one",
         ],
       },
       "Whisprl relies on these services to run:",

@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Typography } from "@mui/material";
+import { Key } from "phosphor-react";
 import { LoadingButton } from "@mui/lab";
 import { useDispatch } from "react-redux";
 
 import FormProvider, { RHFTextField } from "@/components/hook-form";
-import { UnlockWithRecoveryKey } from "@/redux/slices/actions/encryptionActions";
+import useIsLoading from "@/hooks/useIsLoading";
+import { UnlockWithPasskey, UnlockWithRecoveryKey } from "@/redux/slices/actions/encryptionActions";
+import { canUsePasskeys } from "@/utils/passkeys";
 
 const UnlockForm = ({ onLater, onLostKey }) => {
   const dispatch = useDispatch();
+  const isUsingPasskey = useIsLoading(UnlockWithPasskey);
   const methods = useForm({ defaultValues: { recoveryKey: "" } });
   const {
     setError,
@@ -30,9 +34,24 @@ const UnlockForm = ({ onLater, onLostKey }) => {
       </DialogTitle>
       <DialogContent>
         <Typography id="unlock-description" variant="body2" sx={{ color: "text.secondary", fontWeight: 400, mb: 3 }}>
-          This browser has not opened your encrypted messages before. Enter the recovery key you saved when Whisprl
-          turned on encryption.
+          This browser has not opened your encrypted messages before. Use a passkey that unlocks them, or the recovery
+          key you saved when Whisprl turned on encryption.
         </Typography>
+        {canUsePasskeys() && (
+          <>
+            <LoadingButton
+              fullWidth
+              variant="outlined"
+              color="inherit"
+              loading={isUsingPasskey}
+              startIcon={<Key weight="bold" />}
+              onClick={() => dispatch(UnlockWithPasskey())}
+            >
+              Unlock with a passkey
+            </LoadingButton>
+            <Divider sx={{ my: 2.5, typography: "body2", color: "text.secondary" }}>or</Divider>
+          </>
+        )}
         <RHFTextField
           name="recoveryKey"
           label="Recovery key"

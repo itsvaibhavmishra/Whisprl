@@ -1,4 +1,5 @@
-import { addAccountKey, getOwnKeys, replaceKeyBackup } from "../services/keyService.js";
+import { addAccountKey, getOwnKeys, getPasskeyBackups, replaceKeyBackup, savePasskeyBackup } from "../services/keyService.js";
+import { listPasskeys } from "../services/passkeyService.js";
 
 // -------------------------- Own Keys --------------------------
 export const getKeys = async (req, res, next) => {
@@ -29,6 +30,25 @@ export const updateBackup = async (req, res, next) => {
   try {
     await replaceKeyBackup(req.user, req.body);
     res.status(200).json({ status: "success", message: "Recovery key replaced" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Passkey Copies Of The Key --------------------------
+export const getPasskeyKeys = async (req, res, next) => {
+  try {
+    res.status(200).json({ status: "success", passkeys: await getPasskeyBackups(req.user._id) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const linkPasskey = async (req, res, next) => {
+  try {
+    await savePasskeyBackup(req.user, req.params.credential_id, req.body);
+
+    res.status(200).json({ status: "success", message: "This passkey now unlocks your messages", passkeys: await listPasskeys(req.user._id) });
   } catch (error) {
     next(error);
   }

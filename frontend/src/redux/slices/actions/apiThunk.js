@@ -18,3 +18,9 @@ export const createApiThunk = (type, request, { notifyErrors = true, ...options 
   );
 
 export const notifyResult = (data) => notify({ severity: data.status, message: data.message });
+
+// a refusal the thunk decides on itself, rather than one a request threw, still has to reach the person
+export const refuse = (rejectWithValue, message) => {
+  notify({ severity: "error", message });
+  return rejectWithValue(message);
+};

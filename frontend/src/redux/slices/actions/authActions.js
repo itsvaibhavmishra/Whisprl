@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
-import { ForgetDeviceKeys } from "@/redux/slices/actions/encryptionActions";
+import { ForgetDeviceKeys, keepKeyFromPasskey } from "@/redux/slices/actions/encryptionActions";
 import { DisconnectSocket } from "@/redux/slices/actions/socketActions";
 import { updateOtpEmail } from "@/redux/slices/authSlice";
 import { clearChat } from "@/redux/slices/chatSlice";
@@ -9,6 +9,7 @@ import { logout, updateUser } from "@/redux/slices/userSlice";
 import { releaseAllAttachments } from "@/utils/attachments";
 import axios, { setAccessToken } from "@/utils/axios";
 import { notify } from "@/utils/notify";
+import { authenticateWithPasskey } from "@/utils/passkeys";
 
 const withRecaptcha = async (recaptchaRef, values) => {
   recaptchaRef.current.reset();
@@ -30,6 +31,18 @@ export const LoginUser = createApiThunk("auth/login", async ({ recaptchaRef, ...
 
   dispatch(updateOtpEmail({ otpEmail: values.email }));
   return { user: null };
+});
+
+// ------------- Passkey Login Thunk -------------
+// a passkey that can unlock messages does it here, before the chats load, so this browser never asks for the recovery key
+export const PasskeyLogin = createApiThunk("auth/passkey", async (_, { dispatch }) => {
+  const { data: challenge } = await axios.post("/auth/passkeys/options");
+  const { response, prfSecret } = await authenticateWithPasskey(challenge.options);
+  const { data } = await axios.post("/auth/passkeys/login", { response });
+
+  if (prfSecret && data.keyBackup) await keepKeyFromPasskey(data.user._id, data.keyBackup, prfSecret).catch(() => {});
+  notifyResult(data);
+  return signedIn(dispatch, data);
 });
 
 // ------------- Social Login Thunks -------------

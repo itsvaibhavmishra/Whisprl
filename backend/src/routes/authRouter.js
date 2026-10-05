@@ -15,6 +15,7 @@ import {
   googleAuth,
   linkedinAuth,
 } from "../controllers/socialController.js";
+import { getLoginOptions, passkeyLogin } from "../controllers/passkeyController.js";
 import { requireRecaptcha } from "../middlewares/recaptchaMiddleware.js";
 import { codeLimit, emailLimit, loginLimit, sessionLimit, signupLimit, socialLimit } from "../middlewares/rateLimiters.js";
 
@@ -43,6 +44,12 @@ authRouter.route("/reset-password").post(trimRequest.all, codeLimit(), resetPass
 
 // Refresh Token Route
 authRouter.route("/refresh-token").post(sessionLimit(), refreshToken);
+
+// ------------- Passkey Auth -------------
+
+authRouter.route("/passkeys/options").post(sessionLimit(), getLoginOptions);
+
+authRouter.route("/passkeys/login").post(sessionLimit(), passkeyLogin);
 
 // ------------- Social Auth -------------
 

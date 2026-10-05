@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { createApiThunk } from "@/redux/slices/actions/apiThunk";
+import { createApiThunk, refuse } from "@/redux/slices/actions/apiThunk";
 import { DeliverWaitingMessages, GetConversations, GetMessages } from "@/redux/slices/actions/chatActions";
 import { updateMemberKeys } from "@/redux/slices/chatSlice";
 import axios from "@/utils/axios";
@@ -8,6 +8,7 @@ import { forgetDeviceKeys, loadDeviceKeys, saveDeviceKeys } from "@/utils/crypto
 import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
 import { setDeviceKeys } from "@/utils/crypto/messageCipher";
 import { createRecoveryKey, lockPrivateKey, parseRecoveryKey, unlockPrivateKey } from "@/utils/crypto/recoveryKey";
+import { authenticateWithPasskey, randomChallenge, unlockWithPasskey } from "@/utils/passkeys";
 
 const keepOnThisDevice = async (userId, deviceKeys) => {
   await saveDeviceKeys(userId, deviceKeys);
@@ -84,6 +85,29 @@ export const UnlockWithRecoveryKey = createApiThunk(
   },
   { notifyErrors: false }
 );
+
+// ------------- Unlock With Passkey -------------
+export const keepKeyFromPasskey = async (userId, keyBackup, prfSecret) =>
+  keepOnThisDevice(userId, { keyId: keyBackup.keyId, privateKey: await unlockWithPasskey(keyBackup, prfSecret) });
+
+const NO_PASSKEY_UNLOCK = "This browser cannot unlock your messages with a passkey. Use your recovery key instead.";
+
+export const UnlockWithPasskey = createApiThunk("encryption/unlock-passkey", async (_, { getState, dispatch, rejectWithValue }) => {
+  const { data } = await axios.get("/keys/passkeys");
+  if (!data.passkeys.length) {
+    return refuse(rejectWithValue, "None of your passkeys unlock messages yet. Use your recovery key, then turn it on in Settings.");
+  }
+
+  const { response, prfSecret } = await authenticateWithPasskey({
+    challenge: randomChallenge(),
+    allowCredentials: data.passkeys.map(({ credentialId, transports }) => ({ id: credentialId, transports })),
+  });
+  const linked = data.passkeys.find((passkey) => passkey.credentialId === response.id);
+  if (!prfSecret || !linked) return refuse(rejectWithValue, NO_PASSKEY_UNLOCK);
+
+  await keepKeyFromPasskey(getState().user.user._id, linked.keyBackup, prfSecret);
+  refreshChats(dispatch, getState);
+});
 
 // ------------- Replace Recovery Key -------------
 export const ReplaceRecoveryKey = createApiThunk("encryption/replace-recovery-key", async (_, { getState }) => {

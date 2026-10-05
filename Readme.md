@@ -209,6 +209,7 @@ $ npm run build
 │   │   │   ├── friendsController.js
 │   │   │   ├── keyController.js
 │   │   │   ├── messageController.js
+│   │   │   ├── passkeyController.js
 │   │   │   ├── socialController.js
 │   │   │   ├── userController.js
 │   │   ├── middlewares/
@@ -222,6 +223,8 @@ $ npm run build
 │   │   │   ├── friendRequestModel.js
 │   │   │   ├── index.js
 │   │   │   ├── messageModel.js
+│   │   │   ├── passkeyChallengeModel.js
+│   │   │   ├── passkeyModel.js
 │   │   │   ├── sessionModel.js
 │   │   │   ├── userModel.js
 │   │   ├── routes/
@@ -231,6 +234,7 @@ $ npm run build
 │   │   │   ├── index.js
 │   │   │   ├── keyRouter.js
 │   │   │   ├── messageRouter.js
+│   │   │   ├── passkeyRouter.js
 │   │   │   ├── userRouter.js
 │   │   ├── services/
 │   │   │   ├── authService.js
@@ -240,6 +244,7 @@ $ npm run build
 │   │   │   ├── keyService.js
 │   │   │   ├── mailer.js
 │   │   │   ├── messageService.js
+│   │   │   ├── passkeyService.js
 │   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
 │   │   │   ├── userService.js
@@ -407,6 +412,7 @@ $ npm run build
 │   │   │   │   │   ├── chatActions.js
 │   │   │   │   │   ├── contactActions.js
 │   │   │   │   │   ├── encryptionActions.js
+│   │   │   │   │   ├── passkeyActions.js
 │   │   │   │   │   ├── socketActions.js
 │   │   │   │   │   ├── userActions.js
 │   │   │   │   ├── authSlice.js
@@ -480,6 +486,7 @@ $ npm run build
 │   │   │   ├── settings/
 │   │   │   │   ├── ChangePasswordDialog.js
 │   │   │   │   ├── ChatPreview.js
+│   │   │   │   ├── PasskeySetting.js
 │   │   │   │   ├── RecoveryKeySetting.js
 │   │   │   │   ├── SettingsSection.js
 │   │   │   ├── terms/
@@ -552,6 +559,7 @@ $ npm run build
 │   │   │   │   ├── fileCipher.js
 │   │   │   │   ├── fileCipher.test.js
 │   │   │   │   ├── keys.js
+│   │   │   │   ├── keyWrap.js
 │   │   │   │   ├── messageCipher.js
 │   │   │   │   ├── messageCipher.test.js
 │   │   │   │   ├── recoveryKey.js
@@ -569,6 +577,7 @@ $ npm run build
 │   │   │   ├── helmetHandler.js
 │   │   │   ├── messageFiles.js
 │   │   │   ├── notify.js
+│   │   │   ├── passkeys.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js

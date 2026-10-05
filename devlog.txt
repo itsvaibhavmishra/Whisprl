@@ -22,6 +22,8 @@
     - See when your message is sent, delivered and seen, with your friend's photo on the last one they read
     - Tap a message to see when it was sent
     - Send photos and documents, several at a time with a caption, end-to-end encrypted like messages
+    - Log in with a passkey, including approving a laptop from your phone
+    - A passkey can unlock your messages on a new browser, so the recovery key is only a fallback
     - Messages show the moment you send them, and wait to go out if your connection drops
     - Older messages load as you scroll up, and a button counts the new ones below and takes you back down
     - A chat opens at the first message you have not read, under a line saying how many there are
@@ -74,6 +76,7 @@
   - Developers:
     - The frontend has its first tests, and the gate runs them
     - The backend needs GOOGLE_AUTH_CLIENT_ID for Google sign-in, and no longer reads JWT_REFRESH_SECRET
+    - The backend checks passkeys with @simplewebauthn/server, and FRONT_URL must be the address the app is served from
 
   - Internal:
     - Frontend code is organised by page, with unused files and assets removed

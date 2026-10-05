@@ -5,17 +5,20 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { Link, Stack } from "@mui/material";
+import { Key } from "phosphor-react";
 import { LoadingButton } from "@mui/lab";
 
 import { useDispatch } from "react-redux";
-import { LoginUser } from "@/redux/slices/actions/authActions";
+import { LoginUser, PasskeyLogin } from "@/redux/slices/actions/authActions";
 
 import FormProvider, { RHFPasswordField, RHFTextField } from "@/components/hook-form";
 import { PATH_AUTH } from "@/routes/paths";
+import { canUsePasskeys } from "@/utils/passkeys";
 import useIsLoading from "@/hooks/useIsLoading";
 
 const LoginForm = () => {
   const isLoading = useIsLoading(LoginUser);
+  const isUsingPasskey = useIsLoading(PasskeyLogin);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -79,6 +82,21 @@ const LoginForm = () => {
       >
         Log in
       </LoadingButton>
+
+      {canUsePasskeys() && (
+        <LoadingButton
+          loading={isUsingPasskey}
+          fullWidth
+          size="large"
+          variant="outlined"
+          color="inherit"
+          startIcon={<Key weight="bold" />}
+          onClick={() => dispatch(PasskeyLogin())}
+          sx={{ mt: 1.5 }}
+        >
+          Log in with a passkey
+        </LoadingButton>
+      )}
     </FormProvider>
   );
 };

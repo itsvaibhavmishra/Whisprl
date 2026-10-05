@@ -6,6 +6,7 @@ import {
   GoogleLogin,
   LinkedinLogin,
   LoginUser,
+  PasskeyLogin,
   VerifyOTP,
 } from "@/redux/slices/actions/authActions";
 
@@ -24,7 +25,7 @@ const slice = createSlice({
   },
   // the thunks import this slice too, so they are only read once the reducer is built
   extraReducers(builder) {
-    const signIns = [LoginUser, GoogleLogin, GithubLogin, LinkedinLogin, VerifyOTP];
+    const signIns = [LoginUser, PasskeyLogin, GoogleLogin, GithubLogin, LinkedinLogin, VerifyOTP];
 
     builder
       .addCase(EndSession.fulfilled, (state) => {

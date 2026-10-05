@@ -18,9 +18,9 @@ import {
   startSession,
 } from "../services/sessionService.js";
 
-export const respondWithSession = async (req, res, user, message) => {
+export const respondWithSession = async (req, res, user, message, extra = {}) => {
   const accessToken = await startSession(user, req, res);
-  res.status(200).json({ status: "success", message, user: toSessionUser(user), accessToken });
+  res.status(200).json({ status: "success", message, user: toSessionUser(user), accessToken, ...extra });
 };
 
 // -------------------------- Login auth --------------------------
