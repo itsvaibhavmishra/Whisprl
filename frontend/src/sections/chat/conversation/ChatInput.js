@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Stack,
   TextField,
@@ -16,7 +16,7 @@ import { useDispatch } from "react-redux";
 import { ChooseAttachments } from "@/redux/slices/actions/attachmentActions";
 import { StartTyping, StopTyping } from "@/redux/slices/actions/chatActions";
 
-const TYPING_PAUSE = 1000;
+const TYPING_PAUSE = 5000;
 
 const ChatInput = ({
   openPicker,
@@ -63,13 +63,21 @@ const ChatInput = ({
   const onChangeHandler = (event) => {
     setValue(event.target.value);
 
-    if (!isTyping && value.trim() !== "") {
+    if (!isTyping && event.target.value.trim() !== "") {
       startTyping();
     }
 
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(stopTyping, TYPING_PAUSE);
   };
+
+  // sending or clearing the draft ends typing at once, rather than after the pause
+  useEffect(() => {
+    if (value.trim() || !isTyping) return;
+    clearTimeout(typingTimeoutRef.current);
+    dispatch(StopTyping(convo_id));
+    setIsTyping(false);
+  }, [value, isTyping, dispatch, convo_id]);
   // ------------------------------------
 
   const handleActions = (title) => {

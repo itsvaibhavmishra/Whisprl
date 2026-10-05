@@ -1,10 +1,13 @@
 import { enUS, hiIN, frFR, jaJP, viVN, hyAM, arSD } from "@mui/material/locale";
 import { PATH_AUTH, PATH_DASHBOARD, PATH_DOCS } from "@/routes/paths";
 
+export const SETTINGS_STORAGE_KEY = "settings";
+
 export const defaultSettings = {
   themeMode: "dark",
   themeDirection: "ltr",
   themeColorPresets: "default",
+  sounds: true,
 };
 
 export const NAVBAR = {

@@ -207,6 +207,7 @@ $ npm run build
 │   │   │   ├── authController.js
 │   │   │   ├── conversationController.js
 │   │   │   ├── friendsController.js
+│   │   │   ├── groupController.js
 │   │   │   ├── keyController.js
 │   │   │   ├── messageController.js
 │   │   │   ├── passkeyController.js
@@ -231,6 +232,7 @@ $ npm run build
 │   │   │   ├── authRouter.js
 │   │   │   ├── conversationRouter.js
 │   │   │   ├── friendsRouter.js
+│   │   │   ├── groupRouter.js
 │   │   │   ├── index.js
 │   │   │   ├── keyRouter.js
 │   │   │   ├── messageRouter.js
@@ -241,6 +243,7 @@ $ npm run build
 │   │   │   ├── conversationService.js
 │   │   │   ├── fileUploadService.js
 │   │   │   ├── friendsService.js
+│   │   │   ├── groupService.js
 │   │   │   ├── keyService.js
 │   │   │   ├── mailer.js
 │   │   │   ├── messageService.js
@@ -273,6 +276,10 @@ $ npm run build
 ```
 ├── frontend/
 │   ├── public/
+│   │   ├── sounds/
+│   │   │   ├── elsewhere.mp3
+│   │   │   ├── received.mp3
+│   │   │   ├── sent.mp3
 │   │   ├── _redirects
 │   │   ├── apple-touch-icon.png
 │   │   ├── favicon.ico
@@ -357,6 +364,7 @@ $ npm run build
 │   │   │   │   ├── ThemeRtlLayout.js
 │   │   │   ├── AppearanceMenu.js
 │   │   │   ├── AppearancePickers.js
+│   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
 │   │   │   ├── OnlineFriendsElement.js
@@ -397,7 +405,6 @@ $ npm run build
 │   │   │   ├── dashboard/
 │   │   │   │   ├── Contact.js
 │   │   │   │   ├── GeneralApp.js
-│   │   │   │   ├── GroupChat.js
 │   │   │   │   ├── Profile.js
 │   │   │   │   ├── Settings.js
 │   │   │   ├── docs/
@@ -412,6 +419,7 @@ $ npm run build
 │   │   │   │   │   ├── chatActions.js
 │   │   │   │   │   ├── contactActions.js
 │   │   │   │   │   ├── encryptionActions.js
+│   │   │   │   │   ├── groupActions.js
 │   │   │   │   │   ├── passkeyActions.js
 │   │   │   │   │   ├── socketActions.js
 │   │   │   │   │   ├── userActions.js
@@ -451,6 +459,12 @@ $ npm run build
 │   │   │   │   │   ├── ConversationHeader.js
 │   │   │   │   │   ├── ConversationMain.js
 │   │   │   │   │   ├── useChatScroll.js
+│   │   │   │   ├── group/
+│   │   │   │   │   ├── AddMembersDialog.js
+│   │   │   │   │   ├── CreateGroupDialog.js
+│   │   │   │   │   ├── FriendPicker.js
+│   │   │   │   │   ├── GroupInfoDrawer.js
+│   │   │   │   │   ├── GroupMemberRow.js
 │   │   │   │   ├── messages/
 │   │   │   │   │   ├── DocumentMessage.js
 │   │   │   │   │   ├── ImageLightbox.js
@@ -481,7 +495,6 @@ $ npm run build
 │   │   │   │   ├── UserProfileDrawer.js
 │   │   │   ├── profile/
 │   │   │   │   ├── AccountSummary.js
-│   │   │   │   ├── ImageMenu.js
 │   │   │   │   ├── ProfileEditor.js
 │   │   │   ├── settings/
 │   │   │   │   ├── ChangePasswordDialog.js
@@ -574,6 +587,7 @@ $ npm run build
 │   │   │   ├── getColorPresets.js
 │   │   │   ├── getFontValue.js
 │   │   │   ├── getOtherUser.js
+│   │   │   ├── groups.js
 │   │   │   ├── helmetHandler.js
 │   │   │   ├── messageFiles.js
 │   │   │   ├── notify.js
@@ -581,6 +595,7 @@ $ npm run build
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
+│   │   │   ├── sounds.js
 │   │   │   ├── truncateText.js
 │   │   │   ├── uuidv4.js
 │   │   ├── App.js
@@ -596,6 +611,16 @@ $ npm run build
 ```
 </details>
 <br/>
+
+## 🔊 Sound credits
+
+The message sounds in `frontend/public/sounds/` are trimmed and levelled versions of:
+
+- `sent.mp3`: "navigation_forward-selection-minimal" from Google's [Material Design sound resources](https://m2.material.io/design/sound/sound-resources.html), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- `received.mp3`: "completion-success" by Guilherme Marçal Silva, from KDE's [Ocean sound theme](https://invent.kde.org/plasma/ocean-sound-theme), under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- `elsewhere.mp3`: "message-new-instant" by Guilherme Marçal Silva, from KDE's [Ocean sound theme](https://invent.kde.org/plasma/ocean-sound-theme), under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+The two from Ocean keep their CC BY-SA 4.0 licence in this form. The rest of Whisprl is CC0.
 
 <div align="center">
 <img src="https://komarev.com/ghpvc/?username=itsvaibhavmishra&&style=for-the-badge" align="center" />

@@ -11,6 +11,7 @@ import { useChatScroll } from "@/sections/chat/conversation/useChatScroll";
 import { LoadOlderMessages } from "@/redux/slices/actions/chatActions";
 import { selectActiveOutbox } from "@/redux/slices/chatSlice";
 import { filesOf } from "@/utils/messageFiles";
+import { describeEvent, listOf, memberOf } from "@/utils/groups";
 import useIsLoading from "@/hooks/useIsLoading";
 
 // Groups consecutive messages with the same batchId (images only) from the same sender
@@ -94,7 +95,12 @@ const withQueued = (messages, outbox, me) => {
   ];
 };
 
-const itemTypeOf = (group) => (group.message.outboxEntry ? "queued" : group.type);
+const itemTypeOf = (group) => {
+  if (group.message.outboxEntry) return "queued";
+  return group.message.event ? "event" : group.type;
+};
+
+const lastIdOf = (item) => (item.members ?? [item.message]).at(-1)._id;
 
 const ConversationMain = () => {
   const theme = useTheme();
@@ -106,7 +112,9 @@ const ConversationMain = () => {
   );
   const outbox = useSelector(selectActiveOutbox);
 
-  const peer = activeConversation?.users?.find((member) => member._id !== user._id);
+  const isGroup = Boolean(activeConversation?.isGroup);
+  const others = activeConversation?.users?.filter((member) => member._id !== user._id) ?? [];
+  const peer = isGroup ? undefined : others[0];
   const [detailsId, setDetailsId] = useState(null);
 
   let currentSender = null;
@@ -130,9 +138,11 @@ const ConversationMain = () => {
     return containsOnlyEmojis(msg.message) ? "emoji" : "text";
   };
 
-  const isTyping = Boolean(
-    typingConversation?.find((obj) => obj.conversation_id === activeConversation?._id)?.typing
-  );
+  const typists = typingConversation
+    .filter((typist) => typist.typing && typist.conversation_id === activeConversation?._id && typist.user_id !== user._id)
+    .map((typist) => memberOf(activeConversation, typist.user_id)?.firstName)
+    .filter(Boolean);
+  const isTyping = typists.length > 0;
   // ------------------------------------------
 
   const items = buildDisplayGroups(withQueued(messages, outbox, user)).map((group) => ({
@@ -148,35 +158,49 @@ const ConversationMain = () => {
     .map((group) => group.message)
     .filter((message) => message.sender._id === user._id && message.seenAt)
     .at(-1)?._id;
-  const lastIsOursAndUnseen =
-    lastItem?.message.sender._id === user._id && lastItem.message._id !== lastSeenOwnId;
+  const readersOf = (item) => others.filter((member) => (activeConversation.lastSeen?.[member._id] ?? "") >= lastIdOf(item));
+  const isSeen = (item) => (isGroup ? readersOf(item).length > 0 : item.message._id === lastSeenOwnId);
+  const lastIsOursAndUnseen = lastItem?.type !== "event" && lastItem?.message.sender._id === user._id && !isSeen(lastItem);
 
-  const statusOf = (message) => {
+  const statusOf = (item) => {
+    const { message } = item;
+    if (isGroup) return isSeen(item) ? `Seen by ${readersOf(item).length}` : "Sent";
     if (message.awaitingKey) return `Waiting for ${peer.firstName} to open Whisprl`;
     if (message.seenAt) return "Seen";
     return message.deliveredAt ? "Delivered" : "Sent";
   };
 
   const statusLabelFor = (item) => {
-    const { message } = item;
     if (item.type === "queued") return item.entry.status === "sending" && item === lastItem ? "Sending…" : null;
-    if (!peer || message.sender._id !== user._id) return null;
+    if ((!peer && !isGroup) || item.message.sender._id !== user._id) return null;
     const isLiveStatus = lastIsOursAndUnseen && item === lastItem;
-    return isLiveStatus || message._id === detailsId ? statusOf(message) : null;
+    return isLiveStatus || item.message._id === detailsId ? statusOf(item) : null;
   };
 
   // a note to self has nobody to read it, so your own photo just marks the latest note
   const markerFor = (message) => {
+    if (isGroup) return null;
     if (!peer) return message._id === lastConfirmed?._id ? { person: user } : null;
     return message._id === lastSeenOwnId ? { person: peer, label: `Seen by ${peer.firstName}` } : null;
   };
+
+  // each member's photo sits under the newest message they have read, unless they wrote it
+  const seenRows = new Map();
+  if (isGroup) {
+    const readable = confirmed.filter((item) => item.type !== "event");
+    others.forEach((member) => {
+      const pointer = activeConversation.lastSeen?.[member._id];
+      const item = pointer && readable.findLast((candidate) => lastIdOf(candidate) <= pointer);
+      if (item && item.message.sender._id !== member._id) seenRows.set(item, [...(seenRows.get(item) ?? []), member]);
+    });
+  }
 
   const loadOlder = useCallback(() => dispatch(LoadOlderMessages()), [dispatch]);
 
   const { scrollRef, contentRef, topRef, handleScroll, holdStill, jumpToLatest, isAwayFromBottom } = useChatScroll({
     conversationId: activeConversation?._id,
     openAtKey: unreadMarker && UNREAD_DIVIDER,
-    contentVersion: `${items.length}:${lastItem && keyOf(lastItem.message)}:${isTyping}:${detailsId}:${lastItem ? statusLabelFor(lastItem) : ""}`,
+    contentVersion: `${items.length}:${lastItem && keyOf(lastItem.message)}:${typists}:${detailsId}:${lastItem ? statusLabelFor(lastItem) : ""}`,
     firstMessageId: messages[0]?._id,
     canLoadOlder: hasOlderMessages && !isLoadingOlder,
     onLoadOlder: loadOlder,
@@ -197,6 +221,8 @@ const ConversationMain = () => {
   };
 
   const tapHandlerFor = (item) => (item.type === "queued" ? undefined : () => toggleDetails(item.message));
+
+  const breaksSequence = (item) => !item || item.type === "event" || containsOnlyEmojis(item.message.message);
 
   // counts what arrives from others while the reader is scrolled up, so the jump button can say what they missed
   const [missed, setMissed] = useState(0);
@@ -247,23 +273,39 @@ const ConversationMain = () => {
               {items.map((item, index) => {
                 const { message } = item;
 
-                const isStartOfSequence =
-                  currentSender === null || message.sender._id !== currentSender;
-
-                const nextItem = items[index + 1];
-                const isEndOfSequence =
-                  !nextItem ||
-                  message.sender._id !== nextItem.message.sender._id ||
-                  containsOnlyEmojis(message.message) ||
-                  containsOnlyEmojis(nextItem.message.message);
-
-                currentSender = message.sender._id;
-
                 const divider = message._id === unreadMarker?.firstId && (
                   <Divider data-message-key={UNREAD_DIVIDER} sx={{ my: 1, typography: "caption", color: "text.secondary" }}>
                     {unreadMarker.count} unread message{unreadMarker.count === 1 ? "" : "s"}
                   </Divider>
                 );
+
+                if (item.type === "event") {
+                  currentSender = null;
+                  return (
+                    <Fragment key={keyOf(message)}>
+                      {divider}
+                      <Typography
+                        data-message-key={keyOf(message)}
+                        variant="caption"
+                        sx={{ alignSelf: "center", textAlign: "center", color: "text.secondary", py: 1 }}
+                      >
+                        {describeEvent(message, activeConversation, user._id)}
+                      </Typography>
+                    </Fragment>
+                  );
+                }
+
+                const isStartOfSequence =
+                  currentSender === null || message.sender._id !== currentSender;
+
+                const nextItem = items[index + 1];
+                const isEndOfSequence =
+                  breaksSequence(nextItem) ||
+                  message.sender._id !== nextItem.message.sender._id ||
+                  containsOnlyEmojis(message.message);
+
+                currentSender = message.sender._id;
+                const isMine = user._id === message.sender._id;
 
                 return (
                   <Fragment key={keyOf(message)}>
@@ -271,7 +313,9 @@ const ConversationMain = () => {
                     <MessageContainer
                       anchorKey={keyOf(message)}
                       message={message}
-                      me={user._id === message.sender._id}
+                      me={isMine}
+                      senderName={isGroup && !isMine && isStartOfSequence ? message.sender.firstName : undefined}
+                      seenBy={seenRows.get(item)}
                       isQueued={item.type === "queued"}
                       isStartOfSequence={isStartOfSequence}
                       isEndOfSequence={isEndOfSequence}
@@ -290,6 +334,7 @@ const ConversationMain = () => {
                 <MessageContainer
                   message={{ message: "Typing" }}
                   me={false}
+                  senderName={isGroup ? listOf(typists) : undefined}
                   isStartOfSequence={true}
                   isEndOfSequence={true}
                   msgType={"typing"}

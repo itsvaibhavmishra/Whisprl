@@ -49,7 +49,7 @@ export const getMessages = async (req, res, next) => {
   try {
     const conversation = await findMemberConversation(req.params.convo_id, req.user._id);
 
-    const { messages, hasMore } = await getConvoMessages(conversation._id, req.query.before);
+    const { messages, hasMore } = await getConvoMessages(conversation, req.user._id, req.query.before);
 
     res.status(200).json({ status: "success", messages, hasMore });
   } catch (error) {
@@ -92,7 +92,7 @@ export const socketSendMessage = async (socket, { convo_id, clientId, cipher, at
       sender: user_id,
       ...(isClientId(clientId) && { clientId }),
       cipher,
-      awaitingKey: !peerHasKey(conversation, user_id),
+      awaitingKey: !conversation.isGroup && !peerHasKey(conversation, user_id),
       ...(attachment === true && { attachment: { status: "uploading" } }),
       ...batchOf(batch),
     });
@@ -107,12 +107,13 @@ export const socketSendMessage = async (socket, { convo_id, clientId, cipher, at
 };
 
 // -------------------------- Socket Receipts --------------------------
-const emitReceipt = (socket, conversation_id, receipt) =>
+const emitReceipt = (socket, conversation_id, receipt, details = {}) =>
   socket.to(conversation_id).emit("receipts", {
     conversation_id,
     reader: socket.user._id,
     receipt,
     at: new Date(),
+    ...details,
   });
 
 export const socketMarkDelivered = async (socket, conversation_ids) => {
@@ -126,9 +127,8 @@ export const socketMarkDelivered = async (socket, conversation_ids) => {
 
 export const socketMarkSeen = async (socket, conversation_id) => {
   try {
-    if (await markSeen(conversation_id, socket.user._id)) {
-      emitReceipt(socket, conversation_id, "seen");
-    }
+    const seen = await markSeen(conversation_id, socket.user._id);
+    if (seen) emitReceipt(socket, conversation_id, "seen", seen);
   } catch (error) {
     socket.errorHandler(error.message);
   }

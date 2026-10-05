@@ -6,8 +6,17 @@ import { PUBLIC_PROFILE_FIELDS } from "./userService.js";
 
 export const MEMBER_FIELDS = `${PUBLIC_PROFILE_FIELDS} onlineStatus`;
 
-// encryption pairs exactly two people, so group conversations stay out of every chat path
 const DIRECT = { isGroup: false };
+
+// groups the old app made have no owner and no encryption, so they stay out of every chat path
+const CURRENT = { $or: [DIRECT, { owner: { $exists: true } }] };
+
+const MEMBERS = [
+  { path: "users", select: MEMBER_FIELDS },
+  { path: "formerUsers", select: MEMBER_FIELDS },
+];
+
+export const populateMembers = (conversation) => conversation.populate(MEMBERS);
 
 export const memberRooms = (conversation, exceptUserId) =>
   conversation.users.map((member) => String(member._id)).filter((userId) => userId !== String(exceptUserId));
@@ -15,7 +24,7 @@ export const memberRooms = (conversation, exceptUserId) =>
 // one answer for "missing" and "not yours", so ids cannot be probed
 export const findMemberConversation = async (convo_id, user_id) => {
   const conversation = mongoose.isValidObjectId(convo_id)
-    ? await ConversationModel.findOne({ _id: convo_id, users: user_id, ...DIRECT })
+    ? await ConversationModel.findOne({ _id: convo_id, users: user_id, ...CURRENT })
     : null;
 
   if (!conversation) {
@@ -64,8 +73,8 @@ export const openDirectConversation = async (sender, receiver_id) => {
 };
 
 export const getUserConversations = async (user_id) => {
-  const conversations = await ConversationModel.find({ users: user_id, ...DIRECT })
-    .populate("users", MEMBER_FIELDS)
+  const conversations = await ConversationModel.find({ users: user_id, ...CURRENT })
+    .populate(MEMBERS)
     .populate("latestMessage")
     .sort({ updatedAt: -1 });
 
@@ -73,4 +82,4 @@ export const getUserConversations = async (user_id) => {
 };
 
 export const getUserConversationIds = async (user_id) =>
-  (await ConversationModel.find({ users: user_id, ...DIRECT }).distinct("_id")).map(String);
+  (await ConversationModel.find({ users: user_id, ...CURRENT }).distinct("_id")).map(String);

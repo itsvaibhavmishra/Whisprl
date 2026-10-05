@@ -1,5 +1,7 @@
+import { useState } from "react";
 import {
   Box,
+  ButtonBase,
   Stack,
   useTheme,
   Typography,
@@ -15,6 +17,8 @@ import { CloseConversation } from "@/redux/slices/actions/chatActions";
 
 import getAvatar from "@/utils/createAvatar";
 import StyledBadge from "@/components/StyledBadge";
+import GroupInfoDrawer from "@/sections/chat/group/GroupInfoDrawer";
+import { membersLabel } from "@/utils/groups";
 
 // while this tab is disconnected the friend's status is stale, so the header says what is happening instead
 const CONNECTION_NOTICE = {
@@ -22,11 +26,47 @@ const CONNECTION_NOTICE = {
   offline: "Offline, messages send when you are back",
 };
 
+const GroupTitle = ({ group, notice }) => {
+  const theme = useTheme();
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+
+  return (
+    <>
+      <ButtonBase
+        onClick={() => setIsInfoOpen(true)}
+        aria-label={`${group.name}, group info`}
+        sx={{
+          borderRadius: 1,
+          gap: 2,
+          justifyContent: "flex-start",
+          textAlign: "left",
+        }}
+      >
+        {getAvatar(group.picture, group.name, theme)}
+        <Stack spacing={0.2}>
+          <Typography variant="subtitle2">{group.name}</Typography>
+          <Typography variant="caption" role="status">
+            {notice ?? membersLabel(group)}
+          </Typography>
+        </Stack>
+      </ButtonBase>
+      <GroupInfoDrawer
+        group={group}
+        open={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+      />
+    </>
+  );
+};
+
 const ConversationHeader = ({ otherUser }) => {
   const theme = useTheme();
 
   const dispatch = useDispatch();
   const connection = useSelector((state) => state.chat.connection);
+  const activeConversation = useSelector(
+    (state) => state.chat.activeConversation,
+  );
   const notice = CONNECTION_NOTICE[connection];
 
   return (
@@ -45,35 +85,42 @@ const ConversationHeader = ({ otherUser }) => {
         justifyContent={"space-between"}
         alignItems={"center"}
       >
-        {/* avatar and name */}
-        <Stack
-          direction={"row"}
-          justifyContent={"center"}
-          alignItems={"center"}
-          spacing={2}
-        >
-          {otherUser?.onlineStatus === "online" ? (
-            <StyledBadge
-              overlap="circular"
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              variant="dot"
-            >
-              {getAvatar(otherUser?.avatar, otherUser?.firstName, theme)}
-            </StyledBadge>
-          ) : (
-            getAvatar(otherUser?.avatar, otherUser?.firstName, theme)
-          )}
+        {activeConversation?.isGroup ? (
+          <GroupTitle group={activeConversation} notice={notice} />
+        ) : (
+          <Stack
+            direction={"row"}
+            justifyContent={"center"}
+            alignItems={"center"}
+            spacing={2}
+          >
+            {otherUser?.onlineStatus === "online" ? (
+              <StyledBadge
+                overlap="circular"
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right",
+                }}
+                variant="dot"
+              >
+                {getAvatar(otherUser?.avatar, otherUser?.firstName, theme)}
+              </StyledBadge>
+            ) : (
+              getAvatar(otherUser?.avatar, otherUser?.firstName, theme)
+            )}
 
-          <Stack spacing={0.2}>
-            <Typography variant="subtitle2">{`${otherUser?.firstName} ${otherUser?.lastName}`}</Typography>
-            <Typography variant="caption" role="status" sx={{ textTransform: notice ? "none" : "capitalize" }}>
-              {notice ?? otherUser?.onlineStatus}
-            </Typography>
+            <Stack spacing={0.2}>
+              <Typography variant="subtitle2">{`${otherUser?.firstName} ${otherUser?.lastName}`}</Typography>
+              <Typography
+                variant="caption"
+                role="status"
+                sx={{ textTransform: notice ? "none" : "capitalize" }}
+              >
+                {notice ?? otherUser?.onlineStatus}
+              </Typography>
+            </Stack>
           </Stack>
-        </Stack>
+        )}
         {/* header actions */}
         <Stack
           direction={"row"}

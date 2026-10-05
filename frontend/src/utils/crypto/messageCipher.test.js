@@ -150,3 +150,35 @@ test("an attachment's caption and file details come back from its encrypted cont
 
   expect(readable).toEqual(expect.objectContaining({ message: "look", file }));
 });
+
+test("a group message opens for every member, and for nobody who was not in the group when it was sent", async () => {
+  const carol = await makePerson("carol");
+  const dave = await makePerson("dave");
+  const group = { _id: "group-1", isGroup: true, users: [alice.member, bob.member, carol.member] };
+
+  setDeviceKeys(deviceOf(alice));
+  const cipher = await encryptMessage("dinner at eight", group, alice.id);
+  const sent = { sender: { _id: alice.id }, cipher };
+
+  expect(cipher.keys.map((sealed) => sealed.keyId).sort()).toEqual([alice.keyId, bob.keyId, carol.keyId].sort());
+  expect((await decryptMessage(sent, group)).message).toBe("dinner at eight");
+
+  setDeviceKeys(deviceOf(carol));
+  expect((await decryptMessage(sent, group)).message).toBe("dinner at eight");
+
+  setDeviceKeys(deviceOf(dave));
+  const withDave = { ...group, users: [...group.users, dave.member] };
+  expect((await decryptMessage(sent, withDave)).undecryptable).toBe(true);
+});
+
+test("a member who has left can still be read by those who stayed", async () => {
+  const carol = await makePerson("carol");
+  const group = { _id: "group-1", isGroup: true, users: [alice.member, bob.member, carol.member] };
+
+  setDeviceKeys(deviceOf(carol));
+  const cipher = await encryptMessage("bye all", group, carol.id);
+
+  setDeviceKeys(deviceOf(bob));
+  const afterCarolLeft = { ...group, users: [alice.member, bob.member], formerUsers: [carol.member] };
+  expect((await decryptMessage({ sender: { _id: carol.id }, cipher }, afterCarolLeft)).message).toBe("bye all");
+});

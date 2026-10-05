@@ -1,5 +1,5 @@
 import { createContext, useEffect } from "react";
-import { defaultSettings } from "@/config";
+import { SETTINGS_STORAGE_KEY, defaultSettings } from "@/config";
 import getColorPresets, { defaultPreset } from "@/utils/getColorPresets";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
@@ -9,13 +9,14 @@ const initialState = {
   onChangeMode: () => {},
   onChangeDirectionByLang: () => {},
   onChangeColor: () => {},
+  onToggleSounds: () => {},
   setColor: defaultPreset,
 };
 
 const SettingsContext = createContext(initialState);
 
 const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useLocalStorage("settings", defaultSettings);
+  const [settings, setSettings] = useLocalStorage(SETTINGS_STORAGE_KEY, defaultSettings);
 
   const isArabic = localStorage.getItem("i18nextLng") === "ar";
 
@@ -46,14 +47,22 @@ const SettingsProvider = ({ children }) => {
     setSettings({ ...settings, themeColorPresets: event.target.value });
   };
 
+  const soundsOn = settings.sounds !== false;
+
+  const onToggleSounds = () => {
+    setSettings({ ...settings, sounds: !soundsOn });
+  };
+
   return (
     <SettingsContext.Provider
       value={{
         ...settings,
+        sounds: soundsOn,
         onToggleMode,
         onChangeMode,
         onChangeDirectionByLang,
         onChangeColor,
+        onToggleSounds,
         setColor: getColorPresets(settings.themeColorPresets),
       }}
     >

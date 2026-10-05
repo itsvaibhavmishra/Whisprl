@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Button, Stack, Switch, Typography, useTheme } from "@mui/material";
 import { ArrowUpRight, SignOut } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
@@ -15,6 +15,8 @@ import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
 import ChatPreview from "@/sections/settings/ChatPreview";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
 import getAvatar from "@/utils/createAvatar";
+import useSettings from "@/hooks/useSettings";
+import { previewSound } from "@/utils/sounds";
 
 const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRight };
 
@@ -45,6 +47,21 @@ const Appearance = () => (
     <ChatPreview />
   </Box>
 );
+
+const SoundSetting = () => {
+  const { sounds, onToggleSounds } = useSettings();
+
+  const toggle = (event) => {
+    onToggleSounds();
+    if (event.target.checked) previewSound();
+  };
+
+  return (
+    <SettingRow label="Message sounds" description="A sound when you send a message, and when one arrives.">
+      <Switch checked={sounds} onChange={toggle} inputProps={{ "aria-label": "Message sounds" }} />
+    </SettingRow>
+  );
+};
 
 const Settings = () => {
   const dispatch = useDispatch();
@@ -90,6 +107,10 @@ const Settings = () => {
         </Stack>
 
         <Stack spacing={6}>
+          <SettingsSection title="Sounds">
+            <SoundSetting />
+          </SettingsSection>
+
           <SettingsSection title="About Whisprl">
             <SettingLink
               component={RouterLink}

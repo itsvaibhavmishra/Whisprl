@@ -29,6 +29,16 @@ const initialState = {
   activeFileIndex: 0,
 };
 
+const closedConversation = () => ({
+  activeConversation: null,
+  activeConvoFriendship: null,
+  messages: [],
+  hasOlderMessages: false,
+  unreadMarker: null,
+  files: [],
+  activeFileIndex: 0,
+});
+
 const isSameMessage = (message, other) =>
   message._id === other._id ||
   Boolean(message.clientId && message.clientId === other.clientId && message.sender._id === other.sender._id);
@@ -51,16 +61,33 @@ const slice = createSlice({
   initialState,
   reducers: {
     closeActiveConversation: (state) => {
-      state.activeConversation = null;
-      state.activeConvoFriendship = null;
-      state.messages = [];
-      state.hasOlderMessages = false;
-      state.unreadMarker = null;
-      state.files = [];
-      state.activeFileIndex = 0;
+      Object.assign(state, closedConversation());
     },
 
     clearConversation: () => initialState,
+
+    openConversation: (state, action) => {
+      state.activeConversation = action.payload;
+      state.activeConvoFriendship = true;
+    },
+
+    // a group arrives without its preview, which the message announcing the change brings separately
+    groupUpdated: (state, action) => {
+      const { group, userId } = action.payload;
+      const index = state.conversations.findIndex((conversation) => conversation._id === group._id);
+      const isMember = group.users.some((member) => member._id === userId);
+
+      if (!isMember) {
+        if (index !== -1) state.conversations.splice(index, 1);
+        if (state.activeConversation?._id === group._id) Object.assign(state, closedConversation());
+        return;
+      }
+
+      const updated = { ...group, latestMessage: state.conversations[index]?.latestMessage ?? null };
+      if (index === -1) state.conversations.unshift(updated);
+      else state.conversations[index] = updated;
+      if (state.activeConversation?._id === group._id) state.activeConversation = { ...updated };
+    },
 
     setConnection: (state, action) => {
       state.connection = action.payload;
@@ -121,6 +148,9 @@ const slice = createSlice({
         (queued) => queued.clientId !== message.clientId || queued.senderId !== message.sender._id
       );
       moveConversationToTop(state, conversationId, message);
+      state.typingConversation = state.typingConversation.filter(
+        (typist) => typist.conversation_id !== conversationId || typist.user_id !== message.sender._id
+      );
 
       if (state.activeConversation?._id !== conversationId) return;
       const index = state.messages.findIndex((existing) => isSameMessage(existing, message));
@@ -154,7 +184,15 @@ const slice = createSlice({
 
     // a reader's receipt covers every message in the conversation they did not send
     applyReceipt: (state, action) => {
-      const { conversation_id, reader, receipt, at } = action.payload;
+      const { conversation_id, reader, receipt, at, upTo } = action.payload;
+      if (upTo) {
+        [state.activeConversation, ...state.conversations]
+          .filter((conversation) => conversation?._id === conversation_id)
+          .forEach((conversation) => {
+            conversation.lastSeen = { ...conversation.lastSeen, [reader]: upTo };
+          });
+        return;
+      }
       if (state.activeConversation?._id !== conversation_id) return;
 
       state.messages
@@ -177,15 +215,12 @@ const slice = createSlice({
     },
 
     updateTypingConvo: (state, action) => {
-      const { typing, conversation_id } = action.payload;
-      const index = state.typingConversation.findIndex(
-        (convo) => convo.conversation_id === conversation_id
+      const { typing, conversation_id, user_id } = action.payload;
+      const typist = state.typingConversation.find(
+        (convo) => convo.conversation_id === conversation_id && convo.user_id === user_id
       );
-      if (index !== -1) {
-        state.typingConversation[index].typing = typing;
-      } else {
-        state.typingConversation.push({ typing, conversation_id });
-      }
+      if (typist) typist.typing = typing;
+      else state.typingConversation.push({ typing, conversation_id, user_id });
     },
   },
   extraReducers(builder) {
@@ -228,6 +263,8 @@ export const selectActiveOutbox = createSelector(
 
 export const {
   closeActiveConversation,
+  openConversation,
+  groupUpdated,
   clearConversation: clearChat,
   setConnection,
   addFiles,

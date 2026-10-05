@@ -1,0 +1,193 @@
+import { useState } from "react";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  Stack,
+  TextField,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import { PencilSimple, SignOut, UserPlus, X } from "phosphor-react";
+import { useDispatch, useSelector } from "react-redux";
+
+import ImageMenu from "@/components/ImageMenu";
+import { LeaveGroup, UpdateGroup } from "@/redux/slices/actions/groupActions";
+import AddMembersDialog from "@/sections/chat/group/AddMembersDialog";
+import GroupMemberRow from "@/sections/chat/group/GroupMemberRow";
+import useIsLoading from "@/hooks/useIsLoading";
+import getAvatar from "@/utils/createAvatar";
+import { MAX_GROUP_NAME, MAX_GROUP_SIZE, canManage, isAdminOf, isOwnerOf, membersLabel } from "@/utils/groups";
+
+const rankOf = (group, userId) => {
+  if (isOwnerOf(group, userId)) return 0;
+  return isAdminOf(group, userId) ? 1 : 2;
+};
+
+const leavingNoteFor = (group, meId) => {
+  if (group.users.length === 1) return "You are the last member, so the group and its messages will be deleted.";
+  if (isOwnerOf(group, meId)) return "The longest-standing admin will own the group, or the longest-standing member if there are no admins.";
+  return "You will stop getting its messages. An admin can add you back later.";
+};
+
+const GroupName = ({ group, canRename }) => {
+  const dispatch = useDispatch();
+  const isSaving = useIsLoading(UpdateGroup);
+  const [draft, setDraft] = useState(null);
+
+  const save = async (event) => {
+    event.preventDefault();
+    const result = await dispatch(UpdateGroup({ groupId: group._id, name: draft.trim() }));
+    if (UpdateGroup.fulfilled.match(result)) setDraft(null);
+  };
+
+  if (draft === null) {
+    return (
+      <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Typography variant="h6" sx={{ wordBreak: "break-word", textAlign: "center" }}>
+          {group.name}
+        </Typography>
+        {canRename && (
+          <IconButton size="small" aria-label="Rename group" onClick={() => setDraft(group.name)}>
+            <PencilSimple />
+          </IconButton>
+        )}
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack component="form" onSubmit={save} spacing={1} sx={{ width: "100%" }}>
+      <TextField
+        size="small"
+        label="Group name"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        inputProps={{ maxLength: MAX_GROUP_NAME }}
+        autoFocus
+        fullWidth
+      />
+      <Stack direction="row" spacing={1} justifyContent="flex-end">
+        <Button size="small" color="inherit" onClick={() => setDraft(null)}>
+          Cancel
+        </Button>
+        <Button
+          size="small"
+          type="submit"
+          variant="contained"
+          disabled={!draft.trim() || draft.trim() === group.name || isSaving}
+        >
+          Save
+        </Button>
+      </Stack>
+    </Stack>
+  );
+};
+
+const GroupInfoDrawer = ({ group, open, onClose }) => {
+  const theme = useTheme();
+  const dispatch = useDispatch();
+  const meId = useSelector((state) => state.user.user._id);
+  const isLeaving = useIsLoading(LeaveGroup);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isConfirmingLeave, setIsConfirmingLeave] = useState(false);
+
+  const isManager = canManage(group, meId);
+  const members = [...group.users].sort(
+    (first, second) => rankOf(group, first._id) - rankOf(group, second._id) || first.firstName.localeCompare(second.firstName)
+  );
+
+  const changePicture = async (picture) => {
+    await dispatch(UpdateGroup({ groupId: group._id, picture }));
+    if (picture) URL.revokeObjectURL(picture);
+  };
+
+  return (
+    <Drawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      PaperProps={{ sx: { width: { xs: "100%", sm: 360 } }, "aria-label": "Group info" }}
+    >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2 }}>
+        <Typography variant="subtitle1">Group info</Typography>
+        <IconButton aria-label="Close group info" onClick={onClose}>
+          <X />
+        </IconButton>
+      </Stack>
+
+      <Stack alignItems="center" spacing={1} sx={{ px: 3, pb: 3 }}>
+        <Box sx={{ position: "relative", mb: 1 }}>
+          {getAvatar(group.picture, group.name, theme, 96)}
+          {isManager && (
+            <Box sx={{ position: "absolute", right: -4, bottom: -4 }}>
+              <ImageMenu kind="group" hasImage={!!group.picture} onChange={changePicture} />
+            </Box>
+          )}
+        </Box>
+        <GroupName group={group} canRename={isManager} />
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          {membersLabel(group)}
+        </Typography>
+      </Stack>
+
+      <Divider />
+
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, pt: 2 }}>
+        <Typography variant="subtitle2">Members</Typography>
+        {isManager && group.users.length < MAX_GROUP_SIZE && (
+          <Button size="small" startIcon={<UserPlus />} onClick={() => setIsAdding(true)}>
+            Add people
+          </Button>
+        )}
+      </Stack>
+      <List sx={{ flexGrow: 1, overflowY: "auto" }} className="scrollbar">
+        {members.map((member) => (
+          <GroupMemberRow key={member._id} group={group} member={member} meId={meId} />
+        ))}
+      </List>
+
+      <Divider />
+      <Button
+        color="error"
+        startIcon={<SignOut />}
+        onClick={() => setIsConfirmingLeave(true)}
+        sx={{ m: 2, justifyContent: "flex-start" }}
+      >
+        Leave group
+      </Button>
+
+      {isManager && <AddMembersDialog group={group} open={isAdding} onClose={() => setIsAdding(false)} />}
+
+      <Dialog open={isConfirmingLeave} onClose={() => setIsConfirmingLeave(false)} aria-labelledby="leave-group-title">
+        <DialogTitle id="leave-group-title">Leave {group.name}?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{leavingNoteFor(group, meId)}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button color="inherit" onClick={() => setIsConfirmingLeave(false)}>
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            disabled={isLeaving}
+            onClick={() => dispatch(LeaveGroup({ groupId: group._id, userId: meId }))}
+          >
+            Leave group
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Drawer>
+  );
+};
+
+export default GroupInfoDrawer;

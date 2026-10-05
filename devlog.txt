@@ -27,6 +27,10 @@
     - Messages show the moment you send them, and wait to go out if your connection drops
     - Older messages load as you scroll up, and a button counts the new ones below and takes you back down
     - A chat opens at the first message you have not read, under a line saying how many there are
+    - Group chats with up to 32 friends, end-to-end encrypted like every other message
+    - The person who makes a group owns it and chooses admins, who can rename it, change its photo and add people
+    - See who has read a group message, with each person's photo under the last one they read
+    - Sounds when you send a message and when one arrives, quieter in the chat you have open, with a switch in settings
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -46,6 +50,7 @@
     - Messages go out in the order you wrote them, even when the connection is slow
     - A photo keeps its place in the chat from the moment you send it, showing a blurred preview until it arrives
     - Photos are made smaller before sending, so they send and load quickly
+    - Groups sit in Chats with everything else, replacing the empty Groups tab
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

@@ -11,11 +11,36 @@ const fileSchema = mongoose.Schema(
   { _id: false }
 );
 
+const sealedKeySchema = mongoose.Schema(
+  {
+    keyId: { type: String, required: true },
+    iv: { type: String, required: true },
+    data: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+// a direct message names the two keys it was sealed between; a group message carries its key sealed for each member
 const cipherSchema = mongoose.Schema(
   {
     iv: { type: String, required: true },
     data: { type: String, required: true },
-    keyIds: { type: [String], required: true },
+    keyIds: { type: [String], default: undefined },
+    senderKeyId: { type: String },
+    keys: { type: [sealedKeySchema], default: undefined },
+  },
+  { _id: false }
+);
+
+const eventSchema = mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner"],
+      required: true,
+    },
+    users: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+    name: { type: String },
   },
   { _id: false }
 );
@@ -40,6 +65,9 @@ const messageSchema = mongoose.Schema(
     message: { type: String, trim: true },
 
     cipher: { type: cipherSchema, default: undefined },
+
+    // a change to a group, shown as a note in the chat rather than a bubble
+    event: { type: eventSchema, default: undefined },
 
     // sealed to the sender alone until the recipient has a key, then re-encrypted by the sender's browser
     awaitingKey: { type: Boolean },

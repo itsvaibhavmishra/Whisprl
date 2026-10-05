@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 import { FriendRequestModel, UserModel } from "../models/index.js";
 
-const FRIEND_FIELDS = "firstName lastName avatar activityStatus onlineStatus email";
+const FRIEND_FIELDS = "firstName lastName avatar activityStatus onlineStatus email publicKeys.keyId";
 const REQUESTER_FIELDS = "firstName lastName avatar activityStatus email";
 
 const assertUserId = (user_id, field) => {

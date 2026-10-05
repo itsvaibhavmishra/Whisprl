@@ -48,11 +48,7 @@ const Conversation = () => {
   const { user, onlineFriends } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
-  const otherUser = getOtherUser(
-    activeConversation?.users,
-    user._id,
-    onlineFriends
-  );
+  const otherUser = activeConversation?.isGroup ? null : getOtherUser(activeConversation?.users, user._id, onlineFriends);
 
   const lockedReason = lockedReasonFor(keyStatus);
   const peerHasNoKey = otherUser && !otherUser.publicKeys?.length;

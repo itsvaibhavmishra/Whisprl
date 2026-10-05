@@ -10,7 +10,7 @@ import FormProvider, { RHFTextField } from "@/components/hook-form";
 import ProfileHero from "@/components/ProfileHero";
 import { UpdateProfile } from "@/redux/slices/actions/userActions";
 import AccountSummary from "@/sections/profile/AccountSummary";
-import ImageMenu from "@/sections/profile/ImageMenu";
+import ImageMenu from "@/components/ImageMenu";
 import { nameRule } from "@/utils/formRules";
 
 const STATUS_LIMIT = 50;

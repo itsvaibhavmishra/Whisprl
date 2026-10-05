@@ -8,6 +8,7 @@ import {
 } from "@/redux/slices/actions/chatActions";
 import { applyReceipt, setConnection, updateMemberKeys, updateTypingConvo } from "@/redux/slices/chatSlice";
 import { updateOnlineUsers } from "@/redux/slices/userSlice";
+import { GroupUpdated } from "@/redux/slices/actions/groupActions";
 import { ensureAccessToken, refreshAccessToken } from "@/utils/axiosInterceptors";
 import { notify } from "@/utils/notify";
 import { socket } from "@/utils/socket";
@@ -37,6 +38,8 @@ const listen = (dispatch, getState) => {
   });
 
   socket.on("message_removed", (message) => dispatch(RemovedMessage(message)));
+
+  socket.on("group_updated", (group) => dispatch(GroupUpdated(group)));
 
   socket.on("error", (error) => notify({ severity: "error", message: error.message }));
 

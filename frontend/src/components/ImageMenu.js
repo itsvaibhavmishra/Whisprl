@@ -11,6 +11,7 @@ const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const KINDS = {
   photo: { noun: "photo", crop: { title: "Crop your photo", aspect: 1, round: true, maxWidth: 512 } },
   cover: { noun: "cover", crop: { title: "Crop your cover", aspect: 3, round: false, maxWidth: 1500 } },
+  group: { noun: "group photo", crop: { title: "Crop the group photo", aspect: 1, round: true, maxWidth: 512 } },
 };
 
 const glass = (theme) => ({
@@ -53,7 +54,7 @@ const ImageMenu = ({ kind, hasImage, onChange }) => {
 
   return (
     <>
-      {kind === "photo" ? (
+      {kind !== "cover" ? (
         <Tooltip title={label}>
           <IconButton
             aria-label={label}

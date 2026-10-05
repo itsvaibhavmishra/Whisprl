@@ -4,7 +4,7 @@ import BeatLoader from "react-spinners/BeatLoader";
 import getAvatar from "@/utils/createAvatar";
 import ImageMessage from "@/sections/chat/messages/ImageMessage";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
-import SeenMarker from "@/sections/chat/messages/SeenMarker";
+import SeenMarker, { SeenByRow } from "@/sections/chat/messages/SeenMarker";
 import { formatMessageTime } from "@/utils/formatMessageTime";
 import { filesOf } from "@/utils/messageFiles";
 
@@ -24,6 +24,8 @@ const MessageContainer = ({
   statusLabel,
   footer,
   marker,
+  senderName,
+  seenBy,
   onToggleDetails,
 }) => {
   const theme = useTheme();
@@ -52,15 +54,14 @@ const MessageContainer = ({
   const isFileMsg = msgType === "file" || msgType === "file_with_caption";
   const hasCaption = isFileMsg && Boolean(message.message);
 
-  // For image messages: no padding on the bubble (images clip to border-radius)
-  // Caption is rendered with px inside after images
-  const bubblePadding = isFileMsg
-    ? hasImages
-      ? 0 // images clip flush; caption gets its own padding below
-      : 1  // doc-only: small padding
-    : msgType === "text"
-    ? 1.5
-    : "3px 0px"; // emoji
+  const isTypingBubble = msgType === "typing" && isTyping;
+
+  // photos sit flush against the bubble's rounded edge, so their caption brings its own padding
+  const paddingOf = () => {
+    if (isFileMsg) return hasImages ? 0 : 1;
+    if (msgType === "text") return 1.5;
+    return isTypingBubble ? "0 14px" : "3px 0px";
+  };
 
   const bubbleBg =
     msgType === "typing"
@@ -94,6 +95,11 @@ const MessageContainer = ({
           {formatMessageTime(message.createdAt)}
         </Typography>
       )}
+      {senderName && (
+        <Typography variant="caption" sx={{ color: "text.secondary", ml: 1.5 }}>
+          {senderName}
+        </Typography>
+      )}
       <Stack
         direction="row"
         data-message-key={anchorKey}
@@ -118,12 +124,14 @@ const MessageContainer = ({
           </Box>
         )}
         <Box
-          p={bubblePadding}
+          p={paddingOf()}
           {...toggleProps}
           sx={{
             cursor: onToggleDetails ? "pointer" : "default",
             display: "flex",
             flexDirection: "column",
+            justifyContent: "center",
+            alignItems: isTypingBubble ? "center" : "stretch",
             width: isFileMsg ? "auto" : "max-content",
             minWidth: 40,
             maxWidth: { xs: "14em", md: "20em" },
@@ -133,7 +141,7 @@ const MessageContainer = ({
             overflow: "hidden",
           }}
         >
-          {msgType === "typing" && isTyping ? (
+          {isTypingBubble ? (
             <BeatLoader
               size={5}
               height={0.5}
@@ -184,6 +192,7 @@ const MessageContainer = ({
           {statusLabel}
         </Typography>
       )}
+      {seenBy?.length > 0 && <SeenByRow people={seenBy} />}
     </Stack>
   );
 };

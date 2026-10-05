@@ -27,7 +27,7 @@ const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
 export const PUBLIC_PROFILE_FIELDS = "firstName lastName avatar cover email activityStatus createdAt publicKeys";
 
-const validateProfileImage = (kind, file) => {
+export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
   if (!ALLOWED_FORMATS.includes(file.mimetype.split("/")[1])) {
     throw createHttpError.BadRequest("Use a JPG, PNG or WebP image");

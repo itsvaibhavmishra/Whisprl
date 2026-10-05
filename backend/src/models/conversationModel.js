@@ -12,7 +12,15 @@ const conversationSchema = mongoose.Schema(
 
     latestMessage: { type: mongoose.Schema.ObjectId, ref: "Message" },
 
-    admin: { type: mongoose.Schema.ObjectId, ref: "User" },
+    owner: { type: mongoose.Schema.ObjectId, ref: "User" },
+    admins: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+
+    // people who left, kept so their keys still open the messages they sent while they were in
+    formerUsers: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+
+    joinedAt: { type: Map, of: Date },
+
+    lastSeen: { type: Map, of: mongoose.Schema.ObjectId },
   },
   {
     timestamps: true,

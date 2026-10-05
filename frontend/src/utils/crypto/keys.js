@@ -47,3 +47,9 @@ export const decryptBytes = (key, { iv, data }, context) =>
 export const encryptText = (key, text, context) => encryptBytes(key, encodeText(text), context);
 
 export const decryptText = async (key, sealed, context) => decodeText(await decryptBytes(key, sealed, context));
+
+export const generateMessageKey = () => crypto.subtle.generateKey(MESSAGE_KEY, true, ["encrypt", "decrypt"]);
+
+export const exportMessageKey = (key) => crypto.subtle.exportKey("raw", key);
+
+export const importMessageKey = (raw) => crypto.subtle.importKey("raw", raw, MESSAGE_KEY, false, ["decrypt"]);

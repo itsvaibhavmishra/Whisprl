@@ -10,13 +10,14 @@ import BeatLoader from "react-spinners/BeatLoader";
 
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
-import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
+import { CreateOpenConversation, OpenConversation } from "@/redux/slices/actions/chatActions";
 
 import StyledBadge from "@/components/StyledBadge";
 import getAvatar from "@/utils/createAvatar";
 import formatTime from "@/utils/formatTime";
 import truncateText from "@/utils/truncateText";
 import { getOtherUser } from "@/utils/getOtherUser";
+import { describeEvent, listOf, memberOf } from "@/utils/groups";
 
 const previewOf = (message) => {
   if (message.undecryptable) return message.awaitingKey ? "Message on its way" : "Encrypted message";
@@ -26,6 +27,7 @@ const previewOf = (message) => {
 };
 
 const AllChatElement = ({
+  group,
   _id,
   firstName,
   lastName,
@@ -66,9 +68,22 @@ const AllChatElement = ({
 
   const isActiveConvo = getIsActiveConvo();
 
+  const authorOf = (message) => {
+    if (message.sender?._id === user._id) return "You: ";
+    return group ? `${message.sender?.firstName}: ` : "";
+  };
+
+  const latestPreview = () => {
+    if (!latestMessage) return activityStatus;
+    if (latestMessage.event) return describeEvent(latestMessage, group, user._id);
+    return `${authorOf(latestMessage)}${previewOf(latestMessage)}`;
+  };
+
   const handleConversation = () => {
     if (!isActiveConvo && !isLoading) {
-      if (fromContact) {
+      if (group) {
+        dispatch(OpenConversation(group));
+      } else if (fromContact) {
         toggleDrawer(_id);
       } else {
         dispatch(CreateOpenConversation(_id));
@@ -86,11 +101,11 @@ const AllChatElement = ({
     }
   };
 
-  const setTyping = () => {
-    const typingObject = typingConversation?.find(
-      (obj) => obj.conversation_id === convo_id
-    );
-    return typingObject ? typingObject.typing : false;
+  const typists = typingConversation.filter((obj) => obj.conversation_id === convo_id && obj.typing);
+  const typingLabel = () => {
+    const names = group ? typists.map((typist) => memberOf(group, typist.user_id)?.firstName).filter(Boolean) : [];
+    if (!names.length) return "Typing";
+    return `${listOf(names)} ${names.length === 1 ? "is" : "are"} typing`;
   };
   const override = {
     padding: "5px",
@@ -99,7 +114,7 @@ const AllChatElement = ({
   };
 
   // ---------------------------------------
-  const isTyping = setTyping();
+  const isTyping = typists.length > 0;
 
   return (
     <Box
@@ -140,7 +155,7 @@ const AllChatElement = ({
               {getAvatar(avatar, firstName, theme)}
             </StyledBadge>
           ) : (
-            getAvatar(avatar, firstName, theme)
+            getAvatar(group ? group.picture : avatar, group ? group.name : firstName, theme)
           )}
 
           {/* Name and message */}
@@ -149,7 +164,7 @@ const AllChatElement = ({
               {isLoading ? (
                 <Skeleton animation="wave" height={20} width="7em" />
               ) : (
-                `${firstName} ${lastName}${_id === user._id ? "(You)" : ""}`
+                group?.name ?? `${firstName} ${lastName}${_id === user._id ? "(You)" : ""}`
               )}
             </Typography>
             <Typography
@@ -178,7 +193,7 @@ const AllChatElement = ({
                       },
                     }}
                   >
-                    Typing
+                    {truncateText(typingLabel(), 18)}
                   </Typography>
                   <BeatLoader
                     size={5}
@@ -191,14 +206,7 @@ const AllChatElement = ({
                   />
                 </Stack>
               ) : (
-                truncateText(
-                  latestMessage
-                    ? latestMessage?.sender?._id === user._id
-                      ? `You: ${previewOf(latestMessage)}`
-                      : previewOf(latestMessage)
-                    : activityStatus,
-                  20
-                )
+                truncateText(latestPreview(), 20)
               )}
             </Typography>
           </Stack>

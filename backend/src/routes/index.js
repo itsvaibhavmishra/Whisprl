@@ -8,6 +8,7 @@ import messageRouter from "./messageRouter.js";
 import friendsRouter from "./friendsRouter.js";
 import keyRouter from "./keyRouter.js";
 import passkeyRouter from "./passkeyRouter.js";
+import groupRouter from "./groupRouter.js";
 
 const router = express.Router();
 
@@ -24,6 +25,8 @@ router.use("/friends", friendsRouter);
 router.use("/keys", keyRouter);
 
 router.use("/passkeys", passkeyRouter);
+
+router.use("/groups", groupRouter);
 
 router.get("/start-server", (req, res) => {
   res.send("Welcome to Whisprl 😺");

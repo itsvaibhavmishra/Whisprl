@@ -6,6 +6,7 @@ import {
   closeActiveConversation,
   dropQueuedMessage,
   messageArrived,
+  openConversation,
   queueMessage,
   removeMessage,
   replaceMessage,
@@ -18,6 +19,7 @@ import { socket } from "@/utils/socket";
 import uuidv4 from "@/utils/uuidv4";
 import { decryptMessage, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
 import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
+import { playSound } from "@/utils/sounds";
 
 const ACK_TIMEOUT = 10000;
 // about a minute of trying while connected, and time offline does not count against it
@@ -33,6 +35,9 @@ const conversationById = ({ chat }, conversationId) =>
   [chat.activeConversation, ...chat.conversations].find((conversation) => conversation?._id === conversationId);
 
 const isFromSomeoneElse = (message, getState) => message.sender?._id !== getState().user.user._id;
+
+const isWatching = (getState, conversationId) =>
+  getState().chat.activeConversation?._id === conversationId && document.visibilityState === "visible";
 
 // ------------- Get Conversation Thunk -------------
 export const GetConversations = createApiThunk("conversation/get-conversations", async () => {
@@ -58,8 +63,12 @@ const readablePage = async (data, conversation) => ({
 const fetchPage = async (conversationId, before) =>
   (await axios.get(`/message/get-messages/${conversationId}`, { params: { before } })).data;
 
-// a friend's message this browser had not seen when the chat opened
-const isUnreadBy = (userId) => (message) => message.sender._id !== userId && !message.seenAt && !message.awaitingKey;
+// a friend's message this browser had not seen when the chat opened; a group remembers how far each member read instead
+const isUnreadBy = (userId, conversation) => (message) => {
+  if (message.sender._id === userId || message.event) return false;
+  if (conversation?.isGroup) return message._id > (conversation.lastSeen?.[userId] ?? "");
+  return !message.seenAt && !message.awaitingKey;
+};
 
 // opening a chat reaches back far enough to show where the unread messages start
 const fetchOpeningPages = async (conversationId, isUnread) => {
@@ -80,7 +89,7 @@ const unreadMarkerOf = (messages, isUnread) => {
 // ------------- Get Messages -------------
 export const GetMessages = createApiThunk("message/get-messages", async (convoId, { dispatch, getState }) => {
   const isOpening = !getState().chat.messages.length;
-  const isUnread = isUnreadBy(getState().user.user._id);
+  const isUnread = isUnreadBy(getState().user.user._id, conversationById(getState(), convoId));
 
   const data = isOpening ? await fetchOpeningPages(convoId, isUnread) : await fetchPage(convoId);
   const page = await readablePage(data, conversationById(getState(), convoId));
@@ -119,6 +128,12 @@ export const AcknowledgeMessages = (conversationId) => (_, getState) => {
 export const StartTyping = (conversationId) => () => socket.emit("start_typing", conversationId);
 
 export const StopTyping = (conversationId) => () => socket.emit("stop_typing", conversationId);
+
+// ------------- Open Conversation -------------
+export const OpenConversation = (conversation) => (dispatch) => {
+  dispatch(CloseConversation());
+  dispatch(openConversation(conversation));
+};
 
 // ------------- Close Conversation -------------
 export const CloseConversation = () => (dispatch) => {
@@ -164,6 +179,7 @@ const plaintextOf = (entry) => entry.text ?? JSON.stringify({ caption: entry.cap
 
 const confirmQueued = (entry, saved, dispatch) => {
   dispatch(messageArrived({ ...saved, message: entry.text ?? entry.caption ?? "", file: entry.file }));
+  playSound("sent");
   if (!entry.file) return;
   markAttachmentSent(entry.clientId, saved._id);
   dispatch(UploadAttachment(entry.clientId));
@@ -227,7 +243,9 @@ export const ReceiveMessage = (message) => async (dispatch, getState) => {
   if (!conversation) return;
 
   dispatch(messageArrived(await decryptMessage(message, conversation)));
-  if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(conversation._id));
+  if (!isFromSomeoneElse(message, getState)) return;
+  dispatch(AcknowledgeMessages(conversation._id));
+  if (!message.event) playSound(isWatching(getState, conversation._id) ? "received" : "elsewhere");
 };
 
 // ------------- Message Removed Before Its File Arrived -------------

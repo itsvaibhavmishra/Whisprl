@@ -51,12 +51,10 @@ const Sidebar = () => {
       return 0;
     } else if (path.startsWith("/app")) {
       return 1;
-    } else if (path.startsWith("/group")) {
-      return 2;
     } else if (path.startsWith("/contact")) {
-      return 3;
+      return 2;
     } else if (path.startsWith("/settings")) {
-      return 4;
+      return 3;
     }
   };
 

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
-import { Stack, Typography, Divider, useTheme } from "@mui/material";
-import { MagnifyingGlass } from "phosphor-react";
+import { Button, Stack, Typography, Divider, useTheme } from "@mui/material";
+import { MagnifyingGlass, UsersThree } from "phosphor-react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
@@ -10,6 +10,7 @@ import { clearSearch } from "@/redux/slices/userSlice";
 import { MembersList } from "@/data";
 import { Search, SearchIconWrapper, StyledInputBase } from "@/components/search";
 import AllChatElement from "@/sections/chat/AllChatElement";
+import CreateGroupDialog from "@/sections/chat/group/CreateGroupDialog";
 import ChatSearchResults from "@/sections/chat/ChatSearchResults";
 import { getOtherUser } from "@/utils/getOtherUser";
 import OnlineFriendsElement from "@/components/OnlineFriendsElement";
@@ -34,6 +35,7 @@ const ChatsList = () => {
   const [prevSearchTerm, setPrevSearchTerm] = useState("");
   const [usersFound, setUsersFound] = useState([]);
   const [page, setPage] = useState(1);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
   // -------------- inner functions --------------
   // function to handle searched term
@@ -96,9 +98,15 @@ const ChatsList = () => {
 
   return (
     <Stack p={3} spacing={2} sx={{ height: "100%" }}>
-      <Typography component={"h1"} variant="h5">
-        Chats
-      </Typography>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography component={"h1"} variant="h5">
+          Chats
+        </Typography>
+        <Button size="small" startIcon={<UsersThree size={18} />} onClick={() => setIsCreatingGroup(true)}>
+          New group
+        </Button>
+      </Stack>
+      <CreateGroupDialog open={isCreatingGroup} onClose={() => setIsCreatingGroup(false)} />
 
       {/* Search section */}
       <Stack sx={{ width: "100%" }}>
@@ -163,6 +171,17 @@ const ChatsList = () => {
                     )
                     .map((conversation) => {
                       const { users } = conversation;
+
+                      if (conversation.isGroup) {
+                        return (
+                          <AllChatElement
+                            key={conversation._id}
+                            group={conversation}
+                            convo_id={conversation._id}
+                            latestMessage={conversation.latestMessage}
+                          />
+                        );
+                      }
 
                       const chatElementProps = getOtherUser(
                         users,
