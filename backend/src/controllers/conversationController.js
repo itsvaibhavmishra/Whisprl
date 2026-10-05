@@ -5,6 +5,7 @@ import {
   createConversation,
   findConversation,
   getUserConversations,
+  memberRooms,
 } from "../services/conversationService.js";
 
 // -------------------------- Create/Open Direct Conversation --------------------------
@@ -76,6 +77,8 @@ export const createOpenConversation = async (req, res, next) => {
 
       const new_conversation = await createConversation(convoData);
 
+      req.app.get("io").in(memberRooms(new_conversation)).socketsJoin(new_conversation._id.toString());
+
       res.status(200).json({
         status: "success",
         conversation: new_conversation,
@@ -107,9 +110,10 @@ export const joinConvo = async (socket, user_id) => {
   try {
     const conversations = await getUserConversations(user_id);
 
-    conversations.map((convo) => {
-      socket.join(convo._id.toString());
-    });
+    const conversation_ids = conversations.map((convo) => convo._id.toString());
+    socket.join(conversation_ids);
+
+    return conversation_ids;
   } catch (error) {
     socket.errorHandler("Join convo error");
   }

@@ -18,6 +18,12 @@ import formatTime from "../../../../utils/timeFormatter";
 import truncateText from "../../../../utils/truncateText";
 import { getOtherUser } from "../../../../utils/getOtherUser";
 
+const previewOf = (message) => {
+  if (message.undecryptable) return message.awaitingKey ? "Message on its way" : "Encrypted message";
+  if (message.message) return message.message;
+  return message.files?.length ? "Sent a file" : "";
+};
+
 const AllChatElement = ({
   _id,
   firstName,
@@ -187,8 +193,8 @@ const AllChatElement = ({
                 truncateText(
                   latestMessage
                     ? latestMessage?.sender?._id === user._id
-                      ? `You: ${latestMessage.message}`
-                      : latestMessage.message
+                      ? `You: ${previewOf(latestMessage)}`
+                      : previewOf(latestMessage)
                     : activityStatus,
                   20
                 )

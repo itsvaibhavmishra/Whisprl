@@ -7,14 +7,17 @@ import { connectSocket, socket } from "../../utils/socket";
 
 import { useDispatch, useSelector } from "react-redux";
 import { ShowSnackbar, updateOnlineUsers } from "../../redux/slices/userSlice";
-import {
-  setIsOptimistic,
-  updateMsgConvo,
-  updateTypingConvo,
-} from "../../redux/slices/chatSlice";
+import { applyReceipt, updateMemberKeys, updateTypingConvo } from "@/redux/slices/chatSlice";
 import { GetOnlineFriends } from "../../redux/slices/actions/userActions";
-import { GetConversations } from "../../redux/slices/actions/chatActions";
+import {
+  DeliverWaitingMessages,
+  GetConversations,
+  ReceiveMessage,
+  ReceiveMessageUpdate,
+} from "@/redux/slices/actions/chatActions";
 import { StartServer } from "../../redux/slices/actions/authActions";
+import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
+import EncryptionGate from "@/sections/encryption/EncryptionGate";
 
 const DashboardLayout = () => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
@@ -27,8 +30,11 @@ const DashboardLayout = () => {
   // get conversations and friends
   useEffect(() => {
     if (user.token) {
-      // get all conversations
-      dispatch(GetConversations());
+      // previews can only be decrypted once this browser's key is loaded
+      dispatch(PrepareEncryption()).then(() => {
+        dispatch(GetConversations());
+        dispatch(DeliverWaitingMessages());
+      });
 
       // get online friends
       dispatch(GetOnlineFriends());
@@ -39,9 +45,6 @@ const DashboardLayout = () => {
   useEffect(() => {
     // start server
     dispatch(StartServer());
-
-    // toggle approach between Optimistic & Pessimistic (true means use optimistic)
-    dispatch(setIsOptimistic({ isOptimistic: true }));
 
     // socket connection
     if ((!socket || !socket.connected) && user._id) {
@@ -71,7 +74,20 @@ const DashboardLayout = () => {
       });
 
       socket.on("message_received", (message) => {
-        dispatch(updateMsgConvo(message));
+        dispatch(ReceiveMessage(message));
+      });
+
+      socket.on("message_updated", (message) => {
+        dispatch(ReceiveMessageUpdate(message));
+      });
+
+      socket.on("receipts", (receipt) => {
+        dispatch(applyReceipt(receipt));
+      });
+
+      socket.on("keys_changed", (keys) => {
+        dispatch(updateMemberKeys(keys));
+        if (keys.userId !== user._id) dispatch(DeliverWaitingMessages());
       });
 
       socket.on("online_friends", (friend) => {
@@ -91,6 +107,9 @@ const DashboardLayout = () => {
           socket.off("connect_error");
           socket.off("error");
           socket.off("message_received");
+          socket.off("message_updated");
+          socket.off("receipts");
+          socket.off("keys_changed");
           socket.off("online_friends");
           socket.off("start_typing");
           socket.off("stop_typing");
@@ -107,6 +126,7 @@ const DashboardLayout = () => {
   return (
     <Stack direction={isSmallScreen ? "column-reverse" : "row"}>
       <Sidebar />
+      <EncryptionGate />
     </Stack>
   );
 };

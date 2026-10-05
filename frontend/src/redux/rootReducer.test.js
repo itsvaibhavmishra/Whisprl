@@ -2,7 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 
 import { rootPersistConfig, rootReducer } from "@/redux/rootReducer";
-import { addPendingMessage } from "@/redux/slices/chatSlice";
+import { addPendingMessage, updateMsgConvo } from "@/redux/slices/chatSlice";
 
 const STORAGE_KEY = "redux-root";
 
@@ -38,9 +38,9 @@ const openTheApp = () =>
 
 afterEach(() => window.localStorage.clear());
 
-test("chat saved before uploads existed comes back with room for them", async () => {
+test("chat saved by an earlier build comes back without its messages", async () => {
   saveAsAnEarlierVisit({
-    chat: { conversations: [{ _id: "conversation-1" }], messages: [] },
+    chat: { conversations: [{ _id: "conversation-1" }], messages: [{ message: "old" }] },
   });
 
   const { store } = await openTheApp();
@@ -48,7 +48,20 @@ test("chat saved before uploads existed comes back with room for them", async ()
 
   expect(chat.pendingMessages).toEqual([]);
   expect(chat.files).toEqual([]);
-  expect(chat.conversations).toEqual([{ _id: "conversation-1" }]);
+  expect(chat.messages).toEqual([]);
+  expect(chat.conversations).toEqual([]);
+});
+
+test("decrypted text is never written to storage", async () => {
+  const { store, persistor } = await openTheApp();
+  const conversation = { _id: "conversation-1", users: [] };
+  const message = { _id: "message-1", message: "a decrypted secret", conversation };
+
+  store.dispatch(updateMsgConvo({ ...message, conversation: { ...conversation, latestMessage: message } }));
+  await persistor.flush();
+
+  expect(store.getState().chat.conversations[0].latestMessage.message).toBe("a decrypted secret");
+  expect(window.localStorage.getItem(STORAGE_KEY)).not.toContain("a decrypted secret");
 });
 
 test("an upload saved by an earlier build is not restored as stuck forever", async () => {

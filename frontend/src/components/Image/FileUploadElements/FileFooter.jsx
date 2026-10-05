@@ -12,7 +12,6 @@ import { removeFile, setActiveFileIndex, clearFiles, addPendingMessage, addMessa
 import { UploadFileMessage, uploadAbortControllers } from "@/redux/slices/actions/chatActions";
 import { imageSelectHandler } from "@/components/upload/handlers/imageSelectHandler";
 import { docSelectHandler } from "@/components/upload/handlers/docSelectHandler";
-import { socket } from "@/utils/socket";
 import uuidv4 from "@/utils/uuidv4";
 
 const MAX_FILES = 5;
@@ -103,7 +102,6 @@ const FileFooter = ({ convo_id }) => {
         uploadAbortControllers.delete(localId);
         if (!result.error && result.payload?.message) {
           dispatch(addMessageFromUpload(result.payload.message));
-          socket.emit("send_message", result.payload.message);
         }
       });
     });

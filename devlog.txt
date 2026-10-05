@@ -18,6 +18,9 @@
     - Cover pictures, on a redesigned profile page that is the card your friends see
     - A System theme that follows your device
     - Change your password from settings
+    - Text messages are end-to-end encrypted, with a recovery key to open them on a new browser
+    - See when your message is sent, delivered and seen, with your friend's photo on the last one they read
+    - Tap a message to see when it was sent
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -28,6 +31,7 @@
     - Redesigned settings, with a live preview of your theme and accent colour
     - Pick your theme and accent colour from the welcome and log in pages
     - One Whisprl logo everywhere, including the browser tab
+    - Messages to a friend who has not opened Whisprl since encryption arrived wait, then arrive once they do
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
@@ -40,6 +44,11 @@
     - Opening a menu or dialog no longer shifts the page sideways
     - Searching for a name with symbols like ( or * in it no longer fails
     - A profile picture over the size limit is refused with a clear message
+    - Only the people in a chat can read it or post in it
+    - Typing shows in a chat started since the page loaded
+    - A message sent straight after reconnecting is no longer lost
+    - Two messages sent quickly no longer arrive the wrong way round
+    - Each friend appears once in your chats
 
   - Developers:
     - The frontend has its first tests, and the gate runs them

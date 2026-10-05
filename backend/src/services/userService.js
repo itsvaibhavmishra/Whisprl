@@ -23,7 +23,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName avatar cover email activityStatus createdAt";
+export const PUBLIC_PROFILE_FIELDS = "firstName lastName avatar cover email activityStatus createdAt publicKeys";
 
 const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -48,6 +48,8 @@ const uploadProfileImage = async (user, kind, file) => {
 };
 
 // Checks every upload before touching Cloudinary, and deletes replaced images only once the user is saved.
+export const setOnlineStatus = (user_id, onlineStatus) => UserModel.updateOne({ _id: user_id }, { onlineStatus });
+
 export const saveProfile = async (user, fields, uploads, removals) => {
   const kinds = Object.keys(PROFILE_IMAGES);
   kinds.filter((kind) => uploads[kind]).forEach((kind) => validateProfileImage(kind, uploads[kind]));

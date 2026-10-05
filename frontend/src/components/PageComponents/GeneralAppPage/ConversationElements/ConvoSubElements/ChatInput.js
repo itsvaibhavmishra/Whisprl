@@ -15,6 +15,8 @@ import { Actions } from "@/data";
 import { socket } from "@/utils/socket";
 import actionHandler from "@/components/ChatMediaActions/actionClickHandler";
 
+const TYPING_PAUSE = 1000;
+
 const ChatInput = ({
   openPicker,
   setOpenPicker,
@@ -24,7 +26,6 @@ const ChatInput = ({
   handleSubmit,
   theme,
   convo_id,
-  isOptimistic,
 }) => {
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -65,8 +66,7 @@ const ChatInput = ({
     }
 
     clearTimeout(typingTimeoutRef.current);
-    const timer = isOptimistic ? 1000 : 5000;
-    typingTimeoutRef.current = setTimeout(stopTyping, timer); // 1 seconds
+    typingTimeoutRef.current = setTimeout(stopTyping, TYPING_PAUSE);
   };
   // ------------------------------------
 

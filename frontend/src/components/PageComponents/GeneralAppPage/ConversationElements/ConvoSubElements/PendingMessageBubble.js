@@ -4,7 +4,6 @@ import { X, ArrowCounterClockwise, File as FileIcon } from "phosphor-react";
 import { useDispatch } from "react-redux";
 import { removePendingMessage, updatePendingMessage, addMessageFromUpload } from "@/redux/slices/chatSlice";
 import { UploadFileMessage, uploadAbortControllers } from "@/redux/slices/actions/chatActions";
-import { socket } from "@/utils/socket";
 // uuidv4 not needed in PendingMessageBubble — retries reuse existing localId
 
 // Renders a single pending file upload bubble (uploading | failed | cancelled)
@@ -51,7 +50,6 @@ const PendingMessageBubble = ({ pending }) => {
 
     if (!result.error && result.payload?.message) {
       dispatch(addMessageFromUpload(result.payload.message));
-      socket.emit("send_message", result.payload.message);
     }
   };
 

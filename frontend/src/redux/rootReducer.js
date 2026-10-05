@@ -6,18 +6,23 @@ import {
   authReducer,
   chatReducer,
   contactReducer,
+  encryptionReducer,
   userReducer,
 } from "./slices";
 
-// An upload dies with the page, and its base64 preview would eat the localStorage quota.
-const forgetUploads = (chat) => ({
+// Decrypted text must never reach disk, a stored chat would carry stale keys, and an upload's preview would eat the quota.
+const keepOnlyWhatIsSafeToStore = (chat) => ({
   ...chat,
+  messages: [],
+  conversations: [],
+  activeConversation: null,
+  activeConvoFriendship: null,
   files: [],
   activeFileIndex: 0,
   pendingMessages: [],
 });
 
-const uploadsLiveOnlyInMemory = createTransform(forgetUploads, forgetUploads, {
+const chatStoredWithoutMessages = createTransform(keepOnlyWhatIsSafeToStore, keepOnlyWhatIsSafeToStore, {
   whitelist: ["chat"],
 });
 
@@ -27,7 +32,8 @@ const rootPersistConfig = {
   keyPrefix: "redux-",
   // Merging onto initial state gives a field added since a user's last visit its default.
   stateReconciler: autoMergeLevel2,
-  transforms: [uploadsLiveOnlyInMemory],
+  transforms: [chatStoredWithoutMessages],
+  blacklist: ["encryption"],
 };
 
 const rootReducer = combineReducers({
@@ -35,6 +41,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   chat: chatReducer,
   contact: contactReducer,
+  encryption: encryptionReducer,
 });
 
 export { rootPersistConfig, rootReducer };

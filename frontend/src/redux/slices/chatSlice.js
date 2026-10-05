@@ -3,13 +3,10 @@ import {
   CreateOpenConversation,
   GetConversations,
   GetMessages,
-  SendMessage,
 } from "./actions/chatActions";
 
 const initialState = {
-  isOptimistic: true,
   isLoading: false,
-  sendMsgLoading: false,
   error: false,
 
   conversations: [],
@@ -35,10 +32,6 @@ const slice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    setIsOptimistic: (state, action) => {
-      state.isOptimistic = action.payload.isOptimistic;
-    },
-
     closeActiveConversation: (state) => {
       state.activeConversation = null;
       state.activeConvoFriendship = null;
@@ -115,6 +108,38 @@ const slice = createSlice({
       state.conversations = newConvos;
     },
 
+    replaceMessage: (state, action) => {
+      const index = state.messages.findIndex((message) => message._id === action.payload._id);
+      if (index !== -1) state.messages[index] = action.payload;
+
+      const conversation = state.conversations.find((convo) => convo.latestMessage?._id === action.payload._id);
+      if (conversation) conversation.latestMessage = action.payload;
+    },
+
+    // a reader's receipt covers every message in the conversation they did not send
+    applyReceipt: (state, action) => {
+      const { conversation_id, reader, receipt, at } = action.payload;
+      if (state.activeConversation?._id !== conversation_id) return;
+
+      state.messages
+        .filter((message) => message.sender._id !== reader && !message.awaitingKey)
+        .forEach((message) => {
+          message.deliveredAt ??= at;
+          if (receipt === "seen") message.seenAt ??= at;
+        });
+    },
+
+    updateMemberKeys: (state, action) => {
+      const { userId, publicKeys } = action.payload;
+      const conversations = [...state.conversations, state.activeConversation].filter(Boolean);
+      conversations
+        .flatMap((conversation) => conversation.users)
+        .filter((member) => member._id === userId)
+        .forEach((member) => {
+          member.publicKeys = publicKeys;
+        });
+    },
+
     updateTypingConvo: (state, action) => {
       const { typing, conversation_id } = action.payload;
       const index = state.typingConversation.findIndex(
@@ -172,35 +197,12 @@ const slice = createSlice({
         state.error = false;
       })
       .addCase(GetMessages.fulfilled, (state, action) => {
+        if (action.meta.arg !== state.activeConversation?._id) return;
         state.messages = action.payload.messages;
         state.isLoading = false;
         state.error = false;
       })
       .addCase(GetMessages.rejected, (state) => {
-        state.isLoading = false;
-        state.error = true;
-      })
-
-      .addCase(SendMessage.pending, (state) => {
-        state.error = false;
-        state.sendMsgLoading = state.isOptimistic ? false : true;
-      })
-      .addCase(SendMessage.fulfilled, (state, action) => {
-        if (!state.isOptimistic) {
-          state.messages = [...state.messages, action.payload.message];
-          const conversation = { ...action.payload.message.conversation };
-          let newConvos = [...state.conversations].filter(
-            (e) => e._id !== conversation._id
-          );
-          newConvos.unshift(conversation);
-          state.conversations = newConvos;
-        }
-        state.sendMsgLoading = false;
-        state.isLoading = false;
-        state.error = false;
-      })
-      .addCase(SendMessage.rejected, (state) => {
-        state.sendMsgLoading = false;
         state.isLoading = false;
         state.error = true;
       });
@@ -216,6 +218,9 @@ export function clearChat() {
 export const {
   closeActiveConversation,
   updateMsgConvo,
+  replaceMessage,
+  applyReceipt,
+  updateMemberKeys,
   updateTypingConvo,
   addFiles,
   clearFiles,
@@ -225,7 +230,6 @@ export const {
   updatePendingMessage,
   removePendingMessage,
   addMessageFromUpload,
-  setIsOptimistic,
 } = slice.actions;
 
 export default slice.reducer;

@@ -3,6 +3,24 @@ import validator from "validator";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 
+const publicKeySchema = mongoose.Schema(
+  {
+    keyId: { type: String, required: true },
+    publicKey: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
+const keyBackupSchema = mongoose.Schema(
+  {
+    keyId: { type: String, required: true },
+    iv: { type: String, required: true },
+    data: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
@@ -52,6 +70,10 @@ const userSchema = mongoose.Schema(
       type: [String],
       enum: ["google", "github", "linkedin"],
     },
+
+    // End-to-end encryption: every public key the account has had, newest last
+    publicKeys: [publicKeySchema],
+    keyBackup: { type: keyBackupSchema, select: false },
   },
   {
     timestamps: true,

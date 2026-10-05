@@ -30,7 +30,7 @@ mongoose
 const server = http.createServer(app);
 
 // Initialize Socket.io
-initializeSocket(server);
+app.set("io", initializeSocket(server));
 
 server.listen(port, () => {
   console.log(`Server on port ${port}`);

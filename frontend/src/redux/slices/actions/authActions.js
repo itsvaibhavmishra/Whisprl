@@ -5,6 +5,7 @@ import { ShowSnackbar, logout, updateUser } from "../userSlice";
 import axios from "../../../utils/axios";
 import { updateOtpEmail } from "../authSlice";
 import { clearChat } from "../chatSlice";
+import { ForgetDeviceKeys } from "@/redux/slices/actions/encryptionActions";
 import { socket } from "../../../utils/socket";
 
 // ------------- Login Thunk -------------
@@ -55,11 +56,12 @@ export const LoginUser = createAsyncThunk(
 // ------------- Logout Thunk -------------
 export const LogoutUser = createAsyncThunk(
   "auth/logout",
-  async (arg, { rejectWithValue, dispatch }) => {
+  async (arg, { rejectWithValue, dispatch, getState }) => {
     return new Promise(async (resolve) => {
       try {
         const { data } = await axios.post("/auth/logout");
 
+        await dispatch(ForgetDeviceKeys(getState().user.user._id));
         dispatch(clearChat());
         dispatch(logout());
         socket.disconnect();

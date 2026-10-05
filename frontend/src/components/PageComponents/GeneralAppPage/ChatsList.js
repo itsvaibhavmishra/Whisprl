@@ -154,7 +154,7 @@ const ChatsList = () => {
                 : conversations
                     .filter(
                       (e) =>
-                        e.latestMessage?.message ||
+                        e.latestMessage ||
                         e._id === activeConversation?._id
                     )
                     .map((conversation) => {

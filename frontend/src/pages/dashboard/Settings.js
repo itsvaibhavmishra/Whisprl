@@ -10,6 +10,7 @@ import { LogoutUser } from "@/redux/slices/actions/authActions";
 import { PATH_DASHBOARD, PATH_DOCS } from "@/routes/paths";
 import { AccentPicker, ThemeModePicker } from "@/components/AppearancePickers";
 import ChangePasswordDialog from "@/sections/settings/ChangePasswordDialog";
+import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
 import ChatPreview from "@/sections/settings/ChatPreview";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
 import getAvatar from "@/utils/createAvatar";
@@ -82,6 +83,7 @@ const Settings = () => {
                 Change password
               </Button>
             </SettingRow>
+            <RecoveryKeySetting />
           </SettingsSection>
         </Stack>
 

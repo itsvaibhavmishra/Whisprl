@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { MotionConfig } from "framer-motion";
 import { Box, useTheme, Stack } from "@mui/material";
 import { useSelector } from "react-redux";
 import MessageContainer from "./ConvoSubElements/MessageContainer";
+import { MotionLazyContainer } from "@/components/animate";
 import PendingMessageBubble from "./ConvoSubElements/PendingMessageBubble";
 import { scrollToBottom } from "../../../../utils/scrollToBottom";
 
@@ -59,6 +61,10 @@ const ConversationMain = () => {
     (state) => state.chat
   );
 
+  const peer = activeConversation?.users?.find((member) => member._id !== user._id);
+  const [detailsId, setDetailsId] = useState(null);
+  const tappedBubble = useRef(null);
+
   let currentSender = null;
 
   // Reference to the scrollable element
@@ -96,6 +102,44 @@ const ConversationMain = () => {
   // Build display groups for real messages
   const displayGroups = buildDisplayGroups(messages);
 
+  const lastMessage = displayGroups.at(-1)?.message;
+  const lastSeenOwnId = displayGroups
+    .map((group) => group.message)
+    .filter((message) => message.sender._id === user._id && message.seenAt)
+    .at(-1)?._id;
+  const lastIsOursAndUnseen = lastMessage?.sender._id === user._id && lastMessage._id !== lastSeenOwnId;
+
+  const statusOf = (message) => {
+    if (message.awaitingKey) return `Waiting for ${peer.firstName} to open Whisprl`;
+    if (message.seenAt) return "Seen";
+    return message.deliveredAt ? "Delivered" : "Sent";
+  };
+
+  const statusLabelFor = (message) => {
+    if (!peer || message.sender._id !== user._id) return null;
+    const isLiveStatus = lastIsOursAndUnseen && message._id === lastMessage._id;
+    return isLiveStatus || message._id === detailsId ? statusOf(message) : null;
+  };
+
+  // a note to self has nobody to read it, so your own photo just marks the latest note
+  const markerFor = (message) => {
+    if (!peer) return message._id === lastMessage?._id ? { person: user } : null;
+    return message._id === lastSeenOwnId ? { person: peer, label: `Seen by ${peer.firstName}` } : null;
+  };
+
+  const toggleDetails = (messageId, bubble) => {
+    tappedBubble.current = { bubble, top: bubble.getBoundingClientRect().top };
+    setDetailsId((openId) => (openId === messageId ? null : messageId));
+  };
+
+  // the tapped bubble stays where it was, and what opens around it pushes the rest of the chat instead
+  useLayoutEffect(() => {
+    if (!tappedBubble.current) return;
+    const { bubble, top } = tappedBubble.current;
+    tappedBubble.current = null;
+    scrollContainerRef.current?.scrollBy({ top: bubble.getBoundingClientRect().top - top, behavior: "instant" });
+  }, [detailsId]);
+
   // Pending messages for the active conversation
   const activePending = pendingMessages.filter(
     (p) => p.convo_id === activeConversation?._id
@@ -115,6 +159,8 @@ const ConversationMain = () => {
       py={1}
       sx={{
         flexGrow: 1,
+        display: "flex",
+        flexDirection: "column",
         overflowY: "scroll",
         backgroundColor: theme.palette.background.paper,
         scrollBehavior: "smooth",
@@ -122,54 +168,58 @@ const ConversationMain = () => {
       className="scrollbar"
       ref={scrollContainerRef}
     >
-      <Stack spacing={0.5}>
-        {displayGroups.map((group, index) => {
-          const e = group.message;
+      <MotionLazyContainer>
+        <MotionConfig reducedMotion="user">
+          <Stack spacing={0.5} sx={{ mt: "auto" }}>
+            {displayGroups.map((group, index) => {
+              const message = group.message;
 
-          const isStartOfSequence =
-            currentSender === null || e.sender._id !== currentSender;
+              const isStartOfSequence =
+                currentSender === null || message.sender._id !== currentSender;
 
-          const nextGroup = displayGroups[index + 1];
-          const isEndOfSequence =
-            !nextGroup ||
-            e.sender._id !== nextGroup.message.sender._id ||
-            containsOnlyEmojis(e.message) ||
-            (nextGroup && containsOnlyEmojis(nextGroup.message.message));
+              const nextGroup = displayGroups[index + 1];
+              const isEndOfSequence =
+                !nextGroup ||
+                message.sender._id !== nextGroup.message.sender._id ||
+                containsOnlyEmojis(message.message) ||
+                (nextGroup && containsOnlyEmojis(nextGroup.message.message));
 
-          currentSender = e.sender._id;
+              currentSender = message.sender._id;
 
-          const isLastMessage = index === displayGroups.length - 1 && activePending.length === 0;
+              return (
+                <MessageContainer
+                  key={message._id}
+                  message={message}
+                  me={user._id === message.sender._id}
+                  isStartOfSequence={isStartOfSequence}
+                  isEndOfSequence={isEndOfSequence}
+                  msgType={getMessageType(message)}
+                  showTime={detailsId === message._id}
+                  statusLabel={statusLabelFor(message)}
+                  marker={markerFor(message)}
+                  onToggleDetails={(bubble) => toggleDetails(message._id, bubble)}
+                />
+              );
+            })}
 
-          return (
-            <MessageContainer
-              key={e._id}
-              message={e}
-              me={user._id === e.sender._id}
-              isStartOfSequence={isStartOfSequence}
-              isEndOfSequence={isEndOfSequence}
-              msgType={getMessageType(e)}
-              isLastMessage={isLastMessage}
-            />
-          );
-        })}
+            {/* Pending upload bubbles */}
+            {activePending.map((pending) => (
+              <PendingMessageBubble key={pending.localId} pending={pending} />
+            ))}
 
-        {/* Pending upload bubbles */}
-        {activePending.map((pending) => (
-          <PendingMessageBubble key={pending.localId} pending={pending} />
-        ))}
-
-        {isTyping && (
-          <MessageContainer
-            message={{ message: "Typing" }}
-            me={false}
-            isStartOfSequence={true}
-            isEndOfSequence={true}
-            msgType={"typing"}
-            isLastMessage={true}
-            isTyping={isTyping}
-          />
-        )}
-      </Stack>
+            {isTyping && (
+              <MessageContainer
+                message={{ message: "Typing" }}
+                me={false}
+                isStartOfSequence={true}
+                isEndOfSequence={true}
+                msgType={"typing"}
+                isTyping={isTyping}
+              />
+            )}
+          </Stack>
+        </MotionConfig>
+      </MotionLazyContainer>
     </Box>
   );
 };
