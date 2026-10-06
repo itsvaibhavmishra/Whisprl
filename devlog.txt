@@ -115,6 +115,7 @@
     - The backend needs GOOGLE_AUTH_CLIENT_ID for Google sign-in, and no longer reads JWT_REFRESH_SECRET
     - The backend checks passkeys with @simplewebauthn/server, and FRONT_URL must be the address the app is served from
     - Sessions are bound to a key the browser cannot export rather than a cookie, so the backend no longer uses cookie-parser
+    - Merging into rc or production needs no approval, and only a release publishes anything: the versioned GitHub release, with no rc pre-release or attached build
 
   - Internal:
     - Frontend code is organised by page, with unused files and assets removed
