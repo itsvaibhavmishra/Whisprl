@@ -5,7 +5,7 @@ import { selectIsLoading } from "@/redux/slices/requestSlice";
 import { DeliverWaitingMessages, GetConversations, GetMessages } from "@/redux/slices/actions/chatActions";
 import { updateMemberKeys } from "@/redux/slices/chatSlice";
 import axios from "@/utils/axios";
-import { forgetDeviceKeys, loadDeviceKeys, saveDeviceKeys } from "@/utils/crypto/deviceKeyStore";
+import { forgetDeviceKeys, loadDeviceKeys, saveDeviceKeys } from "@/utils/crypto/keyStore";
 import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
 import { setDeviceKeys } from "@/utils/crypto/messageCipher";
 import { createRecoveryKey, lockPrivateKey, parseRecoveryKey, unlockPrivateKey } from "@/utils/crypto/recoveryKey";

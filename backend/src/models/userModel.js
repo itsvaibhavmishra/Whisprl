@@ -69,7 +69,6 @@ const userSchema = mongoose.Schema(
 
     // accounts made through Google, GitHub or LinkedIn have none until they reset one
     password: { type: String, select: false },
-    passwordChangedAt: { type: Date },
 
     verified: { type: Boolean, default: false },
     verification: { type: verificationSchema, select: false },
@@ -98,8 +97,6 @@ const userSchema = mongoose.Schema(
 userSchema.pre("save", async function () {
   if (this.isModified("password") && this.password) {
     this.password = await bcrypt.hash(this.password, PASSWORD_COST);
-    // a second early, so a token issued right after the change still counts as newer than it
-    if (!this.isNew) this.passwordChangedAt = Date.now() - 1000;
   }
 
   // everyone is their own friend, which is what lets them message themselves
@@ -108,10 +105,6 @@ userSchema.pre("save", async function () {
 
 userSchema.methods.correctPassword = async function (candidatePassword) {
   return Boolean(this.password) && bcrypt.compare(candidatePassword, this.password);
-};
-
-userSchema.methods.changedPasswordAfter = function (tokenIssuedAt) {
-  return Boolean(this.passwordChangedAt) && tokenIssuedAt < Math.floor(this.passwordChangedAt.getTime() / 1000);
 };
 
 const UserModel = mongoose.model("User", userSchema);

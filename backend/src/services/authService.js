@@ -9,15 +9,13 @@ import { sha256 } from "#src/utils/sha256.js";
 import otpMail from "#src/templates/mail/otp.js";
 import resetMail from "#src/templates/mail/reset.js";
 import { formatRemainingTime, transporter } from "#src/services/mailer.js";
-import { endAllSessions, verifyAccessToken } from "#src/services/sessionService.js";
+import { endAllSessions, isSessionActive, sessionEnded, verifyAccessToken } from "#src/services/sessionService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 
 const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;
 const RESEND_COOLDOWN = 90 * 1000;
 const MAX_CODE_ATTEMPTS = 5;
-
-const SESSION_EXPIRED = "Your session expired, please log in again";
 
 export const toSessionUser = (user) => ({
   _id: user._id,
@@ -55,16 +53,15 @@ const sendMail = async (to, subject, html) => {
 // -------------------------- Access tokens --------------------------
 export const findSessionUser = async (user_id) => {
   const user = await UserModel.findOne({ _id: user_id, verified: true });
-  if (!user) throw createHttpError.Unauthorized(SESSION_EXPIRED);
+  if (!user) throw sessionEnded();
   return user;
 };
 
+// the session is looked up on every request, so logging a device out takes effect at once rather than when its token runs out
 export const authenticate = async (token) => {
-  if (!token) throw createHttpError.Unauthorized("Please log in first");
-
-  const { sub, sid, iat } = verifyAccessToken(token);
-  const user = await findSessionUser(sub);
-  if (user.changedPasswordAfter(iat)) throw createHttpError.Unauthorized(SESSION_EXPIRED);
+  const { sub, sid } = verifyAccessToken(token);
+  const [user, isActive] = await Promise.all([findSessionUser(sub), isSessionActive(sid)]);
+  if (!isActive) throw sessionEnded();
 
   return { user, sessionId: sid };
 };

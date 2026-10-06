@@ -1,6 +1,6 @@
 import { createApiThunk, notifyResult, refuse } from "@/redux/slices/actions/apiThunk";
 import axios from "@/utils/axios";
-import { loadDeviceKeys } from "@/utils/crypto/deviceKeyStore";
+import { loadDeviceKeys } from "@/utils/crypto/keyStore";
 import { authenticateWithPasskey, createPasskey, lockWithPasskey, randomChallenge } from "@/utils/passkeys";
 
 // ------------- List Passkeys -------------

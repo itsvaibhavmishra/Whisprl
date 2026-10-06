@@ -7,24 +7,33 @@ import { updateOtpEmail } from "@/redux/slices/authSlice";
 import { clearChat } from "@/redux/slices/chatSlice";
 import { logout, updateUser } from "@/redux/slices/userSlice";
 import { releaseAllAttachments } from "@/utils/attachments";
-import axios, { setAccessToken } from "@/utils/axios";
+import axios from "@/utils/axios";
+import { createSessionKeys } from "@/utils/crypto/sessionKeys";
 import { notify } from "@/utils/notify";
 import { authenticateWithPasskey } from "@/utils/passkeys";
+import { forgetSession, startSession } from "@/utils/session";
 
 const withRecaptcha = async (recaptchaRef, values) => {
   recaptchaRef.current.reset();
   return { ...values, recaptchaToken: await recaptchaRef.current.executeAsync() };
 };
 
+// every way in sends the public half of a new key only this browser holds, which is what renews the session later
+const logIn = async (path, body) => {
+  const { privateKey, encodedPublicKey } = await createSessionKeys();
+  const { data } = await axios.post(path, { ...body, sessionKey: encodedPublicKey });
+  if (data.user) await startSession(data, privateKey);
+  return data;
+};
+
 const signedIn = (dispatch, data) => {
-  setAccessToken(data.accessToken);
   dispatch(updateUser(data.user));
   return { user: data.user };
 };
 
 // ------------- Login Thunk -------------
 export const LoginUser = createApiThunk("auth/login", async ({ recaptchaRef, ...values }, { dispatch }) => {
-  const { data } = await axios.post("/auth/login", await withRecaptcha(recaptchaRef, values));
+  const data = await logIn("/auth/login", await withRecaptcha(recaptchaRef, values));
   notifyResult(data);
 
   if (data.user) return signedIn(dispatch, data);
@@ -38,7 +47,7 @@ export const LoginUser = createApiThunk("auth/login", async ({ recaptchaRef, ...
 export const PasskeyLogin = createApiThunk("auth/passkey", async (_, { dispatch }) => {
   const { data: challenge } = await axios.post("/auth/passkeys/options");
   const { response, prfSecret } = await authenticateWithPasskey(challenge.options);
-  const { data } = await axios.post("/auth/passkeys/login", { response });
+  const data = await logIn("/auth/passkeys/login", { response });
 
   if (prfSecret && data.keyBackup) await keepKeyFromPasskey(data.user._id, data.keyBackup, prfSecret).catch(() => {});
   notifyResult(data);
@@ -48,7 +57,7 @@ export const PasskeyLogin = createApiThunk("auth/passkey", async (_, { dispatch 
 // ------------- Social Login Thunks -------------
 const socialLogin = (provider) =>
   createApiThunk(`auth/${provider}`, async (code, { dispatch }) => {
-    const { data } = await axios.post(`/auth/${provider}`, { code });
+    const data = await logIn(`/auth/${provider}`, { code });
     notifyResult(data);
     return signedIn(dispatch, data);
   });
@@ -58,18 +67,21 @@ export const GithubLogin = socialLogin("github");
 export const LinkedinLogin = socialLogin("linkedin");
 
 // ------------- End Session Thunk -------------
-export const EndSession = createAsyncThunk("auth/end-session", async (_, { dispatch, getState }) => {
-  setAccessToken(null);
+export const EndSession = createAsyncThunk("auth/end-session", async ({ keepDeviceKeys = false, sessionId } = {}, { dispatch, getState }) => {
+  const userId = getState().user.user._id;
+  await forgetSession(userId, sessionId);
   dispatch(DisconnectSocket());
   releaseAllAttachments();
-  await dispatch(ForgetDeviceKeys(getState().user.user._id));
+  if (!keepDeviceKeys) await dispatch(ForgetDeviceKeys(userId));
   dispatch(clearChat());
   dispatch(logout());
 });
 
 // ------------- Logout Thunk -------------
+// the socket closes first, so it does not try to reconnect to the session being ended
 export const LogoutUser = createAsyncThunk("auth/logout", async (_, { dispatch }) => {
-  const { data } = await axios.post("/auth/logout").catch(() => ({ data: null }));
+  dispatch(DisconnectSocket());
+  const { data } = await axios.post("/auth/logout", null, { endsSession: true }).catch(() => ({ data: null }));
   await dispatch(EndSession());
   notify({ severity: "success", message: data?.message || "Logged out" });
 });
@@ -84,7 +96,7 @@ export const RegisterUser = createApiThunk("auth/register", async ({ recaptchaRe
 
 // ------------- Verify OTP Thunk -------------
 export const VerifyOTP = createApiThunk("auth/verify-otp", async ({ recaptchaRef, ...values }, { dispatch }) => {
-  const { data } = await axios.post("/auth/verify-otp", await withRecaptcha(recaptchaRef, values));
+  const data = await logIn("/auth/verify-otp", await withRecaptcha(recaptchaRef, values));
   notifyResult(data);
   return signedIn(dispatch, data);
 });

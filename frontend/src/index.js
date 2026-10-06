@@ -12,7 +12,7 @@ import SettingsProvider from "@/contexts/SettingsContext";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "@/redux/store";
 
-import { injectStore } from "@/utils/axiosInterceptors";
+import { injectStore } from "@/utils/session";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 

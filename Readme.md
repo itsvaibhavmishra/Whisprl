@@ -84,7 +84,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
     - Cloudinary file upload system with auto folder structuring
 
-    - Short-lived access tokens with a rotating, revocable session cookie
+    - Short-lived access tokens, renewed by signing a fresh challenge with a key each browser keeps and cannot export, so no cookies
 
     - Structured DB with pre save & validations
 
@@ -100,7 +100,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
     - Custom hooks
 
-    - Silent session refresh shared by every request and the socket
+    - Silent token renewal shared by every request and the socket
 
     - Google Ananlytics support
 
@@ -221,6 +221,7 @@ $ npm run build
 │   │   │   ├── authMiddleware.js
 │   │   │   ├── rateLimiters.js
 │   │   │   ├── recaptchaMiddleware.js
+│   │   │   ├── sessionKeyMiddleware.js
 │   │   │   ├── socketMiddleware.js
 │   │   │   ├── socketRateLimit.js
 │   │   ├── models/
@@ -629,20 +630,21 @@ $ npm run build
 │   │   │   ├── typography.js
 │   │   ├── utils/
 │   │   │   ├── crypto/
-│   │   │   │   ├── deviceKeyStore.js
 │   │   │   │   ├── encoding.js
 │   │   │   │   ├── fileCipher.js
 │   │   │   │   ├── fileCipher.test.js
 │   │   │   │   ├── keys.js
+│   │   │   │   ├── keyStore.js
 │   │   │   │   ├── keyWrap.js
 │   │   │   │   ├── messageCipher.js
 │   │   │   │   ├── messageCipher.test.js
 │   │   │   │   ├── recoveryKey.js
+│   │   │   │   ├── sessionKeys.js
+│   │   │   │   ├── sessionKeys.test.js
 │   │   │   │   ├── statusCipher.js
 │   │   │   │   ├── statusCipher.test.js
 │   │   │   ├── attachments.js
 │   │   │   ├── axios.js
-│   │   │   ├── axiosInterceptors.js
 │   │   │   ├── chats.js
 │   │   │   ├── createAvatar.js
 │   │   │   ├── formatMessageTime.js
@@ -665,6 +667,7 @@ $ npm run build
 │   │   │   ├── passkeys.js
 │   │   │   ├── reactions.js
 │   │   │   ├── scrollToBottom.js
+│   │   │   ├── session.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
 │   │   │   ├── sounds.js

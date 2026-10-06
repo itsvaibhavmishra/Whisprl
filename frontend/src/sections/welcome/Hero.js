@@ -45,9 +45,9 @@ const Hero = () => (
           maxWidth: "50ch",
         }}
       >
-        Message friends the moment you think of them, share photos and
-        documents, and see who is online and typing. Free, open source, and
-        right in your browser.
+        Message friends and groups the moment you think of them, and share
+        photos, videos and statuses, all end-to-end encrypted. Free, open
+        source, and right in your browser.
       </Typography>
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 4 }}>
