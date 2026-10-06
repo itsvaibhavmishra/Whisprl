@@ -1,10 +1,13 @@
 import {
   ChatCircleDots,
+  CircleDashed,
   ImageSquare,
   Lightning,
+  LockSimple,
   Palette,
   ShieldCheck,
   UserPlus,
+  UsersThree,
 } from "phosphor-react";
 
 import { COMMUNITY } from "@/config";
@@ -33,14 +36,29 @@ export const FEATURES = [
     body: "Every message arrives the instant it is sent. No refreshing, no waiting.",
   },
   {
-    Icon: ChatCircleDots,
-    title: "Typing and online status",
-    body: "See when a friend is online, and when they are typing back to you.",
+    Icon: LockSimple,
+    title: "End-to-end encrypted",
+    body: "Messages, photos, videos and statuses are locked in your browser before they leave it, so only the people they are for can open them.",
+  },
+  {
+    Icon: UsersThree,
+    title: "Group chats",
+    body: "Chat with up to 32 friends at once, mention anyone with @, and pin the messages that matter.",
   },
   {
     Icon: ImageSquare,
-    title: "Photos and documents",
-    body: "Send photos with a caption, share documents, and open any image full screen.",
+    title: "Photos, videos and documents",
+    body: "Send photos and videos together as one gallery, share documents, or send a photo or video that opens only once.",
+  },
+  {
+    Icon: CircleDashed,
+    title: "Status",
+    body: "Share a photo, a video or a few words with your friends for 24 hours, and see who has seen it.",
+  },
+  {
+    Icon: ChatCircleDots,
+    title: "Typing and online status",
+    body: "See when a friend is online, and when they are typing back to you.",
   },
   {
     Icon: UserPlus,
@@ -50,7 +68,7 @@ export const FEATURES = [
   {
     Icon: ShieldCheck,
     title: "Sign in your way",
-    body: "Use your email with a one-time code, or your Google, GitHub or LinkedIn account.",
+    body: "Log in with your email and password, a passkey, or your Google, GitHub or LinkedIn account.",
   },
   {
     Icon: Palette,
@@ -63,7 +81,7 @@ export const STACK = [
   {
     letter: "M",
     name: "MongoDB",
-    role: "Stores accounts, conversations and every message sent.",
+    role: "Stores accounts, conversations and every message, encrypted before it arrives.",
   },
   {
     letter: "E",
@@ -86,11 +104,16 @@ export const FAQS = [
   {
     question: "What is Whisprl?",
     answer:
-      "Whisprl is a free, real-time chat app that runs in your browser. Add your friends, message them one to one, share photos and documents, and see when they are online or typing.",
+      "Whisprl is a free, real-time chat app that runs in your browser. Add your friends, message them one to one or in groups, share photos, videos and documents, post a status for 24 hours, and see when they are online or typing.",
   },
   {
     question: "Is Whisprl free?",
     answer: "Yes. Creating an account and chatting with your friends costs nothing.",
+  },
+  {
+    question: "Can anyone else read my messages?",
+    answer:
+      "No. Your messages, photos, videos, documents, reactions and statuses are encrypted in your browser before they leave it, and only the people they are for hold the keys to open them. Whisprl's servers store them, but cannot read them.",
   },
   {
     question: "What is a MERN chat app?",

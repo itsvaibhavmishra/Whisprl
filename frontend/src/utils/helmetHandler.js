@@ -5,7 +5,7 @@ import { COMMUNITY, SITE_URL } from "@/config";
 
 const WELCOME = {
   title: "Whisprl | Free Real-Time MERN Chat App",
-  description: `Whisprl is a free, real-time MERN chat app. Message friends instantly, share photos and documents, and see who is online and typing. Join ${COMMUNITY.people} people chatting.`,
+  description: `Whisprl is a free, real-time MERN chat app. Message friends and groups, share photos, videos and statuses, all end-to-end encrypted. Join ${COMMUNITY.people} people chatting.`,
 };
 
 const PAGES = {
@@ -18,7 +18,7 @@ const PAGES = {
   "/auth/register": {
     title: "Create a free account | Whisprl",
     description:
-      "Create a free Whisprl account and chat with your friends in real time, with photo and document sharing built in.",
+      "Create a free Whisprl account and chat with your friends in real time, end-to-end encrypted, with photos, videos and statuses built in.",
   },
   "/docs/tnc": {
     title: "Terms and conditions | Whisprl",

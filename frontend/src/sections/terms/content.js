@@ -47,7 +47,8 @@ export const SECTIONS = [
     blocks: [
       "What you send stays yours. By sending it, you let Whisprl store it and deliver it to the people in that conversation, and that is all it is used for.",
       "You are responsible for what you send, and for having the right to share it.",
-      "Messages, photos and documents are end-to-end encrypted: they are locked in your browser before they leave it, and only the people in the conversation can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
+      "Messages, photos, videos, documents, reactions and statuses are end-to-end encrypted: they are locked in your browser before they leave it, and only the people they are for can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
+      "A status is deleted after 24 hours, along with its photo or video, and only the person who posted it can see who viewed it.",
     ],
   },
   {
@@ -59,7 +60,8 @@ export const SECTIONS = [
         list: [
           "your name, email address, profile picture and status, so friends can find and recognise you",
           "your password and one-time codes, stored only as one-way hashes, so nobody can read your password, including the people who run Whisprl",
-          "your friends list and conversations, and your messages and files, encrypted so only the people in each conversation can open them",
+          "your friends list and conversations, and your messages, files and statuses, encrypted so only the people they are for can open them",
+          "who has viewed each status, shown only to the person who posted it",
           "whether you are online, so your friends can see it",
           "which sign-in methods you have connected, and the public half of any passkey you add and of the key each browser you log in on keeps, which can only check a sign-in, never make one",
         ],
@@ -70,7 +72,7 @@ export const SECTIONS = [
           "Google, GitHub and LinkedIn, if you sign in with them. Whisprl receives your name, email address and profile picture from them.",
           "Google reCAPTCHA, to keep bots out of sign-up and log-in",
           "Google Analytics, to count visits and see which pages are used",
-          "Cloudinary, to store the photos and documents you send, which it receives encrypted",
+          "Cloudinary, to store the photos, videos and documents you send, which it receives encrypted",
           "Gmail, to send your verification codes and password reset emails",
           "Netlify and Render, which host the app",
         ],

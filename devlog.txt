@@ -79,6 +79,7 @@
     - A session that has been logged out stops working straight away, rather than up to 15 minutes later
     - A message you have started stays as a draft when you switch to another chat
     - Whisprl's own doodles sit behind your messages
+    - The welcome page and the terms cover end-to-end encryption, group chats, videos and Status
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
