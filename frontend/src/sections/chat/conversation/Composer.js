@@ -183,7 +183,7 @@ const Composer = () => {
         {!editing && (
           <Box sx={{ pb: 0.5 }}>
             <AttachMenu
-              onPhoto={() => dispatch(ChooseAttachments("image"))}
+              onMedia={() => dispatch(ChooseAttachments("media"))}
               onDocument={() => dispatch(ChooseAttachments("doc"))}
               onContact={() => setIsSharingContact(true)}
             />

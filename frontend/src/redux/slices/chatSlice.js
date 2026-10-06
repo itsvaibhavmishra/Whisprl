@@ -23,6 +23,8 @@ const initialState = {
   outbox: [],
   // this tab's attachments whose message was saved but whose file did not upload, by clientId
   failedUploads: [],
+  // how far each of this tab's files has got through compressing and uploading, in percent, by clientId
+  transfers: {},
 
   typingConversation: [],
   connection: "connecting",
@@ -327,6 +329,14 @@ const slice = createSlice({
       messages.splice(after + 1, 0, message);
     },
 
+    transferProgress: (state, action) => {
+      state.transfers[action.payload.clientId] = action.payload.percent;
+    },
+
+    transferEnded: (state, action) => {
+      delete state.transfers[action.payload];
+    },
+
     markUploadFailed: (state, action) => {
       if (!state.failedUploads.includes(action.payload)) state.failedUploads.push(action.payload);
     },
@@ -465,6 +475,8 @@ export const {
   setConnection,
   addFiles,
   removeFile,
+  transferProgress,
+  transferEnded,
   clearFiles,
   setActiveFileIndex,
   queueMessage,

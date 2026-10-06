@@ -156,13 +156,17 @@ const ConversationMain = () => {
     setDetailsId((openId) => (openId === message._id ? null : message._id));
   };
 
-  // a group of photos shows as one bubble, but each photo uploads, and can fail, on its own
+  // a group of photos and videos shows as one bubble, but each file sends, and can fail, on its own
   const footerFor = (item) => {
-    if (item.entry) return item.entry.status === "failed" ? <NotSent entry={item.entry} /> : undefined;
-    const ownUploads = (item.members ?? [item.message]).filter(
-      (message) => message.sender._id === user._id && message.attachment?.status === "uploading"
-    );
-    return ownUploads.length ? ownUploads.map((message) => <DidNotUpload key={message._id} message={message} />) : undefined;
+    const members = item.members ?? [item.message];
+    const notSent = members
+      .filter((message) => message.outboxEntry?.status === "failed")
+      .map((message) => <NotSent key={message._id} entry={message.outboxEntry} />);
+    const didNotUpload = members
+      .filter((message) => !message.outboxEntry && message.sender._id === user._id && message.attachment?.status === "uploading")
+      .map((message) => <DidNotUpload key={message._id} message={message} />);
+    const problems = [...notSent, ...didNotUpload];
+    return problems.length ? problems : undefined;
   };
 
   const tapHandlerFor = (item) => (item.type === "queued" ? undefined : () => toggleDetails(item.message));

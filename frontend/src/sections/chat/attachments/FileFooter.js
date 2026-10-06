@@ -19,7 +19,7 @@ const FileFooter = () => {
   const { files, activeFileIndex } = useSelector((state) => state.chat);
   const [caption, setCaption] = useState("");
   const [isViewOnce, setIsViewOnce] = useState(false);
-  const canBeViewOnce = files.length === 1 && files[0].kind === "image";
+  const canBeViewOnce = files.length === 1 && files[0].kind !== "doc";
   const sendsViewOnce = isViewOnce && canBeViewOnce;
 
   // a view-once photo goes without a caption, which would stay in the chat after the photo is gone
@@ -41,7 +41,7 @@ const FileFooter = () => {
         {/* Add more button */}
         {files.length < MAX_ATTACHMENTS && (
           <Box
-            onClick={() => dispatch(ChooseAttachments(files[0]?.kind))}
+            onClick={() => dispatch(ChooseAttachments())}
             sx={{
               width: 60,
               height: 60,
@@ -81,10 +81,10 @@ const FileFooter = () => {
             }}
             onClick={() => dispatch(setActiveFileIndex(index))}
           >
-            {fileObj.kind === "image" ? (
+            {fileObj.kind === "image" || fileObj.preview ? (
               <Box
                 component="img"
-                src={attachmentUrl(fileObj.id)}
+                src={fileObj.kind === "image" ? attachmentUrl(fileObj.id) : fileObj.preview}
                 alt={fileObj.fileName}
                 sx={{
                   width: "100%",
@@ -152,7 +152,7 @@ const FileFooter = () => {
           </Tooltip>
         )}
         <InputBase
-          placeholder={sendsViewOnce ? "View once photos have no caption" : "Add a caption..."}
+          placeholder={sendsViewOnce ? "View once has no caption" : "Add a caption..."}
           disabled={sendsViewOnce}
           value={sendsViewOnce ? "" : caption}
           onChange={(e) => setCaption(e.target.value)}

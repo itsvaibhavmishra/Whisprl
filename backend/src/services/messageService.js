@@ -86,8 +86,8 @@ export const validateCipher = (cipher, conversation, sender_id) => {
 
 export const isClientId = (clientId) => typeof clientId === "string" && /^[\w-]{8,64}$/.test(clientId);
 
-// an encrypted file is unreadable here, so only its size is checked; its type was checked by the browser that chose it
-export const MAX_SEALED_FILE_SIZE = 5 * 1024 * 1024 + 1024;
+// an encrypted file is unreadable here, so only its size is checked, against the 10 MB a free Cloudinary plan stores
+export const MAX_SEALED_FILE_SIZE = 10 * 1024 * 1024;
 
 export const batchOf = ({ batchId, batchIndex, batchTotal } = {}) =>
   isClientId(batchId) && Number.isInteger(batchIndex) && Number.isInteger(batchTotal) ? { batchId, batchIndex, batchTotal } : {};

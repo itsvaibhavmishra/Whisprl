@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
-import { ClearAttachments, UploadAttachment } from "@/redux/slices/actions/attachmentActions";
+import { ClearAttachments, PrepareQueued, UploadAttachment } from "@/redux/slices/actions/attachmentActions";
 import {
   closeActiveConversation,
   countUnread,
@@ -276,9 +276,12 @@ export const FlushOutbox = () => (dispatch, getState) => {
   return flushing;
 };
 
-export const SendAgain = (clientId) => (dispatch) => {
+// a file stopped before it was sealed is compressed and sealed again from the original
+export const SendAgain = (clientId) => (dispatch, getState) => {
+  const entry = getState().chat.outbox.find((queued) => queued.clientId === clientId);
+  const needsPreparing = Boolean(entry?.file && !entry.file.key);
   dispatch(requeueMessage(clientId));
-  dispatch(FlushOutbox());
+  dispatch(needsPreparing ? PrepareQueued(clientId) : FlushOutbox());
 };
 
 export const DiscardMessage = (clientId) => (dispatch) => {

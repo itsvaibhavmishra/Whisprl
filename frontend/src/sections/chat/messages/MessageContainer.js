@@ -7,17 +7,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { ReactToMessage } from "@/redux/slices/actions/messageActions";
 import ContactCard from "@/sections/chat/messages/ContactCard";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
-import ImageMessage from "@/sections/chat/messages/ImageMessage";
+import MediaMessage from "@/sections/chat/messages/MediaMessage";
 import MessageActions from "@/sections/chat/messages/MessageActions";
 import MessageText from "@/sections/chat/messages/MessageText";
 import Reactions from "@/sections/chat/messages/Reactions";
 import ReplyQuote from "@/sections/chat/messages/ReplyQuote";
+import VideoMessage from "@/sections/chat/messages/VideoMessage";
 import ViewOnceMessage from "@/sections/chat/messages/ViewOnceMessage";
 import SeenMarker, { SeenByRow } from "@/sections/chat/messages/SeenMarker";
 import getAvatar from "@/utils/createAvatar";
 import { formatMessageTime } from "@/utils/formatMessageTime";
 import { firstNameIn, memberOf } from "@/utils/groups";
-import { filesOf } from "@/utils/messageFiles";
+import { filesOf, isMediaFile } from "@/utils/messageFiles";
 import { quickReactionsOf } from "@/utils/reactions";
 
 const UNREADABLE = "This message can't be opened on this device";
@@ -68,7 +69,8 @@ const MessageContainer = ({
   useEffect(() => () => clearTimeout(clickTimer.current), []);
 
   const files = message.viewOnce ? [] : filesOf(message);
-  const hasImages = files.some((file) => file.fileType === "image");
+  const media = files.filter(isMediaFile);
+  const hasMedia = media.length > 0;
   const hasDocs = files.some((file) => file.fileType === "document");
   const isFileMsg = msgType === "file" || msgType === "file_with_caption";
   const isDeleted = Boolean(message.deletedAt);
@@ -90,7 +92,7 @@ const MessageContainer = ({
   };
 
   const paddingOf = () => {
-    if (isFileMsg) return hasImages ? 0 : 1;
+    if (isFileMsg) return hasMedia ? 0 : 1;
     if (msgType === "text") return 1.5;
     return "3px 0px";
   };
@@ -114,7 +116,7 @@ const MessageContainer = ({
 
   // a single tap waits to see whether a second follows, so a double tap reacts without also opening the details
   const handleClick = (event) => {
-    if (event.target.closest("img, a, button") || wasLongPress.current) return;
+    if (event.target.closest("img, a, button, video") || wasLongPress.current) return;
     if (!canAct) return onToggleDetails?.();
     const now = Date.now();
     clearTimeout(clickTimer.current);
@@ -212,7 +214,7 @@ const MessageContainer = ({
             }}
           >
             {hasHeader && (
-              <Stack spacing={0.75} sx={{ p: hasImages ? 0.75 : 0 }}>
+              <Stack spacing={0.75} sx={{ p: hasMedia ? 0.75 : 0 }}>
                 {message.forwarded && (
                   <Stack direction="row" spacing={0.5} alignItems="center" sx={{ opacity: 0.75 }}>
                     <ArrowBendUpRight size={12} />
@@ -240,9 +242,10 @@ const MessageContainer = ({
               <>
                 {message.viewOnce && <ViewOnceMessage message={message} isMine={isMine} isGroup={conversation?.isGroup} meId={user._id} />}
                 {message.contact && <ContactCard contact={message.contact} isMine={isMine} />}
-                {hasImages && <ImageMessage files={files} />}
+                {hasMedia &&
+                  (media.length === 1 && media[0].fileType === "video" ? <VideoMessage file={media[0]} /> : <MediaMessage files={media} />)}
                 {hasDocs && (
-                  <Box sx={{ mt: hasImages ? 0.5 : 0 }}>
+                  <Box sx={{ mt: hasMedia ? 0.5 : 0 }}>
                     <DocumentMessage files={files} />
                   </Box>
                 )}
