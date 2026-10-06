@@ -144,10 +144,16 @@ export const SendAttachments = (caption) => async (dispatch, getState) => {
     )
   );
 
-  const keys = await Promise.all(files.map(sealedKeyOf));
-  files.forEach((attachment, index) =>
-    dispatch(updateQueuedMessage({ clientId: attachment.id, status: "sending", file: { ...details[index], ...keys[index] } }))
-  );
+  // a file that cannot be encrypted fails on its own, so it never holds up the messages queued behind it
+  const sealed = await Promise.allSettled(files.map(sealedKeyOf));
+  files.forEach((attachment, index) => {
+    const { status, value } = sealed[index];
+    const changes =
+      status === "fulfilled"
+        ? { status: "sending", file: { ...details[index], ...value } }
+        : { status: "failed", error: "this file could not be encrypted, so choose it again" };
+    dispatch(updateQueuedMessage({ clientId: attachment.id, ...changes }));
+  });
   dispatch(FlushOutbox());
 };
 

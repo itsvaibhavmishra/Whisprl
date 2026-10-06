@@ -15,14 +15,18 @@ const ProblemRow = ({ text, children }) => (
   </Stack>
 );
 
+// a file that was never encrypted has no key to send, so it can only be deleted and chosen again
 export const NotSent = ({ entry }) => {
   const dispatch = useDispatch();
+  const canSendAgain = !entry.file || Boolean(entry.file.key);
 
   return (
     <ProblemRow text={entry.error ? `Not sent: ${entry.error}` : "Not sent"}>
-      <Button size="small" onClick={() => dispatch(SendAgain(entry.clientId))}>
-        Send again
-      </Button>
+      {canSendAgain && (
+        <Button size="small" onClick={() => dispatch(SendAgain(entry.clientId))}>
+          Send again
+        </Button>
+      )}
       <Button size="small" color="inherit" onClick={() => dispatch(DiscardMessage(entry.clientId))}>
         Delete
       </Button>
