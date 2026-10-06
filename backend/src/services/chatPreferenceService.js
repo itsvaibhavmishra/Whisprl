@@ -18,7 +18,7 @@ const asFlag = (value, label) => {
   return value;
 };
 
-const PREFERENCE_FIELDS = "mutedUntil isFavourite isArchived clearedAt";
+const PREFERENCE_FIELDS = "mutedUntil isFavourite isArchived clearedAt deletedAt";
 
 // the record's own id stays behind, since the answer is merged into the conversation it describes
 const save = async (user_id, conversation_id, changes) => {
@@ -41,6 +41,13 @@ export const updatePreferences = (user_id, conversation_id, { mute, isFavourite,
 };
 
 export const clearChat = (user_id, conversation_id) => save(user_id, conversation_id, { clearedAt: new Date() });
+
+// leaving a group already takes it out of the list, so only a direct chat is deleted this way
+export const deleteChat = (user_id, conversation) => {
+  if (conversation.isGroup) throw createHttpError.BadRequest("Leave the group to remove it from your chats");
+  const now = new Date();
+  return save(user_id, conversation._id, { clearedAt: now, deletedAt: now });
+};
 
 export const preferencesOf = async (user_id, conversation_ids) => {
   const preferences = await ChatPreferenceModel.find({ user: user_id, conversation: { $in: conversation_ids } })

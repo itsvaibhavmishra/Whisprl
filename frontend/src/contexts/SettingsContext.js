@@ -11,6 +11,7 @@ const initialState = {
   onChangeColor: () => {},
   onToggleSounds: () => {},
   onSetNotifications: () => {},
+  onToggle24Hour: () => {},
   setColor: defaultPreset,
 };
 
@@ -58,6 +59,10 @@ const SettingsProvider = ({ children }) => {
     setSettings({ ...settings, notifications });
   };
 
+  const onToggle24Hour = () => {
+    setSettings({ ...settings, use24Hour: !settings.use24Hour });
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -69,6 +74,7 @@ const SettingsProvider = ({ children }) => {
         onChangeColor,
         onToggleSounds,
         onSetNotifications,
+        onToggle24Hour,
         setColor: getColorPresets(settings.themeColorPresets),
       }}
     >

@@ -8,6 +8,8 @@ const chatPreferenceSchema = mongoose.Schema({
   isFavourite: { type: Boolean, default: false },
   isArchived: { type: Boolean, default: false },
   clearedAt: { type: Date },
+  // hidden from this person's list until a message newer than this arrives
+  deletedAt: { type: Date },
 });
 
 chatPreferenceSchema.index({ user: 1, conversation: 1 }, { unique: true });

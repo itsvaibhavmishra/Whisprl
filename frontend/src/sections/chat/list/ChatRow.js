@@ -4,6 +4,7 @@ import { alpha } from "@mui/material/styles";
 import { useDispatch, useSelector } from "react-redux";
 
 import StyledBadge from "@/components/StyledBadge";
+import useSettings from "@/hooks/useSettings";
 import { OpenConversation } from "@/redux/slices/actions/chatActions";
 import { identityOf, isMuted, isOnline as isPersonOnline } from "@/utils/chats";
 import getAvatar from "@/utils/createAvatar";
@@ -15,6 +16,7 @@ const MAX_BADGE = 99;
 
 const ChatRow = ({ conversation, isActive }) => {
   const theme = useTheme();
+  const { use24Hour } = useSettings();
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
   const onlineFriends = useSelector((state) => state.user.onlineFriends);
@@ -86,7 +88,7 @@ const ChatRow = ({ conversation, isActive }) => {
                 variant="caption"
                 sx={{ whiteSpace: "nowrap", color: unread && !isQuiet ? "primary.main" : "text.secondary", fontWeight: unread ? 700 : 400 }}
               >
-                {formatTime(latest.createdAt)}
+                {formatTime(latest.createdAt, use24Hour)}
               </Typography>
             )}
           </Stack>

@@ -14,18 +14,21 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Archive, BellSlash, Eraser, Flag, Prohibit, Star, Timer } from "phosphor-react";
+import { Archive, BellSlash, Eraser, Flag, Prohibit, Star, Timer, Trash } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useSettings from "@/hooks/useSettings";
 import {
   BlockUser,
   ClearChat,
+  DeleteChat,
   SetDisappearing,
   UnblockUser,
   UpdateChatPreferences,
 } from "@/redux/slices/actions/chatSettingsActions";
 import ReportDialog from "@/sections/chat/details/ReportDialog";
 import { identityOf, isMuted } from "@/utils/chats";
+import { clockOptions } from "@/utils/formatMessageTime";
 import { DAY_SECONDS, canManage, durationOf } from "@/utils/groups";
 
 const MUTE_CHOICES = [
@@ -35,11 +38,11 @@ const MUTE_CHOICES = [
 ];
 const DISAPPEAR_CHOICES = [null, DAY_SECONDS, 7 * DAY_SECONDS, 90 * DAY_SECONDS];
 
-const muteLabelOf = (conversation) => {
+const muteLabelOf = (conversation, use24Hour) => {
   if (!isMuted(conversation)) return "Off";
   const until = new Date(conversation.mutedUntil);
   if (until.getFullYear() > 9000) return "Always";
-  return `Until ${until.toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })}`;
+  return `Until ${until.toLocaleString(undefined, { weekday: "short", ...clockOptions(use24Hour) })}`;
 };
 
 const disappearLabelOf = (seconds) => (seconds ? durationOf(seconds) : "Off");
@@ -79,6 +82,7 @@ const Confirm = ({ title, text, action, onConfirm, onClose }) => (
 
 const ChatControls = ({ conversation }) => {
   const dispatch = useDispatch();
+  const { use24Hour } = useSettings();
   const { _id: meId, blocked = [] } = useSelector((state) => state.user.user);
   const [menu, setMenu] = useState(null);
   const [dialog, setDialog] = useState(null);
@@ -102,7 +106,7 @@ const ChatControls = ({ conversation }) => {
         <ControlRow
           icon={BellSlash}
           label="Mute notifications"
-          detail={muteLabelOf(conversation)}
+          detail={muteLabelOf(conversation, use24Hour)}
           onClick={(event) => setMenu({ kind: "mute", anchor: event.currentTarget })}
         />
         <ControlRow
@@ -123,6 +127,7 @@ const ChatControls = ({ conversation }) => {
           onClick={() => update({ isArchived: !conversation.isArchived })}
         />
         <ControlRow icon={Eraser} label="Clear chat" isDanger onClick={() => setDialog("clear")} />
+        {!conversation.isGroup && <ControlRow icon={Trash} label="Delete chat" isDanger onClick={() => setDialog("delete")} />}
         {person && (
           <ControlRow
             icon={Prohibit}
@@ -168,6 +173,19 @@ const ChatControls = ({ conversation }) => {
           text="Its messages are removed for you only. Everyone else in the chat still has them."
           action="Clear chat"
           onConfirm={() => dispatch(ClearChat(conversationId))}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog === "delete" && (
+        <Confirm
+          title="Delete this chat?"
+          text={
+            person
+              ? `It leaves your chats and its messages are cleared for you. ${person.firstName} keeps the chat, and a new message brings it back.`
+              : "It leaves your chats and its notes are cleared."
+          }
+          action="Delete chat"
+          onConfirm={() => dispatch(DeleteChat(conversationId))}
           onClose={() => setDialog(null)}
         />
       )}

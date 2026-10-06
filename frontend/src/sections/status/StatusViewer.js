@@ -22,8 +22,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 import useFileUrl from "@/hooks/useFileUrl";
 import { DeleteStatus, MarkStatusViewed } from "@/redux/slices/actions/statusActions";
+import useMessageTime from "@/hooks/useMessageTime";
 import getAvatar from "@/utils/createAvatar";
-import { formatMessageTime } from "@/utils/formatMessageTime";
 import { backgroundOf, isLive, textSizeOf } from "@/utils/statuses";
 
 const SHOW_MS = 6000;
@@ -95,6 +95,7 @@ const StatusMedia = ({ status, isPaused, onReady }) => {
 // arrow keys pressed in the list stay there, rather than moving the statuses behind it
 const ViewersList = ({ views, onClose }) => {
   const theme = useTheme();
+  const messageTime = useMessageTime();
   return (
     <Dialog open onClose={onClose} onKeyDown={(event) => event.stopPropagation()} fullWidth maxWidth="xs" aria-labelledby="viewers-title">
       <DialogTitle id="viewers-title">Seen by {views.length}</DialogTitle>
@@ -103,7 +104,7 @@ const ViewersList = ({ views, onClose }) => {
           {views.map(({ user, viewedAt }) => (
             <ListItem key={user._id} disableGutters>
               <ListItemAvatar>{getAvatar(user.avatar, user.firstName, theme, 36)}</ListItemAvatar>
-              <ListItemText primary={`${user.firstName} ${user.lastName}`} secondary={formatMessageTime(viewedAt)} />
+              <ListItemText primary={`${user.firstName} ${user.lastName}`} secondary={messageTime(viewedAt)} />
             </ListItem>
           ))}
         </List>
@@ -115,6 +116,7 @@ const ViewersList = ({ views, onClose }) => {
 const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClose }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
+  const messageTime = useMessageTime();
   const [isReady, setIsReady] = useState(status.content.kind === "text");
   const [isListingViewers, setIsListingViewers] = useState(false);
   const { owner, content } = status;
@@ -135,7 +137,7 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
               {isOwn ? "My status" : `${owner.firstName} ${owner.lastName}`}
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8 }}>
-              {formatMessageTime(status.createdAt)}
+              {messageTime(status.createdAt)}
             </Typography>
           </Box>
           {isOwn && (

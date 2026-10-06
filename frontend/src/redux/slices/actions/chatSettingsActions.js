@@ -18,6 +18,12 @@ export const ClearChat = createApiThunk("chat/clear", async (conversationId, { d
   dispatch(chatCleared({ conversation_id: conversationId, ...data.preferences }));
 });
 
+// ------------- Delete Chat -------------
+export const DeleteChat = createApiThunk("chat/delete", async (conversationId, { dispatch }) => {
+  const { data } = await axios.post(`/conversation/${conversationId}/delete`);
+  dispatch(chatCleared({ conversation_id: conversationId, ...data.preferences }));
+});
+
 // ------------- Disappearing Messages -------------
 export const SetDisappearing = createApiThunk("chat/disappearing", async ({ conversationId, seconds }, { dispatch }) => {
   await axios.put(`/conversation/${conversationId}/disappearing`, { seconds });

@@ -1,4 +1,4 @@
-import { clearChat, updatePreferences } from "#src/services/chatPreferenceService.js";
+import { clearChat, deleteChat, updatePreferences } from "#src/services/chatPreferenceService.js";
 import { findMemberConversation, memberRooms } from "#src/services/conversationService.js";
 import { setDisappearing } from "#src/services/disappearingService.js";
 
@@ -23,6 +23,16 @@ export const clearConversation = async (req, res, next) => {
   try {
     const conversation = await findMemberConversation(req.params.convo_id, req.user._id);
     answerPreferences(req, res, "chat_cleared", conversation._id, await clearChat(req.user._id, conversation._id));
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Delete Chat --------------------------
+export const deleteConversation = async (req, res, next) => {
+  try {
+    const conversation = await findMemberConversation(req.params.convo_id, req.user._id);
+    answerPreferences(req, res, "chat_cleared", conversation._id, await deleteChat(req.user._id, conversation));
   } catch (error) {
     next(error);
   }

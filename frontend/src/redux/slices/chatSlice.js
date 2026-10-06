@@ -9,6 +9,8 @@ import {
 
 const initialState = {
   conversations: [],
+  // counts every message that reaches the list, so a list fetched before one arrived knows it is older
+  arrivals: 0,
   activeConversation: null,
   activeConvoFriendship: null,
 
@@ -77,7 +79,7 @@ const cacheActive = (state) => {
   if (cached.length > CACHED_CHATS) delete state.cache[cached[0]];
 };
 
-const PREFERENCE_KEYS = ["mutedUntil", "isFavourite", "isArchived", "clearedAt"];
+const PREFERENCE_KEYS = ["mutedUntil", "isFavourite", "isArchived", "clearedAt", "deletedAt"];
 
 // a chat's own settings live only in the list, so a copy from anywhere else picks them up from there
 const preferencesIn = (conversation) =>
@@ -117,6 +119,8 @@ const moveConversationToTop = (state, conversationId, latestMessage) => {
 
   if (!conversation.latestMessage || conversation.latestMessage._id <= latestMessage._id) {
     conversation.latestMessage = latestMessage;
+    state.arrivals += 1;
+    conversation.arrival = state.arrivals;
   }
   state.conversations = [conversation, ...state.conversations.filter((convo) => convo._id !== conversationId)];
 };
@@ -153,7 +157,7 @@ const slice = createSlice({
       conversationsWith(state, conversation_id).forEach((conversation) => Object.assign(conversation, preferences));
     },
 
-    // a cleared chat drops everything this tab holds of it, so nothing from before shows again
+    // a cleared chat drops everything this tab holds of it, so nothing from before shows again, and a deleted one closes too
     chatCleared: (state, action) => {
       const { conversation_id, ...preferences } = action.payload;
       conversationsWith(state, conversation_id).forEach((conversation) =>
@@ -161,7 +165,8 @@ const slice = createSlice({
       );
       delete state.cache[conversation_id];
       delete state.history[conversation_id];
-      if (state.activeConversation?._id === conversation_id) Object.assign(state, { messages: [], hasOlderMessages: false, hasNewerMessages: false });
+      if (state.activeConversation?._id !== conversation_id) return;
+      Object.assign(state, preferences.deletedAt ? closedConversation() : { messages: [], hasOlderMessages: false, hasNewerMessages: false });
     },
 
     disappearingChanged: (state, action) => {
@@ -366,6 +371,13 @@ const slice = createSlice({
       if (conversation) conversation.latestMessage = action.payload;
     },
 
+    editSettled: (state, action) => {
+      listsOf(state, action.payload.conversation).forEach((messages) => {
+        const message = messages.find((each) => each._id === action.payload._id);
+        if (message) delete message.isEditPending;
+      });
+    },
+
     // a reader's receipt covers every message in the conversation they did not send
     applyReceipt: (state, action) => {
       const { conversation_id, reader, receipt, at, upTo } = action.payload;
@@ -408,7 +420,19 @@ const slice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(GetConversations.fulfilled, (state, action) => {
-        state.conversations = action.payload.conversations;
+        const { conversations, arrivalsWhenAsked } = action.payload;
+        const held = new Map(state.conversations.map((conversation) => [conversation._id, conversation]));
+        const isNewer = (conversation) => held.get(conversation._id)?.arrival > arrivalsWhenAsked;
+        // a message that arrived while the list was on its way stays in its chat, at the top
+        const merged = conversations.map((conversation) => {
+          if (!isNewer(conversation)) return conversation;
+          const { latestMessage, unread, arrival } = held.get(conversation._id);
+          return { ...conversation, latestMessage, unread, arrival };
+        });
+        state.conversations = [
+          ...merged.filter(isNewer).sort((one, other) => other.arrival - one.arrival),
+          ...merged.filter((conversation) => !isNewer(conversation)),
+        ];
         const active = state.conversations.find((conversation) => conversation._id === state.activeConversation?._id);
         if (active) state.activeConvoFriendship = active.canMessage;
       })
@@ -488,6 +512,7 @@ export const {
   clearUploadFailed,
   removeMessage,
   replaceMessage,
+  editSettled,
   applyReceipt,
   updateMemberKeys,
   updateTypingConvo,

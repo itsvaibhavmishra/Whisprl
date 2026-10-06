@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 
 import StyledBadge from "@/components/StyledBadge";
+import useSettings from "@/hooks/useSettings";
 import getAvatar from "@/utils/createAvatar";
 import formatTime from "@/utils/formatTime";
 import truncateText from "@/utils/truncateText";
@@ -35,6 +36,7 @@ const AllChatElement = ({
 }) => {
   // using theme
   const theme = useTheme();
+  const { use24Hour } = useSettings();
 
   // from redux
   const dispatch = useDispatch();
@@ -204,7 +206,7 @@ const AllChatElement = ({
             {isLoading ? (
               <Skeleton animation="wave" height={20} width="3em" />
             ) : (
-              formatTime(latestMessage?.updatedAt)
+              formatTime(latestMessage?.updatedAt, use24Hour)
             )}
           </Typography>
           {isLoading ? (

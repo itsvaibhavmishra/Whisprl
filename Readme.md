@@ -400,6 +400,7 @@ $ npm run build
 │   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
+│   │   │   ├── useMessageTime.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
 │   │   ├── layouts/
@@ -523,6 +524,7 @@ $ npm run build
 │   │   │   │   │   ├── SeenMarker.js
 │   │   │   │   │   ├── TransferRing.js
 │   │   │   │   │   ├── TypingBubble.js
+│   │   │   │   │   ├── useSwipeToReply.js
 │   │   │   │   │   ├── VideoMessage.js
 │   │   │   │   │   ├── ViewOnceMessage.js
 │   │   │   │   │   ├── ViewOnceViewer.js
@@ -646,6 +648,7 @@ $ npm run build
 │   │   │   ├── attachments.js
 │   │   │   ├── axios.js
 │   │   │   ├── chats.js
+│   │   │   ├── chats.test.js
 │   │   │   ├── createAvatar.js
 │   │   │   ├── formatMessageTime.js
 │   │   │   ├── formatMessageTime.test.js

@@ -6,8 +6,8 @@ import useIsLoading from "@/hooks/useIsLoading";
 import { CancelPosting, ChooseStatusMedia, GetStatuses } from "@/redux/slices/actions/statusActions";
 import { MIN_VISIBLE_PERCENT } from "@/sections/chat/messages/TransferRing";
 import StatusRing from "@/sections/status/StatusRing";
+import useMessageTime from "@/hooks/useMessageTime";
 import getAvatar from "@/utils/createAvatar";
-import { formatMessageTime } from "@/utils/formatMessageTime";
 
 const AVATAR_SIZE = 52;
 
@@ -21,24 +21,24 @@ const SectionLabel = ({ children }) => (
   </Typography>
 );
 
-const PersonRow = ({ group, onOpen }) => (
-  <Box component="li" sx={{ listStyle: "none" }}>
-    <ButtonBase
-      onClick={() => onOpen(group.owner._id)}
-      sx={{ ...rowButton, width: "100%", px: 1.5 }}
-    >
-      <StatusRing person={group.owner} statuses={group.statuses} size={AVATAR_SIZE} />
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography variant="subtitle2" noWrap>
-          {`${group.owner.firstName} ${group.owner.lastName}`}
-        </Typography>
-        <Typography variant="caption" component="p" sx={{ m: 0, color: "text.secondary" }}>
-          {formatMessageTime(group.latestAt)}
-        </Typography>
-      </Box>
-    </ButtonBase>
-  </Box>
-);
+const PersonRow = ({ group, onOpen }) => {
+  const messageTime = useMessageTime();
+  return (
+    <Box component="li" sx={{ listStyle: "none" }}>
+      <ButtonBase onClick={() => onOpen(group.owner._id)} sx={{ ...rowButton, width: "100%", px: 1.5 }}>
+        <StatusRing person={group.owner} statuses={group.statuses} size={AVATAR_SIZE} />
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="subtitle2" noWrap>
+            {`${group.owner.firstName} ${group.owner.lastName}`}
+          </Typography>
+          <Typography variant="caption" component="p" sx={{ m: 0, color: "text.secondary" }}>
+            {messageTime(group.latestAt)}
+          </Typography>
+        </Box>
+      </ButtonBase>
+    </Box>
+  );
+};
 
 const PeopleSection = ({ label, groups, onOpen }) =>
   groups.length > 0 && (
@@ -70,10 +70,11 @@ const MyStatusRow = ({ group, onOpen, onWrite, onChooseMedia }) => {
   const posting = useSelector((state) => state.status.posting);
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
   const isPosting = posting !== null;
+  const messageTime = useMessageTime();
 
   const detail = () => {
     if (isPosting) return `Sharing, ${posting}%`;
-    if (group) return `${updatesCount(group.statuses.length)}, last at ${formatMessageTime(group.latestAt)}`;
+    if (group) return `${updatesCount(group.statuses.length)}, last at ${messageTime(group.latestAt)}`;
     return "Add a photo, video or text";
   };
 

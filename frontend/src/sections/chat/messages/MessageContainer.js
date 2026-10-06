@@ -4,7 +4,9 @@ import { alpha, keyframes } from "@mui/material/styles";
 import { ArrowBendUpRight } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useMessageTime from "@/hooks/useMessageTime";
 import { ReactToMessage } from "@/redux/slices/actions/messageActions";
+import { setReplyingTo } from "@/redux/slices/chatSlice";
 import ContactCard from "@/sections/chat/messages/ContactCard";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
 import MediaMessage from "@/sections/chat/messages/MediaMessage";
@@ -15,8 +17,8 @@ import ReplyQuote from "@/sections/chat/messages/ReplyQuote";
 import VideoMessage from "@/sections/chat/messages/VideoMessage";
 import ViewOnceMessage from "@/sections/chat/messages/ViewOnceMessage";
 import SeenMarker, { SeenByRow } from "@/sections/chat/messages/SeenMarker";
+import useSwipeToReply, { SwipeReplyHint } from "@/sections/chat/messages/useSwipeToReply";
 import getAvatar from "@/utils/createAvatar";
-import { formatMessageTime } from "@/utils/formatMessageTime";
 import { firstNameIn, memberOf } from "@/utils/groups";
 import { filesOf, isMediaFile } from "@/utils/messageFiles";
 import { quickReactionsOf } from "@/utils/reactions";
@@ -60,11 +62,13 @@ const MessageContainer = ({
   const theme = useTheme();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
+  const messageTime = useMessageTime();
   const [menuAnchor, setMenuAnchor] = useState(null);
   const pressTimer = useRef(null);
   const clickTimer = useRef(null);
   const lastClick = useRef(0);
   const wasLongPress = useRef(false);
+  const swipe = useSwipeToReply(isMine ? -1 : 1, () => dispatch(setReplyingTo(message)));
 
   useEffect(() => () => clearTimeout(clickTimer.current), []);
 
@@ -78,6 +82,8 @@ const MessageContainer = ({
   const canAct = Boolean(conversation && message._id && !isQueued && !isDeleted && !message.event);
 
   const mentionNames = (message.mentions ?? []).map((userId) => memberOf(conversation, userId)?.firstName).filter(Boolean);
+  const quotedSenderId = message.replyTo?.sender?._id ?? message.replyTo?.sender;
+  const quotedAuthor = conversation?.isGroup && (quotedSenderId === user._id ? user : memberOf(conversation, quotedSenderId));
 
   // the reacted bubble stays where it is while its reactions appear or go
   const react = (emoji) => {
@@ -105,18 +111,25 @@ const MessageContainer = ({
     onTouchStart: (event) => {
       const bubble = event.currentTarget;
       wasLongPress.current = false;
+      swipe.handlers.onTouchStart(event);
       pressTimer.current = setTimeout(() => {
         wasLongPress.current = true;
         setMenuAnchor(bubble);
       }, LONG_PRESS_MS);
     },
-    onTouchMove: () => clearTimeout(pressTimer.current),
-    onTouchEnd: () => clearTimeout(pressTimer.current),
+    onTouchMove: (event) => {
+      clearTimeout(pressTimer.current);
+      swipe.handlers.onTouchMove(event);
+    },
+    onTouchEnd: () => {
+      clearTimeout(pressTimer.current);
+      swipe.handlers.onTouchEnd();
+    },
   };
 
   // a single tap waits to see whether a second follows, so a double tap reacts without also opening the details
   const handleClick = (event) => {
-    if (event.target.closest("img, a, button, video") || wasLongPress.current) return;
+    if (event.target.closest("img, a, button, video") || wasLongPress.current || swipe.wasSwiped.current) return;
     if (!canAct) return onToggleDetails?.();
     const now = Date.now();
     clearTimeout(clickTimer.current);
@@ -161,7 +174,7 @@ const MessageContainer = ({
     <Stack spacing={0.5}>
       {showTime && (
         <Typography variant="caption" sx={{ alignSelf: "center", color: "text.secondary" }}>
-          {formatMessageTime(message.createdAt)}
+          {messageTime(message.createdAt)}
         </Typography>
       )}
       {senderName && (
@@ -185,8 +198,17 @@ const MessageContainer = ({
             {getAvatar(message?.sender?.avatar, message?.sender?.firstName, theme, 20)}
           </Box>
         )}
+        {swipe.progress > 0 && <SwipeReplyHint progress={swipe.progress} side={isMine ? "right" : "left"} />}
         {isMine && actions}
-        <Box sx={{ position: "relative", minWidth: 0, mb: hasReactions ? 1 : 0 }}>
+        <Box
+          sx={{
+            position: "relative",
+            minWidth: 0,
+            mb: hasReactions ? 1 : 0,
+            transform: swipe.offset ? `translateX(${swipe.offset}px)` : "none",
+            transition: swipe.offset ? "none" : "transform 180ms ease-out",
+          }}
+        >
           <Box
             p={paddingOf()}
             {...toggleProps}
@@ -208,7 +230,7 @@ const MessageContainer = ({
               border: isDeleted ? `1px dashed ${theme.palette.divider}` : "none",
               borderRadius: cornersOf(isMine, isStartOfSequence, isEndOfSequence),
               overflow: "hidden",
-              touchAction: "manipulation",
+              touchAction: "pan-y",
               WebkitTouchCallout: "none",
               animation: isHighlighted ? `${flash} 1.6s ease-out` : "none",
             }}
@@ -226,7 +248,8 @@ const MessageContainer = ({
                 {message.replyTo && (
                   <ReplyQuote
                     quote={message.replyTo}
-                    authorName={firstNameIn(conversation, message.replyTo.sender?._id ?? message.replyTo.sender, user._id)}
+                    author={quotedAuthor}
+                    authorName={firstNameIn(conversation, quotedSenderId, user._id)}
                     isMine={isMine}
                     onJump={onJumpTo && (() => onJumpTo(message.replyTo._id))}
                   />
