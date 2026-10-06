@@ -68,6 +68,15 @@ const SoundSetting = () => {
   );
 };
 
+const ClockSetting = () => {
+  const { use24Hour, onToggle24Hour } = useSettings();
+  return (
+    <SettingRow label="24-hour time" description="Show times like 15:05 instead of 3:05 PM.">
+      <Switch checked={Boolean(use24Hour)} onChange={onToggle24Hour} inputProps={{ "aria-label": "24-hour time" }} />
+    </SettingRow>
+  );
+};
+
 const NotificationSetting = () => {
   const { notifications, onSetNotifications } = useSettings();
   const [permission, setPermission] = useState(notificationPermission);
@@ -141,6 +150,7 @@ const Settings = () => {
             <QuickReactionsSetting />
             <SoundSetting />
             <NotificationSetting />
+            <ClockSetting />
             <BlockedPeopleSetting />
           </SettingsSection>
 

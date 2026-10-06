@@ -20,6 +20,7 @@ export const filesOf = (message) => {
       height: file.height,
       preview: file.preview,
       duration: file.duration,
+      waveform: file.waveform,
       localId: clientId,
       sealed: isReady ? { url: attachment.url, key: file.key, iv: file.iv, mimeType: file.mimeType } : null,
       isUploading: !isReady,

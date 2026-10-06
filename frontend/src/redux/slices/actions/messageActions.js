@@ -7,9 +7,11 @@ import {
 } from "@/redux/slices/actions/chatActions";
 import {
   commonGroupsLoaded,
+  editSettled,
   historyLoaded,
   reactionChanged,
   removeMessage,
+  replaceMessage,
   setEditing,
   windowShown,
 } from "@/redux/slices/chatSlice";
@@ -22,11 +24,19 @@ import { myReactionOn } from "@/utils/reactions";
 export const HISTORY_LIMIT = 2000;
 
 // ------------- Edit -------------
+// the new words show at once, marked as sending, and the old ones come back if the server refuses them
 export const EditMessage = createApiThunk("message/edit", async ({ message, text, mentions }, { dispatch, getState }) => {
-  const conversation = conversationById(getState(), message.conversation);
-  const cipher = await encryptMessage(encodePayload({ text, mentions }), conversation, getState().user.user._id);
-  await axios.patch(`/message/${message._id}`, { cipher });
   dispatch(setEditing(null));
+  dispatch(replaceMessage({ ...message, message: text, mentions, editedAt: new Date().toISOString(), isEditPending: true }));
+  try {
+    const conversation = conversationById(getState(), message.conversation);
+    const cipher = await encryptMessage(encodePayload({ text, mentions }), conversation, getState().user.user._id);
+    await axios.patch(`/message/${message._id}`, { cipher });
+    dispatch(editSettled(message));
+  } catch (error) {
+    dispatch(replaceMessage(message));
+    throw error;
+  }
 });
 
 // ------------- Delete -------------

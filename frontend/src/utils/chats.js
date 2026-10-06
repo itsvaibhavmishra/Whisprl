@@ -14,6 +14,10 @@ export const withArrivals = (gathered, messages) =>
 
 export const isMuted = (conversation) => Boolean(conversation.mutedUntil) && new Date(conversation.mutedUntil) > new Date();
 
+// a deleted chat stays out of the list until a message newer than the deletion brings it back
+export const isDeleted = ({ deletedAt, latestMessage }) =>
+  Boolean(deletedAt) && !(latestMessage && new Date(latestMessage.createdAt) > new Date(deletedAt));
+
 // a live presence update outranks the status the chat list was loaded with
 export const isOnline = (person, onlineFriends) =>
   (onlineFriends.find((friend) => friend._id === person._id)?.onlineStatus ?? person.onlineStatus) === "online";

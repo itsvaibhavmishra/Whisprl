@@ -51,9 +51,10 @@ const isWatching = (getState, conversationId) =>
   getState().chat.activeConversation?._id === conversationId && document.visibilityState === "visible";
 
 // ------------- Get Conversation Thunk -------------
-export const GetConversations = createApiThunk("conversation/get-conversations", async () => {
+export const GetConversations = createApiThunk("conversation/get-conversations", async (_, { getState }) => {
+  const arrivalsWhenAsked = getState().chat.arrivals;
   const { data } = await axios.get("/conversation/get-conversations");
-  return { conversations: await Promise.all(data.conversations.map(readableConversation)) };
+  return { conversations: await Promise.all(data.conversations.map(readableConversation)), arrivalsWhenAsked };
 });
 
 // ------------- Create or Open Conversation -------------
@@ -172,7 +173,7 @@ export const CloseConversation = () => (dispatch) => {
 
 // ------------- Send Text Message -------------
 // shown at once from the outbox; the server's copy replaces it once it is saved
-const quoteOf = (message) => {
+export const quoteOf = (message) => {
   if (!message) return null;
   const { _id, sender, message: text, file, contact, deletedAt } = message;
   return { _id, sender, message: text, file, contact, deletedAt };

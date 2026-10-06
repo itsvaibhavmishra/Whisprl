@@ -9,6 +9,7 @@ export const defaultSettings = {
   themeColorPresets: "default",
   sounds: true,
   notifications: false,
+  use24Hour: false,
 };
 
 export const NAVBAR = {

@@ -1,6 +1,8 @@
 import React from "react";
 import TimeAgo from "react-timeago";
 
+import { formatClock } from "@/utils/formatMessageTime";
+
 export const getSimpleData = (inputDate) => {
   const months = [
     "January",
@@ -46,7 +48,7 @@ export const getSimpleData = (inputDate) => {
   return formattedDate;
 };
 
-const formatTime = (time) => {
+const formatTime = (time, use24Hour) => {
   // Custom formatter for TimeAgo
   const customFormatter = (value, unit, suffix) => {
     const currentDate = new Date();
@@ -58,11 +60,7 @@ const formatTime = (time) => {
       currentDate.getMonth() === messageDate.getMonth() &&
       currentDate.getFullYear() === messageDate.getFullYear()
     ) {
-      return messageDate.toLocaleString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      });
+      return formatClock(messageDate, use24Hour);
     }
 
     // Format as yesterday if it's yesterday

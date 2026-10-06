@@ -22,7 +22,7 @@ import { SearchFriends } from "@/redux/slices/actions/userActions";
 import { clearSearchUsers } from "@/redux/slices/contactSlice";
 import { clearSearch } from "@/redux/slices/userSlice";
 import ChatRow from "@/sections/chat/list/ChatRow";
-import { identityOf, peerOf } from "@/utils/chats";
+import { identityOf, isDeleted, peerOf } from "@/utils/chats";
 import getAvatar from "@/utils/createAvatar";
 
 const SEARCH_PAUSE_MS = 400;
@@ -129,7 +129,8 @@ const ChatList = ({ onNewGroup }) => {
 
   // a cleared chat keeps its place, empty, as it would anywhere else
   const isListed = (conversation) =>
-    conversation.latestMessage || conversation.clearedAt || conversation._id === activeConversation?._id;
+    conversation._id === activeConversation?._id ||
+    (!isDeleted(conversation) && Boolean(conversation.latestMessage || conversation.clearedAt));
   // a search looks through archived chats too
   const isInView = (conversation) => Boolean(needle) || Boolean(conversation.isArchived) === isShowingArchived;
   const activeFilter = isShowingArchived ? "all" : filter;

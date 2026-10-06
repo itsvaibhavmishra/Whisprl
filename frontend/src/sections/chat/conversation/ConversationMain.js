@@ -80,6 +80,7 @@ const ConversationMain = () => {
 
   const statusLabelFor = (item) => {
     if (item.type === "queued") return item.entry.status !== "failed" && item === lastItem ? "Sending…" : null;
+    if (item.message.isEditPending) return "Sending…";
     if ((!peer && !isGroup) || item.message.sender._id !== user._id) return null;
     const isLiveStatus = lastIsOursAndUnseen && item === lastItem;
     return isLiveStatus || item.message._id === detailsId ? statusOf(item) : null;

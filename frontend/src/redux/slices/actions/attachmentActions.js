@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { FlushOutbox, ReceiveMessageUpdate } from "@/redux/slices/actions/chatActions";
+import { FlushOutbox, ReceiveMessageUpdate, quoteOf } from "@/redux/slices/actions/chatActions";
 import {
   addFiles,
   clearFiles,
@@ -9,6 +9,7 @@ import {
   queueMessage,
   removeFile,
   removeMessage,
+  setReplyingTo,
   transferEnded,
   transferProgress,
   updateQueuedMessage,
@@ -36,6 +37,7 @@ import axios from "@/utils/axios";
 import { sealFile } from "@/utils/crypto/fileCipher";
 import { notify, notifyError } from "@/utils/notify";
 import { COMPRESS_SHARE, VideoRefusal, compressVideo, probeVideo } from "@/utils/video";
+import { completeVoiceFile } from "@/utils/voice";
 import uuidv4 from "@/utils/uuidv4";
 
 const UPLOAD_PAUSES = [2000, 5000];
@@ -170,6 +172,11 @@ export const PrepareQueued = (clientId) => async (dispatch, getState) => {
       replaceHeldFile(clientId, shrunk.file);
       file = { ...file, name: shrunk.file.name, mimeType: shrunk.file.type, size: shrunk.file.size, width: shrunk.width ?? file.width, height: shrunk.height ?? file.height };
     }
+    if (file.kind === "voice") {
+      const complete = await completeVoiceFile(attachmentFile(clientId));
+      replaceHeldFile(clientId, complete);
+      file = { ...file, mimeType: complete.type, size: complete.size };
+    }
     controller.signal.throwIfAborted();
     file = { ...file, ...(await sealedKeyOf(clientId)) };
     if (!isLatest()) return;
@@ -215,6 +222,26 @@ export const SendAttachments = (caption, isViewOnce = false) => async (dispatch,
 
   // one at a time, so the files ahead in the group are not slowed by a video being compressed behind them
   for (const attachment of files) await dispatch(PrepareQueued(attachment.id));
+};
+
+// ------------- Send A Voice Message -------------
+export const SendVoiceMessage = ({ file, duration, waveform }) => (dispatch, getState) => {
+  const { activeConversation, messages, replyingTo } = getState().chat;
+  const clientId = holdAttachment(file);
+  dispatch(
+    queueMessage({
+      clientId,
+      status: "preparing",
+      senderId: getState().user.user._id,
+      conversationId: activeConversation._id,
+      afterId: messages.at(-1)?._id,
+      createdAt: new Date().toISOString(),
+      file: { name: "Voice message", mimeType: file.type, size: file.size, duration, waveform, kind: "voice" },
+      replyTo: quoteOf(replyingTo),
+    })
+  );
+  if (replyingTo) dispatch(setReplyingTo(null));
+  dispatch(PrepareQueued(clientId));
 };
 
 // ------------- Cancel A Send -------------

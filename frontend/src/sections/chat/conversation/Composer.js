@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Box, IconButton, Popover, Stack, TextField, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Box, IconButton, Popover, Stack, TextField, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { ArrowBendUpLeft, PaperPlaneTilt, PencilSimple, Smiley, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,14 +12,26 @@ import { setDraft, setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
 import AttachMenu from "@/sections/chat/conversation/AttachMenu";
 import MentionSuggestions from "@/sections/chat/conversation/MentionSuggestions";
 import ShareContactDialog from "@/sections/chat/conversation/ShareContactDialog";
+import VoiceRecorder from "@/sections/chat/conversation/VoiceRecorder";
 import { useTyping } from "@/sections/chat/conversation/useTyping";
+import getAvatar from "@/utils/createAvatar";
 import { summaryOf } from "@/utils/messageSummary";
 
 const MAX_SUGGESTIONS = 6;
 
 const mentionQueryBefore = (text, caret) => text.slice(0, caret).match(/(?:^|\s)@([^\s@]*)$/)?.[1] ?? null;
 
-const Banner = ({ icon: Icon, title, text, onClose }) => (
+const ROUND_BUTTON = {
+  width: 46,
+  height: 46,
+  mb: 0.25,
+  color: "common.white",
+  bgcolor: "primary.main",
+  "&:hover": { bgcolor: "primary.dark" },
+  "&.Mui-disabled": { color: "common.white", bgcolor: "primary.main", opacity: 0.45 },
+};
+
+const Banner = ({ icon: Icon, leading, title, text, onClose }) => (
   <Stack
     direction="row"
     alignItems="center"
@@ -34,7 +46,7 @@ const Banner = ({ icon: Icon, title, text, onClose }) => (
       bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
     }}
   >
-    <Icon size={18} aria-hidden />
+    {leading ?? <Icon size={18} aria-hidden />}
     <Box sx={{ minWidth: 0, flex: 1 }}>
       <Typography variant="caption" component="p" sx={{ m: 0, fontWeight: 700, color: "primary.main" }}>
         {title}
@@ -52,11 +64,14 @@ const Banner = ({ icon: Icon, title, text, onClose }) => (
 const Composer = () => {
   const dispatch = useDispatch();
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
-  const meId = useSelector((state) => state.user.user._id);
+  const theme = useTheme();
+  const user = useSelector((state) => state.user.user);
+  const meId = user._id;
   const { activeConversation: conversation, replyingTo, editing, drafts } = useSelector((state) => state.chat);
   const [value, setValue] = useState(drafts[conversation._id] ?? "");
   const [mentionIds, setMentionIds] = useState([]);
   const [mentionQuery, setMentionQuery] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [emojiAnchor, setEmojiAnchor] = useState(null);
   const [isSharingContact, setIsSharingContact] = useState(false);
@@ -161,7 +176,9 @@ const Composer = () => {
     if (event.key === "Enter" && !event.shiftKey) submit(event);
   };
 
-  const replyAuthor = replyingTo?.sender?._id === meId ? "yourself" : replyingTo?.sender?.firstName ?? "message";
+  const isReplyToSelf = replyingTo?.sender?._id === meId;
+  const replyAuthor = isReplyToSelf ? "yourself" : replyingTo?.sender?.firstName ?? "message";
+  const replyPerson = isReplyToSelf ? user : replyingTo?.sender;
 
   return (
     <Box
@@ -173,15 +190,16 @@ const Composer = () => {
       {replyingTo && (
         <Banner
           icon={ArrowBendUpLeft}
+          leading={conversation.isGroup && replyPerson && getAvatar(replyPerson.avatar, replyPerson.firstName, theme, 24)}
           title={`Replying to ${replyAuthor}`}
           text={summaryOf(replyingTo)}
           onClose={() => dispatch(setReplyingTo(null))}
         />
       )}
 
-      <Stack direction="row" alignItems="flex-end" spacing={{ xs: 0.5, md: 1 }}>
+      <Stack direction="row" alignItems="flex-end" spacing={{ xs: 0.5, md: 1 }} sx={{ position: "relative" }}>
         {!editing && (
-          <Box sx={{ pb: 0.5 }}>
+          <Box inert={isRecording ? "" : undefined} sx={{ pb: 0.5 }}>
             <AttachMenu
               onMedia={() => dispatch(ChooseAttachments("media"))}
               onDocument={() => dispatch(ChooseAttachments("doc"))}
@@ -192,6 +210,7 @@ const Composer = () => {
 
         <TextField
           ref={fieldRef}
+          inert={isRecording ? "" : undefined}
           inputRef={inputRef}
           value={value}
           onChange={(event) => changeText(event.target.value, event.target.selectionStart)}
@@ -221,26 +240,17 @@ const Composer = () => {
           }}
         />
 
-        <Tooltip title={editing ? "Save" : "Send"}>
-          <span>
-            <IconButton
-              type="submit"
-              aria-label={editing ? "Save edit" : "Send"}
-              disabled={!value.trim()}
-              sx={{
-                width: 46,
-                height: 46,
-                mb: 0.25,
-                color: "common.white",
-                bgcolor: "primary.main",
-                "&:hover": { bgcolor: "primary.dark" },
-                "&.Mui-disabled": { color: "common.white", bgcolor: "primary.main", opacity: 0.45 },
-              }}
-            >
-              <PaperPlaneTilt size={20} weight="fill" />
-            </IconButton>
-          </span>
-        </Tooltip>
+        {(value.trim() || editing) && !isRecording ? (
+          <Tooltip title={editing ? "Save" : "Send"}>
+            <span>
+              <IconButton type="submit" aria-label={editing ? "Save edit" : "Send"} disabled={!value.trim()} sx={ROUND_BUTTON}>
+                <PaperPlaneTilt size={20} weight="fill" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        ) : (
+          <VoiceRecorder buttonSx={ROUND_BUTTON} onRecordingChange={setIsRecording} />
+        )}
       </Stack>
 
       <MentionSuggestions anchorEl={fieldRef.current} people={suggestions} activeIndex={activeSuggestion} onPick={pickMention} />

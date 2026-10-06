@@ -400,6 +400,7 @@ $ npm run build
 │   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
+│   │   │   ├── useMessageTime.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
 │   │   ├── layouts/
@@ -489,6 +490,7 @@ $ npm run build
 │   │   │   │   │   ├── ShareContactDialog.js
 │   │   │   │   │   ├── useChatScroll.js
 │   │   │   │   │   ├── useTyping.js
+│   │   │   │   │   ├── VoiceRecorder.js
 │   │   │   │   ├── details/
 │   │   │   │   │   ├── ChatControls.js
 │   │   │   │   │   ├── DetailsPanel.js
@@ -523,9 +525,12 @@ $ npm run build
 │   │   │   │   │   ├── SeenMarker.js
 │   │   │   │   │   ├── TransferRing.js
 │   │   │   │   │   ├── TypingBubble.js
+│   │   │   │   │   ├── useSwipeToReply.js
 │   │   │   │   │   ├── VideoMessage.js
 │   │   │   │   │   ├── ViewOnceMessage.js
 │   │   │   │   │   ├── ViewOnceViewer.js
+│   │   │   │   │   ├── VoiceMessage.js
+│   │   │   │   │   ├── Waveform.js
 │   │   │   │   ├── ChatCanvas.js
 │   │   │   │   ├── EmptyChat.js
 │   │   │   ├── contacts/
@@ -646,6 +651,7 @@ $ npm run build
 │   │   │   ├── attachments.js
 │   │   │   ├── axios.js
 │   │   │   ├── chats.js
+│   │   │   ├── chats.test.js
 │   │   │   ├── createAvatar.js
 │   │   │   ├── formatMessageTime.js
 │   │   │   ├── formatMessageTime.test.js
@@ -676,6 +682,8 @@ $ npm run build
 │   │   │   ├── truncateText.js
 │   │   │   ├── uuidv4.js
 │   │   │   ├── video.js
+│   │   │   ├── voice.js
+│   │   │   ├── voice.test.js
 │   │   ├── App.js
 │   │   ├── config.js
 │   │   ├── index.css

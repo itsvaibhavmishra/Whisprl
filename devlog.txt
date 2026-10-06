@@ -54,6 +54,11 @@
     - Videos can be sent view once too
     - Status: share photos, videos and text with your friends for 24 hours, end-to-end encrypted, and see who viewed each one
     - Choose friends to hide your status from in settings
+    - Swipe a message towards the middle of the chat to reply to it
+    - A 24-hour time setting, with times shown on the 12-hour clock by default
+    - Delete a chat for yourself: it leaves your list and its messages are cleared for you, until a new message brings it back
+    - Voice messages up to 15 minutes, end-to-end encrypted: hold the mic to record and let go to send, slide left to cancel, or slide up (or click, on a computer) to record hands-free
+    - Voice messages play at 1x, 1.5x or 2x, with a waveform that fills as they play and jumps to wherever you tap
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -80,6 +85,8 @@
     - A message you have started stays as a draft when you switch to another chat
     - Whisprl's own doodles sit behind your messages
     - The welcome page and the terms cover end-to-end encryption, group chats, videos and Status
+    - An edited message changes the moment you send it, and shows Sending… until it is saved
+    - A reply in a group shows the photo and name of the person it answers
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived
@@ -109,6 +116,7 @@
     - Whisprl no longer logs you out on its own, and Safari and other browsers that block cookies from other sites stay logged in, after logging in once more with this update
     - A session that ends shows one notice instead of several
     - Full-screen views on a phone fill the whole screen, without a gap at the edges
+    - A message that arrives while the chat list is still loading no longer drops out of the list
 
   - Developers:
     - The frontend has its first tests, and the gate runs them
