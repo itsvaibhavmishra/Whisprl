@@ -22,6 +22,9 @@ const conversationSchema = mongoose.Schema(
 
     lastSeen: { type: Map, of: mongoose.Schema.ObjectId },
 
+    // seconds a new message lives for, set by either person in a direct chat or a manager in a group
+    disappearAfter: { type: Number },
+
     pins: [
       {
         _id: false,

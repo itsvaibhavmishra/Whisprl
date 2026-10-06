@@ -1,10 +1,11 @@
 import { Box, ButtonBase, Stack, Typography, useTheme } from "@mui/material";
+import { BellSlash } from "phosphor-react";
 import { alpha } from "@mui/material/styles";
 import { useDispatch, useSelector } from "react-redux";
 
 import StyledBadge from "@/components/StyledBadge";
 import { OpenConversation } from "@/redux/slices/actions/chatActions";
-import { identityOf, isOnline as isPersonOnline } from "@/utils/chats";
+import { identityOf, isMuted, isOnline as isPersonOnline } from "@/utils/chats";
 import getAvatar from "@/utils/createAvatar";
 import formatTime from "@/utils/formatTime";
 import { describeEvent, typingLabel, typingNamesIn } from "@/utils/groups";
@@ -23,6 +24,7 @@ const ChatRow = ({ conversation, isActive }) => {
   const { name, avatar, peer } = identityOf(conversation, meId);
   const latest = conversation.latestMessage;
   const unread = conversation.unread ?? 0;
+  const isQuiet = isMuted(conversation);
   const isOnline = Boolean(peer && peer._id !== meId && isPersonOnline(peer, onlineFriends));
   const typists = typingNamesIn(conversation, typingConversation, meId);
 
@@ -78,8 +80,12 @@ const ChatRow = ({ conversation, isActive }) => {
             <Typography variant="subtitle2" noWrap sx={{ flex: 1, fontWeight: unread ? 800 : 600 }}>
               {name}
             </Typography>
+            {isQuiet && <BellSlash size={14} aria-label="Muted" color={theme.palette.text.secondary} />}
             {latest && (
-              <Typography variant="caption" sx={{ whiteSpace: "nowrap", color: unread ? "primary.main" : "text.secondary", fontWeight: unread ? 700 : 400 }}>
+              <Typography
+                variant="caption"
+                sx={{ whiteSpace: "nowrap", color: unread && !isQuiet ? "primary.main" : "text.secondary", fontWeight: unread ? 700 : 400 }}
+              >
                 {formatTime(latest.createdAt)}
               </Typography>
             )}
@@ -107,7 +113,7 @@ const ChatRow = ({ conversation, isActive }) => {
                   borderRadius: 99,
                   display: "grid",
                   placeItems: "center",
-                  bgcolor: "primary.main",
+                  bgcolor: isQuiet ? "text.disabled" : "primary.main",
                   color: "common.white",
                   typography: "caption",
                   fontWeight: 700,

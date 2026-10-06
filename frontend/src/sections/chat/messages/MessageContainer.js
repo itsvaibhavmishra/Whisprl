@@ -12,6 +12,7 @@ import MessageActions from "@/sections/chat/messages/MessageActions";
 import MessageText from "@/sections/chat/messages/MessageText";
 import Reactions from "@/sections/chat/messages/Reactions";
 import ReplyQuote from "@/sections/chat/messages/ReplyQuote";
+import ViewOnceMessage from "@/sections/chat/messages/ViewOnceMessage";
 import SeenMarker, { SeenByRow } from "@/sections/chat/messages/SeenMarker";
 import getAvatar from "@/utils/createAvatar";
 import { formatMessageTime } from "@/utils/formatMessageTime";
@@ -66,7 +67,7 @@ const MessageContainer = ({
 
   useEffect(() => () => clearTimeout(clickTimer.current), []);
 
-  const files = filesOf(message);
+  const files = message.viewOnce ? [] : filesOf(message);
   const hasImages = files.some((file) => file.fileType === "image");
   const hasDocs = files.some((file) => file.fileType === "document");
   const isFileMsg = msgType === "file" || msgType === "file_with_caption";
@@ -237,6 +238,7 @@ const MessageContainer = ({
               </Typography>
             ) : (
               <>
+                {message.viewOnce && <ViewOnceMessage message={message} isMine={isMine} isGroup={conversation?.isGroup} meId={user._id} />}
                 {message.contact && <ContactCard contact={message.contact} isMine={isMine} />}
                 {hasImages && <ImageMessage files={files} />}
                 {hasDocs && (

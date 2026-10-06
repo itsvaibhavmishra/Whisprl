@@ -12,6 +12,8 @@ export const identityOf = (conversation, meId) => {
 export const withArrivals = (gathered, messages) =>
   [...new Map([...(gathered?.messages ?? []), ...messages].map((message) => [message._id, message])).values()];
 
+export const isMuted = (conversation) => Boolean(conversation.mutedUntil) && new Date(conversation.mutedUntil) > new Date();
+
 // a live presence update outranks the status the chat list was loaded with
 export const isOnline = (person, onlineFriends) =>
   (onlineFriends.find((friend) => friend._id === person._id)?.onlineStatus ?? person.onlineStatus) === "online";

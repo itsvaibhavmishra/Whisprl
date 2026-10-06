@@ -50,6 +50,7 @@ const queuedMessage = (entry, me) => ({
   mentions: entry.mentions,
   replyTo: entry.replyTo,
   forwarded: Boolean(entry.forwardOf),
+  viewOnce: entry.viewOnce,
   attachment: entry.file && { status: "uploading" },
   outboxEntry: entry,
 });

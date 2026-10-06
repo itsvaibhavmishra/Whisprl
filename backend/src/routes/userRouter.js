@@ -14,6 +14,7 @@ import {
   updateQuickReactions,
   updateUsername,
 } from "#src/controllers/userController.js";
+import { block, getBlocked, report, unblock } from "#src/controllers/safetyController.js";
 
 const userRouter = express.Router();
 
@@ -34,6 +35,13 @@ userRouter.route("/change-password").post(trimRequest.all, protect, writeLimit()
 
 // Username Routes
 userRouter.route("/username").get(protect, readLimit(), checkUsernameAvailable).put(protect, writeLimit(), updateUsername);
+
+// Block and Report Routes
+userRouter.route("/blocked").get(protect, readLimit(), getBlocked);
+
+userRouter.route("/blocked/:user_id").put(protect, writeLimit(), block).delete(protect, writeLimit(), unblock);
+
+userRouter.route("/report").post(protect, writeLimit(), report);
 
 // Quick Reactions Route
 userRouter.route("/quick-reactions").put(protect, writeLimit(), updateQuickReactions);

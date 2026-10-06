@@ -10,6 +10,7 @@ import {
   sendFriendRequest,
   unfriend,
 } from "#src/services/friendsService.js";
+import { presenceAudienceOf } from "#src/services/blockService.js";
 import { searchFriendsOf } from "#src/services/userService.js";
 import { assertText } from "#src/utils/accountRules.js";
 
@@ -126,7 +127,7 @@ export const getSentRequests = async (req, res, next) => {
 // --------------------------------------------------------------------
 
 // ----------------------- Socket: Friend Status -----------------------
-export const emitFriendStatus = (io, user, onlineStatus) => {
+export const emitFriendStatus = async (io, user, onlineStatus) => {
   const { _id, firstName, lastName, avatar } = user;
-  io.to(user.friends.map(String)).emit("online_friends", { _id, firstName, lastName, avatar, onlineStatus });
+  io.to(await presenceAudienceOf(user)).emit("online_friends", { _id, firstName, lastName, avatar, onlineStatus });
 };

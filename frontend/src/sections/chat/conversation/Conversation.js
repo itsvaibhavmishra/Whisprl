@@ -3,6 +3,7 @@ import { Button, Stack, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
 import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
+import { UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
 import FileUploadCont from "@/sections/chat/attachments/FileUploadCont";
 import ChatSearchBar from "@/sections/chat/conversation/ChatSearchBar";
@@ -34,12 +35,15 @@ const Conversation = () => {
   const dispatch = useDispatch();
   const { activeConversation, activeConvoFriendship, files } = useSelector((state) => state.chat);
   const keyStatus = useSelector((state) => state.encryption.status);
-  const meId = useSelector((state) => state.user.user._id);
+  const { _id: meId, blocked = [] } = useSelector((state) => state.user.user);
+  const friends = useSelector((state) => state.user.friends);
   const [isSearching, setIsSearching] = useState(false);
 
   const conversationId = activeConversation._id;
   const peer = activeConversation.isGroup ? null : peerOf(activeConversation, meId);
   const peerHasNoKey = peer && peer._id !== meId && !peer.publicKeys?.length;
+  const hasBlockedPeer = Boolean(peer && blocked.includes(peer._id));
+  const isFriend = Boolean(peer && friends.some((friend) => friend._id === peer._id));
   const lockedReason = lockedReasonFor(keyStatus);
 
   useEffect(() => {
@@ -55,7 +59,26 @@ const Conversation = () => {
   }, [conversationId, dispatch]);
 
   const composer = () => {
-    if (!activeConvoFriendship) return <ComposerNotice>You are no longer friends, so you can't send messages here.</ComposerNotice>;
+    if (hasBlockedPeer) {
+      return (
+        <ComposerNotice
+          action={
+            <Button size="small" variant="contained" onClick={() => dispatch(UnblockUser(peer._id))}>
+              Unblock
+            </Button>
+          }
+        >
+          You blocked {peer.firstName}.
+        </ComposerNotice>
+      );
+    }
+    if (!activeConvoFriendship) {
+      return (
+        <ComposerNotice>
+          {isFriend ? `You can't message ${peer.firstName} right now.` : "You are no longer friends, so you can't send messages here."}
+        </ComposerNotice>
+      );
+    }
     if (lockedReason) {
       return (
         <ComposerNotice

@@ -4,9 +4,10 @@ import {
   IconButton,
   InputBase,
   Stack,
+  Tooltip,
   useTheme,
 } from "@mui/material";
-import { PaperPlaneTilt, Plus, XCircle } from "phosphor-react";
+import { NumberCircleOne, PaperPlaneTilt, Plus, XCircle } from "phosphor-react";
 import { useSelector, useDispatch } from "react-redux";
 import { setActiveFileIndex } from "@/redux/slices/chatSlice";
 import { ChooseAttachments, RemoveAttachment, SendAttachments } from "@/redux/slices/actions/attachmentActions";
@@ -17,9 +18,13 @@ const FileFooter = () => {
   const dispatch = useDispatch();
   const { files, activeFileIndex } = useSelector((state) => state.chat);
   const [caption, setCaption] = useState("");
+  const [isViewOnce, setIsViewOnce] = useState(false);
+  const canBeViewOnce = files.length === 1 && files[0].kind === "image";
+  const sendsViewOnce = isViewOnce && canBeViewOnce;
 
+  // a view-once photo goes without a caption, which would stay in the chat after the photo is gone
   const handleSend = () => {
-    dispatch(SendAttachments(caption.trim() || undefined));
+    dispatch(SendAttachments(sendsViewOnce ? undefined : caption.trim() || undefined, sendsViewOnce));
     setCaption("");
   };
 
@@ -134,9 +139,22 @@ const FileFooter = () => {
 
       {/* Caption input + send button */}
       <Stack direction="row" spacing={1} alignItems="center">
+        {canBeViewOnce && (
+          <Tooltip title={sendsViewOnce ? "View once is on" : "View once"}>
+            <IconButton
+              aria-label="View once"
+              aria-pressed={sendsViewOnce}
+              onClick={() => setIsViewOnce((isOn) => !isOn)}
+              sx={{ color: sendsViewOnce ? "primary.main" : "text.secondary" }}
+            >
+              <NumberCircleOne size={24} weight={sendsViewOnce ? "fill" : "regular"} />
+            </IconButton>
+          </Tooltip>
+        )}
         <InputBase
-          placeholder="Add a caption..."
-          value={caption}
+          placeholder={sendsViewOnce ? "View once photos have no caption" : "Add a caption..."}
+          disabled={sendsViewOnce}
+          value={sendsViewOnce ? "" : caption}
           onChange={(e) => setCaption(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -154,6 +172,7 @@ const FileFooter = () => {
           }}
         />
         <IconButton
+          aria-label="Send"
           onClick={handleSend}
           disabled={files.length === 0}
           sx={{

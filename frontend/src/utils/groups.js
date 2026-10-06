@@ -37,6 +37,10 @@ const capitalised = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
 export const firstNameIn = (conversation, userId, meId) => capitalised(nameIn(conversation, userId, meId));
 
+export const DAY_SECONDS = 24 * 60 * 60;
+
+export const durationOf = (seconds) => (seconds < 2 * DAY_SECONDS ? `${seconds / 3600} hours` : `${seconds / DAY_SECONDS} days`);
+
 const SENTENCES = {
   created: ({ actor, event }) => `${actor} created "${event.name}"`,
   added: ({ actor, targets }) => `${actor} added ${targets}`,
@@ -48,6 +52,10 @@ const SENTENCES = {
   admin_removed: ({ actor, targets }) => `${actor} removed ${targets} as an admin`,
   owner: ({ targets }) => `${targets} ${targets === "you" ? "now own" : "now owns"} the group`,
   pinned: ({ actor }) => `${actor} pinned a message`,
+  disappearing: ({ actor, event }) =>
+    event.seconds
+      ? `${actor} turned on disappearing messages. New messages disappear after ${durationOf(event.seconds)}`
+      : `${actor} turned off disappearing messages`,
 };
 
 export const describeEvent = (message, group, meId) => {

@@ -205,6 +205,7 @@ $ npm run build
 │   ├── src/
 │   │   ├── controllers/
 │   │   │   ├── authController.js
+│   │   │   ├── chatSettingsController.js
 │   │   │   ├── conversationController.js
 │   │   │   ├── friendsController.js
 │   │   │   ├── groupController.js
@@ -212,6 +213,7 @@ $ npm run build
 │   │   │   ├── messageActionController.js
 │   │   │   ├── messageController.js
 │   │   │   ├── passkeyController.js
+│   │   │   ├── safetyController.js
 │   │   │   ├── socialController.js
 │   │   │   ├── userController.js
 │   │   ├── middlewares/
@@ -221,12 +223,14 @@ $ npm run build
 │   │   │   ├── socketMiddleware.js
 │   │   │   ├── socketRateLimit.js
 │   │   ├── models/
+│   │   │   ├── chatPreferenceModel.js
 │   │   │   ├── conversationModel.js
 │   │   │   ├── friendRequestModel.js
 │   │   │   ├── index.js
 │   │   │   ├── messageModel.js
 │   │   │   ├── passkeyChallengeModel.js
 │   │   │   ├── passkeyModel.js
+│   │   │   ├── reportModel.js
 │   │   │   ├── sessionModel.js
 │   │   │   ├── userModel.js
 │   │   ├── routes/
@@ -241,7 +245,10 @@ $ npm run build
 │   │   │   ├── userRouter.js
 │   │   ├── services/
 │   │   │   ├── authService.js
+│   │   │   ├── blockService.js
+│   │   │   ├── chatPreferenceService.js
 │   │   │   ├── conversationService.js
+│   │   │   ├── disappearingService.js
 │   │   │   ├── fileUploadService.js
 │   │   │   ├── friendsService.js
 │   │   │   ├── groupService.js
@@ -250,6 +257,7 @@ $ npm run build
 │   │   │   ├── messageActionService.js
 │   │   │   ├── messageService.js
 │   │   │   ├── passkeyService.js
+│   │   │   ├── reportService.js
 │   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
 │   │   │   ├── userService.js
@@ -422,6 +430,7 @@ $ npm run build
 │   │   │   │   │   ├── attachmentActions.js
 │   │   │   │   │   ├── authActions.js
 │   │   │   │   │   ├── chatActions.js
+│   │   │   │   │   ├── chatSettingsActions.js
 │   │   │   │   │   ├── contactActions.js
 │   │   │   │   │   ├── encryptionActions.js
 │   │   │   │   │   ├── groupActions.js
@@ -473,9 +482,11 @@ $ npm run build
 │   │   │   │   │   ├── useChatScroll.js
 │   │   │   │   │   ├── useTyping.js
 │   │   │   │   ├── details/
+│   │   │   │   │   ├── ChatControls.js
 │   │   │   │   │   ├── DetailsPanel.js
 │   │   │   │   │   ├── GroupDetails.js
 │   │   │   │   │   ├── PersonDetails.js
+│   │   │   │   │   ├── ReportDialog.js
 │   │   │   │   │   ├── SharedContent.js
 │   │   │   │   ├── group/
 │   │   │   │   │   ├── AddMembersDialog.js
@@ -502,6 +513,8 @@ $ npm run build
 │   │   │   │   │   ├── ReplyQuote.js
 │   │   │   │   │   ├── SeenMarker.js
 │   │   │   │   │   ├── TypingBubble.js
+│   │   │   │   │   ├── ViewOnceMessage.js
+│   │   │   │   │   ├── ViewOnceViewer.js
 │   │   │   │   ├── ChatCanvas.js
 │   │   │   │   ├── EmptyChat.js
 │   │   │   ├── contacts/
@@ -528,6 +541,7 @@ $ npm run build
 │   │   │   │   ├── AccountSummary.js
 │   │   │   │   ├── ProfileEditor.js
 │   │   │   ├── settings/
+│   │   │   │   ├── BlockedPeopleSetting.js
 │   │   │   │   ├── ChangePasswordDialog.js
 │   │   │   │   ├── ChatPreview.js
 │   │   │   │   ├── PasskeySetting.js
@@ -628,6 +642,7 @@ $ npm run build
 │   │   │   ├── messageFiles.js
 │   │   │   ├── messagePayload.js
 │   │   │   ├── messageSummary.js
+│   │   │   ├── notifications.js
 │   │   │   ├── notify.js
 │   │   │   ├── passkeys.js
 │   │   │   ├── reactions.js

@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
 import { populateMembers } from "#src/services/conversationService.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
+import { blockedEitherWay } from "#src/services/blockService.js";
 import { saveEvent } from "#src/services/messageService.js";
 import { validateProfileImage } from "#src/services/userService.js";
 
@@ -27,7 +28,7 @@ const assertRoomFor = (count) => {
   if (count > MAX_GROUP_SIZE) throw createHttpError.BadRequest(`A group can have up to ${MAX_GROUP_SIZE} people`);
 };
 
-const assertManager = (group, user_id) => {
+export const assertManager = (group, user_id) => {
   if (!isManager(group, user_id)) throw createHttpError.Forbidden("Only the group's owner and admins can do that");
 };
 
@@ -45,6 +46,8 @@ const addableFriends = async (user, user_ids) => {
     (id) => mongoose.isValidObjectId(id) && id !== String(user._id)
   );
   if (!ids.every((id) => isIn(user.friends, id))) throw createHttpError.BadRequest("You can only add your friends");
+  const blocked = await blockedEitherWay(user, ids);
+  if (ids.some((id) => blocked.has(id))) throw createHttpError.BadRequest("You can't add some of these friends");
 
   const ready = await UserModel.find({ _id: { $in: ids }, verified: true, "publicKeys.0": { $exists: true } }).select("_id");
   if (ready.length !== ids.length) {

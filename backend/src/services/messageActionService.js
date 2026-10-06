@@ -2,9 +2,9 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { MessageModel } from "#src/models/index.js";
-import { findMemberConversation, populateMembers } from "#src/services/conversationService.js";
-import { deleteFile, isCloudinaryFile } from "#src/services/fileUploadService.js";
+import { findMemberConversation, memberRooms, populateMembers } from "#src/services/conversationService.js";
 import {
+  deleteFilesNoLongerUsed,
   findSendableConversation,
   removeUnsentAttachment,
   toClientMessage,
@@ -36,15 +36,6 @@ export const editMessage = async (message_id, user_id, cipher) => {
   return answer(message, conversation);
 };
 
-// a forwarded copy shares the encrypted file, so the file goes only once nothing points at it
-const deleteFilesNoLongerUsed = async (urls) => {
-  const unused = [];
-  for (const url of urls.filter(isCloudinaryFile)) {
-    if (!(await MessageModel.exists({ $or: [{ "attachment.url": url }, { "files.url": url }] }))) unused.push(url);
-  }
-  await Promise.allSettled(unused.map((url) => deleteFile(url)));
-};
-
 // a file that never finished uploading was never seen, so its message goes entirely
 export const deleteForEveryone = async (message_id, user_id) => {
   const message = await findMessage(message_id, { ...STANDING, sender: user_id });
@@ -67,8 +58,9 @@ export const deleteForEveryone = async (message_id, user_id) => {
 
 export const hideForMe = async (message_id, user_id) => {
   const message = await findMessage(message_id, {});
-  await findMemberConversation(message.conversation, user_id);
-  await MessageModel.updateOne({ _id: message._id }, { $addToSet: { hiddenFor: user_id } });
+  const conversation = await findMemberConversation(message.conversation, user_id);
+  const hidden = await MessageModel.findOneAndUpdate({ _id: message._id }, { $addToSet: { hiddenFor: user_id } }, { new: true });
+  await deleteFileOnceSeen(hidden, conversation);
   return { _id: message._id, conversation: message.conversation };
 };
 
@@ -82,4 +74,37 @@ export const setReaction = async (message_id, user_id, cipher) => {
   if (cipher) await MessageModel.updateOne({ _id: message._id }, { $push: { reactions: { user: user_id, cipher } } });
 
   return answer(await MessageModel.findById(message._id), conversation);
+};
+
+// sent to the members there at the time, less anyone who has since deleted it for themselves
+const recipientsOf = (message, conversation) =>
+  memberRooms(conversation, message.sender).filter((member) => {
+    const joinedAt = conversation.joinedAt?.get(member);
+    return (!joinedAt || joinedAt <= message.createdAt) && !message.hiddenFor.some((userId) => userId.equals(member));
+  });
+
+const deleteFileOnceSeen = async (message, conversation) => {
+  if (!message.viewOnce || !message.attachment?.url) return;
+  const viewers = new Set(message.viewedBy.map(String));
+  if (!recipientsOf(message, conversation).every((member) => viewers.has(member))) return;
+
+  const { url } = message.attachment;
+  message.attachment = { status: "opened" };
+  await message.save();
+  await deleteFilesNoLongerUsed([url]);
+};
+
+// recorded in one write, so two members opening it at once cannot lose each other's view
+export const markOpened = async (message_id, user_id) => {
+  const message = await findMessage(message_id, { ...STANDING, viewOnce: true, sender: { $ne: user_id } });
+  const conversation = await populateMembers(await findMemberConversation(message.conversation, user_id));
+  const opened = await MessageModel.findOneAndUpdate(
+    { _id: message._id, viewedBy: { $ne: user_id } },
+    { $addToSet: { viewedBy: user_id } },
+    { new: true }
+  );
+  if (!opened) throw createHttpError.Gone("You have already opened this photo");
+
+  await deleteFileOnceSeen(opened, conversation);
+  return answer(opened, conversation);
 };

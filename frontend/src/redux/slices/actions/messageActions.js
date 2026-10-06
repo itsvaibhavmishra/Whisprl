@@ -150,6 +150,11 @@ export const RevealMessage = (messageId) => async (dispatch, getState) => {
   }
 };
 
+// ------------- View Once -------------
+export const MarkViewOnceOpened = createApiThunk("message/open-view-once", async (messageId) => {
+  await axios.post(`/message/${messageId}/open`);
+});
+
 // ------------- Groups In Common -------------
 export const GetCommonGroups = createApiThunk("conversation/common-groups", async (userId, { dispatch }) => {
   const { data } = await axios.get(`/conversation/common-groups/${userId}`);

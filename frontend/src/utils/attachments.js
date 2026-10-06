@@ -102,15 +102,20 @@ export const releaseAttachment = (id) => {
   held.delete(id);
 };
 
+const downloadAndOpen = (sealed) =>
+  fetch(sealed.url)
+    .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject(new Error("File not found"))))
+    .then((data) => openFile(data, sealed));
+
+// a view-once photo is never kept, so it is downloaded and decrypted only for the moment it is shown
+export const openViewOnceFile = async (sealed) => new Blob([await downloadAndOpen(sealed)], { type: sealed.mimeType });
+
 // a friend's file is downloaded and decrypted once, however many times it is shown
 const opened = new Map();
 
 export const openedFileUrl = (sealed) => {
   if (!opened.has(sealed.url)) {
-    const opening = fetch(sealed.url)
-      .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject(new Error("File not found"))))
-      .then((data) => openFile(data, sealed))
-      .then((bytes) => URL.createObjectURL(new Blob([bytes], { type: sealed.mimeType })));
+    const opening = downloadAndOpen(sealed).then((bytes) => URL.createObjectURL(new Blob([bytes], { type: sealed.mimeType })));
     opening.catch(() => opened.delete(sealed.url));
     opened.set(sealed.url, opening);
   }

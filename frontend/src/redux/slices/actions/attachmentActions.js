@@ -117,7 +117,8 @@ const sealedKeyOf = async (attachment) => {
 
 // ------------- Send Chosen Attachments -------------
 // images go as one captioned group; a single document carries the caption itself
-export const SendAttachments = (caption) => async (dispatch, getState) => {
+// a view-once photo travels without its blurred preview, which would otherwise outlive the photo
+export const SendAttachments = (caption, isViewOnce = false) => async (dispatch, getState) => {
   const { files, activeConversation, messages } = getState().chat;
   if (!files.length) return;
   dispatch(clearFiles());
@@ -125,7 +126,7 @@ export const SendAttachments = (caption) => async (dispatch, getState) => {
   const isImages = files[0].kind === "image";
   const captionFor = (index) => ((isImages && index === 0) || (!isImages && files.length === 1) ? caption : undefined);
   const batchId = uuidv4();
-  const details = files.map(detailsOf);
+  const details = files.map((attachment) => (isViewOnce ? { ...detailsOf(attachment), preview: undefined } : detailsOf(attachment)));
 
   // queued before encrypting, so a message typed straight after can never overtake the files
   files.forEach((attachment, index) =>
@@ -140,6 +141,7 @@ export const SendAttachments = (caption) => async (dispatch, getState) => {
         caption: captionFor(index),
         file: details[index],
         batch: { batchId, batchIndex: index, batchTotal: files.length },
+        ...(isViewOnce && { viewOnce: true }),
       })
     )
   );

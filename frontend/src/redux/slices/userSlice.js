@@ -9,6 +9,7 @@ import {
   UpdateUsername,
 } from "@/redux/slices/actions/userActions";
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
+import { BlockUser, GetBlocked, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 
 // initial state for contacts menu
 const initialState = {
@@ -25,6 +26,7 @@ const initialState = {
   },
   accountSummary: null,
   passkeys: [],
+  blockedPeople: [],
 
   friends: [],
   onlineFriends: [],
@@ -108,6 +110,18 @@ const slice = createSlice({
     builder
       .addCase(UpdateProfile.fulfilled, (state, action) => {
         state.user = { ...state.user, ...action.payload.user };
+      })
+      .addCase(GetBlocked.fulfilled, (state, action) => {
+        state.blockedPeople = action.payload;
+      })
+      .addCase(BlockUser.fulfilled, (state, action) => {
+        state.user.blocked = [...(state.user.blocked ?? []), action.payload._id];
+        state.onlineFriends = state.onlineFriends.filter((friend) => friend._id !== action.payload._id);
+        state.blockedPeople = [...state.blockedPeople.filter((person) => person._id !== action.payload._id), action.payload];
+      })
+      .addCase(UnblockUser.fulfilled, (state, action) => {
+        state.user.blocked = (state.user.blocked ?? []).filter((userId) => userId !== action.payload);
+        state.blockedPeople = state.blockedPeople.filter((person) => person._id !== action.payload);
       })
       .addCase(UpdateUsername.fulfilled, (state, action) => {
         const { username, usernameChangedAt } = action.payload;

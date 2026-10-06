@@ -5,6 +5,7 @@ import validator from "validator";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
+import { presenceShownTo } from "#src/services/blockService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { assertStrongPassword, normalizeEmail, normalizeUsername } from "#src/utils/accountRules.js";
 
@@ -148,13 +149,11 @@ export const searchForUsers = async (keyword, page, user) => {
 export const searchFriendsOf = async (user, keyword, page) => {
   const filter = { ...nameOrEmailFilter(keyword), _id: { $in: user.friends } };
 
-  const [friends, totalCount] = await Promise.all([
-    UserModel.find(filter)
-      .select(SEARCH_FIELDS)
-      .skip(skipFor(page))
-      .limit(SEARCH_PAGE_SIZE),
+  const [found, totalCount] = await Promise.all([
+    UserModel.find(filter).select(SEARCH_FIELDS).skip(skipFor(page)).limit(SEARCH_PAGE_SIZE).lean(),
     UserModel.countDocuments(filter),
   ]);
+  const friends = await presenceShownTo(user, found);
 
   return { friends, totalCount };
 };

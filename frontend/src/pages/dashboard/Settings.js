@@ -15,6 +15,8 @@ import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
 import ChatPreview from "@/sections/settings/ChatPreview";
 import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import UsernameSetting from "@/sections/settings/UsernameSetting";
+import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
+import { askForNotifications, notificationPermission } from "@/utils/notifications";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
 import getAvatar from "@/utils/createAvatar";
 import useSettings from "@/hooks/useSettings";
@@ -61,6 +63,30 @@ const SoundSetting = () => {
   return (
     <SettingRow label="Message sounds" description="A sound when you send a message, and when one arrives.">
       <Switch checked={sounds} onChange={toggle} inputProps={{ "aria-label": "Message sounds" }} />
+    </SettingRow>
+  );
+};
+
+const NotificationSetting = () => {
+  const { notifications, onSetNotifications } = useSettings();
+  const [permission, setPermission] = useState(notificationPermission);
+  if (permission === "unsupported") return null;
+
+  const toggle = async () => {
+    if (notifications) return onSetNotifications(false);
+    const answer = await askForNotifications();
+    setPermission(answer);
+    if (answer === "granted") onSetNotifications(true);
+  };
+
+  const description =
+    permission === "denied"
+      ? "Your browser is blocking notifications from Whisprl. Allow them in this site's settings, then switch this on."
+      : "A notification for each new message while Whisprl is in the background. Muted chats stay quiet.";
+
+  return (
+    <SettingRow label="Notifications" description={description}>
+      <Switch checked={notifications && permission === "granted"} onChange={toggle} inputProps={{ "aria-label": "Notifications" }} />
     </SettingRow>
   );
 };
@@ -113,6 +139,8 @@ const Settings = () => {
           <SettingsSection title="Chats">
             <QuickReactionsSetting />
             <SoundSetting />
+            <NotificationSetting />
+            <BlockedPeopleSetting />
           </SettingsSection>
 
           <SettingsSection title="About Whisprl">

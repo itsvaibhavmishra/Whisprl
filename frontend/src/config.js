@@ -8,6 +8,7 @@ export const defaultSettings = {
   themeDirection: "ltr",
   themeColorPresets: "default",
   sounds: true,
+  notifications: false,
 };
 
 export const NAVBAR = {

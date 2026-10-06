@@ -3,7 +3,9 @@ import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
 import { MEMBER_FIELDS, QUOTED_FIELDS, findMemberConversation, firstIdAt, populateMembers } from "#src/services/conversationService.js";
-import { uploadFile } from "#src/services/fileUploadService.js";
+import { blockerBetween } from "#src/services/blockService.js";
+import { clearedAtFor } from "#src/services/chatPreferenceService.js";
+import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { currentKeyIdOf, isSealed } from "#src/services/keyService.js";
 
 const MAX_CIPHER_LENGTH = 64 * 1024;
@@ -23,12 +25,22 @@ const validateFriendship = async (sender_id, receiver_id) => {
   }
 };
 
+const assertNotBlocked = async (sender_id, receiver_id) => {
+  const blocker = await blockerBetween(sender_id, receiver_id);
+  if (!blocker) return;
+  throw createHttpError.Forbidden(blocker.equals(sender_id) ? "Unblock them to send a message" : "You can't message this person");
+};
+
 // a group's members need not all be friends; a direct chat needs the two people still to be
 export const findSendableConversation = async (convo_id, user_id) => {
   const conversation = await findMemberConversation(convo_id, user_id);
   const receiver_id = !conversation.isGroup && conversation.users.find((member) => !member.equals(user_id));
 
-  await Promise.all([receiver_id && validateFriendship(user_id, receiver_id), populateMembers(conversation)]);
+  await Promise.all([
+    receiver_id && validateFriendship(user_id, receiver_id),
+    receiver_id && assertNotBlocked(user_id, receiver_id),
+    populateMembers(conversation),
+  ]);
 
   return conversation;
 };
@@ -99,7 +111,7 @@ export const linksOf = async (conversation, user_id, { replyTo, forwardOf }) => 
     links.replyTo = replyTo;
   }
   if (forwardOf && mongoose.isValidObjectId(forwardOf)) {
-    const original = await MessageModel.findOne({ _id: forwardOf, deletedAt: null, event: { $exists: false } });
+    const original = await MessageModel.findOne({ _id: forwardOf, deletedAt: null, event: { $exists: false }, viewOnce: { $ne: true } });
     if (!original) throw createHttpError.NotFound("That message can no longer be forwarded");
     await findMemberConversation(original.conversation, user_id);
     links.forwarded = true;
@@ -132,8 +144,17 @@ export const saveMessage = async (conversation, msgData) => {
   return { message: toClientMessage(await withQuote(message), conversation), isNew: true };
 };
 
-export const saveEvent = (group, actor_id, type, { users = [], name } = {}) =>
-  saveMessage(group, { sender: actor_id, event: { type, users, name } });
+export const saveEvent = (group, actor_id, type, { users = [], name, seconds } = {}) =>
+  saveMessage(group, { sender: actor_id, event: { type, users, name, seconds } });
+
+// a forwarded copy shares the encrypted file, so the file goes only once nothing points at it
+export const deleteFilesNoLongerUsed = async (urls) => {
+  const unused = [];
+  for (const url of urls.filter(isCloudinaryFile)) {
+    if (!(await MessageModel.exists({ $or: [{ "attachment.url": url }, { "files.url": url }] }))) unused.push(url);
+  }
+  await Promise.allSettled(unused.map((url) => deleteFile(url)));
+};
 
 export const findDeliverableMessages = async (user_id) => {
   const messages = await MessageModel.find({ sender: user_id, awaitingKey: true }).populate({
@@ -241,12 +262,13 @@ const AROUND = PAGE_SIZE / 2;
 
 const isId = (value) => mongoose.isValidObjectId(value);
 
-// a member of a group sees what was sent from when they joined, since nothing earlier was sealed for them
-const readableBy = (conversation, reader_id, range) => {
+// a reader sees from when they joined a group, since nothing earlier was sealed for them, or from when they cleared the chat
+const readableBy = (conversation, reader_id, range, clearedAt) => {
   const joinedAt = conversation.isGroup && conversation.joinedAt?.get(String(reader_id));
+  const readFrom = [joinedAt, clearedAt].filter(Boolean).sort((first, second) => second - first)[0];
   const ids = {
     ...range,
-    ...(joinedAt && { $gte: firstIdAt(joinedAt) }),
+    ...(readFrom && { $gte: firstIdAt(readFrom) }),
   };
   return { conversation: conversation._id, hiddenFor: { $ne: reader_id }, ...(Object.keys(ids).length && { _id: ids }) };
 };
@@ -261,11 +283,11 @@ const pageOf = (filter, direction, size) =>
 
 // newest first by default; after a message to read on from it; around one to jump straight to it
 export const getConvoMessages = async (conversation, reader_id, { before, after, around } = {}) => {
+  const clearedAt = await clearedAtFor(reader_id, conversation._id);
+  const readable = (range) => readableBy(conversation, reader_id, range, clearedAt);
+
   if (isId(around)) {
-    const [older, newer] = await Promise.all([
-      pageOf(readableBy(conversation, reader_id, { $lte: around }), -1, AROUND),
-      pageOf(readableBy(conversation, reader_id, { $gt: around }), 1, AROUND),
-    ]);
+    const [older, newer] = await Promise.all([pageOf(readable({ $lte: around }), -1, AROUND), pageOf(readable({ $gt: around }), 1, AROUND)]);
     return {
       messages: [...older.slice(0, AROUND).reverse(), ...newer.slice(0, AROUND)],
       hasMore: older.length > AROUND,
@@ -274,10 +296,10 @@ export const getConvoMessages = async (conversation, reader_id, { before, after,
   }
 
   if (isId(after)) {
-    const page = await pageOf(readableBy(conversation, reader_id, { $gt: after }), 1, PAGE_SIZE);
+    const page = await pageOf(readable({ $gt: after }), 1, PAGE_SIZE);
     return { messages: page.slice(0, PAGE_SIZE), hasNewer: page.length > PAGE_SIZE };
   }
 
-  const page = await pageOf(readableBy(conversation, reader_id, isId(before) ? { $lt: before } : {}), -1, PAGE_SIZE);
+  const page = await pageOf(readable(isId(before) ? { $lt: before } : {}), -1, PAGE_SIZE);
   return { messages: page.slice(0, PAGE_SIZE).reverse(), hasMore: page.length > PAGE_SIZE };
 };
