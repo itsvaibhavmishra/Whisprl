@@ -13,6 +13,21 @@ const FileBody = () => {
   if (!activeFile) return null;
 
   const isImage = activeFile.kind === "image";
+  if (activeFile.kind === "video") {
+    return (
+      <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", overflow: "hidden", p: 2 }}>
+        <Box
+          component="video"
+          key={activeFile.id}
+          src={attachmentUrl(activeFile.id)}
+          poster={activeFile.preview}
+          controls
+          playsInline
+          sx={{ maxWidth: "100%", maxHeight: "100%", borderRadius: 2 }}
+        />
+      </Box>
+    );
+  }
 
   return (
     <Box

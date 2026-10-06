@@ -6,11 +6,25 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
+import MediaTile from "@/sections/chat/messages/MediaTile";
 import MessageImage from "@/sections/chat/messages/MessageImage";
+import { TransferOverlay, useTransfer } from "@/sections/chat/messages/TransferRing";
+import { VideoPlayer } from "@/sections/chat/messages/VideoMessage";
+import { fileKeyOf } from "@/utils/messageFiles";
 
 const THUMB_SIZE = 56;
 
-const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
+const PhotoSlide = ({ file }) => {
+  const transfer = useTransfer([file]);
+  return (
+    <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+      <MessageImage file={file} fit="contain" />
+      {transfer && <TransferOverlay transfer={transfer} />}
+    </Box>
+  );
+};
+
+const MediaLightbox = ({ open, onClose, items, startIndex = 0 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const swiperRef = useRef(null);
@@ -29,9 +43,9 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
     swiperRef.current?.slideTo(index);
   };
 
-  if (!images || images.length === 0) return null;
+  if (!items || items.length === 0) return null;
 
-  const showThumbs = images.length > 1;
+  const showThumbs = items.length > 1;
 
   return (
     <Dialog
@@ -66,7 +80,7 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
         }}
       >
         <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.75)" }}>
-          {activeIndex + 1} / {images.length}
+          {activeIndex + 1} / {items.length}
         </Typography>
         <IconButton
           onClick={onClose}
@@ -135,12 +149,12 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
           onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
           style={{ width: "100%", height: isMobile ? "calc(100dvh - 120px)" : 420 }}
         >
-          {images.map((img, i) => (
+          {items.map((item, index) => (
             <SwiperSlide
-              key={i}
+              key={fileKeyOf(item, index)}
               style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
             >
-              <MessageImage file={img} fit="contain" />
+              {item.fileType === "video" ? <VideoPlayer file={item} sx={{ width: "100%", height: "100%" }} /> : <PhotoSlide file={item} />}
             </SwiperSlide>
           ))}
         </Swiper>
@@ -156,15 +170,15 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
             px: 2,
             py: 1.5,
             overflowX: "auto",
-            justifyContent: images.length <= 6 ? "center" : "flex-start",
+            justifyContent: items.length <= 6 ? "center" : "flex-start",
             "&::-webkit-scrollbar": { height: 4 },
             "&::-webkit-scrollbar-thumb": { backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 2 },
           }}
         >
-          {images.map((img, i) => (
+          {items.map((item, index) => (
             <Box
-              key={i}
-              onClick={() => goToSlide(i)}
+              key={fileKeyOf(item, index)}
+              onClick={() => goToSlide(index)}
               sx={{
                 width: THUMB_SIZE,
                 height: THUMB_SIZE,
@@ -172,15 +186,15 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
                 borderRadius: 1,
                 overflow: "hidden",
                 cursor: "pointer",
-                border: i === activeIndex
+                border: index === activeIndex
                   ? `2px solid ${theme.palette.primary.main}`
                   : "2px solid transparent",
-                opacity: i === activeIndex ? 1 : 0.5,
+                opacity: index === activeIndex ? 1 : 0.5,
                 transition: "opacity 0.2s, border-color 0.2s",
                 "&:hover": { opacity: 1 },
               }}
             >
-              <MessageImage file={img} />
+              <MediaTile file={item} />
             </Box>
           ))}
         </Box>
@@ -189,4 +203,4 @@ const ImageLightbox = ({ open, onClose, images, startIndex = 0 }) => {
   );
 };
 
-export default ImageLightbox;
+export default MediaLightbox;

@@ -2,8 +2,11 @@ import { openFile } from "@/utils/crypto/fileCipher";
 import uuidv4 from "@/utils/uuidv4";
 
 // checked only here, since the server receives every file encrypted and cannot tell what it is
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
+
 export const ATTACHMENT_TYPES = {
-  image: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+  media: [...IMAGE_TYPES, ...VIDEO_TYPES],
   doc: [
     "application/pdf",
     "application/msword",
@@ -77,6 +80,28 @@ export const holdAttachment = (file) => {
 };
 
 export const attachmentFile = (id) => held.get(id)?.file;
+
+export const replaceHeldFile = (id, file) => {
+  const attachment = held.get(id);
+  URL.revokeObjectURL(attachment.url);
+  Object.assign(attachment, { file, url: URL.createObjectURL(file) });
+};
+
+// each step of a send replaces the one before, so its bubble stops whichever is running and a stale step knows it is stale
+export const startTransfer = (id) => {
+  const controller = new AbortController();
+  if (held.has(id)) held.get(id).transfer = controller;
+  return controller;
+};
+
+export const isCurrentTransfer = (id, controller) => held.get(id)?.transfer === controller;
+
+export const cancelTransfer = (id) => {
+  const controller = held.get(id)?.transfer;
+  if (!controller || controller.signal.aborted) return false;
+  controller.abort();
+  return true;
+};
 
 export const attachmentUrl = (id) => held.get(id)?.url ?? null;
 

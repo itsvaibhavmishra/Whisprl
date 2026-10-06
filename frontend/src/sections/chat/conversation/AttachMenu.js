@@ -2,11 +2,11 @@ import { useState } from "react";
 import { IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip } from "@mui/material";
 import { File, GameController, Image, Plus, User } from "phosphor-react";
 
-const AttachMenu = ({ onPhoto, onDocument, onContact }) => {
+const AttachMenu = ({ onMedia, onDocument, onContact }) => {
   const [anchor, setAnchor] = useState(null);
 
   const choices = [
-    { label: "Photos", icon: Image, onChoose: onPhoto },
+    { label: "Photos and videos", icon: Image, onChoose: onMedia },
     { label: "Document", icon: File, onChoose: onDocument },
     { label: "Contact", icon: User, onChoose: onContact },
     { label: "Games", icon: GameController, hint: "Coming soon" },

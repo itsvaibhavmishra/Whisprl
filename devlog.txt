@@ -48,6 +48,10 @@
     - Block someone so they can't message you or see when you're online, and report a person or a group
     - Disappearing messages, deleted after 24 hours, 7 days or 90 days
     - Send a photo that can be opened only once, deleted from storage as soon as it has been seen
+    - Send videos up to 3 minutes long, made smaller in your browser before they are encrypted and sent
+    - Send photos and videos together as one gallery, and swipe through them full screen
+    - A progress circle on photos and videos while they send, with a cancel button and Send again
+    - Videos can be sent view once too
 
   - Improvements:
     - The artwork loads several times faster, just as sharp

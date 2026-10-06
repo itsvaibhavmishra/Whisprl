@@ -271,6 +271,7 @@ $ npm run build
 │   │   │   ├── checkDispose.js
 │   │   │   ├── escapeRegex.js
 │   │   │   ├── sha256.js
+│   │   │   ├── video.js
 │   ├── .env copy
 │   ├── app.js
 │   ├── jsconfig.json
@@ -501,8 +502,9 @@ $ npm run build
 │   │   │   │   │   ├── DeleteMessageDialog.js
 │   │   │   │   │   ├── DocumentMessage.js
 │   │   │   │   │   ├── ForwardDialog.js
-│   │   │   │   │   ├── ImageLightbox.js
-│   │   │   │   │   ├── ImageMessage.js
+│   │   │   │   │   ├── MediaLightbox.js
+│   │   │   │   │   ├── MediaMessage.js
+│   │   │   │   │   ├── MediaTile.js
 │   │   │   │   │   ├── MessageActions.js
 │   │   │   │   │   ├── MessageContainer.js
 │   │   │   │   │   ├── MessageImage.js
@@ -512,7 +514,9 @@ $ npm run build
 │   │   │   │   │   ├── Reactions.js
 │   │   │   │   │   ├── ReplyQuote.js
 │   │   │   │   │   ├── SeenMarker.js
+│   │   │   │   │   ├── TransferRing.js
 │   │   │   │   │   ├── TypingBubble.js
+│   │   │   │   │   ├── VideoMessage.js
 │   │   │   │   │   ├── ViewOnceMessage.js
 │   │   │   │   │   ├── ViewOnceViewer.js
 │   │   │   │   ├── ChatCanvas.js

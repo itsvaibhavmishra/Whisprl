@@ -1,10 +1,10 @@
-import { filesOf } from "@/utils/messageFiles";
+import { filesOf, isMediaFile } from "@/utils/messageFiles";
 
 export const UNREAD_DIVIDER = "unread-divider";
 
 export const keyOf = (message) => message.clientId ?? message._id;
 
-const isBatchedPhoto = (message) => message.batchId && filesOf(message).some((file) => file.fileType === "image");
+const isBatchedMedia = (message) => message.batchId && filesOf(message).some(isMediaFile);
 
 const batchOf = (members) => ({
   type: "batch",
@@ -17,7 +17,7 @@ const batchOf = (members) => ({
   },
 });
 
-// photos one person sent together show as a single bubble; documents always stand alone
+// photos and videos one person sent together show as a single bubble; documents always stand alone
 const groupPhotos = (messages) => {
   const groups = [];
   let start = 0;
@@ -25,7 +25,7 @@ const groupPhotos = (messages) => {
     const lead = messages[start];
     let end = start + 1;
     while (
-      isBatchedPhoto(lead) &&
+      isBatchedMedia(lead) &&
       end < messages.length &&
       messages[end].batchId === lead.batchId &&
       messages[end].sender?._id === lead.sender?._id
@@ -50,6 +50,8 @@ const queuedMessage = (entry, me) => ({
   mentions: entry.mentions,
   replyTo: entry.replyTo,
   forwarded: Boolean(entry.forwardOf),
+  batchId: entry.batch?.batchId,
+  batchIndex: entry.batch?.batchIndex,
   viewOnce: entry.viewOnce,
   attachment: entry.file && { status: "uploading" },
   outboxEntry: entry,

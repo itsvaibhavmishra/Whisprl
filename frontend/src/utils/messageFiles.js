@@ -19,6 +19,7 @@ export const filesOf = (message) => {
       width: file.width,
       height: file.height,
       preview: file.preview,
+      duration: file.duration,
       localId: clientId,
       sealed: isReady ? { url: attachment.url, key: file.key, iv: file.iv, mimeType: file.mimeType } : null,
       isUploading: !isReady,
@@ -26,3 +27,7 @@ export const filesOf = (message) => {
     },
   ];
 };
+
+export const isMediaFile = (file) => file.fileType === "image" || file.fileType === "video";
+
+export const fileKeyOf = (file, index) => file.localId ?? file.sealed?.url ?? index;

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import useIsLoading from "@/hooks/useIsLoading";
 import { RemoveUnsentAttachment, RetryUpload, UploadAttachment } from "@/redux/slices/actions/attachmentActions";
 import { DiscardMessage, SendAgain } from "@/redux/slices/actions/chatActions";
-import { sealedCopyOf, sentMessageIdOf } from "@/utils/attachments";
+import { attachmentFile, sealedCopyOf, sentMessageIdOf } from "@/utils/attachments";
 
 const ProblemRow = ({ text, children }) => (
   <Stack direction="row" alignItems="center" spacing={0.5} sx={{ alignSelf: "flex-end" }}>
@@ -15,10 +15,10 @@ const ProblemRow = ({ text, children }) => (
   </Stack>
 );
 
-// a file that was never encrypted has no key to send, so it can only be deleted and chosen again
+// a file that was never sealed can be prepared again only while this tab still holds the original
 export const NotSent = ({ entry }) => {
   const dispatch = useDispatch();
-  const canSendAgain = !entry.file || Boolean(entry.file.key);
+  const canSendAgain = !entry.file || Boolean(entry.file.key) || Boolean(attachmentFile(entry.clientId));
 
   return (
     <ProblemRow text={entry.error ? `Not sent: ${entry.error}` : "Not sent"}>

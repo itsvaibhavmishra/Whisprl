@@ -20,11 +20,12 @@ import useIsLoading from "@/hooks/useIsLoading";
 import { HISTORY_LIMIT, LoadHistory } from "@/redux/slices/actions/messageActions";
 import { focusMessage } from "@/redux/slices/chatSlice";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
-import ImageLightbox from "@/sections/chat/messages/ImageLightbox";
-import MessageImage from "@/sections/chat/messages/MessageImage";
+import MediaLightbox from "@/sections/chat/messages/MediaLightbox";
+import MediaTile from "@/sections/chat/messages/MediaTile";
 import { withArrivals } from "@/utils/chats";
 import { linksIn } from "@/utils/links";
-import { filesOf } from "@/utils/messageFiles";
+import { fileKeyOf, filesOf } from "@/utils/messageFiles";
+import { formatDuration } from "@/utils/video";
 
 const MEDIA_PAGE = 60;
 
@@ -57,8 +58,9 @@ const SharedContent = ({ conversation }) => {
   }, [dispatch, conversation._id]);
 
   const shared = withArrivals(gathered, messages).filter((message) => !message.deletedAt && !message.event && !message.viewOnce).reverse();
-  const filesOfKind = (kind) => shared.flatMap((message) => filesOf(message).filter((file) => file.fileType === kind));
-  const media = filesOfKind("image");
+  const filesOfKind = (...kinds) =>
+    shared.flatMap((message) => filesOf(message).filter((file) => kinds.includes(file.fileType)).map((file) => ({ ...file, messageId: message._id })));
+  const media = filesOfKind("image", "video");
   const documents = filesOfKind("document");
   const links = shared.flatMap((message) => linksIn(message.message).map((link) => ({ ...link, messageId: message._id })));
   const counts = { media: media.length, links: links.length, docs: documents.length };
@@ -68,12 +70,12 @@ const SharedContent = ({ conversation }) => {
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 0.5 }}>
         {media.slice(0, shownMedia).map((file, index) => (
           <ButtonBase
-            key={`${file.localId ?? file.sealed?.url ?? index}`}
+            key={fileKeyOf(file, index)}
             onClick={() => setViewing(index)}
-            aria-label={`Open ${file.fileName}`}
+            aria-label={file.fileType === "video" ? `Open video, ${formatDuration(file.duration)}` : `Open ${file.fileName}`}
             sx={{ aspectRatio: "1", borderRadius: 1, overflow: "hidden" }}
           >
-            <MessageImage file={file} />
+            <MediaTile file={file} />
           </ButtonBase>
         ))}
       </Box>
@@ -85,7 +87,7 @@ const SharedContent = ({ conversation }) => {
           Show more
         </ButtonBase>
       )}
-      <ImageLightbox open={viewing !== null} onClose={() => setViewing(null)} images={media} startIndex={viewing ?? 0} />
+      <MediaLightbox open={viewing !== null} onClose={() => setViewing(null)} items={media} startIndex={viewing ?? 0} />
     </>
   );
 
@@ -120,7 +122,7 @@ const SharedContent = ({ conversation }) => {
     if (isGathering && !counts[tab]) {
       return <CircularProgress size={22} sx={{ display: "block", mx: "auto", my: 3 }} aria-label="Gathering shared items" />;
     }
-    if (tab === "media") return media.length ? mediaGrid() : <Empty>Photos shared in this chat show here.</Empty>;
+    if (tab === "media") return media.length ? mediaGrid() : <Empty>Photos and videos shared in this chat show here.</Empty>;
     if (tab === "links") return links.length ? linkList() : <Empty>Links shared in this chat show here.</Empty>;
     return documents.length ? <DocumentMessage files={documents} /> : <Empty>Documents shared in this chat show here.</Empty>;
   };
