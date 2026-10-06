@@ -103,6 +103,17 @@ export const cancelTransfer = (id) => {
   return true;
 };
 
+// only whole steps are reported, so a fast encoder does not flood the store
+export const wholePercents = (onPercent) => {
+  let shown = -1;
+  return (percent) => {
+    const whole = Math.floor(percent);
+    if (whole === shown) return;
+    shown = whole;
+    onPercent(whole);
+  };
+};
+
 export const attachmentUrl = (id) => held.get(id)?.url ?? null;
 
 export const keepSealedCopy = (id, data) => {
@@ -153,11 +164,11 @@ export const releaseAllAttachments = () => {
   opened.clear();
 };
 
-export const pickFiles = (accept) =>
+export const pickFiles = (accept, { multiple = true } = {}) =>
   new Promise((resolve) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.multiple = true;
+    input.multiple = multiple;
     input.accept = accept.join(",");
     input.addEventListener("change", () => resolve(Array.from(input.files)));
     input.click();

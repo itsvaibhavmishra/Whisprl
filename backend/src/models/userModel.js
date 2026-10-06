@@ -77,6 +77,7 @@ const userSchema = mongoose.Schema(
 
     friends: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     blocked: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+    statusHiddenFrom: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
 
     socialsConnected: {
       type: [String],

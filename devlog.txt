@@ -52,6 +52,8 @@
     - Send photos and videos together as one gallery, and swipe through them full screen
     - A progress circle on photos and videos while they send, with a cancel button and Send again
     - Videos can be sent view once too
+    - Status: share photos, videos and text with your friends for 24 hours, end-to-end encrypted, and see who viewed each one
+    - Choose friends to hide your status from in settings
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -102,6 +104,7 @@
     - Someone who signs up with an email they do not own can no longer keep a password on it
     - Verification codes cannot be guessed past the attempt limit by trying many at once
     - Friend requests show when they were actually sent
+    - Full-screen views on a phone fill the whole screen, without a gap at the edges
 
   - Developers:
     - The frontend has its first tests, and the gate runs them

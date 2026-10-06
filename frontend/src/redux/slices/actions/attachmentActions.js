@@ -30,16 +30,15 @@ import {
   sealedCopyOf,
   sentMessageIdOf,
   startTransfer,
+  wholePercents,
 } from "@/utils/attachments";
 import axios from "@/utils/axios";
 import { sealFile } from "@/utils/crypto/fileCipher";
 import { notify, notifyError } from "@/utils/notify";
-import { VideoRefusal, compressVideo, probeVideo } from "@/utils/video";
+import { COMPRESS_SHARE, VideoRefusal, compressVideo, probeVideo } from "@/utils/video";
 import uuidv4 from "@/utils/uuidv4";
 
 const UPLOAD_PAUSES = [2000, 5000];
-// a video's progress is mostly compressing, so that takes the first part of its circle and uploading the rest
-const COMPRESS_SHARE = 60;
 
 const kindOf = (file) => {
   if (file.type.startsWith("image/")) return "image";
@@ -64,15 +63,9 @@ const prepareForDraft = async (file) => {
   return kind === "video" ? { file, ...(await probeVideo(file)) } : { file };
 };
 
-// only whole steps go to the store, so a fast encoder does not flood it
 const progressReporter = (dispatch, clientId, from, to) => {
-  let shown = -1;
-  return (fraction) => {
-    const percent = Math.floor(from + fraction * (to - from));
-    if (percent === shown) return;
-    shown = percent;
-    dispatch(transferProgress({ clientId, percent }));
-  };
+  const report = wholePercents((percent) => dispatch(transferProgress({ clientId, percent })));
+  return (fraction) => report(from + fraction * (to - from));
 };
 
 // ------------- Choose Attachments -------------

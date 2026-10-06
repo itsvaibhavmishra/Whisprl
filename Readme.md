@@ -215,6 +215,7 @@ $ npm run build
 │   │   │   ├── passkeyController.js
 │   │   │   ├── safetyController.js
 │   │   │   ├── socialController.js
+│   │   │   ├── statusController.js
 │   │   │   ├── userController.js
 │   │   ├── middlewares/
 │   │   │   ├── authMiddleware.js
@@ -232,6 +233,7 @@ $ npm run build
 │   │   │   ├── passkeyModel.js
 │   │   │   ├── reportModel.js
 │   │   │   ├── sessionModel.js
+│   │   │   ├── statusModel.js
 │   │   │   ├── userModel.js
 │   │   ├── routes/
 │   │   │   ├── authRouter.js
@@ -242,6 +244,7 @@ $ npm run build
 │   │   │   ├── keyRouter.js
 │   │   │   ├── messageRouter.js
 │   │   │   ├── passkeyRouter.js
+│   │   │   ├── statusRouter.js
 │   │   │   ├── userRouter.js
 │   │   ├── services/
 │   │   │   ├── authService.js
@@ -260,6 +263,7 @@ $ npm run build
 │   │   │   ├── reportService.js
 │   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
+│   │   │   ├── statusService.js
 │   │   │   ├── userService.js
 │   │   │   ├── usernameService.js
 │   │   ├── templates/
@@ -271,7 +275,6 @@ $ npm run build
 │   │   │   ├── checkDispose.js
 │   │   │   ├── escapeRegex.js
 │   │   │   ├── sha256.js
-│   │   │   ├── video.js
 │   ├── .env copy
 │   ├── app.js
 │   ├── jsconfig.json
@@ -421,6 +424,7 @@ $ npm run build
 │   │   │   │   ├── Contact.js
 │   │   │   │   ├── Profile.js
 │   │   │   │   ├── Settings.js
+│   │   │   │   ├── Status.js
 │   │   │   ├── docs/
 │   │   │   │   ├── TnC.js
 │   │   │   ├── 404.js
@@ -438,6 +442,7 @@ $ npm run build
 │   │   │   │   │   ├── messageActions.js
 │   │   │   │   │   ├── passkeyActions.js
 │   │   │   │   │   ├── socketActions.js
+│   │   │   │   │   ├── statusActions.js
 │   │   │   │   │   ├── userActions.js
 │   │   │   │   ├── authSlice.js
 │   │   │   │   ├── chatSlice.js
@@ -446,6 +451,7 @@ $ npm run build
 │   │   │   │   ├── index.js
 │   │   │   │   ├── requestSlice.js
 │   │   │   │   ├── requestSlice.test.js
+│   │   │   │   ├── statusSlice.js
 │   │   │   │   ├── userSlice.js
 │   │   │   ├── rootReducer.js
 │   │   │   ├── rootReducer.test.js
@@ -552,7 +558,13 @@ $ npm run build
 │   │   │   │   ├── QuickReactionsSetting.js
 │   │   │   │   ├── RecoveryKeySetting.js
 │   │   │   │   ├── SettingsSection.js
+│   │   │   │   ├── StatusPrivacySetting.js
 │   │   │   │   ├── UsernameSetting.js
+│   │   │   ├── status/
+│   │   │   │   ├── StatusComposer.js
+│   │   │   │   ├── StatusList.js
+│   │   │   │   ├── StatusRing.js
+│   │   │   │   ├── StatusViewer.js
 │   │   │   ├── terms/
 │   │   │   │   ├── content.js
 │   │   │   ├── welcome/
@@ -626,6 +638,8 @@ $ npm run build
 │   │   │   │   ├── messageCipher.js
 │   │   │   │   ├── messageCipher.test.js
 │   │   │   │   ├── recoveryKey.js
+│   │   │   │   ├── statusCipher.js
+│   │   │   │   ├── statusCipher.test.js
 │   │   │   ├── attachments.js
 │   │   │   ├── axios.js
 │   │   │   ├── axiosInterceptors.js
@@ -654,8 +668,11 @@ $ npm run build
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
 │   │   │   ├── sounds.js
+│   │   │   ├── statuses.js
+│   │   │   ├── statuses.test.js
 │   │   │   ├── truncateText.js
 │   │   │   ├── uuidv4.js
+│   │   │   ├── video.js
 │   │   ├── App.js
 │   │   ├── config.js
 │   │   ├── index.css

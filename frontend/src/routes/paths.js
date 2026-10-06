@@ -8,6 +8,7 @@ export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
   general: {
     chat: path(ROOTS_DASHBOARD, "chat"),
+    status: path(ROOTS_DASHBOARD, "status"),
     profile: path(ROOTS_DASHBOARD, "profile"),
     contact: path(ROOTS_DASHBOARD, "contact"),
     settings: path(ROOTS_DASHBOARD, "settings"),

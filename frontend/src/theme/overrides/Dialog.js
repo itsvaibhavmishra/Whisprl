@@ -9,6 +9,7 @@ export default function Dialog(theme) {
           },
           '&.MuiDialog-paperFullScreen': {
             borderRadius: 0,
+            margin: 0,
           },
           '&.MuiDialog-paper .MuiDialogActions-root': {
             padding: theme.spacing(3),

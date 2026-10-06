@@ -45,18 +45,7 @@ const Sidebar = () => {
 
   const location = useLocation();
 
-  // function to determine the selected index based on the current path
-  const getSelectedIndex = (path) => {
-    if (path.startsWith("/profile")) {
-      return 0;
-    } else if (path.startsWith("/chat")) {
-      return 1;
-    } else if (path.startsWith("/contact")) {
-      return 2;
-    } else if (path.startsWith("/settings")) {
-      return 3;
-    }
-  };
+  const getSelectedIndex = (path) => Nav_Buttons.find((button) => path.startsWith(`/${button.address}`))?.index;
 
   // Update the selected state based on the current location path
   useEffect(() => {

@@ -16,6 +16,7 @@ import ChatPreview from "@/sections/settings/ChatPreview";
 import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import UsernameSetting from "@/sections/settings/UsernameSetting";
 import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
+import StatusPrivacySetting from "@/sections/settings/StatusPrivacySetting";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
 import getAvatar from "@/utils/createAvatar";
@@ -141,6 +142,10 @@ const Settings = () => {
             <SoundSetting />
             <NotificationSetting />
             <BlockedPeopleSetting />
+          </SettingsSection>
+
+          <SettingsSection title="Status">
+            <StatusPrivacySetting />
           </SettingsSection>
 
           <SettingsSection title="About Whisprl">

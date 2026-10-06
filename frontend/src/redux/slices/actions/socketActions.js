@@ -17,7 +17,9 @@ import {
   updateTypingConvo,
 } from "@/redux/slices/chatSlice";
 import { updateOnlineUsers } from "@/redux/slices/userSlice";
+import { statusRemoved, viewerAdded } from "@/redux/slices/statusSlice";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
+import { ReceiveStatus } from "@/redux/slices/actions/statusActions";
 import { ensureAccessToken, refreshAccessToken } from "@/utils/axiosInterceptors";
 import { notify } from "@/utils/notify";
 import { socket } from "@/utils/socket";
@@ -40,6 +42,9 @@ const serverEvents = () => ({
   chat_preferences: preferencesChanged,
   chat_cleared: chatCleared,
   disappearing_changed: disappearingChanged,
+  status_posted: ReceiveStatus,
+  status_removed: statusRemoved,
+  status_viewed: viewerAdded,
 });
 
 const listen = (dispatch, getState) => {

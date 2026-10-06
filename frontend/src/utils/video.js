@@ -15,6 +15,9 @@ const POSTER_QUALITY = 0.6;
 
 const PLAYABLE_AS_SENT = ["video/mp4", "video/webm"];
 
+// a video's progress is mostly compressing, so that takes the first part of its circle and uploading the rest
+export const COMPRESS_SHARE = 60;
+
 export class VideoRefusal extends Error {}
 
 export const formatDuration = (seconds = 0) => {

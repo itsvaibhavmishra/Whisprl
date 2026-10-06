@@ -2,6 +2,7 @@ import {
   //   Nav Buttons
   UserCircle,
   ChatCircleDots,
+  CircleDashed,
   UserList,
   Gear,
 
@@ -109,11 +110,16 @@ const Nav_Buttons = [
   },
   {
     index: 2,
+    icon: <CircleDashed />,
+    address: "status", // route to /status
+  },
+  {
+    index: 3,
     icon: <UserList />,
     address: "contact", // route to /contact
   },
   {
-    index: 3,
+    index: 4,
     icon: <Gear />,
     address: "settings", // route to /settings
   },
