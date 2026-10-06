@@ -18,7 +18,7 @@ export const useTransfer = (files) => {
 };
 
 // a sliver of the ring shows from the start, so a send that has only just begun still reads as one
-const MIN_VISIBLE_PERCENT = 4;
+export const MIN_VISIBLE_PERCENT = 4;
 
 const TransferRing = ({ transfer, size = 56 }) => (
   <Box sx={{ position: "relative", width: size, height: size, borderRadius: "50%", bgcolor: "rgba(0, 0, 0, 0.55)" }}>

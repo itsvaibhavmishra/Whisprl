@@ -8,6 +8,7 @@ import {
   contactReducer,
   encryptionReducer,
   requestReducer,
+  statusReducer,
   userReducer,
 } from "@/redux/slices";
 
@@ -42,6 +43,7 @@ const rootReducer = combineReducers({
   contact: contactReducer,
   encryption: encryptionReducer,
   requests: requestReducer,
+  status: statusReducer,
 });
 
 export { rootPersistConfig, rootReducer };

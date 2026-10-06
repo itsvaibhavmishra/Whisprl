@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import app from "#app.js";
 import { initializeSocket } from "#socket.js";
 import { sweepExpiredMessages } from "#src/services/disappearingService.js";
+import { sweepExpiredStatuses } from "#src/services/statusService.js";
 import { giveEveryoneAUsername } from "#src/services/usernameService.js";
 
 // env variables
@@ -26,7 +27,11 @@ mongoose
     giveEveryoneAUsername()
       .then((given) => given && console.log(`[DB] Gave ${given} accounts a username`))
       .catch((error) => console.log(`[DB] Usernames not given: ${error.message}`));
-    setInterval(() => sweepExpiredMessages(app.get("io")).catch((error) => console.log(`[DB] Sweep failed: ${error.message}`)), SWEEP_EVERY_MS);
+    const sweepFailed = (error) => console.log(`[DB] Sweep failed: ${error.message}`);
+    setInterval(() => {
+      sweepExpiredMessages(app.get("io")).catch(sweepFailed);
+      sweepExpiredStatuses().catch(sweepFailed);
+    }, SWEEP_EVERY_MS);
   })
   .catch((err) => {
     console.log(`[DB] ${err.message}`);

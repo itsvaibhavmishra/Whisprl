@@ -21,7 +21,7 @@ const sealedKeySchema = mongoose.Schema(
 );
 
 // a direct message names the two keys it was sealed between; a group message carries its key sealed for each member
-const cipherSchema = mongoose.Schema(
+export const cipherSchema = mongoose.Schema(
   {
     iv: { type: String, required: true },
     data: { type: String, required: true },

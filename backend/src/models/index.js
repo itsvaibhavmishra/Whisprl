@@ -7,6 +7,7 @@ import PasskeyModel from "#src/models/passkeyModel.js";
 import PasskeyChallengeModel from "#src/models/passkeyChallengeModel.js";
 import ChatPreferenceModel from "#src/models/chatPreferenceModel.js";
 import ReportModel from "#src/models/reportModel.js";
+import StatusModel from "#src/models/statusModel.js";
 
 export {
   UserModel,
@@ -18,4 +19,5 @@ export {
   PasskeyChallengeModel,
   ChatPreferenceModel,
   ReportModel,
+  StatusModel,
 };
