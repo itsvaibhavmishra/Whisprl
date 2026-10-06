@@ -131,7 +131,7 @@ Whisprl/
 │   ├── socket.js            WebSocket event handlers
 │   ├── vercel.json
 │   └── src/                 routes, controllers, services, models, middlewares,
-│                            utils, Templates/Mail
+│                            utils, templates/mail
 ├── frontend/                React 18 + MUI app
 │   ├── config-overrides.js  react-app-rewired overrides, including the @ alias
 │   ├── public/              includes _redirects for SPA routing on Netlify
@@ -148,6 +148,19 @@ Whisprl/
 ├── LICENSE                  CC0 1.0
 └── Readme.md
 ```
+
+Where frontend code goes, inside `frontend/src/`:
+
+- **`pages/`**: one file per route, lazy-loaded from `routes/index.js`.
+- **`sections/<page>/`**: the pieces of one page, such as `sections/chat/` for the chat screen,
+  split further when a page has distinct parts (`conversation/`, `messages/`, `attachments/`).
+- **`components/`**: anything used by more than one page, such as `ProfileHero`, the
+  image cropper and the form fields in `hook-form/`.
+- **`layouts/`**, **`redux/`**, **`routes/`**, **`theme/`**, **`contexts/`**, **`hooks/`**,
+  **`utils/`**: as named. Encryption lives in `utils/crypto/`.
+
+Folders are lowercase, files are named after the component or function they export, and every
+import goes through the `@/` alias, siblings included.
 
 ## Conventions
 

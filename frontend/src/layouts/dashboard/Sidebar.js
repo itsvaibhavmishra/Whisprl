@@ -17,13 +17,13 @@ import { SignOut } from "phosphor-react";
 
 // redux imports
 import { useSelector, useDispatch } from "react-redux";
-import { LogoutUser } from "../../redux/slices/actions/authActions";
+import { LogoutUser } from "@/redux/slices/actions/authActions";
 
-import WhisprlLogo from "../../assets/icons/logo/Whisprl.png";
-import { Nav_Buttons, Profile_Menu } from "../../data";
-import ThemeSwitch from "../../components/ThemeSwitch";
-import useSettings from "../../hooks/useSettings";
-import getAvatar from "../../utils/createAvatar";
+import WhisprlLogo from "@/assets/icons/logo/WhisprlMark.webp";
+import { Nav_Buttons, Profile_Menu } from "@/data";
+import ThemeSwitch from "@/components/ThemeSwitch";
+import useSettings from "@/hooks/useSettings";
+import getAvatar from "@/utils/createAvatar";
 
 const Sidebar = () => {
   // using redux
@@ -49,14 +49,12 @@ const Sidebar = () => {
   const getSelectedIndex = (path) => {
     if (path.startsWith("/profile")) {
       return 0;
-    } else if (path.startsWith("/app")) {
+    } else if (path.startsWith("/chat")) {
       return 1;
-    } else if (path.startsWith("/group")) {
-      return 2;
     } else if (path.startsWith("/contact")) {
-      return 3;
+      return 2;
     } else if (path.startsWith("/settings")) {
-      return 4;
+      return 3;
     }
   };
 
@@ -89,7 +87,7 @@ const Sidebar = () => {
         sx={{
           display: {
             xs:
-              activeConversation && location.pathname.startsWith("/app")
+              activeConversation && location.pathname.startsWith("/chat")
                 ? "none"
                 : "block",
             md: "block",

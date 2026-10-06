@@ -2,7 +2,7 @@ import {
   CheckboxIcon,
   CheckboxCheckedIcon,
   CheckboxIndeterminateIcon,
-} from './CustomIcons';
+} from '@/theme/overrides/CustomIcons';
 
 export default function Checkbox(theme) {
   return {

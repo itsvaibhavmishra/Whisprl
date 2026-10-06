@@ -1,5 +1,4 @@
 import express from "express";
-import dotenv from "dotenv";
 
 // security packages
 import cors from "cors";
@@ -8,14 +7,10 @@ import { xss } from "express-xss-sanitizer";
 import mongoSanitize from "express-mongo-sanitize";
 import cookieParser from "cookie-parser";
 import compression from "compression";
-import rateLimit from "express-rate-limit";
 import createHttpError from "http-errors"; // error handler
 
 // folder/file imports
 import router from "./src/routes/index.js";
-
-// dotenv config
-dotenv.config();
 
 // creating express app
 const app = express();
@@ -35,13 +30,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// security middlewares
-const limiter = rateLimit({
-  max: 3000,
-  windowMs: 60 * 60 * 1000, // in 1 hour
-  message: "Too many requests was made, please try again after 1 hour",
-});
-app.use("/", limiter); // limits rates of requests
+// security middlewares, rate limits sit on each route
 app.use(helmet()); // general security
 app.use(xss()); // xss protection
 app.use(mongoSanitize()); // sanitization for mongodb
@@ -61,13 +50,25 @@ app.use(async (req, res, next) => {
   next(createHttpError.NotFound("This route does not exist!"));
 });
 
+const CLIENT_ERRORS = { MulterError: 400, ValidationError: 400, CastError: 400 };
+
+const statusOf = (error) => error.status || CLIENT_ERRORS[error.name] || (error.code === 11000 ? 409 : 500);
+
+const messageOf = (error, status) => {
+  if (error.code === 11000) return "That already exists";
+  if (status < 500 || error.expose) return error.message;
+  return "Something went wrong, please try again";
+};
+
 // error handling
-app.use(async (err, req, res, next) => {
-  res.status(err.status || 500);
-  res.send({
+app.use((error, req, res, next) => {
+  const status = statusOf(error);
+  if (status >= 500) console.error(error);
+
+  res.status(status).send({
     error: {
       status: "error",
-      message: err.message,
+      message: messageOf(error, status),
     },
   });
 });

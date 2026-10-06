@@ -2,18 +2,12 @@ import {
   //   Nav Buttons
   UserCircle,
   ChatCircleDots,
-  Users,
   UserList,
   Gear,
 
   //   Profile Menu
   IdentificationCard,
 
-  // Text Field Actions
-  Image,
-  GameController,
-  File,
-  User,
 } from "phosphor-react";
 
 const MembersList = [
@@ -111,20 +105,15 @@ const Nav_Buttons = [
   {
     index: 1,
     icon: <ChatCircleDots />,
-    address: "app", // route to /app
+    address: "chat", // route to /chat
   },
   {
     index: 2,
-    icon: <Users />,
-    address: "group", // route to /group
-  },
-  {
-    index: 3,
     icon: <UserList />,
     address: "contact", // route to /contact
   },
   {
-    index: 4,
+    index: 3,
     icon: <Gear />,
     address: "settings", // route to /settings
   },
@@ -143,31 +132,4 @@ const Profile_Menu = [
   },
 ];
 
-const Actions = [
-  {
-    color: "darker",
-    contrast: "#fff",
-    icon: <GameController weight="fill" size={24} />,
-    title: "Gaming",
-  },
-  {
-    color: "dark",
-    contrast: "#fff",
-    icon: <Image weight="fill" size={24} />,
-    title: "Photo",
-  },
-  {
-    color: "light",
-    contrast: "#333",
-    icon: <File size={24} />,
-    title: "Document",
-  },
-  {
-    color: "lighter",
-    contrast: "#222",
-    icon: <User size={24} />,
-    title: "Contact",
-  },
-];
-
-export { Nav_Buttons, MembersList, Friend_Requests, Profile_Menu, Actions };
+export { Nav_Buttons, MembersList, Friend_Requests, Profile_Menu };

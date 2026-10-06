@@ -1,441 +1,128 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-import { ShowSnackbar, logout, updateUser } from "../userSlice";
+import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
+import { ForgetDeviceKeys, keepKeyFromPasskey } from "@/redux/slices/actions/encryptionActions";
+import { DisconnectSocket } from "@/redux/slices/actions/socketActions";
+import { updateOtpEmail } from "@/redux/slices/authSlice";
+import { clearChat } from "@/redux/slices/chatSlice";
+import { logout, updateUser } from "@/redux/slices/userSlice";
+import { releaseAllAttachments } from "@/utils/attachments";
+import axios, { setAccessToken } from "@/utils/axios";
+import { notify } from "@/utils/notify";
+import { authenticateWithPasskey } from "@/utils/passkeys";
 
-import axios from "../../../utils/axios";
-import { updateOtpEmail } from "../authSlice";
-import { clearChat } from "../chatSlice";
-import { socket } from "../../../utils/socket";
+const withRecaptcha = async (recaptchaRef, values) => {
+  recaptchaRef.current.reset();
+  return { ...values, recaptchaToken: await recaptchaRef.current.executeAsync() };
+};
+
+const signedIn = (dispatch, data) => {
+  setAccessToken(data.accessToken);
+  dispatch(updateUser(data.user));
+  return { user: data.user };
+};
 
 // ------------- Login Thunk -------------
-export const LoginUser = createAsyncThunk(
-  "auth/login",
-  async ({ recaptchaRef, ...formValues }, { rejectWithValue, dispatch }) => {
-    try {
-      // generate recaptcha token
-      const recaptchaToken = await recaptchaRef.current.executeAsync();
+export const LoginUser = createApiThunk("auth/login", async ({ recaptchaRef, ...values }, { dispatch }) => {
+  const { data } = await axios.post("/auth/login", await withRecaptcha(recaptchaRef, values));
+  notifyResult(data);
 
-      const { data } = await axios.post("/auth/login", {
-        ...formValues,
-        recaptchaToken,
-      });
+  if (data.user) return signedIn(dispatch, data);
 
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
+  dispatch(updateOtpEmail({ otpEmail: values.email }));
+  return { user: null };
+});
 
-      // if user is not verified
-      if (!data.user) {
-        dispatch(updateOtpEmail({ otpEmail: formValues.email }));
-        setTimeout(() => {
-          window.location.href = "/auth/verify";
-        }, 1000);
-      } else {
-        // update user data
-        dispatch(updateUser(data.user));
-      }
+// ------------- Passkey Login Thunk -------------
+// a passkey that can unlock messages does it here, before the chats load, so this browser never asks for the recovery key
+export const PasskeyLogin = createApiThunk("auth/passkey", async (_, { dispatch }) => {
+  const { data: challenge } = await axios.post("/auth/passkeys/options");
+  const { response, prfSecret } = await authenticateWithPasskey(challenge.options);
+  const { data } = await axios.post("/auth/passkeys/login", { response });
 
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+  if (prfSecret && data.keyBackup) await keepKeyFromPasskey(data.user._id, data.keyBackup, prfSecret).catch(() => {});
+  notifyResult(data);
+  return signedIn(dispatch, data);
+});
+
+// ------------- Social Login Thunks -------------
+const socialLogin = (provider) =>
+  createApiThunk(`auth/${provider}`, async (code, { dispatch }) => {
+    const { data } = await axios.post(`/auth/${provider}`, { code });
+    notifyResult(data);
+    return signedIn(dispatch, data);
+  });
+
+export const GoogleLogin = socialLogin("google");
+export const GithubLogin = socialLogin("github");
+export const LinkedinLogin = socialLogin("linkedin");
+
+// ------------- End Session Thunk -------------
+export const EndSession = createAsyncThunk("auth/end-session", async (_, { dispatch, getState }) => {
+  setAccessToken(null);
+  dispatch(DisconnectSocket());
+  releaseAllAttachments();
+  await dispatch(ForgetDeviceKeys(getState().user.user._id));
+  dispatch(clearChat());
+  dispatch(logout());
+});
 
 // ------------- Logout Thunk -------------
-export const LogoutUser = createAsyncThunk(
-  "auth/logout",
-  async (arg, { rejectWithValue, dispatch }) => {
-    return new Promise(async (resolve) => {
-      try {
-        const { data } = await axios.post("/auth/logout");
-
-        dispatch(clearChat());
-        dispatch(logout());
-        socket.disconnect();
-
-        // show snackbar
-        dispatch(
-          ShowSnackbar({
-            severity: data.status,
-            message: data.message,
-          })
-        );
-
-        // Resolve the promise to indicate that the operation is complete
-        resolve();
-      } catch (error) {
-        dispatch(
-          ShowSnackbar({
-            severity: error?.error?.status || "error",
-            message: error?.error?.message || "logout failed",
-          })
-        );
-
-        return rejectWithValue(error);
-      }
-    });
-  }
-);
+export const LogoutUser = createAsyncThunk("auth/logout", async (_, { dispatch }) => {
+  const { data } = await axios.post("/auth/logout").catch(() => ({ data: null }));
+  await dispatch(EndSession());
+  notify({ severity: "success", message: data?.message || "Logged out" });
+});
 
 // ------------- Register Thunk -------------
-export const RegisterUser = createAsyncThunk(
-  "auth/register",
-  async (
-    { recaptchaRef, ...formValues },
-    { rejectWithValue, dispatch, getState }
-  ) => {
-    try {
-      // generate recaptcha token
-      const recaptchaToken = await recaptchaRef.current.executeAsync();
-
-      const { data } = await axios.post("/auth/register", {
-        ...formValues,
-        recaptchaToken,
-      });
-
-      // update otp email
-      dispatch(updateOtpEmail({ otpEmail: formValues.email }));
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      if (!getState().auth.error) {
-        setTimeout(() => {
-          window.location.href = "/auth/verify";
-        }, 1000);
-      }
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const RegisterUser = createApiThunk("auth/register", async ({ recaptchaRef, ...values }, { dispatch }) => {
+  const { data } = await axios.post("/auth/register", await withRecaptcha(recaptchaRef, values));
+  dispatch(updateOtpEmail({ otpEmail: values.email }));
+  notifyResult(data);
+  return data;
+});
 
 // ------------- Verify OTP Thunk -------------
-export const VerifyOTP = createAsyncThunk(
-  "auth/verify-otp",
-  async (
-    { recaptchaRef, ...formValues },
-    { rejectWithValue, dispatch, getState }
-  ) => {
-    try {
-      // generate recaptcha token
-      const recaptchaToken = await recaptchaRef.current.executeAsync();
-
-      const { data } = await axios.post("/auth/verify-otp", {
-        ...formValues,
-        recaptchaToken,
-      });
-
-      // update user data
-      dispatch(updateUser(data.user));
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const VerifyOTP = createApiThunk("auth/verify-otp", async ({ recaptchaRef, ...values }, { dispatch }) => {
+  const { data } = await axios.post("/auth/verify-otp", await withRecaptcha(recaptchaRef, values));
+  notifyResult(data);
+  return signedIn(dispatch, data);
+});
 
 // ------------- Send OTP Thunk -------------
-export const SendOTP = createAsyncThunk(
-  "auth/send-otp",
-  async (formValues, { rejectWithValue, dispatch, getState }) => {
-    // update otp email
-    dispatch(updateOtpEmail({ otpEmail: formValues.email }));
+export const SendOTP = createApiThunk("auth/send-otp", async (values, { dispatch }) => {
+  dispatch(updateOtpEmail({ otpEmail: values.email }));
+  const { data } = await axios.post("/auth/send-otp", values);
+  notifyResult(data);
+  return data;
+});
 
-    try {
-      const { data } = await axios.post("/auth/send-otp", {
-        ...formValues,
-      });
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
-
-// ------------- Add Email Thunk -------------
-export const AddOtpEmail = createAsyncThunk(
-  "auth/addOtpEmail",
-  async (formValues, { rejectWithValue, dispatch, getState }) => {
-    try {
-      // update otp email
-      dispatch(updateOtpEmail({ otpEmail: formValues.email }));
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: "success",
-          message: "Email Added Successfully",
-        })
-      );
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error,
-          message: "Could not add email",
-        })
-      );
-      return rejectWithValue(error);
-    }
-  }
-);
+// ------------- Add Email -------------
+export const AddOtpEmail = (values) => (dispatch) => {
+  dispatch(updateOtpEmail({ otpEmail: values.email }));
+  notify({ severity: "success", message: "Email Added Successfully" });
+};
 
 // ------------- Forgot Password Thunk -------------
-export const ForgotPassword = createAsyncThunk(
-  "auth/forgot-password",
-  async (
-    { recaptchaRef, ...formValues },
-    { rejectWithValue, dispatch, getState }
-  ) => {
-    // generate recaptcha token
-    const recaptchaToken = await recaptchaRef.current.executeAsync();
-
-    try {
-      const { data } = await axios.post("/auth/forgot-password", {
-        ...formValues,
-        recaptchaToken,
-      });
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const ForgotPassword = createApiThunk("auth/forgot-password", async ({ recaptchaRef, ...values }) => {
+  const { data } = await axios.post("/auth/forgot-password", await withRecaptcha(recaptchaRef, values));
+  notifyResult(data);
+  return data;
+});
 
 // ------------- Reset Password Thunk -------------
-export const ResetPassword = createAsyncThunk(
-  "auth/reset-password",
-  async (formValues, { rejectWithValue, dispatch, getState }) => {
-    try {
-      const { data } = await axios.post("/auth/reset-password", {
-        ...formValues,
-      });
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
-
-// ------------- Refresh Token Thunk -------------
-export const RefreshToken = createAsyncThunk(
-  "auth/refresh-token",
-  async (arg, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/auth/refresh-token/");
-
-      // if user is not verified
-      if (!data.user) {
-        alert("Token expired, Logging you out...");
-        dispatch(LogoutUser());
-      } else {
-        // update user data
-        dispatch(updateUser(data.user));
-      }
-
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const ResetPassword = createApiThunk("auth/reset-password", async (values) => {
+  const { data } = await axios.post("/auth/reset-password", values);
+  notifyResult(data);
+  return data;
+});
 
 // ------------- Start Server Thunk -------------
-export const StartServer = createAsyncThunk(
+// a free server sleeps when idle, so the auth pages wake it before anyone presses a button
+export const StartServer = createApiThunk(
   "start/server",
-  async (arg, { rejectWithValue, dispatch }) => {
-    try {
-      await axios.get("/start-server");
-    } catch (error) {
-      console.log(error);
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error);
-    }
-  }
-);
-
-// ------------- Google Login Thunk -------------
-export const GoogleLogin = createAsyncThunk(
-  "auth/google",
-  async (token, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/auth/google", {
-        code: token.access_token,
-      });
-
-      console.clear();
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      // update user data
-      dispatch(updateUser(data.user));
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
-
-// ------------- GitHub Login Thunk -------------
-export const GithubLogin = createAsyncThunk(
-  "auth/github",
-  async (code, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/auth/github", { code: code });
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      // update user data
-      dispatch(updateUser(data.user));
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
-
-// ------------- GitHub Login Thunk -------------
-export const LinkedinLogin = createAsyncThunk(
-  "auth/linkedin",
-  async (code, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/auth/linkedin", { code: code });
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      // update user data
-      dispatch(updateUser(data.user));
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
+  async () => {
+    await axios.get("/start-server");
+  },
+  { notifyErrors: false }
 );

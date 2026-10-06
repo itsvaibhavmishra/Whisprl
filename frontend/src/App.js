@@ -1,14 +1,15 @@
-import ThemeSettings from "./components/settings";
-import Router from "./routes";
-import ThemeProvider from "./theme";
+import ThemeSettings from "@/components/theme-settings";
+import Router from "@/routes";
+import ThemeProvider from "@/theme";
 
 // Toast
 import { Toaster } from "sonner";
 
-import HelmetHandler from "./utils/helmetHandler";
+import HelmetHandler from "@/utils/helmetHandler";
+import ScrollToTop from "@/components/ScrollToTop";
 
 import ReactGA from "react-ga4";
-import useSettings from "./hooks/useSettings";
+import useSettings from "@/hooks/useSettings";
 import { useMediaQuery, useTheme } from "@mui/material";
 
 if (process.env.REACT_APP_GA_ID !== "") {
@@ -40,6 +41,7 @@ function App() {
       </ThemeProvider>
 
       <HelmetHandler />
+      <ScrollToTop />
     </>
   );
 }

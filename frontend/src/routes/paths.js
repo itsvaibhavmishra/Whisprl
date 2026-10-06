@@ -7,7 +7,10 @@ const ROOTS_DASHBOARD = "/";
 export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
   general: {
-    app: path(ROOTS_DASHBOARD, "app"),
+    chat: path(ROOTS_DASHBOARD, "chat"),
+    profile: path(ROOTS_DASHBOARD, "profile"),
+    contact: path(ROOTS_DASHBOARD, "contact"),
+    settings: path(ROOTS_DASHBOARD, "settings"),
   },
 };
 
@@ -15,6 +18,9 @@ export const PATH_AUTH = {
   root: ROOTS_DASHBOARD,
   general: {
     welcome: path(ROOTS_DASHBOARD, "auth/welcome"),
+    login: path(ROOTS_DASHBOARD, "auth/login"),
+    register: path(ROOTS_DASHBOARD, "auth/register"),
+    verify: path(ROOTS_DASHBOARD, "auth/verify"),
   },
 };
 

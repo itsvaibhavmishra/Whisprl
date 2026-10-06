@@ -74,7 +74,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
 <b>Backend:</b>
 
-    - Added security options (Rate Limit, XSS Protection, Sanitization, URL Encoding & more)
+    - Security options (rate limits on each route, XSS Protection, Sanitization, URL Encoding & more)
 
     - Dynamic server & routes error handling
 
@@ -84,7 +84,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
     - Cloudinary file upload system with auto folder structuring
 
-    - Access & Refresh token with cookies support
+    - Short-lived access tokens with a rotating, revocable session cookie
 
     - Structured DB with pre save & validations
 
@@ -100,7 +100,7 @@ Live At: <a href="https://whisprl.netlify.app">Netlify | Whisprl</a>
 
     - Custom hooks
 
-    - Auto refresh tokens & auto token verification
+    - Silent session refresh shared by every request and the socket
 
     - Google Ananlytics support
 
@@ -207,44 +207,61 @@ $ npm run build
 │   │   │   ├── authController.js
 │   │   │   ├── conversationController.js
 │   │   │   ├── friendsController.js
+│   │   │   ├── groupController.js
+│   │   │   ├── keyController.js
+│   │   │   ├── messageActionController.js
 │   │   │   ├── messageController.js
+│   │   │   ├── passkeyController.js
 │   │   │   ├── socialController.js
 │   │   │   ├── userController.js
 │   │   ├── middlewares/
 │   │   │   ├── authMiddleware.js
+│   │   │   ├── rateLimiters.js
+│   │   │   ├── recaptchaMiddleware.js
 │   │   │   ├── socketMiddleware.js
+│   │   │   ├── socketRateLimit.js
 │   │   ├── models/
 │   │   │   ├── conversationModel.js
 │   │   │   ├── friendRequestModel.js
 │   │   │   ├── index.js
 │   │   │   ├── messageModel.js
+│   │   │   ├── passkeyChallengeModel.js
+│   │   │   ├── passkeyModel.js
+│   │   │   ├── sessionModel.js
 │   │   │   ├── userModel.js
 │   │   ├── routes/
 │   │   │   ├── authRouter.js
 │   │   │   ├── conversationRouter.js
 │   │   │   ├── friendsRouter.js
+│   │   │   ├── groupRouter.js
 │   │   │   ├── index.js
+│   │   │   ├── keyRouter.js
 │   │   │   ├── messageRouter.js
+│   │   │   ├── passkeyRouter.js
 │   │   │   ├── userRouter.js
 │   │   ├── services/
 │   │   │   ├── authService.js
 │   │   │   ├── conversationService.js
 │   │   │   ├── fileUploadService.js
 │   │   │   ├── friendsService.js
+│   │   │   ├── groupService.js
+│   │   │   ├── keyService.js
 │   │   │   ├── mailer.js
+│   │   │   ├── messageActionService.js
 │   │   │   ├── messageService.js
+│   │   │   ├── passkeyService.js
+│   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
-│   │   │   ├── tokenService.js
 │   │   │   ├── userService.js
-│   │   ├── Templates/
-│   │   │   ├── Mail/
+│   │   ├── templates/
+│   │   │   ├── mail/
 │   │   │   │   ├── otp.js
 │   │   │   │   ├── reset.js
 │   │   ├── utils/
+│   │   │   ├── accountRules.js
 │   │   │   ├── checkDispose.js
-│   │   │   ├── filterObj.js
-│   │   │   ├── generatePassword.js
-│   │   │   ├── tokenGenerator.js
+│   │   │   ├── escapeRegex.js
+│   │   │   ├── sha256.js
 │   ├── .env copy
 │   ├── app.js
 │   ├── package-lock.json
@@ -261,37 +278,37 @@ $ npm run build
 ```
 ├── frontend/
 │   ├── public/
-│   │   ├── favicon.ico
-│   │   ├── index.html
-│   │   ├── logo.ico
-│   │   ├── manifest.json
-│   │   ├── robots.txt
-│   │   ├── sitemap.xml
+│   │   ├── sounds/
+│   │   │   ├── elsewhere.mp3
+│   │   │   ├── received.mp3
+│   │   │   ├── sent.mp3
 │   │   ├── _redirects
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon.ico
+│   │   ├── icon-192.png
+│   │   ├── icon-512.png
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   ├── og-image.png
+│   │   ├── robots.txt
+│   │   ├── sitemap.txt
+│   │   ├── sitemap.xml
 │   ├── src/
 │   │   ├── assets/
 │   │   │   ├── backgrounds/
 │   │   │   │   ├── catDoodle.png
+│   │   │   │   ├── catDoodle.webp
 │   │   │   │   ├── catDoodle2.png
 │   │   │   │   ├── catDoodle3.png
+│   │   │   │   ├── chatDoodles.svg
 │   │   │   ├── icons/
-│   │   │   │   ├── flags/
-│   │   │   │   │   ├── flag_am.svg
-│   │   │   │   │   ├── flag_en.png
-│   │   │   │   │   ├── flag_en.svg
-│   │   │   │   │   ├── flag_fr.png
-│   │   │   │   │   ├── flag_fr.svg
-│   │   │   │   │   ├── flag_hi.png
-│   │   │   │   │   ├── flag_hi.svg
-│   │   │   │   │   ├── flag_ja.svg
-│   │   │   │   │   ├── flag_vn.svg
 │   │   │   │   ├── logo/
-│   │   │   │   │   ├── Whisprl-old.png
 │   │   │   │   │   ├── Whisprl.png
-│   │   │   │   │   ├── WhisprlSub.png
-│   │   │   │   │   ├── VaibhawMishra.ico
-│   │   │   ├── Illustration/
-│   │   │   │   ├── Animations/
+│   │   │   │   │   ├── Whisprl.webp
+│   │   │   │   │   ├── WhisprlAvatar.webp
+│   │   │   │   │   ├── WhisprlMark.webp
+│   │   │   ├── illustrations/
+│   │   │   │   ├── animations/
 │   │   │   │   │   ├── Cat404.json
 │   │   │   │   │   ├── CatAnimation1.json
 │   │   │   │   │   ├── CatAnimation2.json
@@ -302,10 +319,9 @@ $ npm run build
 │   │   │   │   │   ├── HangingBuddy.json
 │   │   │   │   │   ├── NoResultsFound.json
 │   │   │   │   │   ├── SearchNotFound.json
-│   │   │   │   ├── NoChat.js
 │   │   ├── components/
 │   │   │   ├── animate/
-│   │   │   │   ├── varients/
+│   │   │   │   ├── variants/
 │   │   │   │   │   ├── actions.js
 │   │   │   │   │   ├── background.js
 │   │   │   │   │   ├── bounce.js
@@ -331,104 +347,52 @@ $ npm run build
 │   │   │   ├── hook-form/
 │   │   │   │   ├── FormProvider.js
 │   │   │   │   ├── index.js
+│   │   │   │   ├── PasswordChecklist.js
 │   │   │   │   ├── RHFOtp.js
+│   │   │   │   ├── RHFPasswordField.js
 │   │   │   │   ├── RHFTextField.js
-│   │   │   │   ├── RHFUpload.js
-│   │   │   ├── Image/
-│   │   │   │   ├── getRatio.js
-│   │   │   │   ├── Image.js
-│   │   │   │   ├── index.js
-│   │   │   ├── PageComponents/
-│   │   │   │   ├── ContactPage/
-│   │   │   │   │   ├── FriendsComponents/
-│   │   │   │   │   │   ├── FriendsSubComps/
-│   │   │   │   │   │   │   ├── index.js
-│   │   │   │   │   │   │   ├── UserCard.js
-│   │   │   │   │   │   │   ├── UsersSearchResults.js
-│   │   │   │   │   │   ├── FriendRequests.js
-│   │   │   │   │   │   ├── index.js
-│   │   │   │   │   │   ├── SearchUsers.js
-│   │   │   │   │   │   ├── SentRequests.js
-│   │   │   │   │   ├── ContactList.js
-│   │   │   │   │   ├── FriendsMenu.js
-│   │   │   │   │   ├── index.js
-│   │   │   │   ├── GeneralAppPage/
-│   │   │   │   │   ├── ChatElements/
-│   │   │   │   │   │   ├── AllChatElement.js
-│   │   │   │   │   │   ├── ChatSearchResults.js
-│   │   │   │   │   │   ├── OnlineChatElement.js
-│   │   │   │   │   ├── ConversationElements/
-│   │   │   │   │   │   ├── ConvoSubElements/
-│   │   │   │   │   │   │   ├── ChatInput.js
-│   │   │   │   │   │   │   ├── MessageContainer.js
-│   │   │   │   │   │   ├── ConversationFooter.js
-│   │   │   │   │   │   ├── ConversationHeader.js
-│   │   │   │   │   │   ├── ConversationMain.js
-│   │   │   │   │   │   ├── index.js
-│   │   │   │   │   ├── ChatsList.js
-│   │   │   │   │   ├── Conversation.js
-│   │   │   │   │   ├── index.js
-│   │   │   │   ├── OnlineFriendsElement/
-│   │   │   │   │   ├── OnlineFriendsElement.js
-│   │   │   │   ├── ProfilePage/
-│   │   │   │   │   ├── ProfilePage.js
-│   │   │   │   ├── UserProfileDrawer/
-│   │   │   │   │   ├── UserDrawerComps/
-│   │   │   │   │   │   ├── UDMainComps/
-│   │   │   │   │   │   │   ├── RemoveFriendDialog.js
-│   │   │   │   │   │   ├── index.js
-│   │   │   │   │   │   ├── UserDrawerHeader.js
-│   │   │   │   │   │   ├── UserDrawerMain.js
-│   │   │   │   │   ├── UserProfileDrawer.js
-│   │   │   ├── Search/
+│   │   │   ├── image-cropper/
+│   │   │   │   ├── cropImage.js
+│   │   │   │   ├── ImageCropper.js
+│   │   │   ├── search/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── Search.js
 │   │   │   │   ├── SearchIconWrapper.js
 │   │   │   │   ├── StyledInputBase.js
-│   │   │   ├── settings/
-│   │   │   │   ├── drawer/
-│   │   │   │   │   ├── BoxMask.js
-│   │   │   │   │   ├── Developer.js
-│   │   │   │   │   ├── index.js
-│   │   │   │   │   ├── SettingColorPresets.js
-│   │   │   │   │   ├── SettingContrast.js
-│   │   │   │   │   ├── SettingDirection.js
-│   │   │   │   │   ├── SettingFullscreen.js
-│   │   │   │   │   ├── SettingLayout.js
-│   │   │   │   │   ├── SettingMode.js
-│   │   │   │   │   ├── SettingStretch.js
-│   │   │   │   │   ├── ToggleButton.js
+│   │   │   ├── theme-settings/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── ThemeColorPresets.js
-│   │   │   │   ├── ThemeContrast.js
 │   │   │   │   ├── ThemeLocalization.js
 │   │   │   │   ├── ThemeRtlLayout.js
-│   │   │   ├── upload/
-│   │   │   │   ├── preview/
-│   │   │   │   │   ├── AvatarCropper.js
-│   │   │   │   │   ├── AvatarPreview.js
-│   │   │   │   │   ├── cropImage.js
-│   │   │   │   ├── index.js
-│   │   │   │   ├── UploadAvatar.js
-│   │   │   ├── AntSwitch.js
-│   │   │   ├── Iconify.js
+│   │   │   ├── AppearanceMenu.js
+│   │   │   ├── AppearancePickers.js
+│   │   │   ├── EmojiPicker.js
+│   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
+│   │   │   ├── ProfileHero.js
+│   │   │   ├── ScrollToTop.js
+│   │   │   ├── SitePage.js
 │   │   │   ├── StyledBadge.js
 │   │   │   ├── ThemeSwitch.js
+│   │   │   ├── Wordmark.js
 │   │   ├── contexts/
 │   │   │   ├── SettingsContext.js
 │   │   ├── data/
 │   │   │   ├── index.js
 │   │   ├── hooks/
+│   │   │   ├── useFileUrl.js
+│   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
 │   │   ├── layouts/
 │   │   │   ├── auth/
+│   │   │   │   ├── BrandPanel.js
 │   │   │   │   ├── index.js
 │   │   │   ├── dashboard/
+│   │   │   │   ├── DashboardPage.js
 │   │   │   │   ├── index.js
 │   │   │   │   ├── Sidebar.js
 │   │   │   ├── docs/
@@ -442,9 +406,8 @@ $ npm run build
 │   │   │   │   ├── Verify.js
 │   │   │   │   ├── WelcomePage.js
 │   │   │   ├── dashboard/
+│   │   │   │   ├── Chat.js
 │   │   │   │   ├── Contact.js
-│   │   │   │   ├── GeneralApp.js
-│   │   │   │   ├── GroupChat.js
 │   │   │   │   ├── Profile.js
 │   │   │   │   ├── Settings.js
 │   │   │   ├── docs/
@@ -453,32 +416,133 @@ $ npm run build
 │   │   ├── redux/
 │   │   │   ├── slices/
 │   │   │   │   ├── actions/
+│   │   │   │   │   ├── apiThunk.js
+│   │   │   │   │   ├── attachmentActions.js
 │   │   │   │   │   ├── authActions.js
 │   │   │   │   │   ├── chatActions.js
 │   │   │   │   │   ├── contactActions.js
+│   │   │   │   │   ├── encryptionActions.js
+│   │   │   │   │   ├── groupActions.js
+│   │   │   │   │   ├── messageActions.js
+│   │   │   │   │   ├── passkeyActions.js
+│   │   │   │   │   ├── socketActions.js
 │   │   │   │   │   ├── userActions.js
 │   │   │   │   ├── authSlice.js
 │   │   │   │   ├── chatSlice.js
 │   │   │   │   ├── contactSlice.js
+│   │   │   │   ├── encryptionSlice.js
 │   │   │   │   ├── index.js
+│   │   │   │   ├── requestSlice.js
+│   │   │   │   ├── requestSlice.test.js
 │   │   │   │   ├── userSlice.js
 │   │   │   ├── rootReducer.js
+│   │   │   ├── rootReducer.test.js
 │   │   │   ├── store.js
 │   │   ├── routes/
 │   │   │   ├── index.js
 │   │   │   ├── paths.js
 │   │   ├── sections/
 │   │   │   ├── auth/
+│   │   │   │   ├── AuthHeader.js
 │   │   │   │   ├── AuthSocial.js
 │   │   │   │   ├── ForgotPasswordForm.js
 │   │   │   │   ├── LoginForm.js
 │   │   │   │   ├── RegisterForm.js
 │   │   │   │   ├── ResetPasswordForm.js
 │   │   │   │   ├── VerifyForm.js
+│   │   │   ├── chat/
+│   │   │   │   ├── attachments/
+│   │   │   │   │   ├── FileBody.js
+│   │   │   │   │   ├── FileFooter.js
+│   │   │   │   │   ├── FileHeader.js
+│   │   │   │   │   ├── FileUploadCont.js
+│   │   │   │   ├── conversation/
+│   │   │   │   │   ├── AttachMenu.js
+│   │   │   │   │   ├── ChatNote.js
+│   │   │   │   │   ├── ChatSearchBar.js
+│   │   │   │   │   ├── Composer.js
+│   │   │   │   │   ├── Conversation.js
+│   │   │   │   │   ├── ConversationHeader.js
+│   │   │   │   │   ├── ConversationMain.js
+│   │   │   │   │   ├── displayItems.js
+│   │   │   │   │   ├── MentionSuggestions.js
+│   │   │   │   │   ├── PinnedBar.js
+│   │   │   │   │   ├── ShareContactDialog.js
+│   │   │   │   │   ├── useChatScroll.js
+│   │   │   │   │   ├── useTyping.js
+│   │   │   │   ├── details/
+│   │   │   │   │   ├── DetailsPanel.js
+│   │   │   │   │   ├── GroupDetails.js
+│   │   │   │   │   ├── PersonDetails.js
+│   │   │   │   │   ├── SharedContent.js
+│   │   │   │   ├── group/
+│   │   │   │   │   ├── AddMembersDialog.js
+│   │   │   │   │   ├── CreateGroupDialog.js
+│   │   │   │   │   ├── FriendPicker.js
+│   │   │   │   │   ├── GroupMemberRow.js
+│   │   │   │   ├── list/
+│   │   │   │   │   ├── ChatList.js
+│   │   │   │   │   ├── ChatRow.js
+│   │   │   │   ├── messages/
+│   │   │   │   │   ├── ContactCard.js
+│   │   │   │   │   ├── DeleteMessageDialog.js
+│   │   │   │   │   ├── DocumentMessage.js
+│   │   │   │   │   ├── ForwardDialog.js
+│   │   │   │   │   ├── ImageLightbox.js
+│   │   │   │   │   ├── ImageMessage.js
+│   │   │   │   │   ├── MessageActions.js
+│   │   │   │   │   ├── MessageContainer.js
+│   │   │   │   │   ├── MessageImage.js
+│   │   │   │   │   ├── MessageProblems.js
+│   │   │   │   │   ├── MessageText.js
+│   │   │   │   │   ├── ReactionPicker.js
+│   │   │   │   │   ├── Reactions.js
+│   │   │   │   │   ├── ReplyQuote.js
+│   │   │   │   │   ├── SeenMarker.js
+│   │   │   │   │   ├── TypingBubble.js
+│   │   │   │   ├── ChatCanvas.js
+│   │   │   │   ├── EmptyChat.js
+│   │   │   ├── contacts/
+│   │   │   │   ├── AllChatElement.js
+│   │   │   │   ├── ChatSearchResults.js
+│   │   │   │   ├── ContactList.js
+│   │   │   │   ├── FriendRequests.js
+│   │   │   │   ├── FriendsMenu.js
+│   │   │   │   ├── OnlineChatElement.js
+│   │   │   │   ├── OnlineFriendsElement.js
+│   │   │   │   ├── SearchUsers.js
+│   │   │   │   ├── SentRequests.js
+│   │   │   │   ├── UserCard.js
+│   │   │   │   ├── UsersSearchResults.js
+│   │   │   ├── encryption/
+│   │   │   │   ├── EncryptionGate.js
+│   │   │   │   ├── RecoveryKeyDialog.js
+│   │   │   │   ├── UnlockDialog.js
+│   │   │   ├── friend-drawer/
+│   │   │   │   ├── RemoveFriendDialog.js
+│   │   │   │   ├── UserDrawerMain.js
+│   │   │   │   ├── UserProfileDrawer.js
+│   │   │   ├── profile/
+│   │   │   │   ├── AccountSummary.js
+│   │   │   │   ├── ProfileEditor.js
 │   │   │   ├── settings/
-│   │   │   │   ├── ProfileForm.js
-│   │   │   │   ├── Shortcuts.js
-│   │   │   │   ├── ThemeDialog.js
+│   │   │   │   ├── ChangePasswordDialog.js
+│   │   │   │   ├── ChatPreview.js
+│   │   │   │   ├── PasskeySetting.js
+│   │   │   │   ├── QuickReactionsSetting.js
+│   │   │   │   ├── RecoveryKeySetting.js
+│   │   │   │   ├── SettingsSection.js
+│   │   │   ├── terms/
+│   │   │   │   ├── content.js
+│   │   │   ├── welcome/
+│   │   │   │   ├── Closing.js
+│   │   │   │   ├── content.js
+│   │   │   │   ├── Faq.js
+│   │   │   │   ├── Features.js
+│   │   │   │   ├── Hero.js
+│   │   │   │   ├── HeroConversation.js
+│   │   │   │   ├── MernStack.js
+│   │   │   │   ├── styles.js
 │   │   ├── theme/
 │   │   │   ├── overrides/
 │   │   │   │   ├── Accordion.js
@@ -531,24 +595,42 @@ $ npm run build
 │   │   │   ├── shadows.js
 │   │   │   ├── typography.js
 │   │   ├── utils/
+│   │   │   ├── crypto/
+│   │   │   │   ├── deviceKeyStore.js
+│   │   │   │   ├── encoding.js
+│   │   │   │   ├── fileCipher.js
+│   │   │   │   ├── fileCipher.test.js
+│   │   │   │   ├── keys.js
+│   │   │   │   ├── keyWrap.js
+│   │   │   │   ├── messageCipher.js
+│   │   │   │   ├── messageCipher.test.js
+│   │   │   │   ├── recoveryKey.js
+│   │   │   ├── attachments.js
 │   │   │   ├── axios.js
 │   │   │   ├── axiosInterceptors.js
+│   │   │   ├── chats.js
 │   │   │   ├── createAvatar.js
-│   │   │   ├── cssStyles.js
-│   │   │   ├── flattenArray.js
-│   │   │   ├── formatNumber.js
+│   │   │   ├── formatMessageTime.js
+│   │   │   ├── formatMessageTime.test.js
 │   │   │   ├── formatTime.js
-│   │   │   ├── getColorName.js
+│   │   │   ├── formRules.js
 │   │   │   ├── getColorPresets.js
-│   │   │   ├── getFileData.js
 │   │   │   ├── getFontValue.js
 │   │   │   ├── getOtherUser.js
+│   │   │   ├── groups.js
 │   │   │   ├── helmetHandler.js
-│   │   │   ├── jwt.js
+│   │   │   ├── links.js
+│   │   │   ├── links.test.js
+│   │   │   ├── messageFiles.js
+│   │   │   ├── messagePayload.js
+│   │   │   ├── messageSummary.js
+│   │   │   ├── notify.js
+│   │   │   ├── passkeys.js
+│   │   │   ├── reactions.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
-│   │   │   ├── timeFormatter.js
+│   │   │   ├── sounds.js
 │   │   │   ├── truncateText.js
 │   │   │   ├── uuidv4.js
 │   │   ├── App.js
@@ -556,12 +638,24 @@ $ npm run build
 │   │   ├── index.css
 │   │   ├── index.js
 │   ├── .env copy
+│   ├── config-overrides.js
+│   ├── jsconfig.json
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── README.md
 ```
 </details>
 <br/>
+
+## 🔊 Sound credits
+
+The message sounds in `frontend/public/sounds/` are trimmed and levelled versions of:
+
+- `sent.mp3`: "navigation_forward-selection-minimal" from Google's [Material Design sound resources](https://m2.material.io/design/sound/sound-resources.html), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- `received.mp3`: "completion-success" by Guilherme Marçal Silva, from KDE's [Ocean sound theme](https://invent.kde.org/plasma/ocean-sound-theme), under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- `elsewhere.mp3`: "message-new-instant" by Guilherme Marçal Silva, from KDE's [Ocean sound theme](https://invent.kde.org/plasma/ocean-sound-theme), under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+The two from Ocean keep their CC BY-SA 4.0 licence in this form. The rest of Whisprl is CC0.
 
 <div align="center">
 <img src="https://komarev.com/ghpvc/?username=itsvaibhavmishra&&style=for-the-badge" align="center" />

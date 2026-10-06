@@ -1,4 +1,4 @@
-import { CloseIcon } from './CustomIcons';
+import { CloseIcon } from '@/theme/overrides/CustomIcons';
 
 export default function Chip(theme) {
   return {
