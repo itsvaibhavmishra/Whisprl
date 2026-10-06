@@ -1,7 +1,7 @@
 import rateLimit from "express-rate-limit";
 import createHttpError from "http-errors";
 
-import { normalizeEmail } from "../utils/accountRules.js";
+import { normalizeEmail } from "#src/utils/accountRules.js";
 
 const MINUTE = 60 * 1000;
 

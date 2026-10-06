@@ -2,8 +2,8 @@ import express from "express";
 import multer from "multer";
 import trimRequest from "trim-request";
 
-import { protect } from "../middlewares/authMiddleware.js";
-import { uploadLimit, writeLimit } from "../middlewares/rateLimiters.js";
+import { protect } from "#src/middlewares/authMiddleware.js";
+import { uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   addGroupMembers,
   createNewGroup,
@@ -11,7 +11,7 @@ import {
   makeAdmin,
   removeGroupMember,
   updateGroup,
-} from "../controllers/groupController.js";
+} from "#src/controllers/groupController.js";
 
 const upload = multer({ limits: { fileSize: 3 * 1024 * 1024, files: 1 } });
 const groupRouter = express.Router();

@@ -1,6 +1,6 @@
-import { announcePins } from "./conversationController.js";
-import { memberRooms } from "../services/conversationService.js";
-import { deleteForEveryone, editMessage, hideForMe, setReaction } from "../services/messageActionService.js";
+import { announcePins } from "#src/controllers/conversationController.js";
+import { memberRooms } from "#src/services/conversationService.js";
+import { deleteForEveryone, editMessage, hideForMe, setReaction } from "#src/services/messageActionService.js";
 
 const handle = (action) => async (req, res, next) => {
   try {

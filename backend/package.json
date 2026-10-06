@@ -4,6 +4,9 @@
   "description": "Whisprl Backend",
   "main": "server.js",
   "type": "module",
+  "imports": {
+    "#*": "./*"
+  },
   "scripts": {
     "start": "nodemon server.js"
   },

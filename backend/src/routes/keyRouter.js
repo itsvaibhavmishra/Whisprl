@@ -1,8 +1,8 @@
 import express from "express";
 
-import { protect } from "../middlewares/authMiddleware.js";
-import { readLimit, writeLimit } from "../middlewares/rateLimiters.js";
-import { addKey, getKeys, getPasskeyKeys, linkPasskey, updateBackup } from "../controllers/keyController.js";
+import { protect } from "#src/middlewares/authMiddleware.js";
+import { readLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
+import { addKey, getKeys, getPasskeyKeys, linkPasskey, updateBackup } from "#src/controllers/keyController.js";
 
 const keyRouter = express.Router();
 

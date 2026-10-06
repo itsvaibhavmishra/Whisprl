@@ -1,4 +1,4 @@
-import { authenticate } from "../services/authService.js";
+import { authenticate } from "#src/services/authService.js";
 
 export const socketMiddleware = async (socket, next) => {
   try {

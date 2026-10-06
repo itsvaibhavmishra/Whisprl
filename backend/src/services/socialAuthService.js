@@ -2,8 +2,8 @@ import axios from "axios";
 import createHttpError from "http-errors";
 import qs from "querystring";
 
-import { UserModel } from "../models/index.js";
-import { normalizeEmail } from "../utils/accountRules.js";
+import { UserModel } from "#src/models/index.js";
+import { normalizeEmail } from "#src/utils/accountRules.js";
 
 const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn" };
 

@@ -264,6 +264,7 @@ $ npm run build
 │   │   │   ├── sha256.js
 │   ├── .env copy
 │   ├── app.js
+│   ├── jsconfig.json
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── server.js

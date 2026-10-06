@@ -1,5 +1,5 @@
-import { addAccountKey, getOwnKeys, getPasskeyBackups, replaceKeyBackup, savePasskeyBackup } from "../services/keyService.js";
-import { listPasskeys } from "../services/passkeyService.js";
+import { addAccountKey, getOwnKeys, getPasskeyBackups, replaceKeyBackup, savePasskeyBackup } from "#src/services/keyService.js";
+import { listPasskeys } from "#src/services/passkeyService.js";
 
 // -------------------------- Own Keys --------------------------
 export const getKeys = async (req, res, next) => {

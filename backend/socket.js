@@ -1,11 +1,11 @@
 import { Server } from "socket.io"; // socket io
 
-import { socketMiddleware } from "./src/middlewares/socketMiddleware.js";
-import { emitFriendStatus } from "./src/controllers/friendsController.js";
-import { joinConvo } from "./src/controllers/conversationController.js";
-import { socketMarkDelivered, socketMarkSeen, socketSendMessage } from "./src/controllers/messageController.js";
-import { setOnlineStatus } from "./src/services/userService.js";
-import { withinBudget } from "./src/middlewares/socketRateLimit.js";
+import { socketMiddleware } from "#src/middlewares/socketMiddleware.js";
+import { emitFriendStatus } from "#src/controllers/friendsController.js";
+import { joinConvo } from "#src/controllers/conversationController.js";
+import { socketMarkDelivered, socketMarkSeen, socketSendMessage } from "#src/controllers/messageController.js";
+import { setOnlineStatus } from "#src/services/userService.js";
+import { withinBudget } from "#src/middlewares/socketRateLimit.js";
 
 export const initializeSocket = (server) => {
   // creating socket.io instence

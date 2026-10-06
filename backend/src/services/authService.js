@@ -2,14 +2,14 @@ import crypto from "crypto";
 import createHttpError from "http-errors";
 import validator from "validator";
 
-import { UserModel } from "../models/index.js";
-import { isDisposableEmail } from "../utils/checkDispose.js";
-import { assertStrongPassword, assertValidName, normalizeEmail } from "../utils/accountRules.js";
-import { sha256 } from "../utils/sha256.js";
-import otpMail from "../templates/mail/otp.js";
-import resetMail from "../templates/mail/reset.js";
-import { formatRemainingTime, transporter } from "./mailer.js";
-import { endAllSessions, verifyAccessToken } from "./sessionService.js";
+import { UserModel } from "#src/models/index.js";
+import { isDisposableEmail } from "#src/utils/checkDispose.js";
+import { assertStrongPassword, assertValidName, normalizeEmail } from "#src/utils/accountRules.js";
+import { sha256 } from "#src/utils/sha256.js";
+import otpMail from "#src/templates/mail/otp.js";
+import resetMail from "#src/templates/mail/reset.js";
+import { formatRemainingTime, transporter } from "#src/services/mailer.js";
+import { endAllSessions, verifyAccessToken } from "#src/services/sessionService.js";
 
 const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;

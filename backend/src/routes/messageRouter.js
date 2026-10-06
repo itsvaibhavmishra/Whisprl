@@ -2,11 +2,11 @@ import express from "express";
 import trimRequest from "trim-request";
 import multer from "multer";
 
-import { protect } from "../middlewares/authMiddleware.js";
-import { readLimit, uploadLimit, writeLimit } from "../middlewares/rateLimiters.js";
-import { attachFile, getDeliverableMessages, getMessages, resealWaitingMessage } from "../controllers/messageController.js";
-import { edit, react, removeForEveryone, removeForMe, unreact } from "../controllers/messageActionController.js";
-import { MAX_SEALED_FILE_SIZE } from "../services/messageService.js";
+import { protect } from "#src/middlewares/authMiddleware.js";
+import { readLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
+import { attachFile, getDeliverableMessages, getMessages, resealWaitingMessage } from "#src/controllers/messageController.js";
+import { edit, react, removeForEveryone, removeForMe, unreact } from "#src/controllers/messageActionController.js";
+import { MAX_SEALED_FILE_SIZE } from "#src/services/messageService.js";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_SEALED_FILE_SIZE, files: 1 } });
 const messageRouter = express.Router();

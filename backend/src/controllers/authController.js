@@ -8,7 +8,7 @@ import {
   sendVerificationCode,
   toSessionUser,
   verifyEmail,
-} from "../services/authService.js";
+} from "#src/services/authService.js";
 import {
   endSession,
   issueAccessToken,
@@ -16,7 +16,7 @@ import {
   signOutEverywhere,
   signOutSession,
   startSession,
-} from "../services/sessionService.js";
+} from "#src/services/sessionService.js";
 
 export const respondWithSession = async (req, res, user, message, extra = {}) => {
   const accessToken = await startSession(user, req, res);

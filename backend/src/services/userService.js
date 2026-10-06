@@ -3,10 +3,10 @@ import sizeOf from "image-size";
 import mongoose from "mongoose";
 import validator from "validator";
 
-import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "../models/index.js";
-import { deleteFile, isCloudinaryFile, uploadFile } from "./fileUploadService.js";
-import { escapeRegex } from "../utils/escapeRegex.js";
-import { assertStrongPassword, normalizeEmail } from "../utils/accountRules.js";
+import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
+import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
+import { escapeRegex } from "#src/utils/escapeRegex.js";
+import { assertStrongPassword, normalizeEmail } from "#src/utils/accountRules.js";
 
 const PROFILE_IMAGES = {
   avatar: {

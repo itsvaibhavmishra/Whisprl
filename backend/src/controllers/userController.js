@@ -8,9 +8,9 @@ import {
   saveProfile,
   searchForUsers,
   setQuickReactions,
-} from "../services/userService.js";
-import { endOtherSessions, issueAccessToken, signOutOtherDevices } from "../services/sessionService.js";
-import { assertText, assertValidName } from "../utils/accountRules.js";
+} from "#src/services/userService.js";
+import { endOtherSessions, issueAccessToken, signOutOtherDevices } from "#src/services/sessionService.js";
+import { assertText, assertValidName } from "#src/utils/accountRules.js";
 
 // -------------------------- Update Profile --------------------------
 export const updateProfile = async (req, res, next) => {

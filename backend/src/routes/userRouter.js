@@ -2,8 +2,8 @@ import express from "express";
 import trimRequest from "trim-request";
 import multer from "multer";
 
-import { protect } from "../middlewares/authMiddleware.js";
-import { readLimit, searchLimit, uploadLimit, writeLimit } from "../middlewares/rateLimiters.js";
+import { protect } from "#src/middlewares/authMiddleware.js";
+import { readLimit, searchLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   getMyProfile,
   getUserData,
@@ -11,7 +11,7 @@ import {
   updatePassword,
   updateProfile,
   updateQuickReactions,
-} from "../controllers/userController.js";
+} from "#src/controllers/userController.js";
 
 const userRouter = express.Router();
 

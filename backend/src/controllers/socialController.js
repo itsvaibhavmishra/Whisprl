@@ -1,5 +1,5 @@
-import { signInWithProvider } from "../services/socialAuthService.js";
-import { respondWithSession } from "./authController.js";
+import { signInWithProvider } from "#src/services/socialAuthService.js";
+import { respondWithSession } from "#src/controllers/authController.js";
 
 const socialLogin = (provider) => async (req, res, next) => {
   try {

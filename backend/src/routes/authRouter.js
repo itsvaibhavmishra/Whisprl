@@ -9,15 +9,15 @@ import {
   logout,
   forgotPassword,
   resetPassword,
-} from "../controllers/authController.js";
+} from "#src/controllers/authController.js";
 import {
   githubAuth,
   googleAuth,
   linkedinAuth,
-} from "../controllers/socialController.js";
-import { getLoginOptions, passkeyLogin } from "../controllers/passkeyController.js";
-import { requireRecaptcha } from "../middlewares/recaptchaMiddleware.js";
-import { codeLimit, emailLimit, loginLimit, sessionLimit, signupLimit, socialLimit } from "../middlewares/rateLimiters.js";
+} from "#src/controllers/socialController.js";
+import { getLoginOptions, passkeyLogin } from "#src/controllers/passkeyController.js";
+import { requireRecaptcha } from "#src/middlewares/recaptchaMiddleware.js";
+import { codeLimit, emailLimit, loginLimit, sessionLimit, signupLimit, socialLimit } from "#src/middlewares/rateLimiters.js";
 
 const authRouter = express.Router();
 

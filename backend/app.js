@@ -10,7 +10,7 @@ import compression from "compression";
 import createHttpError from "http-errors"; // error handler
 
 // folder/file imports
-import router from "./src/routes/index.js";
+import router from "#src/routes/index.js";
 
 // creating express app
 const app = express();

@@ -8,8 +8,8 @@ import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { PasskeyChallengeModel, PasskeyModel } from "../models/index.js";
-import { findSessionUser } from "./authService.js";
+import { PasskeyChallengeModel, PasskeyModel } from "#src/models/index.js";
+import { findSessionUser } from "#src/services/authService.js";
 
 const CHALLENGE_LIFETIME = 5 * 60 * 1000;
 

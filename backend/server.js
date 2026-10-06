@@ -2,8 +2,8 @@ import "dotenv/config";
 import http from "http";
 import mongoose from "mongoose";
 
-import app from "./app.js";
-import { initializeSocket } from "./socket.js";
+import app from "#app.js";
+import { initializeSocket } from "#socket.js";
 
 // env variables
 const port = process.env.PORT || "5000";

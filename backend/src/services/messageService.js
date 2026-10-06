@@ -1,10 +1,10 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { ConversationModel, MessageModel, UserModel } from "../models/index.js";
-import { MEMBER_FIELDS, QUOTED_FIELDS, findMemberConversation, firstIdAt, populateMembers } from "./conversationService.js";
-import { uploadFile } from "./fileUploadService.js";
-import { currentKeyIdOf, isSealed } from "./keyService.js";
+import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { MEMBER_FIELDS, QUOTED_FIELDS, findMemberConversation, firstIdAt, populateMembers } from "#src/services/conversationService.js";
+import { uploadFile } from "#src/services/fileUploadService.js";
+import { currentKeyIdOf, isSealed } from "#src/services/keyService.js";
 
 const MAX_CIPHER_LENGTH = 64 * 1024;
 const MAX_SEALED_KEY_LENGTH = 256;
