@@ -173,7 +173,7 @@ export const CloseConversation = () => (dispatch) => {
 
 // ------------- Send Text Message -------------
 // shown at once from the outbox; the server's copy replaces it once it is saved
-const quoteOf = (message) => {
+export const quoteOf = (message) => {
   if (!message) return null;
   const { _id, sender, message: text, file, contact, deletedAt } = message;
   return { _id, sender, message: text, file, contact, deletedAt };

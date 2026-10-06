@@ -57,6 +57,8 @@
     - Swipe a message towards the middle of the chat to reply to it
     - A 24-hour time setting, with times shown on the 12-hour clock by default
     - Delete a chat for yourself: it leaves your list and its messages are cleared for you, until a new message brings it back
+    - Voice messages up to 15 minutes, end-to-end encrypted: hold the mic to record and let go to send, slide left to cancel, or slide up (or click, on a computer) to record hands-free
+    - Voice messages play at 1x, 1.5x or 2x, with a waveform that fills as they play and jumps to wherever you tap
 
   - Improvements:
     - The artwork loads several times faster, just as sharp

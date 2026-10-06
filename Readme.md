@@ -490,6 +490,7 @@ $ npm run build
 │   │   │   │   │   ├── ShareContactDialog.js
 │   │   │   │   │   ├── useChatScroll.js
 │   │   │   │   │   ├── useTyping.js
+│   │   │   │   │   ├── VoiceRecorder.js
 │   │   │   │   ├── details/
 │   │   │   │   │   ├── ChatControls.js
 │   │   │   │   │   ├── DetailsPanel.js
@@ -528,6 +529,8 @@ $ npm run build
 │   │   │   │   │   ├── VideoMessage.js
 │   │   │   │   │   ├── ViewOnceMessage.js
 │   │   │   │   │   ├── ViewOnceViewer.js
+│   │   │   │   │   ├── VoiceMessage.js
+│   │   │   │   │   ├── Waveform.js
 │   │   │   │   ├── ChatCanvas.js
 │   │   │   │   ├── EmptyChat.js
 │   │   │   ├── contacts/
@@ -679,6 +682,8 @@ $ npm run build
 │   │   │   ├── truncateText.js
 │   │   │   ├── uuidv4.js
 │   │   │   ├── video.js
+│   │   │   ├── voice.js
+│   │   │   ├── voice.test.js
 │   │   ├── App.js
 │   │   ├── config.js
 │   │   ├── index.css

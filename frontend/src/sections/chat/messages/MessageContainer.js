@@ -16,6 +16,7 @@ import Reactions from "@/sections/chat/messages/Reactions";
 import ReplyQuote from "@/sections/chat/messages/ReplyQuote";
 import VideoMessage from "@/sections/chat/messages/VideoMessage";
 import ViewOnceMessage from "@/sections/chat/messages/ViewOnceMessage";
+import VoiceMessage from "@/sections/chat/messages/VoiceMessage";
 import SeenMarker, { SeenByRow } from "@/sections/chat/messages/SeenMarker";
 import useSwipeToReply, { SwipeReplyHint } from "@/sections/chat/messages/useSwipeToReply";
 import getAvatar from "@/utils/createAvatar";
@@ -76,6 +77,7 @@ const MessageContainer = ({
   const media = files.filter(isMediaFile);
   const hasMedia = media.length > 0;
   const hasDocs = files.some((file) => file.fileType === "document");
+  const voice = files.find((file) => file.fileType === "voice");
   const isFileMsg = msgType === "file" || msgType === "file_with_caption";
   const isDeleted = Boolean(message.deletedAt);
   const hasReactions = Boolean(conversation && message.reactions?.length);
@@ -267,6 +269,7 @@ const MessageContainer = ({
                 {message.contact && <ContactCard contact={message.contact} isMine={isMine} />}
                 {hasMedia &&
                   (media.length === 1 && media[0].fileType === "video" ? <VideoMessage file={media[0]} /> : <MediaMessage files={media} />)}
+                {voice && <VoiceMessage file={voice} isMine={isMine} />}
                 {hasDocs && (
                   <Box sx={{ mt: hasMedia ? 0.5 : 0 }}>
                     <DocumentMessage files={files} />

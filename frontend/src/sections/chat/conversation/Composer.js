@@ -12,6 +12,7 @@ import { setDraft, setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
 import AttachMenu from "@/sections/chat/conversation/AttachMenu";
 import MentionSuggestions from "@/sections/chat/conversation/MentionSuggestions";
 import ShareContactDialog from "@/sections/chat/conversation/ShareContactDialog";
+import VoiceRecorder from "@/sections/chat/conversation/VoiceRecorder";
 import { useTyping } from "@/sections/chat/conversation/useTyping";
 import getAvatar from "@/utils/createAvatar";
 import { summaryOf } from "@/utils/messageSummary";
@@ -19,6 +20,16 @@ import { summaryOf } from "@/utils/messageSummary";
 const MAX_SUGGESTIONS = 6;
 
 const mentionQueryBefore = (text, caret) => text.slice(0, caret).match(/(?:^|\s)@([^\s@]*)$/)?.[1] ?? null;
+
+const ROUND_BUTTON = {
+  width: 46,
+  height: 46,
+  mb: 0.25,
+  color: "common.white",
+  bgcolor: "primary.main",
+  "&:hover": { bgcolor: "primary.dark" },
+  "&.Mui-disabled": { color: "common.white", bgcolor: "primary.main", opacity: 0.45 },
+};
 
 const Banner = ({ icon: Icon, leading, title, text, onClose }) => (
   <Stack
@@ -60,6 +71,7 @@ const Composer = () => {
   const [value, setValue] = useState(drafts[conversation._id] ?? "");
   const [mentionIds, setMentionIds] = useState([]);
   const [mentionQuery, setMentionQuery] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [emojiAnchor, setEmojiAnchor] = useState(null);
   const [isSharingContact, setIsSharingContact] = useState(false);
@@ -185,9 +197,9 @@ const Composer = () => {
         />
       )}
 
-      <Stack direction="row" alignItems="flex-end" spacing={{ xs: 0.5, md: 1 }}>
+      <Stack direction="row" alignItems="flex-end" spacing={{ xs: 0.5, md: 1 }} sx={{ position: "relative" }}>
         {!editing && (
-          <Box sx={{ pb: 0.5 }}>
+          <Box inert={isRecording ? "" : undefined} sx={{ pb: 0.5 }}>
             <AttachMenu
               onMedia={() => dispatch(ChooseAttachments("media"))}
               onDocument={() => dispatch(ChooseAttachments("doc"))}
@@ -198,6 +210,7 @@ const Composer = () => {
 
         <TextField
           ref={fieldRef}
+          inert={isRecording ? "" : undefined}
           inputRef={inputRef}
           value={value}
           onChange={(event) => changeText(event.target.value, event.target.selectionStart)}
@@ -227,26 +240,17 @@ const Composer = () => {
           }}
         />
 
-        <Tooltip title={editing ? "Save" : "Send"}>
-          <span>
-            <IconButton
-              type="submit"
-              aria-label={editing ? "Save edit" : "Send"}
-              disabled={!value.trim()}
-              sx={{
-                width: 46,
-                height: 46,
-                mb: 0.25,
-                color: "common.white",
-                bgcolor: "primary.main",
-                "&:hover": { bgcolor: "primary.dark" },
-                "&.Mui-disabled": { color: "common.white", bgcolor: "primary.main", opacity: 0.45 },
-              }}
-            >
-              <PaperPlaneTilt size={20} weight="fill" />
-            </IconButton>
-          </span>
-        </Tooltip>
+        {(value.trim() || editing) && !isRecording ? (
+          <Tooltip title={editing ? "Save" : "Send"}>
+            <span>
+              <IconButton type="submit" aria-label={editing ? "Save edit" : "Send"} disabled={!value.trim()} sx={ROUND_BUTTON}>
+                <PaperPlaneTilt size={20} weight="fill" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        ) : (
+          <VoiceRecorder buttonSx={ROUND_BUTTON} onRecordingChange={setIsRecording} />
+        )}
       </Stack>
 
       <MentionSuggestions anchorEl={fieldRef.current} people={suggestions} activeIndex={activeSuggestion} onPick={pickMention} />
