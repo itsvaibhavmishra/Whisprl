@@ -111,7 +111,7 @@ const ProfileEditor = () => {
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <ProfileHero
-        profile={live}
+        profile={{ ...live, username: user.username }}
         coverAction={<ImageMenu kind="cover" hasImage={!!live.cover} onChange={changeImage("cover")} />}
         photoAction={<ImageMenu kind="photo" hasImage={!!live.avatar} onChange={changeImage("avatar")} />}
       />

@@ -5,12 +5,14 @@ import multer from "multer";
 import { protect } from "#src/middlewares/authMiddleware.js";
 import { readLimit, searchLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
+  checkUsernameAvailable,
   getMyProfile,
   getUserData,
   searchUsers,
   updatePassword,
   updateProfile,
   updateQuickReactions,
+  updateUsername,
 } from "#src/controllers/userController.js";
 
 const userRouter = express.Router();
@@ -29,6 +31,9 @@ userRouter
 
 // Change Password Route
 userRouter.route("/change-password").post(trimRequest.all, protect, writeLimit(), updatePassword);
+
+// Username Routes
+userRouter.route("/username").get(protect, readLimit(), checkUsernameAvailable).put(protect, writeLimit(), updateUsername);
 
 // Quick Reactions Route
 userRouter.route("/quick-reactions").put(protect, writeLimit(), updateQuickReactions);

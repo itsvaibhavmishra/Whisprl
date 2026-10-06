@@ -6,6 +6,7 @@ import {
   SearchFriends,
   UpdateProfile,
   UpdateQuickReactions,
+  UpdateUsername,
 } from "@/redux/slices/actions/userActions";
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 
@@ -108,12 +109,16 @@ const slice = createSlice({
       .addCase(UpdateProfile.fulfilled, (state, action) => {
         state.user = { ...state.user, ...action.payload.user };
       })
+      .addCase(UpdateUsername.fulfilled, (state, action) => {
+        const { username, usernameChangedAt } = action.payload;
+        state.user = { ...state.user, username, usernameChangedAt };
+      })
       .addCase(UpdateQuickReactions.fulfilled, (state, action) => {
         state.user.quickReactions = action.payload.quickReactions;
       })
       .addCase(GetMyProfile.fulfilled, (state, action) => {
-        const { firstName, lastName, avatar, cover, email, activityStatus, ...summary } = action.payload.user;
-        state.user = { ...state.user, firstName, lastName, avatar, cover, email, activityStatus };
+        const { firstName, lastName, username, usernameChangedAt, avatar, cover, email, activityStatus, ...summary } = action.payload.user;
+        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, cover, email, activityStatus };
         state.accountSummary = summary;
       })
       .addCase(SearchFriends.fulfilled, (state, action) => {

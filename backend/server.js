@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 
 import app from "#app.js";
 import { initializeSocket } from "#socket.js";
+import { giveEveryoneAUsername } from "#src/services/usernameService.js";
 
 // env variables
 const port = process.env.PORT || "5000";
@@ -20,6 +21,9 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("[DB] Connection Success");
+    giveEveryoneAUsername()
+      .then((given) => given && console.log(`[DB] Gave ${given} accounts a username`))
+      .catch((error) => console.log(`[DB] Usernames not given: ${error.message}`));
   })
   .catch((err) => {
     console.log(`[DB] ${err.message}`);

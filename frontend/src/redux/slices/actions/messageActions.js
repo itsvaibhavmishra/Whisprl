@@ -88,8 +88,8 @@ export const ForwardMessage = ({ message, conversationIds }) => (dispatch) =>
   );
 
 export const ShareContacts = (friends) => (dispatch) =>
-  friends.forEach(({ _id, firstName, lastName, avatar }) =>
-    dispatch(SendTextMessage({ text: "", contact: { _id, firstName, lastName, avatar } }))
+  friends.forEach(({ _id, firstName, lastName, username, avatar }) =>
+    dispatch(SendTextMessage({ text: "", contact: { _id, firstName, lastName, username, avatar } }))
   );
 
 // ------------- History -------------

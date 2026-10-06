@@ -77,7 +77,7 @@ const StatusBubble = ({ status }) => (
 );
 
 const ProfileHero = ({ profile, coverAction, photoAction }) => {
-  const { firstName, lastName, avatar, cover, activityStatus } = profile;
+  const { firstName, lastName, username, avatar, cover, activityStatus } = profile;
   const fullName = `${firstName} ${lastName}`.trim();
 
   return (
@@ -101,6 +101,9 @@ const ProfileHero = ({ profile, coverAction, photoAction }) => {
       <Typography component="h2" sx={{ m: 0, mt: { xs: 2, md: 2.5 }, px: { xs: 2, md: 4 }, overflowWrap: "anywhere" }}>
         <Wordmark name={fullName} fontSize={{ xs: "2.5rem", sm: "3rem", md: "4rem" }} />
       </Typography>
+      {username && (
+        <Typography sx={{ mt: 0.5, px: { xs: 2, md: 4 }, color: "text.secondary", fontWeight: 600 }}>@{username}</Typography>
+      )}
     </Box>
   );
 };

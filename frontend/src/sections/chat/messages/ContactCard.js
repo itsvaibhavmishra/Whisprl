@@ -37,7 +37,7 @@ const ContactCard = ({ contact, isMine }) => {
             {fullName}
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.75 }}>
-            Contact
+            {contact.username ? `@${contact.username}` : "Contact"}
           </Typography>
         </Box>
       </Stack>

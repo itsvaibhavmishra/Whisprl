@@ -40,6 +40,8 @@
     - Mention people in a group by typing @
     - Search inside a chat, and jump straight to any result, reply or pinned message
     - See the photos, links and documents shared in a chat, and the groups you have in common with someone
+    - Everyone has a username, shown on their profile, which you can change in settings once every 30 days
+    - Search the chat page for chats and people by name, username or email, and add a friend straight from the results
 
   - Improvements:
     - The artwork loads several times faster, just as sharp

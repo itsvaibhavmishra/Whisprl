@@ -253,6 +253,7 @@ $ npm run build
 │   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
 │   │   │   ├── userService.js
+│   │   │   ├── usernameService.js
 │   │   ├── templates/
 │   │   │   ├── mail/
 │   │   │   │   ├── otp.js
@@ -533,6 +534,7 @@ $ npm run build
 │   │   │   │   ├── QuickReactionsSetting.js
 │   │   │   │   ├── RecoveryKeySetting.js
 │   │   │   │   ├── SettingsSection.js
+│   │   │   │   ├── UsernameSetting.js
 │   │   │   ├── terms/
 │   │   │   │   ├── content.js
 │   │   │   ├── welcome/
@@ -615,6 +617,7 @@ $ npm run build
 │   │   │   ├── formatMessageTime.test.js
 │   │   │   ├── formatTime.js
 │   │   │   ├── formRules.js
+│   │   │   ├── formRules.test.js
 │   │   │   ├── getColorPresets.js
 │   │   │   ├── getFontValue.js
 │   │   │   ├── getOtherUser.js

@@ -10,6 +10,7 @@ import otpMail from "#src/templates/mail/otp.js";
 import resetMail from "#src/templates/mail/reset.js";
 import { formatRemainingTime, transporter } from "#src/services/mailer.js";
 import { endAllSessions, verifyAccessToken } from "#src/services/sessionService.js";
+import { availableUsername } from "#src/services/usernameService.js";
 
 const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;
@@ -24,6 +25,8 @@ export const toSessionUser = (user) => ({
   lastName: user.lastName,
   avatar: user.avatar,
   email: user.email,
+  username: user.username,
+  usernameChangedAt: user.usernameChangedAt,
   activityStatus: user.activityStatus,
   onlineStatus: user.onlineStatus,
   quickReactions: user.quickReactions,
@@ -95,6 +98,7 @@ export const registerUser = async ({ firstName, lastName, email, password }) => 
 
   const user = existing ?? new UserModel({ email: address });
   user.set({ firstName, lastName, password });
+  user.username ??= await availableUsername(firstName, lastName);
   await user.save();
 
   return user;

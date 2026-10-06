@@ -26,3 +26,15 @@ export const assertStrongPassword = (password) => {
 };
 
 export const normalizeEmail = (email) => String(email ?? "").trim().toLowerCase();
+
+const USERNAME = /^(?=.{3,20}$)[a-z0-9]+(?:[._][a-z0-9]+)*$/;
+const RESERVED_USERNAMES = new Set(["admin", "administrator", "help", "moderator", "official", "root", "support", "system", "whisprl"]);
+
+export const normalizeUsername = (value) => String(value ?? "").trim().replace(/^@/, "").toLowerCase();
+
+export const usernameProblemOf = (username) => {
+  if (!USERNAME.test(username)) {
+    return "Use 3 to 20 letters, numbers, dots or underscores, with a letter or number at each end and no two dots or underscores together";
+  }
+  return RESERVED_USERNAMES.has(username) ? "That username is reserved" : null;
+};
