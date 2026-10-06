@@ -76,6 +76,7 @@
     - Groups sit in Chats with everything else, replacing the empty Groups tab
     - Switching between chats is instant
     - Each chat shows how many messages are unread, and the list filters to unread chats or groups
+    - A session that has been logged out stops working straight away, rather than up to 15 minutes later
     - A message you have started stays as a draft when you switch to another chat
     - Whisprl's own doodles sit behind your messages
 
@@ -104,12 +105,15 @@
     - Someone who signs up with an email they do not own can no longer keep a password on it
     - Verification codes cannot be guessed past the attempt limit by trying many at once
     - Friend requests show when they were actually sent
+    - Whisprl no longer logs you out on its own, and Safari and other browsers that block cookies from other sites stay logged in, after logging in once more with this update
+    - A session that ends shows one notice instead of several
     - Full-screen views on a phone fill the whole screen, without a gap at the edges
 
   - Developers:
     - The frontend has its first tests, and the gate runs them
     - The backend needs GOOGLE_AUTH_CLIENT_ID for Google sign-in, and no longer reads JWT_REFRESH_SECRET
     - The backend checks passkeys with @simplewebauthn/server, and FRONT_URL must be the address the app is served from
+    - Sessions are bound to a key the browser cannot export rather than a cookie, so the backend no longer uses cookie-parser
 
   - Internal:
     - Frontend code is organised by page, with unused files and assets removed

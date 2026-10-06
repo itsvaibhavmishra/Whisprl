@@ -12,15 +12,16 @@ import {
 import {
   endSession,
   issueAccessToken,
-  refreshSession,
+  issueChallenge,
+  renewSession,
   signOutEverywhere,
   signOutSession,
   startSession,
 } from "#src/services/sessionService.js";
 
 export const respondWithSession = async (req, res, user, message, extra = {}) => {
-  const accessToken = await startSession(user, req, res);
-  res.status(200).json({ status: "success", message, user: toSessionUser(user), accessToken, ...extra });
+  const session = await startSession(user, req.body.sessionKey, req);
+  res.status(200).json({ status: "success", message, user: toSessionUser(user), ...session, ...extra });
 };
 
 // -------------------------- Login auth --------------------------
@@ -98,7 +99,7 @@ export const resetPassword = async (req, res, next) => {
 // -------------------------- Logout auth --------------------------
 export const logout = async (req, res, next) => {
   try {
-    const session = await endSession(req, res);
+    const session = await endSession(req.sessionId);
     if (session) await signOutSession(req.app.get("io"), session);
 
     res.status(200).json({ status: "success", message: "Logged out successfully" });
@@ -107,18 +108,17 @@ export const logout = async (req, res, next) => {
   }
 };
 
-// -------------------------- Refresh Token --------------------------
-export const refreshToken = async (req, res, next) => {
+// -------------------------- Renew Access Token --------------------------
+export const getChallenge = (req, res) => {
+  res.status(200).json({ status: "success", challenge: issueChallenge() });
+};
+
+export const renewAccessToken = async (req, res, next) => {
   try {
-    const session = await refreshSession(req, res);
+    const session = await renewSession(req.body);
     const user = await findSessionUser(session.user);
 
-    res.status(200).json({
-      status: "success",
-      message: "Token Refreshed",
-      user: toSessionUser(user),
-      accessToken: issueAccessToken(user._id, session._id),
-    });
+    res.status(200).json({ status: "success", user: toSessionUser(user), ...issueAccessToken(user._id, session._id) });
   } catch (error) {
     next(error);
   }

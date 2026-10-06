@@ -4,11 +4,8 @@ const sessionSchema = mongoose.Schema(
   {
     user: { type: mongoose.Schema.ObjectId, ref: "User", required: true, index: true },
 
-    tokenHash: { type: String, required: true, unique: true },
-
-    // the token this one replaced, accepted briefly so two tabs refreshing together both succeed
-    previousTokenHash: { type: String, index: { sparse: true } },
-    rotatedAt: { type: Date },
+    // the public half of a key the browser made at login and cannot export, which checks its signature for every new access token
+    publicKey: { type: String, required: true },
 
     userAgent: { type: String },
 

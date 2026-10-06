@@ -9,7 +9,7 @@ import {
   searchForUsers,
   setQuickReactions,
 } from "#src/services/userService.js";
-import { endOtherSessions, issueAccessToken, signOutOtherDevices } from "#src/services/sessionService.js";
+import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionService.js";
 import { changeUsername, checkUsername } from "#src/services/usernameService.js";
 import { assertText, assertValidName } from "#src/utils/accountRules.js";
 
@@ -108,15 +108,10 @@ export const updatePassword = async (req, res, next) => {
 
     await changePassword(req.user._id, currentPassword, newPassword);
 
-    // every other device is signed out; this one carries on with a token newer than the change
     await endOtherSessions(req.user._id, req.sessionId);
     await signOutOtherDevices(req.app.get("io"), req.user._id, req.sessionId);
 
-    return res.status(200).json({
-      status: "success",
-      message: "Password changed",
-      accessToken: issueAccessToken(req.user._id, req.sessionId),
-    });
+    return res.status(200).json({ status: "success", message: "Password changed" });
   } catch (error) {
     next(error);
   }

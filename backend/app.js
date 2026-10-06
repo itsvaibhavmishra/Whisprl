@@ -5,7 +5,6 @@ import cors from "cors";
 import helmet from "helmet";
 import { xss } from "express-xss-sanitizer";
 import mongoSanitize from "express-mongo-sanitize";
-import cookieParser from "cookie-parser";
 import compression from "compression";
 import createHttpError from "http-errors"; // error handler
 
@@ -22,7 +21,6 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     origin: process.env.FRONT_URL || "http://localhost:3000",
-    credentials: true,
   })
 );
 
@@ -34,7 +32,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(helmet()); // general security
 app.use(xss()); // xss protection
 app.use(mongoSanitize()); // sanitization for mongodb
-app.use(cookieParser()); // parsing cookies
 app.use(compression()); // gzip compression
 
 // Index Route
@@ -69,6 +66,8 @@ app.use((error, req, res, next) => {
     error: {
       status: "error",
       message: messageOf(error, status),
+      // what the browser should do next, such as renew its token or log in again
+      ...(error.expose && typeof error.code === "string" && { code: error.code }),
     },
   });
 });

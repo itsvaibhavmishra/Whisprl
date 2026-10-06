@@ -1,5 +1,5 @@
 import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
-import axios, { setAccessToken } from "@/utils/axios";
+import axios from "@/utils/axios";
 
 const blobUrlToFile = async (blobUrl, fileName) => {
   const blob = await (await fetch(blobUrl)).blob();
@@ -36,7 +36,6 @@ export const GetMyProfile = createApiThunk("user/me", async () => (await axios.g
 // ------------- Change Password Thunk -------------
 export const ChangePassword = createApiThunk("user/change-password", async (passwords) => {
   const { data } = await axios.post("/user/change-password", passwords);
-  setAccessToken(data.accessToken);
   notifyResult(data);
   return data;
 });

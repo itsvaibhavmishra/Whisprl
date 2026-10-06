@@ -1,96 +1,113 @@
 import crypto from "crypto";
 import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 import { SessionModel } from "#src/models/index.js";
-import { sha256 } from "#src/utils/sha256.js";
 
-const ACCESS_TOKEN_LIFETIME = "15m";
+const ACCESS_TOKEN_SECONDS = 15 * 60;
+const CHALLENGE_SECONDS = 2 * 60;
 const SESSION_LIFETIME = 90 * 24 * 60 * 60 * 1000;
-const ROTATION_GRACE = 30 * 1000;
+const MAX_SESSION_KEY_LENGTH = 256;
 
-const SESSION_COOKIE = "session";
-const SESSION_COOKIE_OPTIONS = { httpOnly: true, secure: true, sameSite: "none", path: "/api/auth" };
+const ACCESS_AUDIENCE = "access";
+const CHALLENGE_AUDIENCE = "session-challenge";
 
-const SESSION_ENDED = "Your session ended, please log in again";
+// the code tells the browser what to do: an invalid token is renewed, an ended session means logging in again
+const tokenInvalid = () => createHttpError(401, "Your sign-in needs renewing, please try again", { code: "token_invalid" });
 
-const newSessionToken = () => crypto.randomBytes(32).toString("base64url");
+export const sessionEnded = () => createHttpError(401, "Your session ended, please log in again", { code: "session_ended" });
 
 const nextExpiry = () => new Date(Date.now() + SESSION_LIFETIME);
 
-const setSessionCookie = (res, token) =>
-  res.cookie(SESSION_COOKIE, token, { ...SESSION_COOKIE_OPTIONS, maxAge: SESSION_LIFETIME, priority: "high" });
+const signToken = (claims, audience, expiresIn) =>
+  jwt.sign(claims, process.env.JWT_ACCESS_SECRET, { algorithm: "HS256", audience, expiresIn });
 
-export const issueAccessToken = (user_id, session_id) =>
-  jwt.sign({ sub: String(user_id), sid: String(session_id) }, process.env.JWT_ACCESS_SECRET, {
-    algorithm: "HS256",
-    expiresIn: ACCESS_TOKEN_LIFETIME,
-  });
+const readToken = (token, audience) => jwt.verify(token, process.env.JWT_ACCESS_SECRET, { algorithms: ["HS256"], audience });
+
+export const issueAccessToken = (user_id, session_id) => ({
+  accessToken: signToken({ sub: String(user_id), sid: String(session_id) }, ACCESS_AUDIENCE, ACCESS_TOKEN_SECONDS),
+  expiresIn: ACCESS_TOKEN_SECONDS,
+});
 
 export const verifyAccessToken = (token) => {
   try {
-    return jwt.verify(token, process.env.JWT_ACCESS_SECRET, { algorithms: ["HS256"] });
+    return readToken(token, ACCESS_AUDIENCE);
   } catch {
-    throw createHttpError.Unauthorized("Your session expired, please log in again");
+    throw tokenInvalid();
   }
 };
 
-export const startSession = async (user, req, res) => {
-  const token = newSessionToken();
+const publicKeyFrom = (encoded) => {
+  try {
+    return crypto.createPublicKey({ key: Buffer.from(encoded, "base64"), format: "der", type: "spki" });
+  } catch {
+    return null;
+  }
+};
+
+export const assertSessionKey = (encoded) => {
+  const key = typeof encoded === "string" && encoded.length <= MAX_SESSION_KEY_LENGTH ? publicKeyFrom(encoded) : null;
+  if (key?.asymmetricKeyDetails?.namedCurve !== "prime256v1") {
+    throw createHttpError.BadRequest("Reload Whisprl to get the latest version, then log in again");
+  }
+};
+
+export const startSession = async (user, sessionKey, req) => {
   const session = await SessionModel.create({
     user: user._id,
-    tokenHash: sha256(token),
+    publicKey: sessionKey,
     userAgent: req.get("user-agent")?.slice(0, 256),
     expiresAt: nextExpiry(),
   });
-
-  setSessionCookie(res, token);
-  return issueAccessToken(user._id, session._id);
+  return { sessionId: session._id, ...issueAccessToken(user._id, session._id) };
 };
 
-const rotateSession = async (filter, changes, res) => {
-  const nextToken = newSessionToken();
-  const session = await SessionModel.findOneAndUpdate(
-    { ...filter, expiresAt: { $gt: new Date() } },
-    { ...changes, tokenHash: sha256(nextToken), rotatedAt: new Date(), expiresAt: nextExpiry() },
-    { new: true }
-  );
-  if (session) setSessionCookie(res, nextToken);
+export const issueChallenge = () => signToken({}, CHALLENGE_AUDIENCE, CHALLENGE_SECONDS);
+
+// Web Crypto writes an ECDSA signature as r and s side by side, which Node calls IEEE P1363
+const isSignedBy = (publicKey, challenge, signature) => {
+  try {
+    const verifier = { key: publicKeyFrom(publicKey), dsaEncoding: "ieee-p1363" };
+    return crypto.verify("sha256", Buffer.from(challenge), verifier, Buffer.from(signature, "base64"));
+  } catch {
+    return false;
+  }
+};
+
+// nothing is replaced, so tabs renewing together, retries and replies that never arrive all leave the session as it was
+export const renewSession = async ({ sessionId, challenge, signature }) => {
+  try {
+    readToken(challenge, CHALLENGE_AUDIENCE);
+  } catch {
+    throw createHttpError.BadRequest("That took too long, please try again");
+  }
+
+  const session = mongoose.isValidObjectId(sessionId)
+    ? await SessionModel.findOne({ _id: sessionId, expiresAt: { $gt: new Date() } })
+    : null;
+  if (!session || !isSignedBy(session.publicKey, challenge, signature)) throw sessionEnded();
+
+  session.expiresAt = nextExpiry();
+  await session.save();
   return session;
 };
 
-// a new cookie on every use, and the one before it is accepted only until the new one has been used
-export const refreshSession = async (req, res) => {
-  const token = req.cookies[SESSION_COOKIE];
-  if (!token) throw createHttpError.Unauthorized(SESSION_ENDED);
+export const isSessionActive = (session_id) => SessionModel.exists({ _id: session_id, expiresAt: { $gt: new Date() } });
 
-  const tokenHash = sha256(token);
-  const current = await rotateSession({ tokenHash }, { previousTokenHash: tokenHash }, res);
-  if (current) return current;
-
-  const previous = await SessionModel.findOne({ previousTokenHash: tokenHash, expiresAt: { $gt: new Date() } });
-  if (!previous) throw createHttpError.Unauthorized(SESSION_ENDED);
-
-  // moments after a rotation this is another tab, and the browser already holds the new cookie
-  if (Date.now() - previous.rotatedAt.getTime() < ROTATION_GRACE) return previous;
-
-  // later, the reply carrying the new cookie never arrived, so this browser gets another
-  const reissued = await rotateSession({ _id: previous._id, previousTokenHash: tokenHash }, {}, res);
-  if (!reissued) throw createHttpError.Unauthorized(SESSION_ENDED);
-  return reissued;
-};
-
-export const endSession = async (req, res) => {
-  const token = req.cookies[SESSION_COOKIE];
-  const session = token && (await SessionModel.findOneAndDelete({ tokenHash: sha256(token) }));
-  res.clearCookie(SESSION_COOKIE, SESSION_COOKIE_OPTIONS);
-  return session;
-};
+export const endSession = (session_id) => SessionModel.findByIdAndDelete(session_id);
 
 export const endOtherSessions = (user_id, keep_session_id) =>
   SessionModel.deleteMany({ user: user_id, _id: { $ne: keep_session_id } });
 
 export const endAllSessions = (user_id) => SessionModel.deleteMany({ user: user_id });
+
+// sessions from before keys can never renew, and the unique index they relied on would refuse new ones
+export const dropKeylessSessions = async () => {
+  const { deletedCount } = await SessionModel.deleteMany({ publicKey: { $exists: false } });
+  await SessionModel.syncIndexes();
+  return deletedCount;
+};
 
 const disconnectSockets = async (io, user_id, shouldClose) => {
   const sockets = await io.in(String(user_id)).fetchSockets();

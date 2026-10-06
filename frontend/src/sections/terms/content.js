@@ -1,6 +1,6 @@
 import { PORTFOLIO_URL, SOURCE_URL } from "@/config";
 
-export const LAST_UPDATED = "5 October 2026";
+export const LAST_UPDATED = "7 October 2026";
 
 const CONTACT = { label: "vaibhaw.vercel.app", href: PORTFOLIO_URL };
 
@@ -61,7 +61,7 @@ export const SECTIONS = [
           "your password and one-time codes, stored only as one-way hashes, so nobody can read your password, including the people who run Whisprl",
           "your friends list and conversations, and your messages and files, encrypted so only the people in each conversation can open them",
           "whether you are online, so your friends can see it",
-          "which sign-in methods you have connected, and the public half of any passkey you add, which can only check a sign-in, never make one",
+          "which sign-in methods you have connected, and the public half of any passkey you add and of the key each browser you log in on keeps, which can only check a sign-in, never make one",
         ],
       },
       "Whisprl relies on these services to run:",
@@ -75,7 +75,7 @@ export const SECTIONS = [
           "Netlify and Render, which host the app",
         ],
       },
-      "Whisprl sets one cookie, to keep you logged in, and keeps your encryption key and preferences such as dark mode in your browser's storage. Google Analytics sets cookies of its own. Your data is not sold, and Whisprl shows no ads.",
+      "Whisprl sets no cookies of its own. It keeps the key that keeps you logged in, your encryption key and preferences such as dark mode in your browser's storage. Google Analytics and reCAPTCHA set cookies of their own. Your data is not sold, and Whisprl shows no ads.",
     ],
   },
   {

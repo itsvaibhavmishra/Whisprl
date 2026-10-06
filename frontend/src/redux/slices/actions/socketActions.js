@@ -20,8 +20,8 @@ import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { statusRemoved, viewerAdded } from "@/redux/slices/statusSlice";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
 import { ReceiveStatus } from "@/redux/slices/actions/statusActions";
-import { ensureAccessToken, refreshAccessToken } from "@/utils/axiosInterceptors";
 import { notify } from "@/utils/notify";
+import { dropAccessToken } from "@/utils/session";
 import { socket } from "@/utils/socket";
 
 const MAX_HANDSHAKE_RETRIES = 2;
@@ -69,13 +69,12 @@ const listen = (dispatch, getState) => {
     dispatch(FlushOutbox());
   });
 
-  // socket.io retries a dropped connection by itself, but not one the server refused or closed
+  // socket.io retries a dropped connection by itself, but not one the server refused or closed, so this retries with a renewed token
   const reconnectWithFreshToken = () => {
     if (handshakeRetries >= MAX_HANDSHAKE_RETRIES) return dispatch(setConnection("offline"));
     handshakeRetries += 1;
-    refreshAccessToken()
-      .then(() => socket.connect())
-      .catch(() => dispatch(setConnection("offline")));
+    dropAccessToken();
+    socket.connect();
   };
 
   socket.on("disconnect", (reason) => {
@@ -90,7 +89,7 @@ const listen = (dispatch, getState) => {
 };
 
 // ------------- Connect Socket -------------
-export const ConnectSocket = () => async (dispatch, getState) => {
+export const ConnectSocket = () => (dispatch, getState) => {
   if (!isListening) {
     listen(dispatch, getState);
     isListening = true;
@@ -98,9 +97,7 @@ export const ConnectSocket = () => async (dispatch, getState) => {
   if (socket.connected || socket.active) return;
 
   dispatch(setConnection("connecting"));
-  await ensureAccessToken()
-    .then(() => socket.connect())
-    .catch(() => dispatch(setConnection("offline")));
+  socket.connect();
 };
 
 // ------------- Disconnect Socket -------------
