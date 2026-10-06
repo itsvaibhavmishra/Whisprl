@@ -24,7 +24,18 @@ const nameIn = (group, userId, meId) => (userId === meId ? "you" : memberOf(grou
 
 export const listOf = (names) => (names.length < 3 ? names.join(" and ") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
 
+export const typingNamesIn = (conversation, typingConversation, meId) =>
+  typingConversation
+    .filter((typist) => typist.typing && typist.conversation_id === conversation._id && typist.user_id !== meId)
+    .map((typist) => memberOf(conversation, typist.user_id)?.firstName)
+    .filter(Boolean);
+
+export const typingLabel = (names, isGroup) =>
+  isGroup ? `${listOf(names)} ${names.length === 1 ? "is" : "are"} typing…` : "typing…";
+
 const capitalised = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+export const firstNameIn = (conversation, userId, meId) => capitalised(nameIn(conversation, userId, meId));
 
 const SENTENCES = {
   created: ({ actor, event }) => `${actor} created "${event.name}"`,
@@ -36,6 +47,7 @@ const SENTENCES = {
   admin_added: ({ actor, targets }) => `${actor} made ${targets} an admin`,
   admin_removed: ({ actor, targets }) => `${actor} removed ${targets} as an admin`,
   owner: ({ targets }) => `${targets} ${targets === "you" ? "now own" : "now owns"} the group`,
+  pinned: ({ actor }) => `${actor} pinned a message`,
 };
 
 export const describeEvent = (message, group, meId) => {

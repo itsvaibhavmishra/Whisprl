@@ -26,6 +26,7 @@ export const toSessionUser = (user) => ({
   email: user.email,
   activityStatus: user.activityStatus,
   onlineStatus: user.onlineStatus,
+  quickReactions: user.quickReactions,
 });
 
 const matchesHash = (value, hash) => crypto.timingSafeEqual(Buffer.from(sha256(value)), Buffer.from(hash));

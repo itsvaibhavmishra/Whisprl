@@ -3,7 +3,7 @@ import Stack from "@mui/material/Stack";
 
 import NoData from "@/components/NoData";
 import { MembersList } from "@/data";
-import AllChatElement from "@/sections/chat/AllChatElement";
+import AllChatElement from "@/sections/contacts/AllChatElement";
 
 import Lottie from "react-lottie";
 import * as SearchNotFound from "@/assets/illustrations/animations/SearchNotFound.json";

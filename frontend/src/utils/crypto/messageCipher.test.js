@@ -4,7 +4,8 @@
 import { webcrypto } from "crypto";
 
 import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
-import { decryptMessage, encryptMessage, setDeviceKeys } from "@/utils/crypto/messageCipher";
+import { decryptMessage, encryptMessage, encryptReaction, setDeviceKeys } from "@/utils/crypto/messageCipher";
+import { encodePayload } from "@/utils/messagePayload";
 import { createRecoveryKey, lockPrivateKey, parseRecoveryKey, unlockPrivateKey } from "@/utils/crypto/recoveryKey";
 
 // Jest's Node environment predates the global Web Crypto that browsers and current Node have
@@ -181,4 +182,32 @@ test("a member who has left can still be read by those who stayed", async () => 
   setDeviceKeys(deviceOf(bob));
   const afterCarolLeft = { ...group, users: [alice.member, bob.member], formerUsers: [carol.member] };
   expect((await decryptMessage({ sender: { _id: carol.id }, cipher }, afterCarolLeft)).message).toBe("bye all");
+});
+
+test("a shared contact and mentions come back from the encrypted content, and plain text stays plain", async () => {
+  const contact = { _id: "carol", firstName: "Carol", lastName: "Lane" };
+  const structured = await sendFromAlice(encodePayload({ text: "meet @Bob", mentions: ["bob"], contact }));
+  const plain = await sendFromAlice(encodePayload({ text: "just words" }));
+  setDeviceKeys(deviceOf(bob));
+  expect(await decryptMessage(structured, conversation)).toMatchObject({ message: "meet @Bob", mentions: ["bob"], contact });
+  expect((await decryptMessage(plain, conversation)).message).toBe("just words");
+});
+
+test("a reaction opens on its own message, and cannot be passed off as a message or moved to another", async () => {
+  setDeviceKeys(deviceOf(alice));
+  const cipher = await encryptReaction("🎉", "message-1", conversation, "alice");
+  const reacted = { _id: "message-1", sender: { _id: "bob" }, reactions: [{ user: "alice", cipher }] };
+
+  setDeviceKeys(deviceOf(bob));
+  expect((await decryptMessage(reacted, conversation)).reactions).toEqual([{ user: "alice", emoji: "🎉" }]);
+  expect((await decryptMessage({ ...reacted, _id: "message-2" }, conversation)).reactions).toEqual([]);
+  expect((await decryptMessage({ sender: { _id: "alice" }, cipher }, conversation)).undecryptable).toBe(true);
+});
+
+test("a reply carries the quoted message, decrypted alongside it", async () => {
+  const original = { _id: "message-1", ...(await sendFromAlice("the original")) };
+  const reply = { ...(await sendFromAlice("the reply")), replyTo: { ...original, sender: "alice" } };
+  setDeviceKeys(deviceOf(bob));
+  const read = await decryptMessage(reply, conversation);
+  expect([read.message, read.replyTo.message]).toEqual(["the reply", "the original"]);
 });

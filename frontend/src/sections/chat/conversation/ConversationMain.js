@@ -1,115 +1,53 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { MotionConfig } from "framer-motion";
-import { Box, Button, CircularProgress, Divider, Stack, Typography, useTheme } from "@mui/material";
-import { ArrowDown } from "phosphor-react";
+import { Box, Button, CircularProgress, Divider, Stack } from "@mui/material";
+import { ArrowDown, LockSimple } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import MessageContainer from "@/sections/chat/messages/MessageContainer";
 import { MotionLazyContainer } from "@/components/animate";
 import { DidNotUpload, NotSent } from "@/sections/chat/messages/MessageProblems";
 import { useChatScroll } from "@/sections/chat/conversation/useChatScroll";
-import { LoadOlderMessages } from "@/redux/slices/actions/chatActions";
-import { selectActiveOutbox } from "@/redux/slices/chatSlice";
+import { UNREAD_DIVIDER, displayItemsOf, keyOf, lastIdOf } from "@/sections/chat/conversation/displayItems";
+import { GetMessages, LoadNewerMessages, LoadOlderMessages } from "@/redux/slices/actions/chatActions";
+import { RevealMessage } from "@/redux/slices/actions/messageActions";
+import { focusMessage, selectActiveOutbox } from "@/redux/slices/chatSlice";
+import ChatCanvas from "@/sections/chat/ChatCanvas";
+import ChatNote from "@/sections/chat/conversation/ChatNote";
+import { notify } from "@/utils/notify";
 import { filesOf } from "@/utils/messageFiles";
-import { describeEvent, listOf, memberOf } from "@/utils/groups";
+import { describeEvent, typingNamesIn } from "@/utils/groups";
+import TypingBubble, { TYPING_BUBBLE_HEIGHT } from "@/sections/chat/messages/TypingBubble";
 import useIsLoading from "@/hooks/useIsLoading";
 
-// Groups consecutive messages with the same batchId (images only) from the same sender
-// into a single display entry with combined files. Documents are never grouped.
-const buildDisplayGroups = (messages) => {
-  const groups = [];
-  let i = 0;
-  while (i < messages.length) {
-    const msg = messages[i];
-    const isImageBatch = msg.batchId && filesOf(msg).some((file) => file.fileType === "image");
+const EMOJI = /[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
 
-    if (isImageBatch) {
-      const batch = [msg];
-      let j = i + 1;
-      while (
-        j < messages.length &&
-        messages[j].batchId === msg.batchId &&
-        messages[j].sender?._id === msg.sender?._id
-      ) {
-        batch.push(messages[j]);
-        j++;
-      }
+const isOnlyEmoji = (text) => Boolean(text) && [...text].every((char) => EMOJI.test(char));
 
-      if (batch.length > 1) {
-        // Merge all files into the lead message; use caption from batchIndex 0
-        const mergedFiles = batch.flatMap(filesOf);
-        const captionMsg = batch.find((m) => m.batchIndex === 0);
-        groups.push({
-          type: "batch",
-          members: batch,
-          message: {
-            ...batch[0],
-            file: undefined,
-            files: mergedFiles,
-            message: captionMsg?.message || "",
-          },
-        });
-      } else {
-        groups.push({ type: "single", message: msg });
-      }
-      i = j;
-    } else {
-      groups.push({ type: "single", message: msg });
-      i++;
-    }
-  }
-  return groups;
+const messageTypeOf = (message) => {
+  const hasFiles = filesOf(message).length > 0;
+  if (hasFiles && message.message) return "file_with_caption";
+  if (hasFiles) return "file";
+  return isOnlyEmoji(message.message) ? "emoji" : "text";
 };
 
-const keyOf = (message) => message.clientId ?? message._id;
-
-const UNREAD_DIVIDER = "unread-divider";
-
-const queuedMessage = (entry, me) => ({
-  _id: entry.clientId,
-  clientId: entry.clientId,
-  sender: me,
-  message: entry.text ?? entry.caption ?? "",
-  createdAt: entry.createdAt,
-  file: entry.file,
-  attachment: entry.file && { status: "uploading" },
-  outboxEntry: entry,
-});
-
-// a failed message stays where it was written, and one still sending is the newest there is
-const withQueued = (messages, outbox, me) => {
-  const loaded = new Set(messages.map((message) => message._id));
-  const failedAfter = new Map();
-  const sending = [];
-
-  outbox.forEach((entry) => {
-    const anchor = entry.afterId ?? null;
-    if (entry.status !== "failed" || (anchor && !loaded.has(anchor))) return sending.push(queuedMessage(entry, me));
-    failedAfter.set(anchor, [...(failedAfter.get(anchor) ?? []), queuedMessage(entry, me)]);
-  });
-
-  return [
-    ...(failedAfter.get(null) ?? []),
-    ...messages.flatMap((message) => [message, ...(failedAfter.get(message._id) ?? [])]),
-    ...sending,
-  ];
-};
-
-const itemTypeOf = (group) => {
-  if (group.message.outboxEntry) return "queued";
-  return group.message.event ? "event" : group.type;
-};
-
-const lastIdOf = (item) => (item.members ?? [item.message]).at(-1)._id;
+// an event or a lone emoji stands apart, so the bubbles either side of it start or end a run
+const joinsRun = (item) => Boolean(item) && item.type !== "event" && !isOnlyEmoji(item.message.message);
 
 const ConversationMain = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   const isLoadingOlder = useIsLoading(LoadOlderMessages);
-  const { messages, activeConversation, typingConversation, hasOlderMessages, unreadMarker } = useSelector(
-    (state) => state.chat
-  );
+  const {
+    messages,
+    activeConversation,
+    typingConversation,
+    hasOlderMessages,
+    hasNewerMessages,
+    unreadMarker,
+    focusedMessageId,
+  } = useSelector((state) => state.chat);
+  const isLoadingNewer = useIsLoading(LoadNewerMessages);
   const outbox = useSelector(selectActiveOutbox);
 
   const isGroup = Boolean(activeConversation?.isGroup);
@@ -117,39 +55,9 @@ const ConversationMain = () => {
   const peer = isGroup ? undefined : others[0];
   const [detailsId, setDetailsId] = useState(null);
 
-  let currentSender = null;
+  const typists = typingNamesIn(activeConversation, typingConversation, user._id);
 
-  // -------------- inner functions --------------
-  const containsOnlyEmojis = (text) => {
-    if (!text) return false;
-    const emojiRegex =
-      /[\u{1F600}-\u{1F6FF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
-    const emojiStatus = [...text].every((char) => emojiRegex.test(char));
-    if (emojiStatus) {
-      currentSender = null;
-    }
-    return emojiStatus;
-  };
-
-  const getMessageType = (msg) => {
-    const hasFiles = filesOf(msg).length > 0;
-    if (hasFiles && msg.message) return "file_with_caption";
-    if (hasFiles) return "file";
-    return containsOnlyEmojis(msg.message) ? "emoji" : "text";
-  };
-
-  const typists = typingConversation
-    .filter((typist) => typist.typing && typist.conversation_id === activeConversation?._id && typist.user_id !== user._id)
-    .map((typist) => memberOf(activeConversation, typist.user_id)?.firstName)
-    .filter(Boolean);
-  const isTyping = typists.length > 0;
-  // ------------------------------------------
-
-  const items = buildDisplayGroups(withQueued(messages, outbox, user)).map((group) => ({
-    ...group,
-    type: itemTypeOf(group),
-    entry: group.message.outboxEntry,
-  }));
+  const items = displayItemsOf(messages, outbox, user);
   const confirmed = items.filter((item) => !item.entry);
 
   const lastConfirmed = confirmed.at(-1)?.message;
@@ -171,7 +79,7 @@ const ConversationMain = () => {
   };
 
   const statusLabelFor = (item) => {
-    if (item.type === "queued") return item.entry.status === "sending" && item === lastItem ? "Sending…" : null;
+    if (item.type === "queued") return item.entry.status !== "failed" && item === lastItem ? "Sending…" : null;
     if ((!peer && !isGroup) || item.message.sender._id !== user._id) return null;
     const isLiveStatus = lastIsOursAndUnseen && item === lastItem;
     return isLiveStatus || item.message._id === detailsId ? statusOf(item) : null;
@@ -196,15 +104,52 @@ const ConversationMain = () => {
   }
 
   const loadOlder = useCallback(() => dispatch(LoadOlderMessages()), [dispatch]);
+  const loadNewer = useCallback(() => dispatch(LoadNewerMessages()), [dispatch]);
 
-  const { scrollRef, contentRef, topRef, handleScroll, holdStill, jumpToLatest, isAwayFromBottom } = useChatScroll({
+  const { scrollRef, contentRef, topRef, bottomRef, handleScroll, holdStill, jumpToLatest, scrollToKey, isAwayFromBottom } = useChatScroll({
     conversationId: activeConversation?._id,
     openAtKey: unreadMarker && UNREAD_DIVIDER,
-    contentVersion: `${items.length}:${lastItem && keyOf(lastItem.message)}:${typists}:${detailsId}:${lastItem ? statusLabelFor(lastItem) : ""}`,
+    contentVersion: `${items.length}:${lastItem && keyOf(lastItem.message)}:${detailsId}:${lastItem ? statusLabelFor(lastItem) : ""}`,
     firstMessageId: messages[0]?._id,
+    lastMessageId: messages.at(-1)?._id,
     canLoadOlder: hasOlderMessages && !isLoadingOlder,
     onLoadOlder: loadOlder,
+    canLoadNewer: hasNewerMessages && !isLoadingNewer,
+    onLoadNewer: loadNewer,
+    isShowingLatest: !hasNewerMessages,
   });
+
+  // from an older stretch the latest page is fetched first, since everything between was never loaded
+  const goToLatest = async () => {
+    if (hasNewerMessages) await dispatch(GetMessages(activeConversation._id));
+    requestAnimationFrame(jumpToLatest);
+  };
+
+  // the jump finishes after older pages load, so it reads the newest messages and scroll position through refs
+  const [highlightedId, setHighlightedId] = useState(null);
+  const latest = useRef({});
+  latest.current = { messages, scrollToKey };
+
+  useEffect(() => {
+    if (!focusedMessageId) return;
+    dispatch(RevealMessage(focusedMessageId)).then((isLoaded) => {
+      dispatch(focusMessage(null));
+      const target = latest.current.messages.find((message) => message._id === focusedMessageId);
+      if (!isLoaded || !target) return notify({ severity: "info", message: "That message is no longer in this chat" });
+      requestAnimationFrame(() => {
+        latest.current.scrollToKey(keyOf(target));
+        setHighlightedId(focusedMessageId);
+      });
+    });
+  }, [focusedMessageId, dispatch]);
+
+  useEffect(() => {
+    if (!highlightedId) return;
+    const timer = setTimeout(() => setHighlightedId(null), 1800);
+    return () => clearTimeout(timer);
+  }, [highlightedId]);
+
+  const jumpTo = (messageId) => dispatch(focusMessage(messageId));
 
   const toggleDetails = (message) => {
     holdStill(keyOf(message));
@@ -221,8 +166,6 @@ const ConversationMain = () => {
   };
 
   const tapHandlerFor = (item) => (item.type === "queued" ? undefined : () => toggleDetails(item.message));
-
-  const breaksSequence = (item) => !item || item.type === "event" || containsOnlyEmojis(item.message.message);
 
   // counts what arrives from others while the reader is scrolled up, so the jump button can say what they missed
   const [missed, setMissed] = useState(0);
@@ -241,12 +184,9 @@ const ConversationMain = () => {
   }, [isAwayFromBottom]);
 
   return (
-    <Box sx={{ position: "relative", flexGrow: 1, minHeight: 0, display: "flex" }}>
+    <ChatCanvas sx={{ flexGrow: 1, minHeight: 0, display: "flex" }}>
       <Box
         width="100%"
-        pl={4}
-        pr={2.2}
-        py={1}
         ref={scrollRef}
         onScroll={handleScroll}
         className="scrollbar"
@@ -255,7 +195,10 @@ const ConversationMain = () => {
           flexDirection: "column",
           overflowY: "scroll",
           overflowAnchor: "none",
-          backgroundColor: theme.palette.background.paper,
+          pl: { xs: 4, md: 6 },
+          pr: { xs: 1.5, md: 4 },
+          pt: 1,
+          pb: 0.5,
         }}
       >
         <MotionLazyContainer>
@@ -264,9 +207,10 @@ const ConversationMain = () => {
               <Box ref={topRef} sx={{ display: "flex", justifyContent: "center", minHeight: 24, py: 1 }}>
                 {isLoadingOlder && <CircularProgress size={20} aria-label="Loading older messages" />}
                 {!hasOlderMessages && messages.length > 0 && (
-                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                    This is the start of your conversation
-                  </Typography>
+                  <ChatNote sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                    <LockSimple size={13} aria-hidden />
+                    Messages here are end-to-end encrypted. Only the people in this chat can read them.
+                  </ChatNote>
                 )}
               </Box>
 
@@ -274,37 +218,35 @@ const ConversationMain = () => {
                 const { message } = item;
 
                 const divider = message._id === unreadMarker?.firstId && (
-                  <Divider data-message-key={UNREAD_DIVIDER} sx={{ my: 1, typography: "caption", color: "text.secondary" }}>
+                  <Divider
+                    data-message-key={UNREAD_DIVIDER}
+                    sx={{
+                      my: 1,
+                      typography: "caption",
+                      color: "text.secondary",
+                      "& .MuiDivider-wrapper": { bgcolor: "background.default", borderRadius: 99, px: 1.5, py: 0.25 },
+                    }}
+                  >
                     {unreadMarker.count} unread message{unreadMarker.count === 1 ? "" : "s"}
                   </Divider>
                 );
 
                 if (item.type === "event") {
-                  currentSender = null;
                   return (
                     <Fragment key={keyOf(message)}>
                       {divider}
-                      <Typography
-                        data-message-key={keyOf(message)}
-                        variant="caption"
-                        sx={{ alignSelf: "center", textAlign: "center", color: "text.secondary", py: 1 }}
-                      >
+                      <ChatNote data-message-key={keyOf(message)}>
                         {describeEvent(message, activeConversation, user._id)}
-                      </Typography>
+                      </ChatNote>
                     </Fragment>
                   );
                 }
 
-                const isStartOfSequence =
-                  currentSender === null || message.sender._id !== currentSender;
-
+                const previousItem = items[index - 1];
                 const nextItem = items[index + 1];
+                const isStartOfSequence = !joinsRun(previousItem) || previousItem.message.sender._id !== message.sender._id;
                 const isEndOfSequence =
-                  breaksSequence(nextItem) ||
-                  message.sender._id !== nextItem.message.sender._id ||
-                  containsOnlyEmojis(message.message);
-
-                currentSender = message.sender._id;
+                  !joinsRun(nextItem) || nextItem.message.sender._id !== message.sender._id || isOnlyEmoji(message.message);
                 const isMine = user._id === message.sender._id;
 
                 return (
@@ -314,12 +256,16 @@ const ConversationMain = () => {
                       anchorKey={keyOf(message)}
                       message={message}
                       me={isMine}
+                      conversation={activeConversation}
+                      isHighlighted={highlightedId === message._id}
+                      onJumpTo={jumpTo}
+                      onHoldStill={holdStill}
                       senderName={isGroup && !isMine && isStartOfSequence ? message.sender.firstName : undefined}
                       seenBy={seenRows.get(item)}
                       isQueued={item.type === "queued"}
                       isStartOfSequence={isStartOfSequence}
                       isEndOfSequence={isEndOfSequence}
-                      msgType={getMessageType(message)}
+                      msgType={messageTypeOf(message)}
                       showTime={detailsId === message._id}
                       statusLabel={statusLabelFor(item)}
                       footer={footerFor(item)}
@@ -330,34 +276,30 @@ const ConversationMain = () => {
                 );
               })}
 
-              {isTyping && (
-                <MessageContainer
-                  message={{ message: "Typing" }}
-                  me={false}
-                  senderName={isGroup ? listOf(typists) : undefined}
-                  isStartOfSequence={true}
-                  isEndOfSequence={true}
-                  msgType={"typing"}
-                  isTyping={isTyping}
-                />
-              )}
+              {/* the typing bubble has a slot of its own, so it comes and goes without moving the messages */}
+              <Box sx={{ minHeight: TYPING_BUBBLE_HEIGHT }}>
+                {typists.length > 0 && !hasNewerMessages && <TypingBubble names={typists} isGroup={isGroup} />}
+              </Box>
+              <Box ref={bottomRef} sx={{ display: "flex", justifyContent: "center", minHeight: "1px" }}>
+                {isLoadingNewer && <CircularProgress size={20} aria-label="Loading newer messages" />}
+              </Box>
             </Stack>
           </MotionConfig>
         </MotionLazyContainer>
       </Box>
 
-      {isAwayFromBottom && (
+      {(isAwayFromBottom || hasNewerMessages) && (
         <Button
           size="small"
           variant="contained"
           startIcon={<ArrowDown size={16} />}
-          onClick={jumpToLatest}
+          onClick={goToLatest}
           sx={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", borderRadius: 20 }}
         >
           {missed ? `${missed} new message${missed === 1 ? "" : "s"}` : "Jump to latest"}
         </Button>
       )}
-    </Box>
+    </ChatCanvas>
   );
 };
 

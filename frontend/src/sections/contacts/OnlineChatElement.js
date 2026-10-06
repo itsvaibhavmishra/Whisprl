@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { PATH_DASHBOARD } from "@/routes/paths";
 import { Box, Stack, Typography, useTheme, Skeleton } from "@mui/material";
 
 import StyledBadge from "@/components/StyledBadge";
@@ -36,7 +37,7 @@ const OnlineChatElement = ({
     if (!isActiveConvo && !isLoading) {
       await dispatch(CreateOpenConversation(_id));
       if (fromContact) {
-        navigate("/app");
+        navigate(PATH_DASHBOARD.general.chat);
       }
     }
   };

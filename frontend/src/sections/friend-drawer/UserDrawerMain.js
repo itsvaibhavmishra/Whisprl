@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PATH_DASHBOARD } from "@/routes/paths";
 import {
   useTheme,
   Box,
@@ -54,7 +55,7 @@ const UserDrawerMain = ({
     // Send Msg / Remove Friend Handler
     if (type === "sendMsg") {
       dispatch(CreateOpenConversation(userData?._id));
-      if (isFrom === "Contacts") navigate("/app");
+      if (isFrom === "Contacts") navigate(PATH_DASHBOARD.general.chat);
       toggleDrawer();
     } else if (type === "removeFriend") {
       dispatch(RemoveFriend(userData?._id));

@@ -2,7 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "../models/index.js";
-import { MEMBER_FIELDS, findMemberConversation, populateMembers } from "./conversationService.js";
+import { MEMBER_FIELDS, QUOTED_FIELDS, findMemberConversation, firstIdAt, populateMembers } from "./conversationService.js";
 import { uploadFile } from "./fileUploadService.js";
 import { currentKeyIdOf, isSealed } from "./keyService.js";
 
@@ -84,15 +84,34 @@ const SENDER_FIELDS = ["_id", "firstName", "lastName", "avatar"];
 
 const senderSummaryOf = (member) => Object.fromEntries(SENDER_FIELDS.map((field) => [field, member[field]]));
 
-const toClientMessage = (message, conversation) => ({
-  ...message.toObject(),
-  sender: senderSummaryOf(senderOf(conversation, message.sender)),
-});
+// who hid a message is nobody else's business, so it never leaves the server
+export const toClientMessage = (message, conversation) => {
+  const { hiddenFor, ...visible } = message.toObject();
+  return { ...visible, sender: senderSummaryOf(senderOf(conversation, message.sender)) };
+};
+
+export const withQuote = (message) => (message.replyTo ? message.populate("replyTo", QUOTED_FIELDS) : message);
+
+// a reply must quote this chat, and a forward copies a message the sender can already read, file included
+export const linksOf = async (conversation, user_id, { replyTo, forwardOf }) => {
+  const links = {};
+  if (replyTo && mongoose.isValidObjectId(replyTo) && (await MessageModel.exists({ _id: replyTo, conversation: conversation._id }))) {
+    links.replyTo = replyTo;
+  }
+  if (forwardOf && mongoose.isValidObjectId(forwardOf)) {
+    const original = await MessageModel.findOne({ _id: forwardOf, deletedAt: null, event: { $exists: false } });
+    if (!original) throw createHttpError.NotFound("That message can no longer be forwarded");
+    await findMemberConversation(original.conversation, user_id);
+    links.forwarded = true;
+    if (original.attachment?.status === "ready") links.attachment = original.attachment.toObject();
+  }
+  return links;
+};
 
 const findSentMessage = (sender_id, clientId) =>
   isClientId(clientId) ? MessageModel.findOne({ sender: sender_id, clientId }) : null;
 
-// takes the conversation with its members loaded, so the reply needs no further queries
+// takes the conversation with its members loaded, so naming the sender needs no further query
 export const saveMessage = async (conversation, msgData) => {
   const message = new MessageModel({ ...msgData, conversation: conversation._id });
 
@@ -102,7 +121,7 @@ export const saveMessage = async (conversation, msgData) => {
     if (error.code !== 11000) throw error;
     // a resend of a message already saved, so the saved copy is the answer
     const original = await findSentMessage(msgData.sender, msgData.clientId);
-    return { message: toClientMessage(original, conversation), isNew: false };
+    return { message: toClientMessage(await withQuote(original), conversation), isNew: false };
   }
 
   // only ever moves forward, so two members sending at once cannot leave the older message as the preview
@@ -110,7 +129,7 @@ export const saveMessage = async (conversation, msgData) => {
     { _id: conversation._id, $or: [{ latestMessage: null }, { latestMessage: { $lt: message._id } }] },
     { latestMessage: message._id }
   );
-  return { message: toClientMessage(message, conversation), isNew: true };
+  return { message: toClientMessage(await withQuote(message), conversation), isNew: true };
 };
 
 export const saveEvent = (group, actor_id, type, { users = [], name } = {}) =>
@@ -218,18 +237,47 @@ export const removeUnsentAttachment = async (message_id, user_id) => {
 };
 
 const PAGE_SIZE = 50;
+const AROUND = PAGE_SIZE / 2;
+
+const isId = (value) => mongoose.isValidObjectId(value);
 
 // a member of a group sees what was sent from when they joined, since nothing earlier was sealed for them
-export const getConvoMessages = async (conversation, reader_id, before) => {
+const readableBy = (conversation, reader_id, range) => {
   const joinedAt = conversation.isGroup && conversation.joinedAt?.get(String(reader_id));
   const ids = {
-    ...(mongoose.isValidObjectId(before) && { $lt: before }),
-    ...(joinedAt && { $gte: mongoose.Types.ObjectId.createFromTime(Math.floor(joinedAt.getTime() / 1000)) }),
+    ...range,
+    ...(joinedAt && { $gte: firstIdAt(joinedAt) }),
   };
-  const page = await MessageModel.find({ conversation: conversation._id, ...(Object.keys(ids).length && { _id: ids }) })
-    .sort({ _id: -1 })
-    .limit(PAGE_SIZE + 1)
-    .populate("sender", SENDER_FIELDS.join(" "));
+  return { conversation: conversation._id, hiddenFor: { $ne: reader_id }, ...(Object.keys(ids).length && { _id: ids }) };
+};
 
+const pageOf = (filter, direction, size) =>
+  MessageModel.find(filter)
+    .select("-hiddenFor")
+    .sort({ _id: direction })
+    .limit(size + 1)
+    .populate("sender", SENDER_FIELDS.join(" "))
+    .populate("replyTo", QUOTED_FIELDS);
+
+// newest first by default; after a message to read on from it; around one to jump straight to it
+export const getConvoMessages = async (conversation, reader_id, { before, after, around } = {}) => {
+  if (isId(around)) {
+    const [older, newer] = await Promise.all([
+      pageOf(readableBy(conversation, reader_id, { $lte: around }), -1, AROUND),
+      pageOf(readableBy(conversation, reader_id, { $gt: around }), 1, AROUND),
+    ]);
+    return {
+      messages: [...older.slice(0, AROUND).reverse(), ...newer.slice(0, AROUND)],
+      hasMore: older.length > AROUND,
+      hasNewer: newer.length > AROUND,
+    };
+  }
+
+  if (isId(after)) {
+    const page = await pageOf(readableBy(conversation, reader_id, { $gt: after }), 1, PAGE_SIZE);
+    return { messages: page.slice(0, PAGE_SIZE), hasNewer: page.length > PAGE_SIZE };
+  }
+
+  const page = await pageOf(readableBy(conversation, reader_id, isId(before) ? { $lt: before } : {}), -1, PAGE_SIZE);
   return { messages: page.slice(0, PAGE_SIZE).reverse(), hasMore: page.length > PAGE_SIZE };
 };

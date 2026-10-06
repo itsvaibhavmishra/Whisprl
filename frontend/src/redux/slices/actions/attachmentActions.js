@@ -9,6 +9,7 @@ import {
   queueMessage,
   removeFile,
   removeMessage,
+  updateQueuedMessage,
 } from "@/redux/slices/chatSlice";
 import {
   ATTACHMENT_TYPES,
@@ -98,12 +99,20 @@ export const ClearAttachments = () => (dispatch, getState) => {
   dispatch(clearFiles());
 };
 
-const sealedDetailsOf = async (attachment) => {
+const detailsOf = ({ fileName, mimeType, size, width, height, preview, kind }) => ({
+  name: fileName,
+  mimeType,
+  size,
+  width,
+  height,
+  preview,
+  kind: kind === "image" ? "image" : "document",
+});
+
+const sealedKeyOf = async (attachment) => {
   const { data, key, iv } = await sealFile(await attachmentFile(attachment.id).arrayBuffer());
   keepSealedCopy(attachment.id, data);
-
-  const { fileName, mimeType, size, width, height, preview } = attachment;
-  return { name: fileName, mimeType, size, width, height, preview, kind: attachment.kind === "image" ? "image" : "document", key, iv };
+  return { key, iv };
 };
 
 // ------------- Send Chosen Attachments -------------
@@ -116,12 +125,14 @@ export const SendAttachments = (caption) => async (dispatch, getState) => {
   const isImages = files[0].kind === "image";
   const captionFor = (index) => ((isImages && index === 0) || (!isImages && files.length === 1) ? caption : undefined);
   const batchId = uuidv4();
-  const details = await Promise.all(files.map(sealedDetailsOf));
+  const details = files.map(detailsOf);
 
+  // queued before encrypting, so a message typed straight after can never overtake the files
   files.forEach((attachment, index) =>
     dispatch(
       queueMessage({
         clientId: attachment.id,
+        status: "preparing",
         senderId: getState().user.user._id,
         conversationId: activeConversation._id,
         afterId: messages.at(-1)?._id,
@@ -131,6 +142,11 @@ export const SendAttachments = (caption) => async (dispatch, getState) => {
         batch: { batchId, batchIndex: index, batchTotal: files.length },
       })
     )
+  );
+
+  const keys = await Promise.all(files.map(sealedKeyOf));
+  files.forEach((attachment, index) =>
+    dispatch(updateQueuedMessage({ clientId: attachment.id, status: "sending", file: { ...details[index], ...keys[index] } }))
   );
   dispatch(FlushOutbox());
 };

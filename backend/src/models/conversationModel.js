@@ -21,6 +21,15 @@ const conversationSchema = mongoose.Schema(
     joinedAt: { type: Map, of: Date },
 
     lastSeen: { type: Map, of: mongoose.Schema.ObjectId },
+
+    pins: [
+      {
+        _id: false,
+        message: { type: mongoose.Schema.ObjectId, ref: "Message", required: true },
+        by: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+        at: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

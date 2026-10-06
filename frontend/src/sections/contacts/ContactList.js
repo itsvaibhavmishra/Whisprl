@@ -14,9 +14,9 @@ import { GetFriends, SearchFriends } from "@/redux/slices/actions/userActions";
 import { clearSearch, setShowFriendsMenu } from "@/redux/slices/userSlice";
 
 import { Search, SearchIconWrapper, StyledInputBase } from "@/components/search";
-import ChatSearchResults from "@/sections/chat/ChatSearchResults";
-import AllChatElement from "@/sections/chat/AllChatElement";
-import OnlineFriendsElement from "@/components/OnlineFriendsElement";
+import ChatSearchResults from "@/sections/contacts/ChatSearchResults";
+import AllChatElement from "@/sections/contacts/AllChatElement";
+import OnlineFriendsElement from "@/sections/contacts/OnlineFriendsElement";
 import { MembersList } from "@/data";
 import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
 import useIsLoading from "@/hooks/useIsLoading";

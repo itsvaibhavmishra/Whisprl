@@ -49,7 +49,7 @@ const Sidebar = () => {
   const getSelectedIndex = (path) => {
     if (path.startsWith("/profile")) {
       return 0;
-    } else if (path.startsWith("/app")) {
+    } else if (path.startsWith("/chat")) {
       return 1;
     } else if (path.startsWith("/contact")) {
       return 2;
@@ -87,7 +87,7 @@ const Sidebar = () => {
         sx={{
           display: {
             xs:
-              activeConversation && location.pathname.startsWith("/app")
+              activeConversation && location.pathname.startsWith("/chat")
                 ? "none"
                 : "block",
             md: "block",

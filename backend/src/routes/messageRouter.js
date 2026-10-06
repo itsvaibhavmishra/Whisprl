@@ -4,13 +4,8 @@ import multer from "multer";
 
 import { protect } from "../middlewares/authMiddleware.js";
 import { readLimit, uploadLimit, writeLimit } from "../middlewares/rateLimiters.js";
-import {
-  attachFile,
-  getDeliverableMessages,
-  getMessages,
-  removeAttachment,
-  resealWaitingMessage,
-} from "../controllers/messageController.js";
+import { attachFile, getDeliverableMessages, getMessages, resealWaitingMessage } from "../controllers/messageController.js";
+import { edit, react, removeForEveryone, removeForMe, unreact } from "../controllers/messageActionController.js";
 import { MAX_SEALED_FILE_SIZE } from "../services/messageService.js";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_SEALED_FILE_SIZE, files: 1 } });
@@ -29,6 +24,11 @@ messageRouter.route("/:message_id/reseal").patch(protect, writeLimit(), resealWa
 // Encrypted Attachment Routes
 messageRouter.route("/:message_id/attachment").post(protect, uploadLimit(), upload.single("file"), attachFile);
 
-messageRouter.route("/:message_id").delete(protect, writeLimit(), removeAttachment);
+// Message Actions Routes
+messageRouter.route("/:message_id").patch(protect, writeLimit(), edit).delete(protect, writeLimit(), removeForEveryone);
+
+messageRouter.route("/:message_id/hide").post(protect, writeLimit(), removeForMe);
+
+messageRouter.route("/:message_id/reaction").put(protect, writeLimit(), react).delete(protect, writeLimit(), unreact);
 
 export default messageRouter;

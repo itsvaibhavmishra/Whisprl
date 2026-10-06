@@ -2,7 +2,7 @@ import { Avatar, Box, Typography } from "@mui/material";
 
 import catDoodle from "@/assets/backgrounds/catDoodle.webp";
 import { bubbleShape } from "@/sections/welcome/HeroConversation";
-import Wordmark from "@/sections/welcome/Wordmark";
+import Wordmark from "@/components/Wordmark";
 import { createAvatar } from "@/utils/createAvatar";
 
 const PHOTO_SIZE = { xs: 104, md: 148 };

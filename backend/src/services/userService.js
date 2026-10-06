@@ -152,3 +152,25 @@ export const searchFriendsOf = async (user, keyword, page) => {
 
   return { friends, totalCount };
 };
+
+const QUICK_REACTION_COUNT = 6;
+
+// an emoji can be several code points joined together, but never letters or spaces
+const isEmoji = (value) =>
+  typeof value === "string" &&
+  value.length <= 16 &&
+  /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3/u.test(value) &&
+  !/[\p{L}\s]/u.test(value);
+
+export const setQuickReactions = async (user, reactions) => {
+  const isValid =
+    Array.isArray(reactions) &&
+    reactions.length === QUICK_REACTION_COUNT &&
+    reactions.every(isEmoji) &&
+    new Set(reactions).size === reactions.length;
+  if (!isValid) throw createHttpError.BadRequest(`Choose ${QUICK_REACTION_COUNT} different emoji`);
+
+  user.quickReactions = reactions;
+  await user.save();
+  return reactions;
+};

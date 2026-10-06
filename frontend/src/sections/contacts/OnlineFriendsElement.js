@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { useSelector } from "react-redux";
 
 import { MembersList } from "@/data";
-import OnlineChatElement from "@/sections/chat/OnlineChatElement";
+import OnlineChatElement from "@/sections/contacts/OnlineChatElement";
 import useIsLoading from "@/hooks/useIsLoading";
 import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 

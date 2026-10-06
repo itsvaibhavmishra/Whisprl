@@ -13,6 +13,7 @@ import ChangePasswordDialog from "@/sections/settings/ChangePasswordDialog";
 import PasskeySetting from "@/sections/settings/PasskeySetting";
 import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
 import ChatPreview from "@/sections/settings/ChatPreview";
+import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
 import getAvatar from "@/utils/createAvatar";
 import useSettings from "@/hooks/useSettings";
@@ -107,7 +108,8 @@ const Settings = () => {
         </Stack>
 
         <Stack spacing={6}>
-          <SettingsSection title="Sounds">
+          <SettingsSection title="Chats">
+            <QuickReactionsSetting />
             <SoundSetting />
           </SettingsSection>
 

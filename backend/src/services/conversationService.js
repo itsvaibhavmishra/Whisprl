@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { ConversationModel, UserModel } from "../models/index.js";
+import { ConversationModel, MessageModel, UserModel } from "../models/index.js";
 import { PUBLIC_PROFILE_FIELDS } from "./userService.js";
 
 export const MEMBER_FIELDS = `${PUBLIC_PROFILE_FIELDS} onlineStatus`;
@@ -17,6 +17,16 @@ const MEMBERS = [
 ];
 
 export const populateMembers = (conversation) => conversation.populate(MEMBERS);
+
+export const QUOTED_FIELDS = "sender cipher attachment event deletedAt createdAt";
+
+const PINNED = { path: "pins.message", select: QUOTED_FIELDS };
+
+const MAX_PINS = 3;
+const UNREAD_CAP = 100;
+
+// the lowest id a message saved at this moment can have, since an ObjectId starts with its creation time
+export const firstIdAt = (date) => mongoose.Types.ObjectId.createFromTime(Math.floor(date.getTime() / 1000));
 
 export const memberRooms = (conversation, exceptUserId) =>
   conversation.users.map((member) => String(member._id)).filter((userId) => userId !== String(exceptUserId));
@@ -72,13 +82,81 @@ export const openDirectConversation = async (sender, receiver_id) => {
   return { conversation: await created.populate("users", MEMBER_FIELDS), isValidFriendShip, isNew: true };
 };
 
-export const getUserConversations = async (user_id) => {
-  const conversations = await ConversationModel.find({ users: user_id, ...CURRENT })
+// a group counts from the reader's last seen message, or from when they joined if they have read nothing yet
+const unreadIn = (conversation, user_id) => {
+  const reader = String(user_id);
+  const readFrom = () => conversation.lastSeen?.get(reader) ?? firstIdAt(conversation.joinedAt.get(reader));
+  const since = conversation.isGroup ? { _id: { $gt: readFrom() } } : { seenAt: null, awaitingKey: { $ne: true } };
+
+  return MessageModel.countDocuments(
+    { conversation: conversation._id, sender: { $ne: user_id }, event: { $exists: false }, deletedAt: null, hiddenFor: { $ne: user_id }, ...since },
+    { limit: UNREAD_CAP }
+  );
+};
+
+// a direct chat can carry on only while both people still have each other as friends
+const reachablePeersOf = async (user, conversations) => {
+  const peerIds = conversations
+    .filter((conversation) => !conversation.isGroup)
+    .map((conversation) => conversation.users.find((member) => !member._id.equals(user._id))?._id ?? user._id);
+  const reachable = await UserModel.find({ _id: { $in: peerIds }, friends: user._id }).distinct("_id");
+  return new Set(reachable.filter((id) => user.friends.some((friendId) => friendId.equals(id))).map(String));
+};
+
+export const getUserConversations = async (user) => {
+  const conversations = await ConversationModel.find({ users: user._id, ...CURRENT })
     .populate(MEMBERS)
-    .populate("latestMessage")
+    .populate({ path: "latestMessage", select: "-hiddenFor" })
+    .populate(PINNED)
     .sort({ updatedAt: -1 });
 
-  return withLatestSender(conversations);
+  await withLatestSender(conversations);
+  const [reachable, unreadCounts] = await Promise.all([
+    reachablePeersOf(user, conversations),
+    Promise.all(conversations.map((conversation) => unreadIn(conversation, user._id))),
+  ]);
+
+  return conversations.map((conversation, index) => {
+    const peer = conversation.users.find((member) => !member._id.equals(user._id)) ?? user;
+    return {
+      ...conversation.toJSON(),
+      unread: unreadCounts[index],
+      canMessage: conversation.isGroup || reachable.has(String(peer._id)),
+    };
+  });
+};
+
+export const pinsOf = async (conversation) => (await conversation.populate(PINNED)).toJSON().pins;
+
+// a fourth pin replaces the oldest, as a chat keeps only the few that matter now
+export const pinMessage = async (conversation_id, user_id, message_id) => {
+  const conversation = await findMemberConversation(conversation_id, user_id);
+  const message = mongoose.isValidObjectId(message_id)
+    ? await MessageModel.exists({ _id: message_id, conversation: conversation._id, deletedAt: null, event: { $exists: false } })
+    : null;
+  if (!message) throw createHttpError.NotFound("Message does not exist");
+
+  const isPinned = conversation.pins.some((pin) => pin.message.equals(message._id));
+  if (!isPinned) {
+    conversation.pins = [...conversation.pins, { message: message._id, by: user_id }].slice(-MAX_PINS);
+    await conversation.save();
+  }
+  return { conversation, isNew: !isPinned };
+};
+
+export const unpinMessage = async (conversation_id, user_id, message_id) => {
+  const conversation = await findMemberConversation(conversation_id, user_id);
+  conversation.pins = conversation.pins.filter((pin) => String(pin.message) !== String(message_id));
+  await conversation.save();
+  return conversation;
+};
+
+export const findCommonGroups = async (user_id, other_id) => {
+  if (!mongoose.isValidObjectId(other_id)) throw createHttpError.BadRequest("Choose someone to compare with");
+  const groups = await ConversationModel.find({ isGroup: true, owner: { $exists: true }, users: { $all: [user_id, other_id] } })
+    .select("name picture users")
+    .sort({ updatedAt: -1 });
+  return groups.map(({ _id, name, picture, users }) => ({ _id, name, picture, memberCount: users.length }));
 };
 
 export const getUserConversationIds = async (user_id) =>

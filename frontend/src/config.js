@@ -59,7 +59,7 @@ export const allLangs = [
 
 export const defaultLang = allLangs[0]; // Default Language => English
 
-export const DEFAULT_PATH = PATH_DASHBOARD.general.app;
+export const DEFAULT_PATH = PATH_DASHBOARD.general.chat;
 export const DEFAULT_AUTH = PATH_AUTH.general.welcome;
 export const DEFAULT_DOCS = PATH_DOCS.general.tnc;
 

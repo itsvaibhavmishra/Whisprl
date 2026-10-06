@@ -31,6 +31,15 @@
     - The person who makes a group owns it and chooses admins, who can rename it, change its photo and add people
     - See who has read a group message, with each person's photo under the last one they read
     - Sounds when you send a message and when one arrives, quieter in the chat you have open, with a switch in settings
+    - A redesigned chat page: your chats, the conversation and its details side by side, at /chat
+    - Reply to a message, and edit your own messages for 15 minutes after sending
+    - Delete a message for yourself, or for everyone in the chat
+    - React to messages, end-to-end encrypted, from a quick bar you can change in settings or with a double click or tap
+    - Pin up to three messages in a chat
+    - Forward messages, and share a friend's contact card
+    - Mention people in a group by typing @
+    - Search inside a chat, and jump straight to any result, reply or pinned message
+    - See the photos, links and documents shared in a chat, and the groups you have in common with someone
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -51,6 +60,10 @@
     - A photo keeps its place in the chat from the moment you send it, showing a blurred preview until it arrives
     - Photos are made smaller before sending, so they send and load quickly
     - Groups sit in Chats with everything else, replacing the empty Groups tab
+    - Switching between chats is instant
+    - Each chat shows how many messages are unread, and the list filters to unread chats or groups
+    - A message you have started stays as a draft when you switch to another chat
+    - Whisprl's own doodles sit behind your messages
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

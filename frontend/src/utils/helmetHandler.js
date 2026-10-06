@@ -24,7 +24,7 @@ const PAGES = {
     title: "Terms and conditions | Whisprl",
     description: "The terms and conditions for using Whisprl, the real-time MERN chat app.",
   },
-  "/app": { title: "All Chats | Whisprl", description: WELCOME.description },
+  "/chat": { title: "Chats | Whisprl", description: WELCOME.description },
 };
 
 // Steps inside a flow, which a search result should never land someone in the middle of.

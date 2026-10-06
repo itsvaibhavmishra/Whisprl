@@ -5,10 +5,10 @@ import {
   findSendableConversation,
   getConvoMessages,
   isClientId,
+  linksOf,
   markDelivered,
   markSeen,
   peerHasKey,
-  removeUnsentAttachment,
   resealMessage,
   saveMessage,
   validateCipher,
@@ -28,30 +28,15 @@ export const attachFile = async (req, res, next) => {
   }
 };
 
-// -------------------------- Remove Unsent Attachment --------------------------
-export const removeAttachment = async (req, res, next) => {
-  try {
-    const { conversation, message } = await removeUnsentAttachment(req.params.message_id, req.user._id);
-
-    req.app.get("io").to(memberRooms(conversation)).emit("message_removed", {
-      _id: message._id,
-      conversation: message.conversation,
-    });
-
-    res.status(200).json({ status: "success", message: "Removed" });
-  } catch (error) {
-    next(error);
-  }
-};
-
 // -------------------------- Get All Messages --------------------------
 export const getMessages = async (req, res, next) => {
   try {
     const conversation = await findMemberConversation(req.params.convo_id, req.user._id);
 
-    const { messages, hasMore } = await getConvoMessages(conversation, req.user._id, req.query.before);
+    const { before, after, around } = req.query;
+    const page = await getConvoMessages(conversation, req.user._id, { before, after, around });
 
-    res.status(200).json({ status: "success", messages, hasMore });
+    res.status(200).json({ status: "success", ...page });
   } catch (error) {
     next(error);
   }
@@ -82,7 +67,8 @@ export const resealWaitingMessage = async (req, res, next) => {
 // -------------------------------------------------------------------------
 
 // -------------------------- Socket Send Message --------------------------
-export const socketSendMessage = async (socket, { convo_id, clientId, cipher, attachment, batch }, acknowledge) => {
+export const socketSendMessage = async (socket, payload, acknowledge) => {
+  const { convo_id, clientId, cipher, attachment, batch, replyTo, forwardOf } = payload;
   try {
     const user_id = socket.user._id;
     const conversation = await findSendableConversation(convo_id, user_id);
@@ -95,6 +81,7 @@ export const socketSendMessage = async (socket, { convo_id, clientId, cipher, at
       awaitingKey: !conversation.isGroup && !peerHasKey(conversation, user_id),
       ...(attachment === true && { attachment: { status: "uploading" } }),
       ...batchOf(batch),
+      ...(await linksOf(conversation, user_id, { replyTo, forwardOf })),
     });
 
     if (isNew) socket.to(memberRooms(conversation)).emit("message_received", message);

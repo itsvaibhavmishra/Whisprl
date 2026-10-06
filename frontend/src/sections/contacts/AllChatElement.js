@@ -10,24 +10,16 @@ import BeatLoader from "react-spinners/BeatLoader";
 
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
-import { CreateOpenConversation, OpenConversation } from "@/redux/slices/actions/chatActions";
+import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 
 import StyledBadge from "@/components/StyledBadge";
 import getAvatar from "@/utils/createAvatar";
 import formatTime from "@/utils/formatTime";
 import truncateText from "@/utils/truncateText";
 import { getOtherUser } from "@/utils/getOtherUser";
-import { describeEvent, listOf, memberOf } from "@/utils/groups";
-
-const previewOf = (message) => {
-  if (message.undecryptable) return message.awaitingKey ? "Message on its way" : "Encrypted message";
-  if (message.message) return message.message;
-  if (message.file) return message.file.kind === "image" ? "Sent a photo" : "Sent a document";
-  return message.files?.length ? "Sent a file" : "";
-};
+import { summaryOf } from "@/utils/messageSummary";
 
 const AllChatElement = ({
-  group,
   _id,
   firstName,
   lastName,
@@ -68,22 +60,14 @@ const AllChatElement = ({
 
   const isActiveConvo = getIsActiveConvo();
 
-  const authorOf = (message) => {
-    if (message.sender?._id === user._id) return "You: ";
-    return group ? `${message.sender?.firstName}: ` : "";
-  };
-
   const latestPreview = () => {
     if (!latestMessage) return activityStatus;
-    if (latestMessage.event) return describeEvent(latestMessage, group, user._id);
-    return `${authorOf(latestMessage)}${previewOf(latestMessage)}`;
+    return `${latestMessage.sender?._id === user._id ? "You: " : ""}${summaryOf(latestMessage)}`;
   };
 
   const handleConversation = () => {
     if (!isActiveConvo && !isLoading) {
-      if (group) {
-        dispatch(OpenConversation(group));
-      } else if (fromContact) {
+      if (fromContact) {
         toggleDrawer(_id);
       } else {
         dispatch(CreateOpenConversation(_id));
@@ -101,12 +85,7 @@ const AllChatElement = ({
     }
   };
 
-  const typists = typingConversation.filter((obj) => obj.conversation_id === convo_id && obj.typing);
-  const typingLabel = () => {
-    const names = group ? typists.map((typist) => memberOf(group, typist.user_id)?.firstName).filter(Boolean) : [];
-    if (!names.length) return "Typing";
-    return `${listOf(names)} ${names.length === 1 ? "is" : "are"} typing`;
-  };
+  const isTyping = typingConversation.some((obj) => obj.conversation_id === convo_id && obj.typing);
   const override = {
     padding: "5px",
     backgroundColor: `${theme.palette.primary.main}15`,
@@ -114,7 +93,6 @@ const AllChatElement = ({
   };
 
   // ---------------------------------------
-  const isTyping = typists.length > 0;
 
   return (
     <Box
@@ -155,7 +133,7 @@ const AllChatElement = ({
               {getAvatar(avatar, firstName, theme)}
             </StyledBadge>
           ) : (
-            getAvatar(group ? group.picture : avatar, group ? group.name : firstName, theme)
+            getAvatar(avatar, firstName, theme)
           )}
 
           {/* Name and message */}
@@ -164,7 +142,7 @@ const AllChatElement = ({
               {isLoading ? (
                 <Skeleton animation="wave" height={20} width="7em" />
               ) : (
-                group?.name ?? `${firstName} ${lastName}${_id === user._id ? "(You)" : ""}`
+                `${firstName} ${lastName}${_id === user._id ? "(You)" : ""}`
               )}
             </Typography>
             <Typography
@@ -193,7 +171,7 @@ const AllChatElement = ({
                       },
                     }}
                   >
-                    {truncateText(typingLabel(), 18)}
+                    Typing
                   </Typography>
                   <BeatLoader
                     size={5}

@@ -22,7 +22,7 @@ const fullNameOf = (friend) => `${friend.firstName} ${friend.lastName}`;
 // a friend without keys could not open a single message, so they cannot be added yet
 const hasKeys = (friend) => friend.publicKeys?.length > 0;
 
-const FriendPicker = ({ excludeIds = [], selected, onChange }) => {
+const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { friends, user } = useSelector((state) => state.user);
@@ -59,18 +59,18 @@ const FriendPicker = ({ excludeIds = [], selected, onChange }) => {
         <List dense sx={{ maxHeight: 280, overflowY: "auto" }} className="scrollbar">
           {choosable.map((friend) => (
             <ListItem key={friend._id} disablePadding>
-              <ListItemButton onClick={() => toggle(friend._id)} disabled={!hasKeys(friend)}>
+              <ListItemButton onClick={() => toggle(friend._id)} disabled={requireKeys && !hasKeys(friend)}>
                 <ListItemAvatar>{getAvatar(friend.avatar, friend.firstName, theme, 36)}</ListItemAvatar>
                 <ListItemText
                   primary={fullNameOf(friend)}
-                  secondary={hasKeys(friend) ? null : "Has not opened Whisprl since encryption arrived"}
+                  secondary={!requireKeys || hasKeys(friend) ? null : "Has not opened Whisprl since encryption arrived"}
                 />
                 <Checkbox
                   edge="end"
                   checked={selected.includes(friend._id)}
                   tabIndex={-1}
                   disableRipple
-                  inputProps={{ "aria-label": `Add ${fullNameOf(friend)}` }}
+                  inputProps={{ "aria-label": `Choose ${fullNameOf(friend)}` }}
                 />
               </ListItemButton>
             </ListItem>

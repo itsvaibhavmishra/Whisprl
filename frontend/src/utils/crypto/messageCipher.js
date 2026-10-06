@@ -9,6 +9,7 @@ import {
   importMessageKey,
   importPublicKey,
 } from "@/utils/crypto/keys";
+import { decodePayload } from "@/utils/messagePayload";
 
 let deviceKeys = null;
 const conversationKeys = new Map();
@@ -40,13 +41,16 @@ const conversationKeyFor = (conversation, peerKey) => {
   return conversationKeys.get(cacheKey);
 };
 
-const contextOf = (conversationId, senderId) => `${conversationId}:${senderId}`;
+// a reaction is bound to its message, so it can be neither replayed as a message nor moved to another one
+const contextOf = (conversationId, senderId, bind) => [conversationId, senderId, bind].filter(Boolean).join(":");
+
+const reactionBinding = (messageId) => `reaction:${messageId}`;
 
 const peerKeyOf = (conversation, userId) => currentKeyOf(peerOf(conversation, userId));
 
 // a group message is encrypted once, and its key sealed for each member with the key that member shares with the sender
-const encryptForGroup = async (text, conversation, userId) => {
-  const context = contextOf(conversation._id, userId);
+const encryptForGroup = async (text, conversation, userId, bind) => {
+  const context = contextOf(conversation._id, userId, bind);
   const messageKey = await generateMessageKey();
   const rawKey = await exportMessageKey(messageKey);
 
@@ -62,30 +66,30 @@ const encryptForGroup = async (text, conversation, userId) => {
 };
 
 // a friend with no key yet gets a message sealed to the sender, re-encrypted for them once they have one
-export const encryptMessage = async (text, conversation, userId) => {
-  if (conversation.isGroup) return encryptForGroup(text, conversation, userId);
+export const encryptMessage = async (text, conversation, userId, bind) => {
+  if (conversation.isGroup) return encryptForGroup(text, conversation, userId, bind);
 
   const peerKey = peerKeyOf(conversation, userId) ?? findPublicKey(conversation, deviceKeys.keyId);
   const key = await conversationKeyFor(conversation, peerKey);
-  const sealed = await encryptText(key, text, contextOf(conversation._id, userId));
+  const sealed = await encryptText(key, text, contextOf(conversation._id, userId, bind));
   return { ...sealed, keyIds: [deviceKeys.keyId, peerKey.keyId] };
 };
 
-const openGroupMessage = async (message, conversation, senderId) => {
+const openGroupMessage = async (message, conversation, senderId, bind) => {
   const sealedKey = message.cipher.keys.find((sealed) => sealed.keyId === deviceKeys?.keyId);
   const senderKey = findPublicKey(conversation, message.cipher.senderKeyId);
   if (!sealedKey || !senderKey) throw new Error("No key for this message");
 
-  const context = contextOf(conversation._id, senderId);
+  const context = contextOf(conversation._id, senderId, bind);
   const pairKey = await conversationKeyFor(conversation, senderKey);
   const messageKey = await importMessageKey(await decryptBytes(pairKey, sealedKey, context));
   return decryptText(messageKey, message.cipher, context);
 };
 
 // the text as it was sent: a message's words, or for an attachment the JSON holding its caption and file key
-export const openMessage = async (message, conversation) => {
+export const openMessage = async (message, conversation, bind) => {
   const senderId = message.sender?._id ?? message.sender;
-  if (message.cipher.keys) return openGroupMessage(message, conversation, senderId);
+  if (message.cipher.keys) return openGroupMessage(message, conversation, senderId, bind);
 
   const { keyIds } = message.cipher;
   const myIndex = keyIds.indexOf(deviceKeys?.keyId);
@@ -93,21 +97,47 @@ export const openMessage = async (message, conversation) => {
   if (!peerKey) throw new Error("No key for this message");
 
   const key = await conversationKeyFor(conversation, peerKey);
-  return decryptText(key, message.cipher, contextOf(conversation._id, senderId));
+  return decryptText(key, message.cipher, contextOf(conversation._id, senderId, bind));
 };
+
+export const encryptReaction = (emoji, messageId, conversation, userId) =>
+  encryptMessage(emoji, conversation, userId, reactionBinding(messageId));
 
 const readableOf = (message, plaintext) => {
-  if (!message.attachment) return { ...message, message: plaintext };
+  if (!message.attachment) {
+    const { text, mentions, contact } = decodePayload(plaintext);
+    return { message: text, mentions, contact };
+  }
   const { caption, file } = JSON.parse(plaintext);
-  return { ...message, message: caption ?? "", file };
+  return { message: caption ?? "", file };
 };
 
-export const decryptMessage = async (message, conversation) => {
-  if (!message?.cipher) return message;
-
+const readContent = async (message, conversation) => {
+  if (!message.cipher) return {};
   try {
     return readableOf(message, await openMessage(message, conversation));
   } catch {
-    return { ...message, message: "", undecryptable: true };
+    return { message: "", undecryptable: true };
   }
+};
+
+// a reaction that cannot be opened is left out rather than shown as something it may not be
+const readReactions = async (message, conversation) => {
+  const reactions = await Promise.all(
+    (message.reactions ?? []).map(async ({ user, cipher }) => ({
+      user,
+      emoji: await openMessage({ cipher, sender: user }, conversation, reactionBinding(message._id)).catch(() => null),
+    }))
+  );
+  return reactions.filter((reaction) => reaction.emoji);
+};
+
+export const decryptMessage = async (message, conversation) => {
+  if (!message?.cipher && !message?.replyTo && !message?.reactions?.length) return message;
+  const [content, replyTo, reactions] = await Promise.all([
+    readContent(message, conversation),
+    message.replyTo?._id ? decryptMessage(message.replyTo, conversation) : message.replyTo,
+    readReactions(message, conversation),
+  ]);
+  return { ...message, ...content, replyTo, reactions };
 };

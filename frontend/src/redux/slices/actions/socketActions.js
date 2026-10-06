@@ -3,6 +3,7 @@ import {
   DeliverWaitingMessages,
   FlushOutbox,
   ReceiveMessage,
+  ReceivePins,
   RemovedMessage,
   ReceiveMessageUpdate,
 } from "@/redux/slices/actions/chatActions";
@@ -27,6 +28,7 @@ const serverEvents = () => ({
   online_friends: updateOnlineUsers,
   start_typing: updateTypingConvo,
   stop_typing: updateTypingConvo,
+  pins_updated: ReceivePins,
 });
 
 const listen = (dispatch, getState) => {

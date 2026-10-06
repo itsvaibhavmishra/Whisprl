@@ -209,6 +209,7 @@ $ npm run build
 │   │   │   ├── friendsController.js
 │   │   │   ├── groupController.js
 │   │   │   ├── keyController.js
+│   │   │   ├── messageActionController.js
 │   │   │   ├── messageController.js
 │   │   │   ├── passkeyController.js
 │   │   │   ├── socialController.js
@@ -246,6 +247,7 @@ $ npm run build
 │   │   │   ├── groupService.js
 │   │   │   ├── keyService.js
 │   │   │   ├── mailer.js
+│   │   │   ├── messageActionService.js
 │   │   │   ├── messageService.js
 │   │   │   ├── passkeyService.js
 │   │   │   ├── sessionService.js
@@ -298,6 +300,7 @@ $ npm run build
 │   │   │   │   ├── catDoodle.webp
 │   │   │   │   ├── catDoodle2.png
 │   │   │   │   ├── catDoodle3.png
+│   │   │   │   ├── chatDoodles.svg
 │   │   │   ├── icons/
 │   │   │   │   ├── logo/
 │   │   │   │   │   ├── Whisprl.png
@@ -316,7 +319,6 @@ $ npm run build
 │   │   │   │   │   ├── HangingBuddy.json
 │   │   │   │   │   ├── NoResultsFound.json
 │   │   │   │   │   ├── SearchNotFound.json
-│   │   │   │   ├── NoChat.js
 │   │   ├── components/
 │   │   │   ├── animate/
 │   │   │   │   ├── variants/
@@ -364,15 +366,16 @@ $ npm run build
 │   │   │   │   ├── ThemeRtlLayout.js
 │   │   │   ├── AppearanceMenu.js
 │   │   │   ├── AppearancePickers.js
+│   │   │   ├── EmojiPicker.js
 │   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
-│   │   │   ├── OnlineFriendsElement.js
 │   │   │   ├── ProfileHero.js
 │   │   │   ├── ScrollToTop.js
 │   │   │   ├── SitePage.js
 │   │   │   ├── StyledBadge.js
 │   │   │   ├── ThemeSwitch.js
+│   │   │   ├── Wordmark.js
 │   │   ├── contexts/
 │   │   │   ├── SettingsContext.js
 │   │   ├── data/
@@ -403,8 +406,8 @@ $ npm run build
 │   │   │   │   ├── Verify.js
 │   │   │   │   ├── WelcomePage.js
 │   │   │   ├── dashboard/
+│   │   │   │   ├── Chat.js
 │   │   │   │   ├── Contact.js
-│   │   │   │   ├── GeneralApp.js
 │   │   │   │   ├── Profile.js
 │   │   │   │   ├── Settings.js
 │   │   │   ├── docs/
@@ -420,6 +423,7 @@ $ npm run build
 │   │   │   │   │   ├── contactActions.js
 │   │   │   │   │   ├── encryptionActions.js
 │   │   │   │   │   ├── groupActions.js
+│   │   │   │   │   ├── messageActions.js
 │   │   │   │   │   ├── passkeyActions.js
 │   │   │   │   │   ├── socketActions.js
 │   │   │   │   │   ├── userActions.js
@@ -453,34 +457,59 @@ $ npm run build
 │   │   │   │   │   ├── FileHeader.js
 │   │   │   │   │   ├── FileUploadCont.js
 │   │   │   │   ├── conversation/
-│   │   │   │   │   ├── ChatInput.js
+│   │   │   │   │   ├── AttachMenu.js
+│   │   │   │   │   ├── ChatNote.js
+│   │   │   │   │   ├── ChatSearchBar.js
+│   │   │   │   │   ├── Composer.js
 │   │   │   │   │   ├── Conversation.js
-│   │   │   │   │   ├── ConversationFooter.js
 │   │   │   │   │   ├── ConversationHeader.js
 │   │   │   │   │   ├── ConversationMain.js
+│   │   │   │   │   ├── displayItems.js
+│   │   │   │   │   ├── MentionSuggestions.js
+│   │   │   │   │   ├── PinnedBar.js
+│   │   │   │   │   ├── ShareContactDialog.js
 │   │   │   │   │   ├── useChatScroll.js
+│   │   │   │   │   ├── useTyping.js
+│   │   │   │   ├── details/
+│   │   │   │   │   ├── DetailsPanel.js
+│   │   │   │   │   ├── GroupDetails.js
+│   │   │   │   │   ├── PersonDetails.js
+│   │   │   │   │   ├── SharedContent.js
 │   │   │   │   ├── group/
 │   │   │   │   │   ├── AddMembersDialog.js
 │   │   │   │   │   ├── CreateGroupDialog.js
 │   │   │   │   │   ├── FriendPicker.js
-│   │   │   │   │   ├── GroupInfoDrawer.js
 │   │   │   │   │   ├── GroupMemberRow.js
+│   │   │   │   ├── list/
+│   │   │   │   │   ├── ChatList.js
+│   │   │   │   │   ├── ChatRow.js
 │   │   │   │   ├── messages/
+│   │   │   │   │   ├── ContactCard.js
+│   │   │   │   │   ├── DeleteMessageDialog.js
 │   │   │   │   │   ├── DocumentMessage.js
+│   │   │   │   │   ├── ForwardDialog.js
 │   │   │   │   │   ├── ImageLightbox.js
 │   │   │   │   │   ├── ImageMessage.js
+│   │   │   │   │   ├── MessageActions.js
 │   │   │   │   │   ├── MessageContainer.js
 │   │   │   │   │   ├── MessageImage.js
 │   │   │   │   │   ├── MessageProblems.js
+│   │   │   │   │   ├── MessageText.js
+│   │   │   │   │   ├── ReactionPicker.js
+│   │   │   │   │   ├── Reactions.js
+│   │   │   │   │   ├── ReplyQuote.js
 │   │   │   │   │   ├── SeenMarker.js
+│   │   │   │   │   ├── TypingBubble.js
+│   │   │   │   ├── ChatCanvas.js
+│   │   │   │   ├── EmptyChat.js
+│   │   │   ├── contacts/
 │   │   │   │   ├── AllChatElement.js
 │   │   │   │   ├── ChatSearchResults.js
-│   │   │   │   ├── ChatsList.js
-│   │   │   │   ├── OnlineChatElement.js
-│   │   │   ├── contacts/
 │   │   │   │   ├── ContactList.js
 │   │   │   │   ├── FriendRequests.js
 │   │   │   │   ├── FriendsMenu.js
+│   │   │   │   ├── OnlineChatElement.js
+│   │   │   │   ├── OnlineFriendsElement.js
 │   │   │   │   ├── SearchUsers.js
 │   │   │   │   ├── SentRequests.js
 │   │   │   │   ├── UserCard.js
@@ -500,6 +529,7 @@ $ npm run build
 │   │   │   │   ├── ChangePasswordDialog.js
 │   │   │   │   ├── ChatPreview.js
 │   │   │   │   ├── PasskeySetting.js
+│   │   │   │   ├── QuickReactionsSetting.js
 │   │   │   │   ├── RecoveryKeySetting.js
 │   │   │   │   ├── SettingsSection.js
 │   │   │   ├── terms/
@@ -513,7 +543,6 @@ $ npm run build
 │   │   │   │   ├── HeroConversation.js
 │   │   │   │   ├── MernStack.js
 │   │   │   │   ├── styles.js
-│   │   │   │   ├── Wordmark.js
 │   │   ├── theme/
 │   │   │   ├── overrides/
 │   │   │   │   ├── Accordion.js
@@ -579,6 +608,7 @@ $ npm run build
 │   │   │   ├── attachments.js
 │   │   │   ├── axios.js
 │   │   │   ├── axiosInterceptors.js
+│   │   │   ├── chats.js
 │   │   │   ├── createAvatar.js
 │   │   │   ├── formatMessageTime.js
 │   │   │   ├── formatMessageTime.test.js
@@ -589,9 +619,14 @@ $ npm run build
 │   │   │   ├── getOtherUser.js
 │   │   │   ├── groups.js
 │   │   │   ├── helmetHandler.js
+│   │   │   ├── links.js
+│   │   │   ├── links.test.js
 │   │   │   ├── messageFiles.js
+│   │   │   ├── messagePayload.js
+│   │   │   ├── messageSummary.js
 │   │   │   ├── notify.js
 │   │   │   ├── passkeys.js
+│   │   │   ├── reactions.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js

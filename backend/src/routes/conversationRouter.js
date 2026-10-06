@@ -5,7 +5,10 @@ import { protect } from "../middlewares/authMiddleware.js";
 import { readLimit, writeLimit } from "../middlewares/rateLimiters.js";
 import {
   createOpenConversation,
+  getCommonGroups,
   getConversations,
+  pin,
+  unpin,
 } from "../controllers/conversationController.js";
 
 const conversationRouter = express.Router();
@@ -18,5 +21,9 @@ conversationRouter
 conversationRouter
   .route("/get-conversations")
   .get(trimRequest.all, protect, readLimit(), getConversations);
+
+conversationRouter.route("/common-groups/:user_id").get(protect, readLimit(), getCommonGroups);
+
+conversationRouter.route("/:convo_id/pins/:message_id").put(protect, writeLimit(), pin).delete(protect, writeLimit(), unpin);
 
 export default conversationRouter;

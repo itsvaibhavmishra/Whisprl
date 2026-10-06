@@ -55,3 +55,9 @@ export const GetOnlineFriends = createApiThunk(
   "friends/online-friends",
   async () => (await axios.get("/friends/online-friends")).data
 );
+
+// ------------- Quick Reactions -------------
+export const UpdateQuickReactions = createApiThunk(
+  "user/quick-reactions",
+  async (reactions) => (await axios.put("/user/quick-reactions", { reactions })).data
+);

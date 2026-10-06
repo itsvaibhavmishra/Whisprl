@@ -36,11 +36,20 @@ const eventSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner"],
+      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner", "pinned"],
       required: true,
     },
     users: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     name: { type: String },
+  },
+  { _id: false }
+);
+
+// the emoji is sealed like a message, so the server only learns that someone reacted
+const reactionSchema = mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+    cipher: { type: cipherSchema, required: true },
   },
   { _id: false }
 );
@@ -85,6 +94,16 @@ const messageSchema = mongoose.Schema(
     batchId: { type: String },
     batchIndex: { type: Number },
     batchTotal: { type: Number },
+
+    replyTo: { type: mongoose.Schema.ObjectId, ref: "Message" },
+    forwarded: { type: Boolean },
+    editedAt: { type: Date },
+
+    // deleted for everyone: the content is gone and only this mark remains
+    deletedAt: { type: Date },
+    hiddenFor: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+
+    reactions: [reactionSchema],
   },
   {
     timestamps: true,

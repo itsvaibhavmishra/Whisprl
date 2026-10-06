@@ -10,6 +10,7 @@ import {
   searchUsers,
   updatePassword,
   updateProfile,
+  updateQuickReactions,
 } from "../controllers/userController.js";
 
 const userRouter = express.Router();
@@ -28,6 +29,9 @@ userRouter
 
 // Change Password Route
 userRouter.route("/change-password").post(trimRequest.all, protect, writeLimit(), updatePassword);
+
+// Quick Reactions Route
+userRouter.route("/quick-reactions").put(protect, writeLimit(), updateQuickReactions);
 
 // Own Profile Route
 userRouter.route("/me").get(protect, readLimit(), getMyProfile);

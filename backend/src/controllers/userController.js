@@ -7,6 +7,7 @@ import {
   getPublicProfile,
   saveProfile,
   searchForUsers,
+  setQuickReactions,
 } from "../services/userService.js";
 import { endOtherSessions, issueAccessToken, signOutOtherDevices } from "../services/sessionService.js";
 import { assertText, assertValidName } from "../utils/accountRules.js";
@@ -57,6 +58,16 @@ export const getMyProfile = async (req, res, next) => {
   try {
     const user = await getOwnProfile(req.user);
     return res.status(200).json({ status: "success", user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Quick Reactions --------------------------
+export const updateQuickReactions = async (req, res, next) => {
+  try {
+    const quickReactions = await setQuickReactions(req.user, req.body.reactions);
+    return res.status(200).json({ status: "success", quickReactions });
   } catch (error) {
     next(error);
   }

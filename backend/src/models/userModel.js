@@ -80,6 +80,8 @@ const userSchema = mongoose.Schema(
       enum: ["google", "github", "linkedin"],
     },
 
+    quickReactions: { type: [String], default: undefined },
+
     // End-to-end encryption: every public key the account has had, newest last
     publicKeys: [publicKeySchema],
     keyBackup: { type: keyBackupSchema, select: false },

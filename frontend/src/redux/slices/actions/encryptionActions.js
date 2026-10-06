@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import { createApiThunk, refuse } from "@/redux/slices/actions/apiThunk";
+import { selectIsLoading } from "@/redux/slices/requestSlice";
 import { DeliverWaitingMessages, GetConversations, GetMessages } from "@/redux/slices/actions/chatActions";
 import { updateMemberKeys } from "@/redux/slices/chatSlice";
 import axios from "@/utils/axios";
@@ -45,7 +46,11 @@ export const PrepareEncryption = createApiThunk(
 
     return { status: "locked", currentKeyId };
   },
-  { notifyErrors: false }
+  {
+    notifyErrors: false,
+    // a second check finishing after a new key is uploaded but before it is saved here would wrongly lock this browser
+    condition: (_, { getState }) => !selectIsLoading(getState(), PrepareEncryption),
+  }
 );
 
 // ------------- Create Account Key -------------

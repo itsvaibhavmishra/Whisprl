@@ -2,7 +2,7 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 
 import HeroConversation from "@/sections/welcome/HeroConversation";
-import Wordmark from "@/sections/welcome/Wordmark";
+import Wordmark from "@/components/Wordmark";
 import { PATH_AUTH } from "@/routes/paths";
 
 const Hero = () => (

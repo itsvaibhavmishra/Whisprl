@@ -1,24 +1,13 @@
-import { useState } from "react";
-import {
-  Box,
-  ButtonBase,
-  Stack,
-  useTheme,
-  Typography,
-  IconButton,
-  Divider,
-} from "@mui/material";
-
-import { VideoCamera, Phone, XCircle } from "phosphor-react";
-
-// redux imports
+import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { ArrowLeft, Info, MagnifyingGlass, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
-import { CloseConversation } from "@/redux/slices/actions/chatActions";
 
-import getAvatar from "@/utils/createAvatar";
 import StyledBadge from "@/components/StyledBadge";
-import GroupInfoDrawer from "@/sections/chat/group/GroupInfoDrawer";
-import { membersLabel } from "@/utils/groups";
+import { CloseConversation } from "@/redux/slices/actions/chatActions";
+import { setDetailsOpen } from "@/redux/slices/chatSlice";
+import { identityOf, isOnline as isPersonOnline } from "@/utils/chats";
+import getAvatar from "@/utils/createAvatar";
+import { membersLabel, typingLabel, typingNamesIn } from "@/utils/groups";
 
 // while this tab is disconnected the friend's status is stale, so the header says what is happening instead
 const CONNECTION_NOTICE = {
@@ -26,130 +15,88 @@ const CONNECTION_NOTICE = {
   offline: "Offline, messages send when you are back",
 };
 
-const GroupTitle = ({ group, notice }) => {
+const HeaderButton = ({ label, onClick, isPressed, children }) => (
+  <Tooltip title={label}>
+    <IconButton aria-label={label} aria-pressed={isPressed} onClick={onClick} sx={{ color: isPressed ? "primary.main" : "text.secondary" }}>
+      {children}
+    </IconButton>
+  </Tooltip>
+);
+
+const ConversationHeader = ({ isSearching, onToggleSearch }) => {
   const theme = useTheme();
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
-
-  return (
-    <>
-      <ButtonBase
-        onClick={() => setIsInfoOpen(true)}
-        aria-label={`${group.name}, group info`}
-        sx={{
-          borderRadius: 1,
-          gap: 2,
-          justifyContent: "flex-start",
-          textAlign: "left",
-        }}
-      >
-        {getAvatar(group.picture, group.name, theme)}
-        <Stack spacing={0.2}>
-          <Typography variant="subtitle2">{group.name}</Typography>
-          <Typography variant="caption" role="status">
-            {notice ?? membersLabel(group)}
-          </Typography>
-        </Stack>
-      </ButtonBase>
-      <GroupInfoDrawer
-        group={group}
-        open={isInfoOpen}
-        onClose={() => setIsInfoOpen(false)}
-      />
-    </>
-  );
-};
-
-const ConversationHeader = ({ otherUser }) => {
-  const theme = useTheme();
-
   const dispatch = useDispatch();
-  const connection = useSelector((state) => state.chat.connection);
-  const activeConversation = useSelector(
-    (state) => state.chat.activeConversation,
-  );
-  const notice = CONNECTION_NOTICE[connection];
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const meId = useSelector((state) => state.user.user._id);
+  const onlineFriends = useSelector((state) => state.user.onlineFriends);
+  const { activeConversation: conversation, typingConversation, connection, isDetailsOpen } = useSelector((state) => state.chat);
+
+  const { name, avatar, peer } = identityOf(conversation, meId);
+  const isOnline = Boolean(peer && peer._id !== meId && isPersonOnline(peer, onlineFriends));
+  const typists = typingNamesIn(conversation, typingConversation, meId);
+
+  const subtitle = () => {
+    if (CONNECTION_NOTICE[connection]) return CONNECTION_NOTICE[connection];
+    if (typists.length) return typingLabel(typists, conversation.isGroup);
+    if (conversation.isGroup) return membersLabel(conversation);
+    if (peer?._id === meId) return "Notes to yourself";
+    return isOnline ? "Online" : "Offline";
+  };
+
+  const avatarImage = getAvatar(avatar, name, theme, 42);
 
   return (
-    <Box
-      p={2}
-      width={"100%"}
-      sx={{
-        position: "sticky",
-        backgroundColor: theme.palette.background.default,
-        boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-      }}
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={{ xs: 0.5, md: 1 }}
+      sx={{ px: { xs: 1, md: 2 }, py: 1, minHeight: 64, bgcolor: "background.default", borderBottom: 1, borderColor: "divider" }}
     >
-      {/* main stack */}
-      <Stack
-        direction={"row"}
-        justifyContent={"space-between"}
-        alignItems={"center"}
+      <IconButton aria-label="Back to chats" onClick={() => dispatch(CloseConversation())} sx={{ display: { md: "none" } }}>
+        <ArrowLeft size={22} />
+      </IconButton>
+
+      <ButtonBase
+        onClick={() => dispatch(setDetailsOpen(!isDetailsOpen))}
+        aria-label={`${name}, ${isDetailsOpen ? "hide" : "show"} details`}
+        sx={{ flex: 1, minWidth: 0, gap: 1.5, justifyContent: "flex-start", textAlign: "left", borderRadius: 2, p: 0.5 }}
       >
-        {activeConversation?.isGroup ? (
-          <GroupTitle group={activeConversation} notice={notice} />
+        {isOnline ? (
+          <StyledBadge overlap="circular" anchorOrigin={{ vertical: "bottom", horizontal: "right" }} variant="dot">
+            {avatarImage}
+          </StyledBadge>
         ) : (
-          <Stack
-            direction={"row"}
-            justifyContent={"center"}
-            alignItems={"center"}
-            spacing={2}
-          >
-            {otherUser?.onlineStatus === "online" ? (
-              <StyledBadge
-                overlap="circular"
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                variant="dot"
-              >
-                {getAvatar(otherUser?.avatar, otherUser?.firstName, theme)}
-              </StyledBadge>
-            ) : (
-              getAvatar(otherUser?.avatar, otherUser?.firstName, theme)
-            )}
-
-            <Stack spacing={0.2}>
-              <Typography variant="subtitle2">{`${otherUser?.firstName} ${otherUser?.lastName}`}</Typography>
-              <Typography
-                variant="caption"
-                role="status"
-                sx={{ textTransform: notice ? "none" : "capitalize" }}
-              >
-                {notice ?? otherUser?.onlineStatus}
-              </Typography>
-            </Stack>
-          </Stack>
+          avatarImage
         )}
-        {/* header actions */}
-        <Stack
-          direction={"row"}
-          justifyContent={"center"}
-          alignItems={"center"}
-          spacing={1}
-        >
-          {/* video call action */}
-          <IconButton>
-            <VideoCamera />
-          </IconButton>
-
-          {/* voice call action */}
-          <IconButton>
-            <Phone />
-          </IconButton>
-
-          <Divider orientation="vertical" flexItem />
-          {/* search action */}
-          <IconButton
-            onClick={() => {
-              dispatch(CloseConversation());
-            }}
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+            {name}
+          </Typography>
+          <Typography
+            variant="caption"
+            role="status"
+            noWrap
+            component="p"
+            sx={{ m: 0, color: typists.length ? "primary.main" : "text.secondary" }}
           >
-            <XCircle />
-          </IconButton>
-        </Stack>
-      </Stack>
-    </Box>
+            {subtitle()}
+          </Typography>
+        </Box>
+      </ButtonBase>
+
+      <HeaderButton label="Search this chat" isPressed={isSearching} onClick={onToggleSearch}>
+        <MagnifyingGlass size={20} />
+      </HeaderButton>
+      <HeaderButton label="Details" isPressed={isDetailsOpen} onClick={() => dispatch(setDetailsOpen(!isDetailsOpen))}>
+        <Info size={22} />
+      </HeaderButton>
+      {!isSmallScreen && (
+        <HeaderButton label="Close chat" onClick={() => dispatch(CloseConversation())}>
+          <X size={20} />
+        </HeaderButton>
+      )}
+    </Stack>
   );
 };
+
 export default ConversationHeader;

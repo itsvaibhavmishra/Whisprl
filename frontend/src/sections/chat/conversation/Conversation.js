@@ -1,39 +1,27 @@
-import { useEffect } from "react";
-import { Button, Stack, Typography, useTheme } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Button, Stack, Typography } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 
-// redux imports
-import { useSelector, useDispatch } from "react-redux";
-
-import { getOtherUser } from "@/utils/getOtherUser";
-import ConversationFooter from "@/sections/chat/conversation/ConversationFooter";
+import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
+import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
+import FileUploadCont from "@/sections/chat/attachments/FileUploadCont";
+import ChatSearchBar from "@/sections/chat/conversation/ChatSearchBar";
+import Composer from "@/sections/chat/conversation/Composer";
 import ConversationHeader from "@/sections/chat/conversation/ConversationHeader";
 import ConversationMain from "@/sections/chat/conversation/ConversationMain";
-import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
-import FileUploadCont from "@/sections/chat/attachments/FileUploadCont";
-import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
+import PinnedBar from "@/sections/chat/conversation/PinnedBar";
+import { peerOf } from "@/utils/chats";
 
-const ComposerNotice = ({ children, action }) => {
-  const theme = useTheme();
-
-  return (
-    <Stack
-      py={2}
-      px={3}
-      width={"100%"}
-      sx={{
-        position: "sticky",
-        backgroundColor: theme.palette.background.default,
-        boxShadow: "0px 0px 2px rgba(0, 0, 0, 0.25)",
-        textAlign: "center",
-      }}
-      alignItems={"center"}
-      spacing={1}
-    >
-      <span>{children}</span>
-      {action}
-    </Stack>
-  );
-};
+const ComposerNotice = ({ children, action }) => (
+  <Stack
+    alignItems="center"
+    spacing={1}
+    sx={{ px: 3, py: 2, textAlign: "center", bgcolor: "background.default", borderTop: 1, borderColor: "divider" }}
+  >
+    <Typography variant="body2">{children}</Typography>
+    {action}
+  </Stack>
+);
 
 const lockedReasonFor = (keyStatus) => {
   if (keyStatus === "checking") return "Getting encryption ready…";
@@ -43,70 +31,73 @@ const lockedReasonFor = (keyStatus) => {
 };
 
 const Conversation = () => {
+  const dispatch = useDispatch();
   const { activeConversation, activeConvoFriendship, files } = useSelector((state) => state.chat);
   const keyStatus = useSelector((state) => state.encryption.status);
-  const { user, onlineFriends } = useSelector((state) => state.user);
-  const dispatch = useDispatch();
+  const meId = useSelector((state) => state.user.user._id);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const otherUser = activeConversation?.isGroup ? null : getOtherUser(activeConversation?.users, user._id, onlineFriends);
-
+  const conversationId = activeConversation._id;
+  const peer = activeConversation.isGroup ? null : peerOf(activeConversation, meId);
+  const peerHasNoKey = peer && peer._id !== meId && !peer.publicKeys?.length;
   const lockedReason = lockedReasonFor(keyStatus);
-  const peerHasNoKey = otherUser && !otherUser.publicKeys?.length;
 
   useEffect(() => {
-    dispatch(GetMessages(activeConversation?._id));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeConversation?._id]);
-
-  const conversationId = activeConversation?._id;
+    dispatch(GetMessages(conversationId));
+  }, [dispatch, conversationId]);
 
   useEffect(() => {
     const markSeenOnReturn = () => {
-      if (conversationId && document.visibilityState === "visible") dispatch(AcknowledgeMessages(conversationId));
+      if (document.visibilityState === "visible") dispatch(AcknowledgeMessages(conversationId));
     };
     document.addEventListener("visibilitychange", markSeenOnReturn);
     return () => document.removeEventListener("visibilitychange", markSeenOnReturn);
   }, [conversationId, dispatch]);
 
-  return (
-    <Stack height={"100%"} maxHeight={"100vh"} width={"auto"}>
-      <ConversationHeader otherUser={otherUser} />
+  const composer = () => {
+    if (!activeConvoFriendship) return <ComposerNotice>You are no longer friends, so you can't send messages here.</ComposerNotice>;
+    if (lockedReason) {
+      return (
+        <ComposerNotice
+          action={
+            keyStatus === "locked" && (
+              <Button size="small" variant="contained" onClick={() => dispatch(setUnlockOpen(true))}>
+                Unlock
+              </Button>
+            )
+          }
+        >
+          {lockedReason}
+        </ComposerNotice>
+      );
+    }
+    return (
+      <>
+        {peerHasNoKey && (
+          <Typography variant="caption" sx={{ px: 3, pt: 1, color: "text.secondary", textAlign: "center", bgcolor: "background.default" }}>
+            {peer.firstName} has not opened Whisprl since messages became end-to-end encrypted. Your messages arrive once they do.
+          </Typography>
+        )}
+        <Composer key={conversationId} />
+      </>
+    );
+  };
 
-      {files.length === 0 ? (
+  return (
+    <Stack sx={{ height: "100%", minWidth: 0 }}>
+      <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
+      {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
+      <PinnedBar />
+      {files.length ? (
+        <FileUploadCont />
+      ) : (
         <>
           <ConversationMain />
-
-          {!activeConvoFriendship ? (
-            <ComposerNotice>You are no longer friends with this user!</ComposerNotice>
-          ) : lockedReason ? (
-            <ComposerNotice
-              action={
-                keyStatus === "locked" && (
-                  <Button size="small" variant="contained" onClick={() => dispatch(setUnlockOpen(true))}>
-                    Unlock
-                  </Button>
-                )
-              }
-            >
-              {lockedReason}
-            </ComposerNotice>
-          ) : (
-            <>
-              {peerHasNoKey && (
-                <Typography variant="caption" sx={{ px: 3, pt: 1, color: "text.secondary", textAlign: "center" }}>
-                  {otherUser.firstName} has not opened Whisprl since messages became end-to-end encrypted. Your messages
-                  arrive once they do.
-                </Typography>
-              )}
-              <ConversationFooter convo_id={activeConversation._id} />
-            </>
-          )}
+          {composer()}
         </>
-      ) : (
-        <FileUploadCont />
       )}
     </Stack>
   );
 };
+
 export default Conversation;

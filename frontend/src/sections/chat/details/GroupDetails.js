@@ -8,7 +8,6 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
-  Drawer,
   IconButton,
   List,
   Stack,
@@ -16,7 +15,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { PencilSimple, SignOut, UserPlus, X } from "phosphor-react";
+import { PencilSimple, SignOut, UserPlus } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ImageMenu from "@/components/ImageMenu";
@@ -92,7 +91,7 @@ const GroupName = ({ group, canRename }) => {
   );
 };
 
-const GroupInfoDrawer = ({ group, open, onClose }) => {
+const GroupDetails = ({ group, sharedContent }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
@@ -111,20 +110,8 @@ const GroupInfoDrawer = ({ group, open, onClose }) => {
   };
 
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      PaperProps={{ sx: { width: { xs: "100%", sm: 360 } }, "aria-label": "Group info" }}
-    >
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2 }}>
-        <Typography variant="subtitle1">Group info</Typography>
-        <IconButton aria-label="Close group info" onClick={onClose}>
-          <X />
-        </IconButton>
-      </Stack>
-
-      <Stack alignItems="center" spacing={1} sx={{ px: 3, pb: 3 }}>
+    <>
+      <Stack alignItems="center" spacing={1} sx={{ px: 3, pt: 1, pb: 3 }}>
         <Box sx={{ position: "relative", mb: 1 }}>
           {getAvatar(group.picture, group.name, theme, 96)}
           {isManager && (
@@ -140,6 +127,8 @@ const GroupInfoDrawer = ({ group, open, onClose }) => {
       </Stack>
 
       <Divider />
+      {sharedContent}
+      <Divider />
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, pt: 2 }}>
         <Typography variant="subtitle2">Members</Typography>
@@ -149,7 +138,7 @@ const GroupInfoDrawer = ({ group, open, onClose }) => {
           </Button>
         )}
       </Stack>
-      <List sx={{ flexGrow: 1, overflowY: "auto" }} className="scrollbar">
+      <List>
         {members.map((member) => (
           <GroupMemberRow key={member._id} group={group} member={member} meId={meId} />
         ))}
@@ -186,8 +175,8 @@ const GroupInfoDrawer = ({ group, open, onClose }) => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Drawer>
+    </>
   );
 };
 
-export default GroupInfoDrawer;
+export default GroupDetails;

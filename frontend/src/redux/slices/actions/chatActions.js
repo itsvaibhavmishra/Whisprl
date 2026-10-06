@@ -4,13 +4,17 @@ import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { ClearAttachments, UploadAttachment } from "@/redux/slices/actions/attachmentActions";
 import {
   closeActiveConversation,
+  countUnread,
   dropQueuedMessage,
+  markRead,
   messageArrived,
   openConversation,
+  pinsUpdated,
   queueMessage,
   removeMessage,
   replaceMessage,
   requeueMessage,
+  setReplyingTo,
   updateQueuedMessage,
 } from "@/redux/slices/chatSlice";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
@@ -19,6 +23,7 @@ import { socket } from "@/utils/socket";
 import uuidv4 from "@/utils/uuidv4";
 import { decryptMessage, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
 import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
+import { encodePayload } from "@/utils/messagePayload";
 import { playSound } from "@/utils/sounds";
 
 const ACK_TIMEOUT = 10000;
@@ -26,12 +31,16 @@ const ACK_TIMEOUT = 10000;
 const RETRY_PAUSES = [1000, 2000, 4000, 8000, 15000, 15000, 15000];
 const UNREAD_LOOKBACK = 200;
 
-const withReadablePreview = async (conversation) =>
-  conversation.latestMessage
-    ? { ...conversation, latestMessage: await decryptMessage(conversation.latestMessage, conversation) }
-    : conversation;
+const readablePins = (pins = [], conversation) =>
+  Promise.all(pins.map(async (pin) => ({ ...pin, message: await decryptMessage(pin.message, conversation) })));
 
-const conversationById = ({ chat }, conversationId) =>
+const readableConversation = async (conversation) => ({
+  ...conversation,
+  latestMessage: conversation.latestMessage && (await decryptMessage(conversation.latestMessage, conversation)),
+  pins: await readablePins(conversation.pins, conversation),
+});
+
+export const conversationById = ({ chat }, conversationId) =>
   [chat.activeConversation, ...chat.conversations].find((conversation) => conversation?._id === conversationId);
 
 const isFromSomeoneElse = (message, getState) => message.sender?._id !== getState().user.user._id;
@@ -42,26 +51,27 @@ const isWatching = (getState, conversationId) =>
 // ------------- Get Conversation Thunk -------------
 export const GetConversations = createApiThunk("conversation/get-conversations", async () => {
   const { data } = await axios.get("/conversation/get-conversations");
-  return { conversations: await Promise.all(data.conversations.map(withReadablePreview)) };
+  return { conversations: await Promise.all(data.conversations.map(readableConversation)) };
 });
 
 // ------------- Create or Open Conversation -------------
 export const CreateOpenConversation = createApiThunk(
   "conversation/create-open-conversation",
   async (receiver_id, { dispatch }) => {
-    const { data } = await axios.post("/conversation/create-open-conversation", { receiver_id });
+    // closed first, so nothing typed while the request is out lands in the chat being left
     dispatch(CloseConversation());
-    return { ...data, conversation: await withReadablePreview(data.conversation) };
+    const { data } = await axios.post("/conversation/create-open-conversation", { receiver_id });
+    return { ...data, conversation: await readableConversation(data.conversation) };
   }
 );
 
-const readablePage = async (data, conversation) => ({
+export const readablePage = async (data, conversation) => ({
   messages: await Promise.all(data.messages.map((message) => decryptMessage(message, conversation))),
   hasMore: data.hasMore,
 });
 
-const fetchPage = async (conversationId, before) =>
-  (await axios.get(`/message/get-messages/${conversationId}`, { params: { before } })).data;
+export const fetchPage = async (conversationId, params) =>
+  (await axios.get(`/message/get-messages/${conversationId}`, { params })).data;
 
 // a friend's message this browser had not seen when the chat opened; a group remembers how far each member read instead
 const isUnreadBy = (userId, conversation) => (message) => {
@@ -74,7 +84,7 @@ const isUnreadBy = (userId, conversation) => (message) => {
 const fetchOpeningPages = async (conversationId, isUnread) => {
   let { messages, hasMore } = await fetchPage(conversationId);
   while (hasMore && messages.length < UNREAD_LOOKBACK && isUnread(messages[0])) {
-    const older = await fetchPage(conversationId, messages[0]._id);
+    const older = await fetchPage(conversationId, { before: messages[0]._id });
     messages = [...older.messages, ...messages];
     hasMore = older.hasMore;
   }
@@ -88,7 +98,7 @@ const unreadMarkerOf = (messages, isUnread) => {
 
 // ------------- Get Messages -------------
 export const GetMessages = createApiThunk("message/get-messages", async (convoId, { dispatch, getState }) => {
-  const isOpening = !getState().chat.messages.length;
+  const isOpening = !getState().chat.hasFetched;
   const isUnread = isUnreadBy(getState().user.user._id, conversationById(getState(), convoId));
 
   const data = isOpening ? await fetchOpeningPages(convoId, isUnread) : await fetchPage(convoId);
@@ -103,13 +113,29 @@ export const LoadOlderMessages = createApiThunk(
   "message/load-older",
   async (_, { getState }) => {
     const { activeConversation, messages } = getState().chat;
-    const data = await fetchPage(activeConversation._id, messages[0]?._id);
+    const data = await fetchPage(activeConversation._id, { before: messages[0]?._id });
     return { conversationId: activeConversation._id, ...(await readablePage(data, activeConversation)) };
   },
   {
     condition: (_, { getState }) => {
       const { hasOlderMessages, activeConversation } = getState().chat;
       return Boolean(activeConversation && hasOlderMessages && !selectIsLoading(getState(), LoadOlderMessages));
+    },
+  }
+);
+
+// ------------- Load Newer Messages -------------
+export const LoadNewerMessages = createApiThunk(
+  "message/load-newer",
+  async (_, { getState }) => {
+    const { activeConversation, messages } = getState().chat;
+    const data = await fetchPage(activeConversation._id, { after: messages.at(-1)?._id });
+    return { conversationId: activeConversation._id, hasNewer: data.hasNewer, ...(await readablePage(data, activeConversation)) };
+  },
+  {
+    condition: (_, { getState }) => {
+      const { hasNewerMessages, activeConversation } = getState().chat;
+      return Boolean(activeConversation && hasNewerMessages && !selectIsLoading(getState(), LoadNewerMessages));
     },
   }
 );
@@ -133,6 +159,7 @@ export const StopTyping = (conversationId) => () => socket.emit("stop_typing", c
 export const OpenConversation = (conversation) => (dispatch) => {
   dispatch(CloseConversation());
   dispatch(openConversation(conversation));
+  dispatch(markRead(conversation._id));
 };
 
 // ------------- Close Conversation -------------
@@ -143,17 +170,34 @@ export const CloseConversation = () => (dispatch) => {
 
 // ------------- Send Text Message -------------
 // shown at once from the outbox; the server's copy replaces it once it is saved
-export const SendTextMessage = (text) => (dispatch, getState) => {
+const quoteOf = (message) => {
+  if (!message) return null;
+  const { _id, sender, message: text, file, contact, deletedAt } = message;
+  return { _id, sender, message: text, file, contact, deletedAt };
+};
+
+export const SendTextMessage = ({ text, mentions, contact, forwardOf, file, conversationId }) => (dispatch, getState) => {
+  const { chat, user } = getState();
+  const targetId = conversationId ?? chat.activeConversation._id;
+  const isHere = targetId === chat.activeConversation?._id;
+  if (isHere && chat.hasNewerMessages) dispatch(GetMessages(targetId));
+
   dispatch(
     queueMessage({
       clientId: uuidv4(),
-      senderId: getState().user.user._id,
-      conversationId: getState().chat.activeConversation._id,
-      afterId: getState().chat.messages.at(-1)?._id,
+      senderId: user.user._id,
+      conversationId: targetId,
+      afterId: isHere ? chat.messages.at(-1)?._id : undefined,
       createdAt: new Date().toISOString(),
       text,
+      mentions,
+      contact,
+      forwardOf,
+      file,
+      replyTo: isHere && !forwardOf ? quoteOf(chat.replyingTo) : null,
     })
   );
+  if (isHere && !forwardOf) dispatch(setReplyingTo(null));
   dispatch(FlushOutbox());
 };
 
@@ -167,24 +211,28 @@ const sendOnce = (entry, cipher) =>
       convo_id: entry.conversationId,
       clientId: entry.clientId,
       cipher,
-      ...(entry.file && { attachment: true, batch: entry.batch }),
+      replyTo: entry.replyTo?._id,
+      forwardOf: entry.forwardOf,
+      ...(entry.file && !entry.forwardOf && { attachment: true, batch: entry.batch }),
     })
     .catch(() => null);
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// a slow or busy server keeps the message sending, so a later one never overtakes it; only a refusal fails it
 // an attachment's message carries its caption and the file's key, and the file follows once the message is saved
-const plaintextOf = (entry) => entry.text ?? JSON.stringify({ caption: entry.caption, file: entry.file });
+const plaintextOf = (entry) =>
+  entry.file ? JSON.stringify({ caption: entry.caption ?? entry.text, file: entry.file }) : encodePayload(entry);
 
 const confirmQueued = (entry, saved, dispatch) => {
-  dispatch(messageArrived({ ...saved, message: entry.text ?? entry.caption ?? "", file: entry.file }));
+  const { text, caption, file, mentions, contact, replyTo } = entry;
+  dispatch(messageArrived({ ...saved, message: text ?? caption ?? "", file, mentions, contact, replyTo: replyTo ?? saved.replyTo, reactions: [] }));
   playSound("sent");
-  if (!entry.file) return;
+  if (!entry.file || entry.forwardOf) return;
   markAttachmentSent(entry.clientId, saved._id);
   dispatch(UploadAttachment(entry.clientId));
 };
 
+// a slow or busy server keeps the message sending, so a later one never overtakes it; only a refusal fails it
 const deliverQueued = async (entry, dispatch, getState) => {
   const fail = (error) => dispatch(updateQueuedMessage({ clientId: entry.clientId, status: "failed", error }));
   const conversation = conversationById(getState(), entry.conversationId);
@@ -207,10 +255,11 @@ const deliverQueued = async (entry, dispatch, getState) => {
 const isStillSending = (getState, clientId) =>
   getState().chat.outbox.some((queued) => queued.clientId === clientId && queued.status === "sending");
 
-const nextQueued = (getState) => getState().chat.outbox.find((queued) => queued.status === "sending");
+// a file still being encrypted holds its place, so nothing written after it goes first
+const nextQueued = (getState) => getState().chat.outbox.find((queued) => queued.status === "sending" || queued.status === "preparing");
 
 const drainOutbox = async (dispatch, getState) => {
-  for (let entry = nextQueued(getState); entry && socket.connected; entry = nextQueued(getState)) {
+  for (let entry = nextQueued(getState); entry?.status === "sending" && socket.connected; entry = nextQueued(getState)) {
     await deliverQueued(entry, dispatch, getState);
     // still sending means the connection dropped mid-send, and the reconnect flushes it again
     if (isStillSending(getState, entry.clientId)) return;
@@ -245,7 +294,17 @@ export const ReceiveMessage = (message) => async (dispatch, getState) => {
   dispatch(messageArrived(await decryptMessage(message, conversation)));
   if (!isFromSomeoneElse(message, getState)) return;
   dispatch(AcknowledgeMessages(conversation._id));
-  if (!message.event) playSound(isWatching(getState, conversation._id) ? "received" : "elsewhere");
+  if (message.event) return;
+
+  const isWatched = isWatching(getState, conversation._id);
+  if (!isWatched) dispatch(countUnread(conversation._id));
+  playSound(isWatched ? "received" : "elsewhere");
+};
+
+// ------------- Pins Changed -------------
+export const ReceivePins = ({ conversation_id, pins }) => async (dispatch, getState) => {
+  const conversation = conversationById(getState(), conversation_id);
+  if (conversation) dispatch(pinsUpdated({ conversation_id, pins: await readablePins(pins, conversation) }));
 };
 
 // ------------- Message Removed Before Its File Arrived -------------

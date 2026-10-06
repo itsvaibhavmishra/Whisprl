@@ -3,6 +3,7 @@ import {
   CreateOpenConversation,
   GetConversations,
   GetMessages,
+  LoadNewerMessages,
   LoadOlderMessages,
 } from "@/redux/slices/actions/chatActions";
 
@@ -13,6 +14,8 @@ const initialState = {
 
   messages: [],
   hasOlderMessages: false,
+  // true while an older stretch of the chat is shown after jumping to a message, with newer pages yet to load
+  hasNewerMessages: false,
   // worked out when the chat opens, because opening it marks those messages seen
   unreadMarker: null,
 
@@ -27,17 +30,70 @@ const initialState = {
   // attachments chosen for the next message; the files themselves are held outside the store
   files: [],
   activeFileIndex: 0,
+
+  // chats left recently keep their decrypted messages in memory, so going back to one is instant
+  cache: {},
+  hasFetched: false,
+  drafts: {},
+  replyingTo: null,
+  editing: null,
+  // a reply, pin or search result asks the chat to bring this message into view
+  focusedMessageId: null,
+  isDetailsOpen: false,
+  // every decrypted message of a chat, gathered for searching it and listing its media, links and documents
+  history: {},
+  commonGroups: {},
 };
+
+const CACHED_CHATS = 15;
 
 const closedConversation = () => ({
   activeConversation: null,
   activeConvoFriendship: null,
   messages: [],
   hasOlderMessages: false,
+  hasNewerMessages: false,
   unreadMarker: null,
   files: [],
   activeFileIndex: 0,
+  hasFetched: false,
+  replyingTo: null,
+  editing: null,
+  focusedMessageId: null,
 });
+
+const cacheActive = (state) => {
+  const conversationId = state.activeConversation?._id;
+  if (!conversationId || !state.messages.length) return;
+  delete state.cache[conversationId];
+  state.cache[conversationId] = {
+    messages: state.messages,
+    hasOlderMessages: state.hasOlderMessages,
+    hasNewerMessages: state.hasNewerMessages,
+  };
+  const cached = Object.keys(state.cache);
+  if (cached.length > CACHED_CHATS) delete state.cache[cached[0]];
+};
+
+const open = (state, conversation, canMessage) => {
+  const cached = state.cache[conversation._id];
+  state.activeConversation = conversation;
+  state.activeConvoFriendship = canMessage;
+  state.messages = cached?.messages ?? [];
+  state.hasOlderMessages = cached?.hasOlderMessages ?? false;
+  state.hasNewerMessages = cached?.hasNewerMessages ?? false;
+};
+
+// the open chat's messages, or a cached chat's, so a change lands wherever that chat is shown next
+const messagesOf = (state, conversationId) =>
+  state.activeConversation?._id === conversationId ? state.messages : state.cache[conversationId]?.messages;
+
+// edits and deletions reach the gathered history too, so search and shared media never show what is gone
+const listsOf = (state, conversationId) =>
+  [messagesOf(state, conversationId), state.history[conversationId]?.messages].filter(Boolean);
+
+const conversationsWith = (state, conversationId) =>
+  [state.activeConversation, ...state.conversations].filter((conversation) => conversation?._id === conversationId);
 
 const isSameMessage = (message, other) =>
   message._id === other._id ||
@@ -61,17 +117,86 @@ const slice = createSlice({
   initialState,
   reducers: {
     closeActiveConversation: (state) => {
+      cacheActive(state);
       Object.assign(state, closedConversation());
     },
 
     clearConversation: () => initialState,
 
     openConversation: (state, action) => {
-      state.activeConversation = action.payload;
-      state.activeConvoFriendship = true;
+      open(state, action.payload, action.payload.canMessage ?? true);
     },
 
-    // a group arrives without its preview, which the message announcing the change brings separately
+    countUnread: (state, action) => {
+      conversationsWith(state, action.payload).forEach((conversation) => {
+        conversation.unread = (conversation.unread ?? 0) + 1;
+      });
+    },
+
+    markRead: (state, action) => {
+      conversationsWith(state, action.payload).forEach((conversation) => {
+        conversation.unread = 0;
+      });
+    },
+
+    pinsUpdated: (state, action) => {
+      const { conversation_id, pins } = action.payload;
+      conversationsWith(state, conversation_id).forEach((conversation) => {
+        conversation.pins = pins;
+      });
+    },
+
+    // ---------- Composer ----------
+    setDraft: (state, action) => {
+      const { conversationId, text } = action.payload;
+      if (text) state.drafts[conversationId] = text;
+      else delete state.drafts[conversationId];
+    },
+
+    setReplyingTo: (state, action) => {
+      state.replyingTo = action.payload;
+      state.editing = null;
+    },
+
+    setEditing: (state, action) => {
+      state.editing = action.payload;
+      state.replyingTo = null;
+    },
+
+    // shown at once, and replaced by the server's copy when it echoes back
+    reactionChanged: (state, action) => {
+      const { conversationId, messageId, userId, emoji } = action.payload;
+      const message = messagesOf(state, conversationId)?.find((candidate) => candidate._id === messageId);
+      if (!message) return;
+      const others = (message.reactions ?? []).filter((reaction) => reaction.user !== userId);
+      message.reactions = emoji ? [...others, { user: userId, emoji }] : others;
+    },
+
+    windowShown: (state, action) => {
+      const { conversationId, messages, hasOlderMessages, hasNewerMessages } = action.payload;
+      if (state.activeConversation?._id !== conversationId) return;
+      Object.assign(state, { messages, hasOlderMessages, hasNewerMessages, unreadMarker: null });
+    },
+
+    focusMessage: (state, action) => {
+      state.focusedMessageId = action.payload;
+    },
+
+    setDetailsOpen: (state, action) => {
+      state.isDetailsOpen = action.payload;
+    },
+
+    historyLoaded: (state, action) => {
+      const { conversationId, messages, isComplete } = action.payload;
+      state.history[conversationId] = { messages, isComplete };
+    },
+
+    commonGroupsLoaded: (state, action) => {
+      const { userId, groups } = action.payload;
+      state.commonGroups[userId] = groups;
+    },
+
+    // a group arrives without its preview or readable pins, which this tab already holds
     groupUpdated: (state, action) => {
       const { group, userId } = action.payload;
       const index = state.conversations.findIndex((conversation) => conversation._id === group._id);
@@ -83,7 +208,8 @@ const slice = createSlice({
         return;
       }
 
-      const updated = { ...group, latestMessage: state.conversations[index]?.latestMessage ?? null };
+      const previous = state.conversations[index];
+      const updated = { ...group, latestMessage: previous?.latestMessage ?? null, pins: previous?.pins ?? [], unread: previous?.unread ?? 0 };
       if (index === -1) state.conversations.unshift(updated);
       else state.conversations[index] = updated;
       if (state.activeConversation?._id === group._id) state.activeConversation = { ...updated };
@@ -152,14 +278,17 @@ const slice = createSlice({
         (typist) => typist.conversation_id !== conversationId || typist.user_id !== message.sender._id
       );
 
-      if (state.activeConversation?._id !== conversationId) return;
-      const index = state.messages.findIndex((existing) => isSameMessage(existing, message));
+      const messages = messagesOf(state, conversationId);
+      // a new message belongs after the newest one, which an older stretch on screen does not reach
+      const isShowingOlder = state.activeConversation?._id === conversationId && state.hasNewerMessages;
+      if (!messages || isShowingOlder) return;
+      const index = messages.findIndex((existing) => isSameMessage(existing, message));
       if (index !== -1) {
-        state.messages[index] = message;
+        messages[index] = message;
         return;
       }
-      const after = state.messages.findLastIndex((existing) => existing._id < message._id);
-      state.messages.splice(after + 1, 0, message);
+      const after = messages.findLastIndex((existing) => existing._id < message._id);
+      messages.splice(after + 1, 0, message);
     },
 
     markUploadFailed: (state, action) => {
@@ -171,12 +300,18 @@ const slice = createSlice({
     },
 
     removeMessage: (state, action) => {
-      state.messages = state.messages.filter((message) => message._id !== action.payload._id);
+      const { _id, conversation } = action.payload;
+      listsOf(state, conversation).forEach((messages) => {
+        const index = messages.findIndex((message) => message._id === _id);
+        if (index !== -1) messages.splice(index, 1);
+      });
     },
 
     replaceMessage: (state, action) => {
-      const index = state.messages.findIndex((message) => message._id === action.payload._id);
-      if (index !== -1) state.messages[index] = action.payload;
+      listsOf(state, action.payload.conversation).forEach((messages) => {
+        const index = messages.findIndex((message) => message._id === action.payload._id);
+        if (index !== -1) messages[index] = action.payload;
+      });
 
       const conversation = state.conversations.find((convo) => convo.latestMessage?._id === action.payload._id);
       if (conversation) conversation.latestMessage = action.payload;
@@ -186,11 +321,9 @@ const slice = createSlice({
     applyReceipt: (state, action) => {
       const { conversation_id, reader, receipt, at, upTo } = action.payload;
       if (upTo) {
-        [state.activeConversation, ...state.conversations]
-          .filter((conversation) => conversation?._id === conversation_id)
-          .forEach((conversation) => {
-            conversation.lastSeen = { ...conversation.lastSeen, [reader]: upTo };
-          });
+        conversationsWith(state, conversation_id).forEach((conversation) => {
+          conversation.lastSeen = { ...conversation.lastSeen, [reader]: upTo };
+        });
         return;
       }
       if (state.activeConversation?._id !== conversation_id) return;
@@ -229,8 +362,7 @@ const slice = createSlice({
         state.conversations = action.payload.conversations;
       })
       .addCase(CreateOpenConversation.fulfilled, (state, action) => {
-        state.activeConversation = action.payload.conversation;
-        state.activeConvoFriendship = action.payload.isValidFriendShip;
+        open(state, action.payload.conversation, action.payload.isValidFriendShip);
       })
 
       // the newest page, joined onto older pages already loaded when the two overlap
@@ -238,6 +370,8 @@ const slice = createSlice({
         if (action.meta.arg !== state.activeConversation?._id) return;
         const { messages, hasMore, unread } = action.payload;
         if (unread) state.unreadMarker = unread;
+        state.hasFetched = true;
+        state.hasNewerMessages = false;
 
         const overlaps = messages.some((fetched) => state.messages.some((loaded) => loaded._id === fetched._id));
         const olderLoaded = overlaps ? state.messages.filter((loaded) => loaded._id < messages[0]._id) : [];
@@ -246,6 +380,12 @@ const slice = createSlice({
 
         state.messages = [...olderLoaded, ...messages, ...arrivedSince];
         state.hasOlderMessages = olderLoaded.length ? state.hasOlderMessages : hasMore;
+      })
+      .addCase(LoadNewerMessages.fulfilled, (state, action) => {
+        if (action.payload.conversationId !== state.activeConversation?._id) return;
+        const known = new Set(state.messages.map((message) => message._id));
+        state.messages = [...state.messages, ...action.payload.messages.filter((message) => !known.has(message._id))];
+        state.hasNewerMessages = action.payload.hasNewer;
       })
       .addCase(LoadOlderMessages.fulfilled, (state, action) => {
         if (action.payload.conversationId !== state.activeConversation?._id) return;
@@ -264,6 +404,18 @@ export const selectActiveOutbox = createSelector(
 export const {
   closeActiveConversation,
   openConversation,
+  countUnread,
+  markRead,
+  pinsUpdated,
+  setDraft,
+  setReplyingTo,
+  setEditing,
+  reactionChanged,
+  focusMessage,
+  windowShown,
+  setDetailsOpen,
+  historyLoaded,
+  commonGroupsLoaded,
   groupUpdated,
   clearConversation: clearChat,
   setConnection,
