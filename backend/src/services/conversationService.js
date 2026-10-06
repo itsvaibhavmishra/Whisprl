@@ -1,8 +1,8 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { ConversationModel, MessageModel, UserModel } from "../models/index.js";
-import { PUBLIC_PROFILE_FIELDS } from "./userService.js";
+import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { PUBLIC_PROFILE_FIELDS } from "#src/services/userService.js";
 
 export const MEMBER_FIELDS = `${PUBLIC_PROFILE_FIELDS} onlineStatus`;
 

@@ -3,10 +3,10 @@ import sizeOf from "image-size";
 import mongoose from "mongoose";
 import validator from "validator";
 
-import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "../models/index.js";
-import { deleteFile, isCloudinaryFile, uploadFile } from "./fileUploadService.js";
-import { escapeRegex } from "../utils/escapeRegex.js";
-import { assertStrongPassword, normalizeEmail } from "../utils/accountRules.js";
+import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
+import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
+import { escapeRegex } from "#src/utils/escapeRegex.js";
+import { assertStrongPassword, normalizeEmail, normalizeUsername } from "#src/utils/accountRules.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -25,7 +25,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName avatar cover email activityStatus createdAt publicKeys";
+export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar cover email activityStatus createdAt publicKeys";
 
 export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -78,6 +78,8 @@ export const getOwnProfile = async (user) => {
     _id: user._id,
     firstName: user.firstName,
     lastName: user.lastName,
+    username: user.username,
+    usernameChangedAt: user.usernameChangedAt,
     avatar: user.avatar,
     cover: user.cover,
     email: user.email,
@@ -109,15 +111,19 @@ const SEARCH_PAGE_SIZE = 10;
 
 const skipFor = (page) => Math.max(0, Number.parseInt(page, 10) || 0) * SEARCH_PAGE_SIZE;
 
+const SEARCH_FIELDS = "firstName lastName username email avatar activityStatus onlineStatus";
+
 const nameOrEmailFilter = (keyword) => {
   if (validator.isEmail(keyword)) return { email: normalizeEmail(keyword) };
 
   const pattern = new RegExp(escapeRegex(keyword), "i");
+  const username = normalizeUsername(keyword);
   return {
     $or: [
       { firstName: pattern },
       { lastName: pattern },
       { $expr: { $regexMatch: { input: { $concat: ["$firstName", " ", "$lastName"] }, regex: pattern } } },
+      ...(username ? [{ username: new RegExp(escapeRegex(username)) }] : []),
     ],
   };
 };
@@ -127,7 +133,7 @@ export const searchForUsers = async (keyword, page, user) => {
 
   const [users, totalCount, requestedIds] = await Promise.all([
     UserModel.find(filter)
-      .select("firstName lastName email avatar activityStatus onlineStatus")
+      .select(SEARCH_FIELDS)
       .skip(skipFor(page))
       .limit(SEARCH_PAGE_SIZE)
       .lean(),
@@ -144,7 +150,7 @@ export const searchFriendsOf = async (user, keyword, page) => {
 
   const [friends, totalCount] = await Promise.all([
     UserModel.find(filter)
-      .select("firstName lastName email avatar activityStatus onlineStatus")
+      .select(SEARCH_FIELDS)
       .skip(skipFor(page))
       .limit(SEARCH_PAGE_SIZE),
     UserModel.countDocuments(filter),

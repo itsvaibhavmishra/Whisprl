@@ -1,16 +1,16 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { MessageModel } from "../models/index.js";
-import { findMemberConversation, populateMembers } from "./conversationService.js";
-import { deleteFile, isCloudinaryFile } from "./fileUploadService.js";
+import { MessageModel } from "#src/models/index.js";
+import { findMemberConversation, populateMembers } from "#src/services/conversationService.js";
+import { deleteFile, isCloudinaryFile } from "#src/services/fileUploadService.js";
 import {
   findSendableConversation,
   removeUnsentAttachment,
   toClientMessage,
   validateCipher,
   withQuote,
-} from "./messageService.js";
+} from "#src/services/messageService.js";
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
 const STANDING = { deletedAt: null, event: { $exists: false } };

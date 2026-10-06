@@ -1,10 +1,10 @@
-import UserModel from "./userModel.js";
-import ConversationModel from "./conversationModel.js";
-import MessageModel from "./messageModel.js";
-import FriendRequestModel from "./friendRequestModel.js";
-import SessionModel from "./sessionModel.js";
-import PasskeyModel from "./passkeyModel.js";
-import PasskeyChallengeModel from "./passkeyChallengeModel.js";
+import UserModel from "#src/models/userModel.js";
+import ConversationModel from "#src/models/conversationModel.js";
+import MessageModel from "#src/models/messageModel.js";
+import FriendRequestModel from "#src/models/friendRequestModel.js";
+import SessionModel from "#src/models/sessionModel.js";
+import PasskeyModel from "#src/models/passkeyModel.js";
+import PasskeyChallengeModel from "#src/models/passkeyChallengeModel.js";
 
 export {
   UserModel,

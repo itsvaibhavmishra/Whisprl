@@ -2,7 +2,7 @@ import crypto from "crypto";
 import createHttpError from "http-errors";
 import validator from "validator";
 
-import { PasskeyModel, UserModel } from "../models/index.js";
+import { PasskeyModel, UserModel } from "#src/models/index.js";
 
 // an uncompressed P-256 point: one marker byte, then 32 bytes each of x and y
 const PUBLIC_KEY_BYTES = 65;

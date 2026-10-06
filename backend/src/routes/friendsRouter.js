@@ -1,8 +1,8 @@
 import express from "express";
 import trimRequest from "trim-request";
 
-import { protect } from "../middlewares/authMiddleware.js";
-import { readLimit, searchLimit, writeLimit } from "../middlewares/rateLimiters.js";
+import { protect } from "#src/middlewares/authMiddleware.js";
+import { readLimit, searchLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   acceptRejectRequest,
   cancelRequest,
@@ -13,7 +13,7 @@ import {
   removeFriend,
   searchFriends,
   sendRequest,
-} from "../controllers/friendsController.js";
+} from "#src/controllers/friendsController.js";
 
 const friendsRouter = express.Router();
 

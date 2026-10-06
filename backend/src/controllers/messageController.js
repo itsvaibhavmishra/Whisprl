@@ -12,8 +12,8 @@ import {
   resealMessage,
   saveMessage,
   validateCipher,
-} from "../services/messageService.js";
-import { findMemberConversation, memberRooms } from "../services/conversationService.js";
+} from "#src/services/messageService.js";
+import { findMemberConversation, memberRooms } from "#src/services/conversationService.js";
 
 // -------------------------- Attach Encrypted File --------------------------
 export const attachFile = async (req, res, next) => {

@@ -5,8 +5,8 @@ import {
   passkeyRegistrationOptions,
   registerPasskey,
   removePasskey,
-} from "../services/passkeyService.js";
-import { respondWithSession } from "./authController.js";
+} from "#src/services/passkeyService.js";
+import { respondWithSession } from "#src/controllers/authController.js";
 
 // -------------------------- List Passkeys --------------------------
 export const getPasskeys = async (req, res, next) => {

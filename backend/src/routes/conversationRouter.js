@@ -1,15 +1,15 @@
 import express from "express";
 import trimRequest from "trim-request";
 
-import { protect } from "../middlewares/authMiddleware.js";
-import { readLimit, writeLimit } from "../middlewares/rateLimiters.js";
+import { protect } from "#src/middlewares/authMiddleware.js";
+import { readLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   createOpenConversation,
   getCommonGroups,
   getConversations,
   pin,
   unpin,
-} from "../controllers/conversationController.js";
+} from "#src/controllers/conversationController.js";
 
 const conversationRouter = express.Router();
 

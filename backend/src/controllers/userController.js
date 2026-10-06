@@ -8,9 +8,10 @@ import {
   saveProfile,
   searchForUsers,
   setQuickReactions,
-} from "../services/userService.js";
-import { endOtherSessions, issueAccessToken, signOutOtherDevices } from "../services/sessionService.js";
-import { assertText, assertValidName } from "../utils/accountRules.js";
+} from "#src/services/userService.js";
+import { endOtherSessions, issueAccessToken, signOutOtherDevices } from "#src/services/sessionService.js";
+import { changeUsername, checkUsername } from "#src/services/usernameService.js";
+import { assertText, assertValidName } from "#src/utils/accountRules.js";
 
 // -------------------------- Update Profile --------------------------
 export const updateProfile = async (req, res, next) => {
@@ -58,6 +59,27 @@ export const getMyProfile = async (req, res, next) => {
   try {
     const user = await getOwnProfile(req.user);
     return res.status(200).json({ status: "success", user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Username --------------------------
+export const checkUsernameAvailable = async (req, res, next) => {
+  try {
+    assertText(req.query.username);
+    const { username, problem } = await checkUsername(req.user, req.query.username);
+    res.status(200).json({ status: "success", username, problem });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUsername = async (req, res, next) => {
+  try {
+    assertText(req.body.username);
+    const { username, usernameChangedAt } = await changeUsername(req.user, req.body.username);
+    res.status(200).json({ status: "success", username, usernameChangedAt });
   } catch (error) {
     next(error);
   }

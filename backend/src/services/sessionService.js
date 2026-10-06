@@ -2,8 +2,8 @@ import crypto from "crypto";
 import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
 
-import { SessionModel } from "../models/index.js";
-import { sha256 } from "../utils/sha256.js";
+import { SessionModel } from "#src/models/index.js";
+import { sha256 } from "#src/utils/sha256.js";
 
 const ACCESS_TOKEN_LIFETIME = "15m";
 const SESSION_LIFETIME = 90 * 24 * 60 * 60 * 1000;

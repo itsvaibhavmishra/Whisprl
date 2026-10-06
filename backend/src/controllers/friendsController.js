@@ -9,9 +9,9 @@ import {
   listSentRequests,
   sendFriendRequest,
   unfriend,
-} from "../services/friendsService.js";
-import { searchFriendsOf } from "../services/userService.js";
-import { assertText } from "../utils/accountRules.js";
+} from "#src/services/friendsService.js";
+import { searchFriendsOf } from "#src/services/userService.js";
+import { assertText } from "#src/utils/accountRules.js";
 
 const summaryOf = ({ _id, firstName, lastName }) => ({ _id, firstName, lastName });
 

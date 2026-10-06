@@ -1,5 +1,5 @@
-import { memberRooms } from "../services/conversationService.js";
-import { addMembers, createGroup, removeMember, setAdmin, updateGroupDetails } from "../services/groupService.js";
+import { memberRooms } from "#src/services/conversationService.js";
+import { addMembers, createGroup, removeMember, setAdmin, updateGroupDetails } from "#src/services/groupService.js";
 
 // everyone still in the group, and anyone who just left it, hears about the change; newcomers join its room first
 const announce = (io, { group, groupId, events, departed }) => {

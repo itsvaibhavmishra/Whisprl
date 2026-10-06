@@ -30,6 +30,11 @@ const PersonDetails = ({ conversation, sharedContent }) => {
       <Stack alignItems="center" spacing={0.75} sx={{ px: 3, pt: 1, pb: 3, textAlign: "center" }}>
         <Box sx={{ mb: 1 }}>{getAvatar(avatar, name, theme, 96)}</Box>
         <Typography variant="h6">{name}</Typography>
+        {peer.username && (
+          <Typography variant="body2" sx={{ fontWeight: 600, color: "text.secondary" }}>
+            @{peer.username}
+          </Typography>
+        )}
         {peer.email && (
           <Typography variant="body2" sx={{ color: "text.secondary", wordBreak: "break-all" }}>
             {peer.email}

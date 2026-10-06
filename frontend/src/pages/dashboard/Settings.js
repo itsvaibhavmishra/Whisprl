@@ -14,6 +14,7 @@ import PasskeySetting from "@/sections/settings/PasskeySetting";
 import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
 import ChatPreview from "@/sections/settings/ChatPreview";
 import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
+import UsernameSetting from "@/sections/settings/UsernameSetting";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
 import getAvatar from "@/utils/createAvatar";
 import useSettings from "@/hooks/useSettings";
@@ -93,6 +94,7 @@ const Settings = () => {
               label={`${firstName} ${lastName}`}
               description="Edit your photo, cover, name and status."
             />
+            <UsernameSetting />
             <SettingRow label="Email" description={email} />
           </SettingsSection>
 

@@ -8,8 +8,8 @@ import {
   pinsOf,
   populateMembers,
   unpinMessage,
-} from "../services/conversationService.js";
-import { saveEvent } from "../services/messageService.js";
+} from "#src/services/conversationService.js";
+import { saveEvent } from "#src/services/messageService.js";
 
 // -------------------------- Create/Open Direct Conversation --------------------------
 export const createOpenConversation = async (req, res, next) => {

@@ -1,14 +1,14 @@
 import express from "express";
 
 // router imports
-import authRouter from "./authRouter.js";
-import userRouter from "./userRouter.js";
-import conversationRouter from "./conversationRouter.js";
-import messageRouter from "./messageRouter.js";
-import friendsRouter from "./friendsRouter.js";
-import keyRouter from "./keyRouter.js";
-import passkeyRouter from "./passkeyRouter.js";
-import groupRouter from "./groupRouter.js";
+import authRouter from "#src/routes/authRouter.js";
+import userRouter from "#src/routes/userRouter.js";
+import conversationRouter from "#src/routes/conversationRouter.js";
+import messageRouter from "#src/routes/messageRouter.js";
+import friendsRouter from "#src/routes/friendsRouter.js";
+import keyRouter from "#src/routes/keyRouter.js";
+import passkeyRouter from "#src/routes/passkeyRouter.js";
+import groupRouter from "#src/routes/groupRouter.js";
 
 const router = express.Router();
 

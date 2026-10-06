@@ -1,4 +1,4 @@
-import { authenticate } from "../services/authService.js";
+import { authenticate } from "#src/services/authService.js";
 
 const bearerTokenOf = (req) => req.get("authorization")?.match(/^Bearer (.+)$/)?.[1];
 

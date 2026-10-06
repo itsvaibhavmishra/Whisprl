@@ -1,9 +1,9 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { FriendRequestModel, UserModel } from "../models/index.js";
+import { FriendRequestModel, UserModel } from "#src/models/index.js";
 
-const FRIEND_FIELDS = "firstName lastName avatar activityStatus onlineStatus email publicKeys.keyId";
+const FRIEND_FIELDS = "firstName lastName username avatar activityStatus onlineStatus email publicKeys.keyId";
 const REQUESTER_FIELDS = "firstName lastName avatar activityStatus email";
 
 const assertUserId = (user_id, field) => {

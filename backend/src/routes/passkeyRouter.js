@@ -1,8 +1,8 @@
 import express from "express";
 
-import { protect } from "../middlewares/authMiddleware.js";
-import { readLimit, writeLimit } from "../middlewares/rateLimiters.js";
-import { addPasskey, deletePasskey, getPasskeys, getRegistrationOptions } from "../controllers/passkeyController.js";
+import { protect } from "#src/middlewares/authMiddleware.js";
+import { readLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
+import { addPasskey, deletePasskey, getPasskeys, getRegistrationOptions } from "#src/controllers/passkeyController.js";
 
 const passkeyRouter = express.Router();
 

@@ -1,11 +1,11 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { ConversationModel, MessageModel, UserModel } from "../models/index.js";
-import { populateMembers } from "./conversationService.js";
-import { deleteFile, isCloudinaryFile, uploadFile } from "./fileUploadService.js";
-import { saveEvent } from "./messageService.js";
-import { validateProfileImage } from "./userService.js";
+import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { populateMembers } from "#src/services/conversationService.js";
+import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
+import { saveEvent } from "#src/services/messageService.js";
+import { validateProfileImage } from "#src/services/userService.js";
 
 const MAX_GROUP_SIZE = 32;
 const MAX_NAME_LENGTH = 40;
