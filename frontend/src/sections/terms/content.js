@@ -47,8 +47,9 @@ export const SECTIONS = [
     blocks: [
       "What you send stays yours. By sending it, you let Whisprl store it and deliver it to the people in that conversation, and that is all it is used for.",
       "You are responsible for what you send, and for having the right to share it.",
-      "Messages, photos, videos, documents, reactions and statuses are end-to-end encrypted: they are locked in your browser before they leave it, and only the people they are for can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
+      "Messages, photos, videos, voice messages, documents, reactions and statuses are end-to-end encrypted: they are locked in your browser before they leave it, and only the people they are for can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
       "A status is deleted after 24 hours, along with its photo or video, and only the person who posted it can see who viewed it.",
+      "Whisprl uses your microphone only while you are recording a voice message.",
     ],
   },
   {
@@ -72,7 +73,7 @@ export const SECTIONS = [
           "Google, GitHub and LinkedIn, if you sign in with them. Whisprl receives your name, email address and profile picture from them.",
           "Google reCAPTCHA, to keep bots out of sign-up and log-in",
           "Google Analytics, to count visits and see which pages are used",
-          "Cloudinary, to store the photos, videos and documents you send, which it receives encrypted",
+          "Cloudinary, to store the photos, videos, voice messages and documents you send, which it receives encrypted",
           "Gmail, to send your verification codes and password reset emails",
           "Netlify and Render, which host the app",
         ],

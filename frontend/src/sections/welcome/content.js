@@ -38,7 +38,7 @@ export const FEATURES = [
   {
     Icon: LockSimple,
     title: "End-to-end encrypted",
-    body: "Messages, photos, videos and statuses are locked in your browser before they leave it, so only the people they are for can open them.",
+    body: "Messages, photos, videos, voice messages and statuses are locked in your browser before they leave it, so only the people they are for can open them.",
   },
   {
     Icon: UsersThree,
@@ -47,8 +47,8 @@ export const FEATURES = [
   },
   {
     Icon: ImageSquare,
-    title: "Photos, videos and documents",
-    body: "Send photos and videos together as one gallery, share documents, or send a photo or video that opens only once.",
+    title: "Photos, videos and voice messages",
+    body: "Send photos and videos together as one gallery, record a voice message, share documents, or send a photo or video that opens only once.",
   },
   {
     Icon: CircleDashed,
@@ -104,7 +104,7 @@ export const FAQS = [
   {
     question: "What is Whisprl?",
     answer:
-      "Whisprl is a free, real-time chat app that runs in your browser. Add your friends, message them one to one or in groups, share photos, videos and documents, post a status for 24 hours, and see when they are online or typing.",
+      "Whisprl is a free, real-time chat app that runs in your browser. Add your friends, message them one to one or in groups, share photos, videos, voice messages and documents, post a status for 24 hours, and see when they are online or typing.",
   },
   {
     question: "Is Whisprl free?",
@@ -113,7 +113,7 @@ export const FAQS = [
   {
     question: "Can anyone else read my messages?",
     answer:
-      "No. Your messages, photos, videos, documents, reactions and statuses are encrypted in your browser before they leave it, and only the people they are for hold the keys to open them. Whisprl's servers store them, but cannot read them.",
+      "No. Your messages, photos, videos, voice messages, documents, reactions and statuses are encrypted in your browser before they leave it, and only the people they are for hold the keys to open them. Whisprl's servers store them, but cannot read them.",
   },
   {
     question: "What is a MERN chat app?",
