@@ -4,10 +4,12 @@ import mongoose from "mongoose";
 
 import app from "#app.js";
 import { initializeSocket } from "#socket.js";
+import { sweepExpiredMessages } from "#src/services/disappearingService.js";
 import { giveEveryoneAUsername } from "#src/services/usernameService.js";
 
 // env variables
 const port = process.env.PORT || "5000";
+const SWEEP_EVERY_MS = 60 * 1000;
 
 // ---------Setting up Database---------
 // mongodb error handling
@@ -24,6 +26,7 @@ mongoose
     giveEveryoneAUsername()
       .then((given) => given && console.log(`[DB] Gave ${given} accounts a username`))
       .catch((error) => console.log(`[DB] Usernames not given: ${error.message}`));
+    setInterval(() => sweepExpiredMessages(app.get("io")).catch((error) => console.log(`[DB] Sweep failed: ${error.message}`)), SWEEP_EVERY_MS);
   })
   .catch((err) => {
     console.log(`[DB] ${err.message}`);

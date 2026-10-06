@@ -44,7 +44,7 @@ export const initializeSocket = (server) => {
       if ((await io.in(user_id).fetchSockets()).length) return;
 
       setOnlineStatus(user_id, "offline").catch(() => {});
-      emitFriendStatus(io, user, "offline");
+      emitFriendStatus(io, user, "offline").catch(() => {});
     });
     // ------------------------------------------------------
 
@@ -83,7 +83,7 @@ export const initializeSocket = (server) => {
     // gone while that write ran, and its disconnect handler has already marked them offline
     if (!socket.connected) return;
 
-    emitFriendStatus(io, user, "online");
+    emitFriendStatus(io, user, "online").catch(() => {});
     joinedConversations.then((conversation_ids) => conversation_ids && socketMarkDelivered(socket, conversation_ids));
   });
 

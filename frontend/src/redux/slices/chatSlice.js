@@ -75,9 +75,16 @@ const cacheActive = (state) => {
   if (cached.length > CACHED_CHATS) delete state.cache[cached[0]];
 };
 
+const PREFERENCE_KEYS = ["mutedUntil", "isFavourite", "isArchived", "clearedAt"];
+
+// a chat's own settings live only in the list, so a copy from anywhere else picks them up from there
+const preferencesIn = (conversation) =>
+  Object.fromEntries(PREFERENCE_KEYS.filter((key) => conversation?.[key] !== undefined).map((key) => [key, conversation[key]]));
+
 const open = (state, conversation, canMessage) => {
   const cached = state.cache[conversation._id];
-  state.activeConversation = conversation;
+  const listed = state.conversations.find((candidate) => candidate._id === conversation._id);
+  state.activeConversation = { ...conversation, ...preferencesIn(listed) };
   state.activeConvoFriendship = canMessage;
   state.messages = cached?.messages ?? [];
   state.hasOlderMessages = cached?.hasOlderMessages ?? false;
@@ -136,6 +143,29 @@ const slice = createSlice({
     markRead: (state, action) => {
       conversationsWith(state, action.payload).forEach((conversation) => {
         conversation.unread = 0;
+      });
+    },
+
+    preferencesChanged: (state, action) => {
+      const { conversation_id, ...preferences } = action.payload;
+      conversationsWith(state, conversation_id).forEach((conversation) => Object.assign(conversation, preferences));
+    },
+
+    // a cleared chat drops everything this tab holds of it, so nothing from before shows again
+    chatCleared: (state, action) => {
+      const { conversation_id, ...preferences } = action.payload;
+      conversationsWith(state, conversation_id).forEach((conversation) =>
+        Object.assign(conversation, preferences, { latestMessage: null, unread: 0 })
+      );
+      delete state.cache[conversation_id];
+      delete state.history[conversation_id];
+      if (state.activeConversation?._id === conversation_id) Object.assign(state, { messages: [], hasOlderMessages: false, hasNewerMessages: false });
+    },
+
+    disappearingChanged: (state, action) => {
+      const { conversation_id, disappearAfter } = action.payload;
+      conversationsWith(state, conversation_id).forEach((conversation) => {
+        conversation.disappearAfter = disappearAfter;
       });
     },
 
@@ -209,7 +239,13 @@ const slice = createSlice({
       }
 
       const previous = state.conversations[index];
-      const updated = { ...group, latestMessage: previous?.latestMessage ?? null, pins: previous?.pins ?? [], unread: previous?.unread ?? 0 };
+      const updated = {
+        ...group,
+        ...preferencesIn(previous),
+        latestMessage: previous?.latestMessage ?? null,
+        pins: previous?.pins ?? [],
+        unread: previous?.unread ?? 0,
+      };
       if (index === -1) state.conversations.unshift(updated);
       else state.conversations[index] = updated;
       if (state.activeConversation?._id === group._id) state.activeConversation = { ...updated };
@@ -305,6 +341,9 @@ const slice = createSlice({
         const index = messages.findIndex((message) => message._id === _id);
         if (index !== -1) messages.splice(index, 1);
       });
+      conversationsWith(state, conversation).forEach((chat) => {
+        chat.pins = (chat.pins ?? []).filter((pin) => pin.message?._id !== _id);
+      });
     },
 
     replaceMessage: (state, action) => {
@@ -360,6 +399,8 @@ const slice = createSlice({
     builder
       .addCase(GetConversations.fulfilled, (state, action) => {
         state.conversations = action.payload.conversations;
+        const active = state.conversations.find((conversation) => conversation._id === state.activeConversation?._id);
+        if (active) state.activeConvoFriendship = active.canMessage;
       })
       .addCase(CreateOpenConversation.fulfilled, (state, action) => {
         open(state, action.payload.conversation, action.payload.isValidFriendShip);
@@ -407,6 +448,9 @@ export const {
   countUnread,
   markRead,
   pinsUpdated,
+  preferencesChanged,
+  chatCleared,
+  disappearingChanged,
   setDraft,
   setReplyingTo,
   setEditing,

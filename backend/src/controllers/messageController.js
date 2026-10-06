@@ -14,6 +14,7 @@ import {
   validateCipher,
 } from "#src/services/messageService.js";
 import { findMemberConversation, memberRooms } from "#src/services/conversationService.js";
+import { expiryFor } from "#src/services/disappearingService.js";
 
 // -------------------------- Attach Encrypted File --------------------------
 export const attachFile = async (req, res, next) => {
@@ -68,7 +69,7 @@ export const resealWaitingMessage = async (req, res, next) => {
 
 // -------------------------- Socket Send Message --------------------------
 export const socketSendMessage = async (socket, payload, acknowledge) => {
-  const { convo_id, clientId, cipher, attachment, batch, replyTo, forwardOf } = payload;
+  const { convo_id, clientId, cipher, attachment, batch, replyTo, forwardOf, viewOnce } = payload;
   try {
     const user_id = socket.user._id;
     const conversation = await findSendableConversation(convo_id, user_id);
@@ -79,8 +80,9 @@ export const socketSendMessage = async (socket, payload, acknowledge) => {
       ...(isClientId(clientId) && { clientId }),
       cipher,
       awaitingKey: !conversation.isGroup && !peerHasKey(conversation, user_id),
-      ...(attachment === true && { attachment: { status: "uploading" } }),
+      ...(attachment === true && { attachment: { status: "uploading" }, ...(viewOnce === true && { viewOnce: true }) }),
       ...batchOf(batch),
+      expiresAt: expiryFor(conversation),
       ...(await linksOf(conversation, user_id, { replyTo, forwardOf })),
     });
 

@@ -10,6 +10,7 @@ const initialState = {
   onChangeDirectionByLang: () => {},
   onChangeColor: () => {},
   onToggleSounds: () => {},
+  onSetNotifications: () => {},
   setColor: defaultPreset,
 };
 
@@ -53,6 +54,10 @@ const SettingsProvider = ({ children }) => {
     setSettings({ ...settings, sounds: !soundsOn });
   };
 
+  const onSetNotifications = (notifications) => {
+    setSettings({ ...settings, notifications });
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -63,6 +68,7 @@ const SettingsProvider = ({ children }) => {
         onChangeDirectionByLang,
         onChangeColor,
         onToggleSounds,
+        onSetNotifications,
         setColor: getColorPresets(settings.themeColorPresets),
       }}
     >

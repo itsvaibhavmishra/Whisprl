@@ -7,7 +7,15 @@ import {
   RemovedMessage,
   ReceiveMessageUpdate,
 } from "@/redux/slices/actions/chatActions";
-import { applyReceipt, setConnection, updateMemberKeys, updateTypingConvo } from "@/redux/slices/chatSlice";
+import {
+  applyReceipt,
+  chatCleared,
+  disappearingChanged,
+  preferencesChanged,
+  setConnection,
+  updateMemberKeys,
+  updateTypingConvo,
+} from "@/redux/slices/chatSlice";
 import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
 import { ensureAccessToken, refreshAccessToken } from "@/utils/axiosInterceptors";
@@ -29,6 +37,9 @@ const serverEvents = () => ({
   start_typing: updateTypingConvo,
   stop_typing: updateTypingConvo,
   pins_updated: ReceivePins,
+  chat_preferences: preferencesChanged,
+  chat_cleared: chatCleared,
+  disappearing_changed: disappearingChanged,
 });
 
 const listen = (dispatch, getState) => {

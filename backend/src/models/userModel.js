@@ -76,6 +76,7 @@ const userSchema = mongoose.Schema(
     passwordReset: { type: passwordResetSchema, select: false },
 
     friends: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+    blocked: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
 
     socialsConnected: {
       type: [String],

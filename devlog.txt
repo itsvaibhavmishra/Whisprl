@@ -42,6 +42,12 @@
     - See the photos, links and documents shared in a chat, and the groups you have in common with someone
     - Everyone has a username, shown on their profile, which you can change in settings once every 30 days
     - Search the chat page for chats and people by name, username or email, and add a friend straight from the results
+    - Mute a chat for 8 hours, a week or always, and get a notification for each new message while Whisprl is in the background
+    - Mark chats as favourites, and archive the ones you want out of the way
+    - Clear a chat for yourself, while everyone else keeps their messages
+    - Block someone so they can't message you or see when you're online, and report a person or a group
+    - Disappearing messages, deleted after 24 hours, 7 days or 90 days
+    - Send a photo that can be opened only once, deleted from storage as soon as it has been seen
 
   - Improvements:
     - The artwork loads several times faster, just as sharp

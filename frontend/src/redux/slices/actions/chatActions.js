@@ -24,6 +24,8 @@ import uuidv4 from "@/utils/uuidv4";
 import { decryptMessage, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
 import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
 import { encodePayload } from "@/utils/messagePayload";
+import { isMuted } from "@/utils/chats";
+import { notifyArrival } from "@/utils/notifications";
 import { playSound } from "@/utils/sounds";
 
 const ACK_TIMEOUT = 10000;
@@ -213,7 +215,7 @@ const sendOnce = (entry, cipher) =>
       cipher,
       replyTo: entry.replyTo?._id,
       forwardOf: entry.forwardOf,
-      ...(entry.file && !entry.forwardOf && { attachment: true, batch: entry.batch }),
+      ...(entry.file && !entry.forwardOf && { attachment: true, batch: entry.batch, viewOnce: entry.viewOnce }),
     })
     .catch(() => null);
 
@@ -291,14 +293,23 @@ export const ReceiveMessage = (message) => async (dispatch, getState) => {
   const conversation = conversationById(getState(), message.conversation);
   if (!conversation) return;
 
-  dispatch(messageArrived(await decryptMessage(message, conversation)));
+  const readable = await decryptMessage(message, conversation);
+  dispatch(messageArrived(readable));
   if (!isFromSomeoneElse(message, getState)) return;
   dispatch(AcknowledgeMessages(conversation._id));
   if (message.event) return;
 
   const isWatched = isWatching(getState, conversation._id);
   if (!isWatched) dispatch(countUnread(conversation._id));
+  if (isMuted(conversation)) return;
   playSound(isWatched ? "received" : "elsewhere");
+  notifyArrival(readable, conversation);
+};
+
+// ------------- Open A Chat From Outside The Page -------------
+export const OpenChatById = (conversationId) => (dispatch, getState) => {
+  const conversation = conversationById(getState(), conversationId);
+  if (conversation && getState().chat.activeConversation?._id !== conversationId) dispatch(OpenConversation(conversation));
 };
 
 // ------------- Pins Changed -------------

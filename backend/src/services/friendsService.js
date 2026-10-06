@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { FriendRequestModel, UserModel } from "#src/models/index.js";
+import { blockerBetween, presenceShownTo } from "#src/services/blockService.js";
 
 const FRIEND_FIELDS = "firstName lastName username avatar activityStatus onlineStatus email publicKeys.keyId";
 const REQUESTER_FIELDS = "firstName lastName avatar activityStatus email";
@@ -23,6 +24,7 @@ export const sendFriendRequest = async (sender, receiver_id) => {
   const receiver = await UserModel.findOne({ _id: receiver_id, verified: true });
   if (!receiver) throw createHttpError.NotFound("User does not exist");
   if (isFriendOf(sender, receiver._id)) throw createHttpError.BadRequest("You are already friends");
+  if (await blockerBetween(sender._id, receiver._id)) throw createHttpError.Forbidden("You can't send this person a request");
 
   const [alreadySent, alreadyReceived] = await Promise.all([
     FriendRequestModel.exists({ sender: sender._id, recipient: receiver._id }),
@@ -75,10 +77,12 @@ export const unfriend = async (user, friend_id) => {
   ]);
 };
 
-export const listFriends = (user) => UserModel.find({ _id: { $in: user.friends } }).select(FRIEND_FIELDS);
+export const listFriends = async (user) => presenceShownTo(user, await UserModel.find({ _id: { $in: user.friends } }).select(FRIEND_FIELDS).lean());
 
 export const listOnlineFriends = (user) =>
-  UserModel.find({ _id: { $in: user.friends }, onlineStatus: "online" }).select("firstName lastName avatar onlineStatus");
+  UserModel.find({ _id: { $in: user.friends, $nin: user.blocked }, blocked: { $ne: user._id }, onlineStatus: "online" }).select(
+    "firstName lastName avatar onlineStatus"
+  );
 
 export const listReceivedRequests = (user_id) =>
   FriendRequestModel.find({ recipient: user_id }).populate("sender", REQUESTER_FIELDS);

@@ -1,6 +1,6 @@
 import { announcePins } from "#src/controllers/conversationController.js";
 import { memberRooms } from "#src/services/conversationService.js";
-import { deleteForEveryone, editMessage, hideForMe, setReaction } from "#src/services/messageActionService.js";
+import { deleteForEveryone, editMessage, hideForMe, markOpened, setReaction } from "#src/services/messageActionService.js";
 
 const handle = (action) => async (req, res, next) => {
   try {
@@ -42,3 +42,6 @@ export const react = handle(async (req, io) =>
 export const unreact = handle(async (req, io) =>
   announceUpdate(io, await setReaction(req.params.message_id, req.user._id, null))
 );
+
+// -------------------------- View Once --------------------------
+export const open = handle(async (req, io) => announceUpdate(io, await markOpened(req.params.message_id, req.user._id)));

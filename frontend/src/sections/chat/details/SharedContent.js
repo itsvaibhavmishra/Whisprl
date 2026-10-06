@@ -56,7 +56,7 @@ const SharedContent = ({ conversation }) => {
     dispatch(LoadHistory(conversation._id));
   }, [dispatch, conversation._id]);
 
-  const shared = withArrivals(gathered, messages).filter((message) => !message.deletedAt && !message.event).reverse();
+  const shared = withArrivals(gathered, messages).filter((message) => !message.deletedAt && !message.event && !message.viewOnce).reverse();
   const filesOfKind = (kind) => shared.flatMap((message) => filesOf(message).filter((file) => file.fileType === kind));
   const media = filesOfKind("image");
   const documents = filesOfKind("document");

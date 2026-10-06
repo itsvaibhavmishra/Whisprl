@@ -3,6 +3,7 @@ import { X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { setDetailsOpen } from "@/redux/slices/chatSlice";
+import ChatControls from "@/sections/chat/details/ChatControls";
 import GroupDetails from "@/sections/chat/details/GroupDetails";
 import PersonDetails from "@/sections/chat/details/PersonDetails";
 import SharedContent from "@/sections/chat/details/SharedContent";
@@ -37,6 +38,7 @@ const DetailsPanel = () => {
         ) : (
           <PersonDetails conversation={conversation} sharedContent={sharedContent} />
         )}
+        <ChatControls conversation={conversation} />
       </Box>
     </Stack>
   );

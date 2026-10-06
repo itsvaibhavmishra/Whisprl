@@ -2,6 +2,8 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { blockedEitherWay, presenceShownTo, withPresenceHidden } from "#src/services/blockService.js";
+import { preferencesOf } from "#src/services/chatPreferenceService.js";
 import { PUBLIC_PROFILE_FIELDS } from "#src/services/userService.js";
 
 export const MEMBER_FIELDS = `${PUBLIC_PROFILE_FIELDS} onlineStatus`;
@@ -59,6 +61,11 @@ const findDirectConversation = async (members) => {
   return conversation && withLatestSender(conversation);
 };
 
+const presentedTo = async (viewer, conversation) => {
+  const json = conversation.toJSON();
+  return { ...json, users: await presenceShownTo(viewer, json.users) };
+};
+
 export const openDirectConversation = async (sender, receiver_id) => {
   if (!mongoose.isValidObjectId(receiver_id)) throw createHttpError.BadRequest("Something went wrong");
 
@@ -69,7 +76,7 @@ export const openDirectConversation = async (sender, receiver_id) => {
   const members = membersOf(sender._id, receiver._id);
 
   const existing = await findDirectConversation(members);
-  if (existing) return { conversation: existing, isValidFriendShip, isNew: false };
+  if (existing) return { conversation: await presentedTo(sender, existing), isValidFriendShip, isNew: false };
 
   if (!isValidFriendShip) throw createHttpError.Forbidden("You are not friends with this user");
 
@@ -79,28 +86,42 @@ export const openDirectConversation = async (sender, receiver_id) => {
     users: members,
   });
 
-  return { conversation: await created.populate("users", MEMBER_FIELDS), isValidFriendShip, isNew: true };
+  return { conversation: await presentedTo(sender, await created.populate("users", MEMBER_FIELDS)), isValidFriendShip, isNew: true };
 };
 
 // a group counts from the reader's last seen message, or from when they joined if they have read nothing yet
-const unreadIn = (conversation, user_id) => {
+const unreadIn = (conversation, user_id, clearedAt) => {
   const reader = String(user_id);
   const readFrom = () => conversation.lastSeen?.get(reader) ?? firstIdAt(conversation.joinedAt.get(reader));
   const since = conversation.isGroup ? { _id: { $gt: readFrom() } } : { seenAt: null, awaitingKey: { $ne: true } };
+  const afterClearing = clearedAt && { createdAt: { $gt: clearedAt } };
 
   return MessageModel.countDocuments(
-    { conversation: conversation._id, sender: { $ne: user_id }, event: { $exists: false }, deletedAt: null, hiddenFor: { $ne: user_id }, ...since },
+    {
+      conversation: conversation._id,
+      sender: { $ne: user_id },
+      event: { $exists: false },
+      deletedAt: null,
+      hiddenFor: { $ne: user_id },
+      ...since,
+      ...afterClearing,
+    },
     { limit: UNREAD_CAP }
   );
 };
 
-// a direct chat can carry on only while both people still have each other as friends
-const reachablePeersOf = async (user, conversations) => {
-  const peerIds = conversations
-    .filter((conversation) => !conversation.isGroup)
-    .map((conversation) => conversation.users.find((member) => !member._id.equals(user._id))?._id ?? user._id);
-  const reachable = await UserModel.find({ _id: { $in: peerIds }, friends: user._id }).distinct("_id");
-  return new Set(reachable.filter((id) => user.friends.some((friendId) => friendId.equals(id))).map(String));
+const peerIdOf = (conversation, user) => conversation.users.find((member) => !member._id.equals(user._id))?._id ?? user._id;
+
+// a direct chat carries on only while both are still friends and neither has blocked the other
+const peerAccessOf = async (user, conversations) => {
+  const peerIds = conversations.filter((conversation) => !conversation.isGroup).map((conversation) => peerIdOf(conversation, user));
+  const [friendsBack, blocked] = await Promise.all([
+    UserModel.find({ _id: { $in: peerIds }, friends: user._id }).distinct("_id"),
+    blockedEitherWay(user, peerIds),
+  ]);
+  const isFriend = (id) => user.friends.some((friendId) => friendId.equals(id));
+  const reachable = new Set(friendsBack.filter((id) => isFriend(id) && !blocked.has(String(id))).map(String));
+  return { reachable, blocked };
 };
 
 export const getUserConversations = async (user) => {
@@ -111,17 +132,24 @@ export const getUserConversations = async (user) => {
     .sort({ updatedAt: -1 });
 
   await withLatestSender(conversations);
-  const [reachable, unreadCounts] = await Promise.all([
-    reachablePeersOf(user, conversations),
-    Promise.all(conversations.map((conversation) => unreadIn(conversation, user._id))),
+  const preferences = await preferencesOf(user._id, conversations.map((conversation) => conversation._id));
+  const preferenceOf = (conversation) => preferences.get(String(conversation._id)) ?? {};
+  const [{ reachable, blocked }, unreadCounts] = await Promise.all([
+    peerAccessOf(user, conversations),
+    Promise.all(conversations.map((conversation) => unreadIn(conversation, user._id, preferenceOf(conversation).clearedAt))),
   ]);
 
   return conversations.map((conversation, index) => {
-    const peer = conversation.users.find((member) => !member._id.equals(user._id)) ?? user;
+    const preference = preferenceOf(conversation);
+    const json = conversation.toJSON();
+    const isClearedSinceLatest = preference.clearedAt && json.latestMessage && new Date(json.latestMessage.createdAt) <= preference.clearedAt;
     return {
-      ...conversation.toJSON(),
+      ...json,
+      ...preference,
+      users: withPresenceHidden(json.users, blocked),
+      latestMessage: isClearedSinceLatest ? null : json.latestMessage,
       unread: unreadCounts[index],
-      canMessage: conversation.isGroup || reachable.has(String(peer._id)),
+      canMessage: conversation.isGroup || reachable.has(String(peerIdOf(conversation, user))),
     };
   });
 };

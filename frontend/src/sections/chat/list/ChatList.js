@@ -12,7 +12,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { MagnifyingGlass, UsersThree, X } from "phosphor-react";
+import { Archive, ArrowLeft, MagnifyingGlass, UsersThree, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -30,6 +30,7 @@ const SEARCH_PAUSE_MS = 400;
 const FILTERS = {
   all: { label: "All", keeps: () => true },
   unread: { label: "Unread", keeps: (conversation) => (conversation.unread ?? 0) > 0 },
+  favourites: { label: "Favourites", keeps: (conversation) => Boolean(conversation.isFavourite) },
   groups: { label: "Groups", keeps: (conversation) => conversation.isGroup },
 };
 
@@ -109,6 +110,7 @@ const ChatList = ({ onNewGroup }) => {
   const isLoading = useIsLoading(GetConversations);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [isShowingArchived, setIsShowingArchived] = useState(false);
 
   const needle = query.trim().toLowerCase();
 
@@ -125,31 +127,52 @@ const ChatList = ({ onNewGroup }) => {
     return () => clearTimeout(timer);
   }, [dispatch, needle]);
 
+  // a cleared chat keeps its place, empty, as it would anywhere else
+  const isListed = (conversation) =>
+    conversation.latestMessage || conversation.clearedAt || conversation._id === activeConversation?._id;
+  // a search looks through archived chats too
+  const isInView = (conversation) => Boolean(needle) || Boolean(conversation.isArchived) === isShowingArchived;
+  const activeFilter = isShowingArchived ? "all" : filter;
+
   const shown = conversations
-    .filter((conversation) => conversation.latestMessage || conversation._id === activeConversation?._id)
-    .filter(FILTERS[filter].keeps)
+    .filter(isListed)
+    .filter(isInView)
+    .filter(FILTERS[activeFilter].keeps)
     .filter((conversation) => matchesSearch(conversation, meId, needle));
+  const archivedCount = conversations.filter((conversation) => conversation.isArchived && isListed(conversation)).length;
 
   // a friend whose chat is already listed above shows only as that chat
   const listedPeers = new Set(shown.filter((conversation) => !conversation.isGroup).map((conversation) => peerOf(conversation, meId)._id));
   const people = needle ? (friendMatches ?? []).filter((person) => !listedPeers.has(person._id)) : [];
   const strangers = needle ? (strangerMatches ?? []) : [];
-  const unreadChats = conversations.filter(FILTERS.unread.keeps).length;
+  const unreadChats = conversations.filter((conversation) => !conversation.isArchived).filter(FILTERS.unread.keeps).length;
 
   const emptyNote = () => {
     if (needle) return `No chats or people match "${query.trim()}".`;
+    if (isShowingArchived) return "No archived chats.";
+    if (archivedCount && filter === "all") return null;
+    if (filter === "favourites") return "No favourites yet. Add one from a chat's details.";
     if (filter === "unread") return "You're all caught up.";
     if (filter === "groups") return "No groups yet. Start one with New group.";
     return "No chats yet. Find a friend in Contacts, or start a group.";
   };
 
+  const note = emptyNote();
+
   return (
     <Stack component="nav" aria-label="Chats" sx={{ height: "100%", bgcolor: "background.default" }}>
       <Stack spacing={2} sx={{ px: 2.5, pt: 3, pb: 1.5 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography component="h1" sx={{ m: 0, fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em" }}>
-            Chats
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            {isShowingArchived && (
+              <IconButton aria-label="Back to chats" onClick={() => setIsShowingArchived(false)} sx={{ ml: -1 }}>
+                <ArrowLeft size={22} />
+              </IconButton>
+            )}
+            <Typography component="h1" sx={{ m: 0, fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em" }}>
+              {isShowingArchived ? "Archived" : "Chats"}
+            </Typography>
+          </Stack>
           <Button size="small" startIcon={<UsersThree size={18} />} onClick={onNewGroup}>
             New group
           </Button>
@@ -178,19 +201,21 @@ const ChatList = ({ onNewGroup }) => {
           }}
         />
 
-        <Stack direction="row" spacing={1} role="group" aria-label="Show">
-          {Object.entries(FILTERS).map(([value, { label }]) => (
-            <Chip
-              key={value}
-              label={value === "unread" && unreadChats ? `${label} ${unreadChats}` : label}
-              onClick={() => setFilter(value)}
-              color={filter === value ? "primary" : "default"}
-              variant={filter === value ? "filled" : "outlined"}
-              aria-pressed={filter === value}
-              size="small"
-            />
-          ))}
-        </Stack>
+        {!isShowingArchived && (
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" role="group" aria-label="Show">
+            {Object.entries(FILTERS).map(([value, { label }]) => (
+              <Chip
+                key={value}
+                label={value === "unread" && unreadChats ? `${label} ${unreadChats}` : label}
+                onClick={() => setFilter(value)}
+                color={filter === value ? "primary" : "default"}
+                variant={filter === value ? "filled" : "outlined"}
+                aria-pressed={filter === value}
+                size="small"
+              />
+            ))}
+          </Stack>
+        )}
       </Stack>
 
       <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }} className="scrollbar">
@@ -208,6 +233,22 @@ const ChatList = ({ onNewGroup }) => {
           </Stack>
         ) : (
           <>
+            {!isShowingArchived && !needle && archivedCount > 0 && (
+              <ButtonBase
+                onClick={() => setIsShowingArchived(true)}
+                sx={{ width: "100%", gap: 1.5, px: 1.5, py: 1.25, borderRadius: 2, justifyContent: "flex-start", "&:hover": { bgcolor: "action.hover" } }}
+              >
+                <Box sx={{ width: 48, display: "grid", placeItems: "center", color: "text.secondary" }}>
+                  <Archive size={22} />
+                </Box>
+                <Typography variant="subtitle2" sx={{ flex: 1, textAlign: "left" }}>
+                  Archived
+                </Typography>
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
+                  {archivedCount}
+                </Typography>
+              </ButtonBase>
+            )}
             {shown.length > 0 && (
               <Box component="ul" sx={{ m: 0, p: 0 }}>
                 {shown.map((conversation) => (
@@ -235,9 +276,9 @@ const ChatList = ({ onNewGroup }) => {
                 </Box>
               </>
             )}
-            {!shown.length && !people.length && !strangers.length && (
+            {!shown.length && !people.length && !strangers.length && note && (
               <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", px: 3, py: 6 }}>
-                {emptyNote()}
+                {note}
               </Typography>
             )}
           </>

@@ -10,6 +10,7 @@ import {
   pin,
   unpin,
 } from "#src/controllers/conversationController.js";
+import { clearConversation, updateChatPreferences, updateDisappearing } from "#src/controllers/chatSettingsController.js";
 
 const conversationRouter = express.Router();
 
@@ -25,5 +26,12 @@ conversationRouter
 conversationRouter.route("/common-groups/:user_id").get(protect, readLimit(), getCommonGroups);
 
 conversationRouter.route("/:convo_id/pins/:message_id").put(protect, writeLimit(), pin).delete(protect, writeLimit(), unpin);
+
+// Chat Settings Routes
+conversationRouter.route("/:convo_id/preferences").patch(protect, writeLimit(), updateChatPreferences);
+
+conversationRouter.route("/:convo_id/clear").post(protect, writeLimit(), clearConversation);
+
+conversationRouter.route("/:convo_id/disappearing").put(protect, writeLimit(), updateDisappearing);
 
 export default conversationRouter;

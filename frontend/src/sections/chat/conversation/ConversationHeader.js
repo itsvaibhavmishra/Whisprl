@@ -1,5 +1,5 @@
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { ArrowLeft, Info, MagnifyingGlass, X } from "phosphor-react";
+import { ArrowLeft, Info, MagnifyingGlass, Timer, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import StyledBadge from "@/components/StyledBadge";
@@ -7,7 +7,7 @@ import { CloseConversation } from "@/redux/slices/actions/chatActions";
 import { setDetailsOpen } from "@/redux/slices/chatSlice";
 import { identityOf, isOnline as isPersonOnline } from "@/utils/chats";
 import getAvatar from "@/utils/createAvatar";
-import { membersLabel, typingLabel, typingNamesIn } from "@/utils/groups";
+import { durationOf, membersLabel, typingLabel, typingNamesIn } from "@/utils/groups";
 
 // while this tab is disconnected the friend's status is stale, so the header says what is happening instead
 const CONNECTION_NOTICE = {
@@ -69,9 +69,14 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
           avatarImage
         )}
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, lineHeight: 1.3 }}>
-            {name}
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={0.75}>
+            <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+              {name}
+            </Typography>
+            {conversation.disappearAfter && (
+              <Timer size={16} aria-label={`Messages disappear after ${durationOf(conversation.disappearAfter)}`} />
+            )}
+          </Stack>
           <Typography
             variant="caption"
             role="status"

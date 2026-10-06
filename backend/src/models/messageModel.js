@@ -36,11 +36,12 @@ const eventSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner", "pinned"],
+      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner", "pinned", "disappearing"],
       required: true,
     },
     users: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     name: { type: String },
+    seconds: { type: Number },
   },
   { _id: false }
 );
@@ -59,7 +60,7 @@ const attachmentSchema = mongoose.Schema(
   {
     url: { type: String },
     size: { type: Number },
-    status: { type: String, enum: ["uploading", "ready"], required: true },
+    status: { type: String, enum: ["uploading", "ready", "opened"], required: true },
   },
   { _id: false }
 );
@@ -104,6 +105,12 @@ const messageSchema = mongoose.Schema(
     hiddenFor: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
 
     reactions: [reactionSchema],
+
+    expiresAt: { type: Date },
+
+    // a view-once photo's file is deleted once everyone it was sent to has opened it
+    viewOnce: { type: Boolean },
+    viewedBy: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,
@@ -113,6 +120,7 @@ const messageSchema = mongoose.Schema(
 messageSchema.index({ conversation: 1, _id: 1 });
 messageSchema.index({ sender: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: "string" } } });
 messageSchema.index({ sender: 1 }, { partialFilterExpression: { awaitingKey: true } });
+messageSchema.index({ expiresAt: 1 }, { partialFilterExpression: { expiresAt: { $exists: true } } });
 
 // creating model for schema
 const MessageModel = mongoose.model("Message", messageSchema);

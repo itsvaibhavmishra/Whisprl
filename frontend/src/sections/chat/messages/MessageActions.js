@@ -43,7 +43,7 @@ const MessageActions = ({ message, conversation, isMine, menuAnchor, onMenuClose
   };
 
   const isPinned = conversation.pins?.some((pin) => pin.message?._id === message._id);
-  const canForward = !message.undecryptable && Boolean(message.message || message.file || message.contact);
+  const canForward = !message.undecryptable && !message.viewOnce && Boolean(message.message || message.file || message.contact);
 
   const copy = () =>
     navigator.clipboard

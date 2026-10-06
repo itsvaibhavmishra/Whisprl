@@ -13,7 +13,8 @@ const PinnedBar = () => {
   const conversation = useSelector((state) => state.chat.activeConversation);
   const [turn, setTurn] = useState(0);
 
-  const pins = (conversation.pins ?? []).filter((pin) => pin.message && !pin.message.deletedAt).reverse();
+  const isBeforeClearing = (message) => conversation.clearedAt && new Date(message.createdAt) <= new Date(conversation.clearedAt);
+  const pins = (conversation.pins ?? []).filter((pin) => pin.message && !pin.message.deletedAt && !isBeforeClearing(pin.message)).reverse();
   if (!pins.length) return null;
 
   const position = turn % pins.length;
