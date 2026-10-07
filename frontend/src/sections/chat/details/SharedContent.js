@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   ButtonBase,
@@ -22,9 +22,10 @@ import useIsLoading from "@/hooks/useIsLoading";
 import { HISTORY_LIMIT, LoadHistory } from "@/redux/slices/actions/messageActions";
 import { focusMessage } from "@/redux/slices/chatSlice";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
-import MediaLightbox from "@/sections/chat/messages/MediaLightbox";
 import MediaTile from "@/sections/chat/messages/MediaTile";
 import VoiceMessage from "@/sections/chat/messages/VoiceMessage";
+import MediaViewer from "@/sections/chat/viewer/MediaViewer";
+import { mediaItemsOf, mediaKeyOf } from "@/sections/chat/viewer/mediaItems";
 import useMessageTime from "@/hooks/useMessageTime";
 import { withArrivals } from "@/utils/chats";
 import { linksIn } from "@/utils/links";
@@ -73,16 +74,15 @@ const SharedContent = ({ conversation }) => {
   const [tab, setTab] = useState("media");
   const [shownMedia, setShownMedia] = useState(MEDIA_PAGE);
   const [viewing, setViewing] = useState(null);
+  const tiles = useRef([]);
 
   useEffect(() => {
     dispatch(LoadHistory(conversation._id));
   }, [dispatch, conversation._id]);
 
   const shared = withArrivals(gathered, messages).filter((message) => !message.deletedAt && !message.event && !message.viewOnce).reverse();
-  const filesOfKind = (...kinds) =>
-    shared.flatMap((message) => filesOf(message).filter((file) => kinds.includes(file.fileType)).map((file) => ({ ...file, messageId: message._id })));
-  const media = filesOfKind("image", "video");
-  const documents = filesOfKind("document");
+  const media = mediaItemsOf(shared);
+  const documents = shared.flatMap(filesOf).filter((file) => file.fileType === "document");
   const voices = shared.flatMap((message) =>
     filesOf(message)
       .filter((file) => file.fileType === "voice")
@@ -94,14 +94,17 @@ const SharedContent = ({ conversation }) => {
   const mediaGrid = () => (
     <>
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 0.5 }}>
-        {media.slice(0, shownMedia).map((file, index) => (
+        {media.slice(0, shownMedia).map((item, index) => (
           <ButtonBase
-            key={fileKeyOf(file, index)}
+            key={mediaKeyOf(item)}
+            ref={(node) => {
+              tiles.current[index] = node;
+            }}
             onClick={() => setViewing(index)}
-            aria-label={file.fileType === "video" ? `Open video, ${formatDuration(file.duration)}` : `Open ${file.fileName}`}
+            aria-label={item.file.fileType === "video" ? `Open video, ${formatDuration(item.file.duration)}` : `Open ${item.file.fileName}`}
             sx={{ aspectRatio: "1", borderRadius: 2.5, overflow: "hidden" }}
           >
-            <MediaTile file={file} />
+            <MediaTile file={item.file} />
           </ButtonBase>
         ))}
       </Box>
@@ -113,7 +116,9 @@ const SharedContent = ({ conversation }) => {
           Show more
         </ButtonBase>
       )}
-      <MediaLightbox open={viewing !== null} onClose={() => setViewing(null)} items={media} startIndex={viewing ?? 0} />
+      {viewing !== null && (
+        <MediaViewer items={media} startIndex={viewing} conversation={conversation} tileOf={(index) => tiles.current[index]} onClose={() => setViewing(null)} />
+      )}
     </>
   );
 

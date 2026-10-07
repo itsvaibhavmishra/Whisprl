@@ -1,6 +1,7 @@
 import createHttpError from "http-errors";
 
 import { ConversationModel, MessageModel } from "#src/models/index.js";
+import { dropEmptyAlbums } from "#src/services/albumService.js";
 import { findMemberConversation, memberRooms, populateMembers } from "#src/services/conversationService.js";
 import { assertManager } from "#src/services/groupService.js";
 import { deleteFilesNoLongerUsed, findSendableConversation, saveEvent } from "#src/services/messageService.js";
@@ -43,7 +44,7 @@ const pointAtNewestRemaining = async (conversationIds, expiredIds) => {
 // messages past their time go with their files and pins, and every member's open chat drops them
 export const sweepExpiredMessages = async (io) => {
   const expired = await MessageModel.find({ expiresAt: { $lte: new Date() } })
-    .select("conversation attachment files")
+    .select("conversation attachment files batchId")
     .limit(SWEEP_BATCH)
     .lean();
   if (!expired.length) return 0;
@@ -55,6 +56,7 @@ export const sweepExpiredMessages = async (io) => {
     ConversationModel.updateMany({ _id: { $in: conversationIds } }, { $pull: { pins: { message: { $in: ids } } } }),
   ]);
   await pointAtNewestRemaining(conversationIds, ids);
+  await dropEmptyAlbums(expired);
   await deleteFilesNoLongerUsed(expired.flatMap((message) => [message.attachment?.url, ...(message.files ?? []).map((file) => file.url)]).filter(Boolean));
 
   const conversations = await ConversationModel.find({ _id: { $in: conversationIds } }).select("users");

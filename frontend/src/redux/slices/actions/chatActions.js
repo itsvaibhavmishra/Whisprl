@@ -3,6 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { ClearAttachments, PrepareQueued, UploadAttachment } from "@/redux/slices/actions/attachmentActions";
 import {
+  albumReactionsShown,
   closeActiveConversation,
   countUnread,
   dropQueuedMessage,
@@ -21,8 +22,10 @@ import { selectIsLoading } from "@/redux/slices/requestSlice";
 import axios from "@/utils/axios";
 import { socket } from "@/utils/socket";
 import uuidv4 from "@/utils/uuidv4";
-import { decryptMessage, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
+import { decryptAlbumReactions, decryptMessage, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
 import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
+import { withHeldReaction } from "@/utils/heldReactions";
+import { batchKeyOf } from "@/utils/messageFiles";
 import { encodePayload } from "@/utils/messagePayload";
 import { isMuted } from "@/utils/chats";
 import { notifyArrival } from "@/utils/notifications";
@@ -68,10 +71,21 @@ export const CreateOpenConversation = createApiThunk(
   }
 );
 
-export const readablePage = async (data, conversation) => ({
-  messages: await Promise.all(data.messages.map((message) => decryptMessage(message, conversation))),
-  hasMore: data.hasMore,
-});
+// every group on the page is listed, so one whose last reaction went while it was out of view shows none
+const readableAlbumReactions = async ({ messages, albums = [] }, conversation) => {
+  const opened = Object.fromEntries(await Promise.all(albums.map(async (album) => [batchKeyOf(album), await decryptAlbumReactions(album, conversation)])));
+  const batchKeys = messages.map(batchKeyOf).filter(Boolean);
+  return Object.fromEntries(batchKeys.map((batchKey) => [batchKey, opened[batchKey] ?? []]));
+};
+
+export const readablePage = (data, conversation) => async (dispatch) => {
+  const [messages, albumReactions] = await Promise.all([
+    Promise.all(data.messages.map((message) => decryptMessage(message, conversation))),
+    readableAlbumReactions(data, conversation),
+  ]);
+  dispatch(albumReactionsShown(albumReactions));
+  return { messages, hasMore: data.hasMore };
+};
 
 export const fetchPage = async (conversationId, params) =>
   (await axios.get(`/message/get-messages/${conversationId}`, { params })).data;
@@ -85,13 +99,14 @@ const isUnreadBy = (userId, conversation) => (message) => {
 
 // opening a chat reaches back far enough to show where the unread messages start
 const fetchOpeningPages = async (conversationId, isUnread) => {
-  let { messages, hasMore } = await fetchPage(conversationId);
+  let { messages, albums, hasMore } = await fetchPage(conversationId);
   while (hasMore && messages.length < UNREAD_LOOKBACK && isUnread(messages[0])) {
     const older = await fetchPage(conversationId, { before: messages[0]._id });
     messages = [...older.messages, ...messages];
+    albums = [...older.albums, ...albums];
     hasMore = older.hasMore;
   }
-  return { messages, hasMore };
+  return { messages, albums, hasMore };
 };
 
 const unreadMarkerOf = (messages, isUnread) => {
@@ -105,7 +120,7 @@ export const GetMessages = createApiThunk("message/get-messages", async (convoId
   const isUnread = isUnreadBy(getState().user.user._id, conversationById(getState(), convoId));
 
   const data = isOpening ? await fetchOpeningPages(convoId, isUnread) : await fetchPage(convoId);
-  const page = await readablePage(data, conversationById(getState(), convoId));
+  const page = await dispatch(readablePage(data, conversationById(getState(), convoId)));
   dispatch(AcknowledgeMessages(convoId));
 
   return { ...page, unread: isOpening ? unreadMarkerOf(data.messages, isUnread) : null };
@@ -114,10 +129,10 @@ export const GetMessages = createApiThunk("message/get-messages", async (convoId
 // ------------- Load Older Messages -------------
 export const LoadOlderMessages = createApiThunk(
   "message/load-older",
-  async (_, { getState }) => {
+  async (_, { dispatch, getState }) => {
     const { activeConversation, messages } = getState().chat;
     const data = await fetchPage(activeConversation._id, { before: messages[0]?._id });
-    return { conversationId: activeConversation._id, ...(await readablePage(data, activeConversation)) };
+    return { conversationId: activeConversation._id, ...(await dispatch(readablePage(data, activeConversation))) };
   },
   {
     condition: (_, { getState }) => {
@@ -130,10 +145,10 @@ export const LoadOlderMessages = createApiThunk(
 // ------------- Load Newer Messages -------------
 export const LoadNewerMessages = createApiThunk(
   "message/load-newer",
-  async (_, { getState }) => {
+  async (_, { dispatch, getState }) => {
     const { activeConversation, messages } = getState().chat;
     const data = await fetchPage(activeConversation._id, { after: messages.at(-1)?._id });
-    return { conversationId: activeConversation._id, hasNewer: data.hasNewer, ...(await readablePage(data, activeConversation)) };
+    return { conversationId: activeConversation._id, hasNewer: data.hasNewer, ...(await dispatch(readablePage(data, activeConversation))) };
   },
   {
     condition: (_, { getState }) => {
@@ -172,14 +187,14 @@ export const CloseConversation = () => (dispatch) => {
 };
 
 // ------------- Send Text Message -------------
-// shown at once from the outbox; the server's copy replaces it once it is saved
 export const quoteOf = (message) => {
   if (!message) return null;
-  const { _id, sender, message: text, file, contact, deletedAt } = message;
-  return { _id, sender, message: text, file, contact, deletedAt };
+  const { _id, sender, message: text, file, files, attachment, clientId, contact, viewOnce, viewedBy, deletedAt, albumKey } = message;
+  return { _id, sender, message: text, file, files, attachment, clientId, contact, viewOnce, viewedBy, deletedAt, isAlbum: Boolean(albumKey) };
 };
 
-export const SendTextMessage = ({ text, mentions, contact, forwardOf, file, conversationId }) => (dispatch, getState) => {
+// shown at once from the outbox; the server's copy replaces it once it is saved
+export const SendTextMessage = ({ text, mentions, contact, forwardOf, file, batch, conversationId }) => (dispatch, getState) => {
   const { chat, user } = getState();
   const targetId = conversationId ?? chat.activeConversation._id;
   const isHere = targetId === chat.activeConversation?._id;
@@ -197,6 +212,7 @@ export const SendTextMessage = ({ text, mentions, contact, forwardOf, file, conv
       contact,
       forwardOf,
       file,
+      batch,
       replyTo: isHere && !forwardOf ? quoteOf(chat.replyingTo) : null,
     })
   );
@@ -215,8 +231,10 @@ const sendOnce = (entry, cipher) =>
       clientId: entry.clientId,
       cipher,
       replyTo: entry.replyTo?._id,
+      replyToAlbum: entry.replyTo?.isAlbum,
       forwardOf: entry.forwardOf,
-      ...(entry.file && !entry.forwardOf && { attachment: true, batch: entry.batch, viewOnce: entry.viewOnce }),
+      batch: entry.batch,
+      ...(entry.file && !entry.forwardOf && { attachment: true, viewOnce: entry.viewOnce }),
     })
     .catch(() => null);
 
@@ -328,8 +346,19 @@ export const ReceiveMessageUpdate = (message) => async (dispatch, getState) => {
   const conversation = conversationById(getState(), message.conversation);
   if (!conversation) return;
 
-  dispatch(replaceMessage(await decryptMessage(message, conversation)));
+  const readable = await decryptMessage(message, conversation);
+  dispatch(replaceMessage({ ...readable, reactions: withHeldReaction(readable._id, readable.reactions, getState().user.user._id) }));
   if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(conversation._id));
+};
+
+// ------------- Receive Album Reactions -------------
+export const ReceiveAlbumUpdate = (album) => async (dispatch, getState) => {
+  const conversation = conversationById(getState(), album.conversation);
+  if (!conversation) return;
+
+  const batchKey = batchKeyOf(album);
+  const reactions = await decryptAlbumReactions(album, conversation);
+  dispatch(albumReactionsShown({ [batchKey]: withHeldReaction(batchKey, reactions, getState().user.user._id) }));
 };
 
 // ------------- Deliver Waiting Messages -------------

@@ -4,11 +4,12 @@ import { Play } from "phosphor-react";
 import MessageImage from "@/sections/chat/messages/MessageImage";
 import { VideoPoster } from "@/sections/chat/messages/VideoMessage";
 
-const MediaTile = ({ file, fit = "cover" }) =>
+// a small tile leaves out a video's length, which would cover most of it
+const MediaTile = ({ file, fit = "cover", isSmall = false }) =>
   file.fileType === "video" ? (
     <Box sx={{ position: "relative", width: "100%", height: "100%", bgcolor: "#000" }}>
-      <VideoPoster file={file} fit={fit}>
-        <Play size={28} weight="fill" style={{ pointerEvents: "none" }} />
+      <VideoPoster file={file} fit={fit} hasDuration={!isSmall}>
+        <Play size={isSmall ? 16 : 28} weight="fill" style={{ pointerEvents: "none" }} />
       </VideoPoster>
     </Box>
   ) : (

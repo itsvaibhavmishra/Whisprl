@@ -44,7 +44,8 @@ const conversationKeyFor = (conversation, peerKey) => {
 // a reaction is bound to its message, so it can be neither replayed as a message nor moved to another one
 const contextOf = (conversationId, senderId, bind) => [conversationId, senderId, bind].filter(Boolean).join(":");
 
-const reactionBinding = (messageId) => `reaction:${messageId}`;
+// a reaction to a whole group of photos is bound to the group, so it opens only as the group's
+const reactionBinding = (message, isForAlbum) => (isForAlbum ? `album-reaction:${message.batchId}` : `reaction:${message._id}`);
 
 const peerKeyOf = (conversation, userId) => currentKeyOf(peerOf(conversation, userId));
 
@@ -100,8 +101,8 @@ export const openMessage = async (message, conversation, bind) => {
   return decryptText(key, message.cipher, contextOf(conversation._id, senderId, bind));
 };
 
-export const encryptReaction = (emoji, messageId, conversation, userId) =>
-  encryptMessage(emoji, conversation, userId, reactionBinding(messageId));
+export const encryptReaction = (emoji, message, conversation, userId, isForAlbum = false) =>
+  encryptMessage(emoji, conversation, userId, reactionBinding(message, isForAlbum));
 
 const readableOf = (message, plaintext) => {
   if (!message.attachment) {
@@ -122,22 +123,21 @@ const readContent = async (message, conversation) => {
 };
 
 // a reaction that cannot be opened is left out rather than shown as something it may not be
-const readReactions = async (message, conversation) => {
+const readReactions = async (sealed = [], conversation, bind) => {
   const reactions = await Promise.all(
-    (message.reactions ?? []).map(async ({ user, cipher }) => ({
-      user,
-      emoji: await openMessage({ cipher, sender: user }, conversation, reactionBinding(message._id)).catch(() => null),
-    }))
+    sealed.map(async ({ user, cipher }) => ({ user, emoji: await openMessage({ cipher, sender: user }, conversation, bind).catch(() => null) }))
   );
   return reactions.filter((reaction) => reaction.emoji);
 };
+
+export const decryptAlbumReactions = (album, conversation) => readReactions(album.reactions, conversation, reactionBinding(album, true));
 
 export const decryptMessage = async (message, conversation) => {
   if (!message?.cipher && !message?.replyTo && !message?.reactions?.length) return message;
   const [content, replyTo, reactions] = await Promise.all([
     readContent(message, conversation),
     message.replyTo?._id ? decryptMessage(message.replyTo, conversation) : message.replyTo,
-    readReactions(message, conversation),
+    readReactions(message.reactions, conversation, reactionBinding(message, false)),
   ]);
   return { ...message, ...content, replyTo, reactions };
 };

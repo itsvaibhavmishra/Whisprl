@@ -16,8 +16,10 @@ import MentionSuggestions from "@/sections/chat/conversation/MentionSuggestions"
 import ShareContactDialog from "@/sections/chat/conversation/ShareContactDialog";
 import VoiceRecorder from "@/sections/chat/conversation/VoiceRecorder";
 import { useTyping } from "@/sections/chat/conversation/useTyping";
+import MediaTile from "@/sections/chat/messages/MediaTile";
 import getAvatar from "@/utils/avatars";
-import { summaryOf } from "@/utils/messageSummary";
+import { thumbnailFileOf } from "@/utils/messageFiles";
+import { quoteSummaryOf, summaryOf } from "@/utils/messageSummary";
 import { gradientOf } from "@/utils/gradients";
 
 const MAX_SUGGESTIONS = 6;
@@ -52,7 +54,7 @@ export const ROUND_BUTTON = {
 
 const SWAP = { initial: { scale: 0.4, rotate: -45, opacity: 0 }, animate: { scale: 1, rotate: 0, opacity: 1 }, exit: { scale: 0.4, rotate: 45, opacity: 0 }, transition: { duration: 0.16 } };
 
-const Banner = ({ icon: Icon, leading, title, text, onClose }) => (
+const Banner = ({ icon: Icon, leading, title, text, thumbnail, onClose }) => (
   <Stack
     direction="row"
     alignItems="center"
@@ -77,6 +79,11 @@ const Banner = ({ icon: Icon, leading, title, text, onClose }) => (
         {text}
       </Typography>
     </Box>
+    {thumbnail && (
+      <Box sx={{ width: 40, height: 40, flexShrink: 0, borderRadius: 1.5, overflow: "hidden" }}>
+        <MediaTile file={thumbnail} isSmall />
+      </Box>
+    )}
     <IconButton size="small" aria-label={`Cancel ${title.toLowerCase()}`} onClick={onClose}>
       <X size={16} />
     </IconButton>
@@ -211,7 +218,8 @@ const Composer = () => {
               icon={ArrowBendUpLeft}
               leading={conversation.isGroup && replyPerson ? getAvatar(replyPerson.avatar, replyPerson.firstName, 24) : undefined}
               title={`Replying to ${replyAuthor}`}
-              text={summaryOf(replyingTo)}
+              text={quoteSummaryOf(replyingTo, meId)}
+              thumbnail={thumbnailFileOf(replyingTo)}
               onClose={() => dispatch(setReplyingTo(null))}
             />
           )}

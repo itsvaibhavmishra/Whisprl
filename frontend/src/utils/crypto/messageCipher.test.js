@@ -4,7 +4,7 @@
 import { webcrypto } from "crypto";
 
 import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
-import { decryptMessage, encryptMessage, encryptReaction, setDeviceKeys } from "@/utils/crypto/messageCipher";
+import { decryptAlbumReactions, decryptMessage, encryptMessage, encryptReaction, setDeviceKeys } from "@/utils/crypto/messageCipher";
 import { encodePayload } from "@/utils/messagePayload";
 import { createRecoveryKey, lockPrivateKey, parseRecoveryKey, unlockPrivateKey } from "@/utils/crypto/recoveryKey";
 
@@ -195,13 +195,24 @@ test("a shared contact and mentions come back from the encrypted content, and pl
 
 test("a reaction opens on its own message, and cannot be passed off as a message or moved to another", async () => {
   setDeviceKeys(deviceOf(alice));
-  const cipher = await encryptReaction("🎉", "message-1", conversation, "alice");
+  const cipher = await encryptReaction("🎉", { _id: "message-1" }, conversation, "alice");
   const reacted = { _id: "message-1", sender: { _id: "bob" }, reactions: [{ user: "alice", cipher }] };
 
   setDeviceKeys(deviceOf(bob));
   expect((await decryptMessage(reacted, conversation)).reactions).toEqual([{ user: "alice", emoji: "🎉" }]);
   expect((await decryptMessage({ ...reacted, _id: "message-2" }, conversation)).reactions).toEqual([]);
   expect((await decryptMessage({ sender: { _id: "alice" }, cipher }, conversation)).undecryptable).toBe(true);
+});
+
+test("a reaction to a group of photos opens as that group's, and never as another group's or a photo's", async () => {
+  setDeviceKeys(deviceOf(alice));
+  const cipher = await encryptReaction("🎉", { _id: "photo-1", batchId: "send-1" }, conversation, "alice", true);
+  const album = { batchId: "send-1", sender: "bob", reactions: [{ user: "alice", cipher }] };
+
+  setDeviceKeys(deviceOf(bob));
+  expect(await decryptAlbumReactions(album, conversation)).toEqual([{ user: "alice", emoji: "🎉" }]);
+  expect(await decryptAlbumReactions({ ...album, batchId: "send-2" }, conversation)).toEqual([]);
+  expect((await decryptMessage({ _id: "photo-1", sender: { _id: "bob" }, reactions: [{ user: "alice", cipher }] }, conversation)).reactions).toEqual([]);
 });
 
 test("a reply carries the quoted message, decrypted alongside it", async () => {

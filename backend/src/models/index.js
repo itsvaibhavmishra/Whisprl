@@ -8,6 +8,7 @@ import PasskeyChallengeModel from "#src/models/passkeyChallengeModel.js";
 import ChatPreferenceModel from "#src/models/chatPreferenceModel.js";
 import ReportModel from "#src/models/reportModel.js";
 import StatusModel from "#src/models/statusModel.js";
+import AlbumModel from "#src/models/albumModel.js";
 
 export {
   UserModel,
@@ -20,4 +21,5 @@ export {
   ChatPreferenceModel,
   ReportModel,
   StatusModel,
+  AlbumModel,
 };

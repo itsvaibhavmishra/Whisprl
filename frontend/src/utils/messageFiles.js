@@ -31,4 +31,10 @@ export const filesOf = (message) => {
 
 export const isMediaFile = (file) => file.fileType === "image" || file.fileType === "video";
 
-export const fileKeyOf = (file, index) => file.localId ?? file.sealed?.url ?? index;
+// a message names its sender as a person and a group's record as an id, so both give the same key
+export const batchKeyOf = (message) => message.batchId && `${message.batchId}:${message.sender?._id ?? message.sender}`;
+
+// a view-once photo never shows outside its own bubble
+export const thumbnailFileOf = (message) => (message.viewOnce ? undefined : filesOf(message).find(isMediaFile));
+
+export const fileKeyOf = (file, index) => file.localId ?? file.sealed?.url ?? file.url ?? index;

@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { AlbumModel, ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
 import { populateMembers } from "#src/services/conversationService.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { blockedEitherWay } from "#src/services/blockService.js";
@@ -141,7 +141,7 @@ const deleteGroup = async (group) => {
   const files = withFiles.map(({ attachment }) => attachment.url);
   if (isCloudinaryFile(group.picture)) files.push(group.picture);
   await Promise.allSettled(files.map((file) => deleteFile(file)));
-  await MessageModel.deleteMany({ conversation: group._id });
+  await Promise.all([MessageModel.deleteMany({ conversation: group._id }), AlbumModel.deleteMany({ conversation: group._id })]);
   await group.deleteOne();
 };
 

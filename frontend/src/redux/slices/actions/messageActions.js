@@ -18,15 +18,20 @@ import {
 import { selectIsLoading } from "@/redux/slices/requestSlice";
 import axios from "@/utils/axios";
 import { encryptMessage, encryptReaction } from "@/utils/crypto/messageCipher";
+import { holdReaction } from "@/utils/heldReactions";
+import { batchKeyOf } from "@/utils/messageFiles";
 import { encodePayload } from "@/utils/messagePayload";
 import { myReactionOn } from "@/utils/reactions";
+import uuidv4 from "@/utils/uuidv4";
 
 export const HISTORY_LIMIT = 2000;
 
 // ------------- Edit -------------
 // the new words show at once, marked as sending, and the old ones come back if the server refuses them
-export const EditMessage = createApiThunk("message/edit", async ({ message, text, mentions }, { dispatch, getState }) => {
+export const EditMessage = createApiThunk("message/edit", async ({ message: editing, text, mentions }, { dispatch, getState }) => {
   dispatch(setEditing(null));
+  // a reaction that landed while typing is kept, since the copy being edited may be older than the one shown
+  const message = getState().chat.messages.find((shown) => shown._id === editing._id) ?? editing;
   dispatch(replaceMessage({ ...message, message: text, mentions, editedAt: new Date().toISOString(), isEditPending: true }));
   try {
     const conversation = conversationById(getState(), message.conversation);
@@ -51,25 +56,29 @@ export const DeleteForMe = createApiThunk("message/delete-for-me", async (messag
 
 // ------------- React -------------
 // choosing the reaction already there takes it off again
-export const ReactToMessage = createApiThunk("message/react", async ({ message, emoji }, { dispatch, getState }) => {
+export const ReactToMessage = createApiThunk("message/react", async ({ message, emoji, isForAlbum = false }, { dispatch, getState }) => {
   const userId = getState().user.user._id;
-  const previous = myReactionOn(message, userId) ?? null;
+  const previous = myReactionOn(message, userId, isForAlbum) ?? null;
   const next = previous === emoji ? null : emoji;
-  const show = (shown) =>
-    dispatch(reactionChanged({ conversationId: message.conversation, messageId: message._id, userId, emoji: shown }));
+  const address = `/message/${message._id}/${isForAlbum ? "album-reaction" : "reaction"}`;
+  const batchKey = isForAlbum ? batchKeyOf(message) : undefined;
+  const show = (shown) => dispatch(reactionChanged({ conversationId: message.conversation, messageId: message._id, batchKey, userId, emoji: shown }));
 
   show(next);
+  const release = holdReaction(batchKey ?? message._id, next);
   try {
     if (!next) {
-      await axios.delete(`/message/${message._id}/reaction`);
+      await axios.delete(address);
       return;
     }
     const conversation = conversationById(getState(), message.conversation);
-    const cipher = await encryptReaction(next, message._id, conversation, userId);
-    await axios.put(`/message/${message._id}/reaction`, { cipher });
+    const cipher = await encryptReaction(next, message, conversation, userId, isForAlbum);
+    await axios.put(address, { cipher });
   } catch (error) {
     show(previous);
     throw error;
+  } finally {
+    release();
   }
 });
 
@@ -84,18 +93,23 @@ export const UnpinMessage = createApiThunk("message/unpin", async (message) => {
 
 // ------------- Forward and Share -------------
 // a forwarded file is not uploaded again: the server points the copy at the same encrypted file
-export const ForwardMessage = ({ message, conversationIds }) => (dispatch) =>
-  conversationIds.forEach((conversationId) =>
-    dispatch(
-      SendTextMessage({
-        conversationId,
-        text: message.message,
-        file: message.file,
-        contact: message.contact,
-        forwardOf: message._id,
-      })
-    )
-  );
+export const ForwardMessages = ({ messages, conversationIds }) => (dispatch) =>
+  conversationIds.forEach((conversationId) => {
+    // photos forwarded together arrive as one group, as they were sent
+    const batchId = messages.length > 1 ? uuidv4() : null;
+    messages.forEach((message, index) =>
+      dispatch(
+        SendTextMessage({
+          conversationId,
+          text: message.message,
+          file: message.file,
+          contact: message.contact,
+          forwardOf: message._id,
+          batch: batchId ? { batchId, batchIndex: index, batchTotal: messages.length } : undefined,
+        })
+      )
+    );
+  });
 
 export const ShareContacts = (friends) => (dispatch) =>
   friends.forEach(({ _id, firstName, lastName, username, avatar }) =>
@@ -114,7 +128,7 @@ export const LoadHistory = createApiThunk(
 
     while (hasMore && messages.length < HISTORY_LIMIT) {
       const page = await fetchPage(conversationId, { before });
-      messages = [...(await readablePage(page, conversation)).messages, ...messages];
+      messages = [...(await dispatch(readablePage(page, conversation))).messages, ...messages];
       hasMore = page.hasMore;
       before = page.messages[0]?._id;
     }
@@ -152,7 +166,7 @@ export const RevealMessage = (messageId) => async (dispatch, getState) => {
   try {
     const page = await fetchPage(conversation._id, { around: messageId });
     if (!page.messages.some((message) => message._id === messageId)) return false;
-    const { messages: readable } = await readablePage(page, conversation);
+    const { messages: readable } = await dispatch(readablePage(page, conversation));
     dispatch(windowShown({ conversationId: conversation._id, messages: readable, hasOlderMessages: page.hasMore, hasNewerMessages: page.hasNewer }));
     return true;
   } catch {

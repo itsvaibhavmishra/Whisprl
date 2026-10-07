@@ -48,6 +48,8 @@ const initialState = {
   focusedMessageId: null,
   // every decrypted message of a chat, gathered for searching it and listing its media, links and documents
   history: {},
+  // reactions to a whole group of photos, by batch key, kept apart from those to any one photo
+  albumReactions: {},
   commonGroups: {},
 };
 
@@ -107,6 +109,9 @@ const listsOf = (state, conversationId) =>
 
 const conversationsWith = (state, conversationId) =>
   [state.activeConversation, ...state.conversations].filter((conversation) => conversation?._id === conversationId);
+
+// each copy is decrypted on its own and can finish out of order, so an older one never replaces a newer
+const isOlderCopy = (copy, current) => copy.updatedAt < current.updatedAt;
 
 const isSameMessage = (message, other) =>
   message._id === other._id ||
@@ -193,7 +198,8 @@ const slice = createSlice({
     },
 
     setReplyingTo: (state, action) => {
-      state.replyingTo = action.payload;
+      // a fresh copy each time, so replying to the same message again still moves focus to the message box
+      state.replyingTo = action.payload && { ...action.payload };
       state.editing = null;
     },
 
@@ -204,11 +210,18 @@ const slice = createSlice({
 
     // shown at once, and replaced by the server's copy when it echoes back
     reactionChanged: (state, action) => {
-      const { conversationId, messageId, userId, emoji } = action.payload;
+      const { conversationId, messageId, batchKey, userId, emoji } = action.payload;
+      const withMine = (reactions = []) => [...reactions.filter((reaction) => reaction.user !== userId), ...(emoji ? [{ user: userId, emoji }] : [])];
+      if (batchKey) {
+        state.albumReactions[batchKey] = withMine(state.albumReactions[batchKey]);
+        return;
+      }
       const message = messagesOf(state, conversationId)?.find((candidate) => candidate._id === messageId);
-      if (!message) return;
-      const others = (message.reactions ?? []).filter((reaction) => reaction.user !== userId);
-      message.reactions = emoji ? [...others, { user: userId, emoji }] : others;
+      if (message) message.reactions = withMine(message.reactions);
+    },
+
+    albumReactionsShown: (state, action) => {
+      Object.assign(state.albumReactions, action.payload);
     },
 
     windowShown: (state, action) => {
@@ -362,11 +375,11 @@ const slice = createSlice({
     replaceMessage: (state, action) => {
       listsOf(state, action.payload.conversation).forEach((messages) => {
         const index = messages.findIndex((message) => message._id === action.payload._id);
-        if (index !== -1) messages[index] = action.payload;
+        if (index !== -1 && !isOlderCopy(action.payload, messages[index])) messages[index] = action.payload;
       });
 
       const conversation = state.conversations.find((convo) => convo.latestMessage?._id === action.payload._id);
-      if (conversation) conversation.latestMessage = action.payload;
+      if (conversation && !isOlderCopy(action.payload, conversation.latestMessage)) conversation.latestMessage = action.payload;
     },
 
     editSettled: (state, action) => {
@@ -496,6 +509,7 @@ export const {
   setReplyingTo,
   setEditing,
   reactionChanged,
+  albumReactionsShown,
   focusMessage,
   windowShown,
   historyLoaded,

@@ -3,23 +3,25 @@ import { Box, ButtonBase, CircularProgress, Typography } from "@mui/material";
 import { Play } from "phosphor-react";
 
 import TransferRing, { useTransfer } from "@/sections/chat/messages/TransferRing";
-import { attachmentUrl, openedFileUrl } from "@/utils/attachments";
+import { openedFileUrl, ownUrlOf } from "@/utils/attachments";
 import { formatDuration } from "@/utils/video";
 
 const BUBBLE_WIDTH = 260;
 
-export const VideoPoster = ({ file, fit = "cover", children }) => (
+export const VideoPoster = ({ file, fit = "cover", hasDuration = true, children }) => (
   <>
     {file.preview && <Box component="img" src={file.preview} alt="" sx={{ width: "100%", height: "100%", objectFit: fit, display: "block" }} />}
     <Box sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#fff", pointerEvents: "none", "& > *": { pointerEvents: "auto" } }}>
       {children}
     </Box>
-    <Typography
-      variant="caption"
-      sx={{ position: "absolute", left: 8, bottom: 6, px: 0.75, borderRadius: 1, color: "#fff", bgcolor: "rgba(0, 0, 0, 0.55)", pointerEvents: "none" }}
-    >
-      {formatDuration(file.duration)}
-    </Typography>
+    {hasDuration && (
+      <Typography
+        variant="caption"
+        sx={{ position: "absolute", left: 8, bottom: 6, px: 0.75, borderRadius: 1, color: "#fff", bgcolor: "rgba(0, 0, 0, 0.55)", pointerEvents: "none" }}
+      >
+        {formatDuration(file.duration)}
+      </Typography>
+    )}
   </>
 );
 
@@ -28,7 +30,7 @@ export const VideoPlayer = ({ file, sx }) => {
   const [openedUrl, setOpenedUrl] = useState(null);
   const [status, setStatus] = useState("idle");
   const transfer = useTransfer([file]);
-  const ownUrl = file.localId ? attachmentUrl(file.localId) : null;
+  const ownUrl = ownUrlOf(file);
   const url = transfer ? null : ownUrl ?? openedUrl;
   const notice = (file.isLost && "Not sent") || (status === "failed" && "Could not open this video");
   const isWaiting = !transfer && !url && !notice && (status === "opening" || !file.sealed);

@@ -15,18 +15,19 @@ import MediaMessage from "@/sections/chat/messages/MediaMessage";
 import MessageActions from "@/sections/chat/messages/MessageActions";
 import MessageMeta, { MetaSpacer } from "@/sections/chat/messages/MessageMeta";
 import MessageText from "@/sections/chat/messages/MessageText";
-import Reactions, { chipCountOf } from "@/sections/chat/messages/Reactions";
+import Reactions, { REACTIONS_DROP } from "@/sections/chat/messages/Reactions";
 import ReplyQuote from "@/sections/chat/messages/ReplyQuote";
 import VideoMessage from "@/sections/chat/messages/VideoMessage";
 import ViewOnceMessage from "@/sections/chat/messages/ViewOnceMessage";
 import VoiceMessage from "@/sections/chat/messages/VoiceMessage";
 import SeenMarker, { SeenByRow } from "@/sections/chat/messages/SeenMarker";
 import useSwipeToReply, { SwipeReplyHint } from "@/sections/chat/messages/useSwipeToReply";
+import { mediaItemsOf } from "@/sections/chat/viewer/mediaItems";
 import getAvatar, { nameColorOf } from "@/utils/avatars";
 import { gradientOf } from "@/utils/gradients";
 import { firstNameIn, memberOf } from "@/utils/groups";
 import { filesOf, isMediaFile } from "@/utils/messageFiles";
-import { quickReactionsOf } from "@/utils/reactions";
+import { myReactionOn, quickReactionsOf } from "@/utils/reactions";
 
 const UNREADABLE = "This message can't be opened on this device";
 const WAITING = "This message arrives when the sender is next online";
@@ -58,6 +59,7 @@ const RISE_TIMING = { duration: 0.26, ease: [0.33, 1, 0.68, 1] };
 const MessageContainer = ({
   anchorKey,
   message,
+  members,
   me: isMine,
   conversation,
   isQueued,
@@ -93,13 +95,14 @@ const MessageContainer = ({
 
   const files = message.viewOnce ? [] : filesOf(message);
   const media = files.filter(isMediaFile);
+  const mediaItems = media.length ? mediaItemsOf(members ?? [message]) : [];
   const hasMedia = media.length > 0;
   const hasDocs = files.some((file) => file.fileType === "document");
   const voice = files.find((file) => file.fileType === "voice");
   const isFileMsg = msgType === "file" || msgType === "file_with_caption";
   const isDeleted = Boolean(message.deletedAt);
+  const isAlbum = Boolean(members);
   const hasReactions = Boolean(conversation && message.reactions?.length);
-  const reactionChips = hasReactions ? chipCountOf(message.reactions) : 0;
   const isBare = isDeleted || msgType === "emoji";
   // a deleted message keeps its menu, so anyone can still clear it from their own screen
   const hasMenu = Boolean(conversation && message._id && !isQueued && !message.event);
@@ -112,7 +115,12 @@ const MessageContainer = ({
   // the reacted bubble stays where it is while its reactions appear or go
   const react = (emoji) => {
     onHoldStill?.(anchorKey);
-    dispatch(ReactToMessage({ message, emoji }));
+    dispatch(ReactToMessage({ message, emoji, isForAlbum: isAlbum }));
+  };
+  // a group's list holds reactions to each photo as well as to the group, and each is taken back where it was made
+  const removeReaction = (reaction) => {
+    onHoldStill?.(anchorKey);
+    dispatch(ReactToMessage({ message: reaction.message ?? message, emoji: reaction.emoji, isForAlbum: Boolean(reaction.isForAlbum) }));
   };
   const quickReact = () => canAct && react(quickReactionsOf(user)[0]);
 
@@ -183,7 +191,10 @@ const MessageContainer = ({
   };
 
   const textColor = isMine && !isDeleted ? "#fff" : theme.palette.text.primary;
-  const hasHeader = message.forwarded || message.replyTo || senderName;
+  // a deleted message keeps only who sent it, since what it answered or passed on went with it
+  const quote = !isDeleted && message.replyTo;
+  const isForwarded = !isDeleted && message.forwarded;
+  const hasHeader = isForwarded || quote || senderName;
   const isDirect = Boolean(conversation && !conversation.isGroup && conversation.users?.some((member) => member._id !== user._id));
   const hasTick = isMine && isDirect;
   const hasText = !isDeleted && !message.undecryptable && Boolean(message.message) && msgType !== "emoji";
@@ -207,6 +218,7 @@ const MessageContainer = ({
   const actions = hasMenu && (
     <MessageActions
       message={message}
+      members={members}
       conversation={conversation}
       isMine={isMine}
       menuAnchor={menuAnchor}
@@ -232,6 +244,7 @@ const MessageContainer = ({
         alignItems="center"
         sx={{
           position: "relative",
+          mb: hasReactions ? `${REACTIONS_DROP}px` : 0,
           opacity: isQueued ? 0.75 : 1,
           "&:hover .message-tools, &:focus-within .message-tools": { opacity: 1 },
         }}
@@ -242,13 +255,12 @@ const MessageContainer = ({
           </Box>
         )}
         {swipe.progress > 0 && <SwipeReplyHint progress={swipe.progress} side={isMine ? "right" : "left"} />}
-        {/* the anchor is the bubble itself, so room opening above it for reactions moves the list, never the bubble */}
+        {/* the anchor is the bubble itself, so room opening below it for reactions moves what follows, never the bubble */}
         <Box
           data-message-key={anchorKey}
           sx={{
             position: "relative",
             minWidth: 0,
-            mt: hasReactions ? (isBare ? 3 : 1.5) : 0,
             transform: swipe.offset ? `translateX(${swipe.offset}px)` : "none",
             transition: swipe.offset ? "none" : "transform 180ms ease-out",
           }}
@@ -268,8 +280,7 @@ const MessageContainer = ({
               justifyContent: "center",
               alignItems: "stretch",
               width: isFileMsg ? "auto" : "max-content",
-              // wide enough for its reaction chips, so they never spill past the bubble's edge
-              minWidth: reactionChips ? 20 + 46 * reactionChips : 48,
+              minWidth: 48,
               maxWidth: { xs: "17em", md: "28em" },
               minHeight: 38,
               color: textColor,
@@ -289,7 +300,7 @@ const MessageContainer = ({
                     {senderName}
                   </Typography>
                 )}
-                {message.forwarded && (
+                {isForwarded && (
                   <Stack direction="row" spacing={0.5} alignItems="center" sx={{ opacity: 0.75 }}>
                     <ArrowBendUpRight size={12} />
                     <Typography variant="caption" sx={{ fontStyle: "italic" }}>
@@ -297,13 +308,15 @@ const MessageContainer = ({
                     </Typography>
                   </Stack>
                 )}
-                {message.replyTo && (
+                {quote && (
                   <ReplyQuote
-                    quote={message.replyTo}
+                    quote={quote}
+                    isAlbum={message.replyToAlbum}
                     author={quotedAuthor}
                     authorName={firstNameIn(conversation, quotedSenderId, user._id)}
                     isMine={isMine}
-                    onJump={onJumpTo && (() => onJumpTo(message.replyTo._id))}
+                    conversation={conversation}
+                    onJump={onJumpTo && (() => onJumpTo(quote._id))}
                   />
                 )}
               </Stack>
@@ -319,7 +332,7 @@ const MessageContainer = ({
                 {message.viewOnce && <ViewOnceMessage message={message} isMine={isMine} isGroup={conversation?.isGroup} meId={user._id} />}
                 {message.contact && <ContactCard contact={message.contact} isMine={isMine} />}
                 {hasMedia &&
-                  (media.length === 1 && media[0].fileType === "video" ? <VideoMessage file={media[0]} /> : <MediaMessage files={media} />)}
+                  (media.length === 1 && media[0].fileType === "video" ? <VideoMessage file={media[0]} /> : <MediaMessage items={mediaItems} conversation={conversation} />)}
                 {voice && <VoiceMessage file={voice} isMine={isMine} stamp={stamp} />}
                 {hasDocs && (
                   <Box sx={{ mt: hasMedia ? 0.5 : 0 }}>
@@ -351,7 +364,17 @@ const MessageContainer = ({
             )}
             {metaPlace !== "inline" && stamp}
           </Box>
-          {conversation && <Reactions message={message} conversation={conversation} meId={user._id} isBare={isBare} onReact={react} />}
+          {conversation && (
+            <Reactions
+              reactions={message.reactions ?? []}
+              conversation={conversation}
+              mine={myReactionOn(message, user._id, isAlbum)}
+              side={isMine ? "right" : "left"}
+              inset={isBare ? 0 : 10}
+              onReact={react}
+              onRemove={removeReaction}
+            />
+          )}
           {actions}
         </Box>
         {marker && <SeenMarker {...marker} messageId={message._id} />}

@@ -15,14 +15,14 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
-import { ForwardMessage } from "@/redux/slices/actions/messageActions";
+import { ForwardMessages } from "@/redux/slices/actions/messageActions";
 import { identityOf } from "@/utils/chats";
 import getAvatar from "@/utils/avatars";
 import { notify } from "@/utils/notify";
 
 const MAX_TARGETS = 5;
 
-const ForwardDialog = ({ message, open, onClose }) => {
+const ForwardDialog = ({ messages, open, onClose }) => {
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
   const conversations = useSelector((state) => state.chat.conversations);
@@ -33,7 +33,7 @@ const ForwardDialog = ({ message, open, onClose }) => {
     setChosen((ids) => (ids.includes(conversationId) ? ids.filter((id) => id !== conversationId) : [...ids, conversationId]));
 
   const forward = () => {
-    dispatch(ForwardMessage({ message, conversationIds: chosen }));
+    dispatch(ForwardMessages({ messages, conversationIds: chosen }));
     notify({ severity: "success", message: chosen.length === 1 ? "Forwarded" : `Forwarded to ${chosen.length} chats` });
     onClose();
   };

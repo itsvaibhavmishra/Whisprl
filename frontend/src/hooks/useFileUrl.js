@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-import { attachmentUrl, openedFileUrl } from "@/utils/attachments";
+import { openedFileUrl, ownUrlOf } from "@/utils/attachments";
 
 const useFileUrl = (file) => {
-  const ownUrl = file.url ?? (file.localId && attachmentUrl(file.localId));
+  const ownUrl = ownUrlOf(file);
   const sealed = useRef(file.sealed);
   sealed.current = file.sealed;
   const sealedUrl = file.sealed?.url;

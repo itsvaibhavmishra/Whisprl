@@ -79,6 +79,7 @@ const ConversationMain = () => {
   );
   const isLoadingNewer = useIsLoading(LoadNewerMessages);
   const outbox = useSelector(selectActiveOutbox);
+  const albumReactions = useSelector((state) => state.chat.albumReactions);
 
   const isGroup = Boolean(activeConversation?.isGroup);
   const others = activeConversation?.users?.filter((member) => member._id !== user._id) ?? [];
@@ -87,7 +88,7 @@ const ConversationMain = () => {
 
   const typists = typingNamesIn(activeConversation, typingConversation, user._id);
 
-  const items = displayItemsOf(messages, outbox, user);
+  const items = displayItemsOf(messages, outbox, user, albumReactions);
   const confirmed = items.filter((item) => !item.entry);
 
   // only a message arriving at the newest end rises in, so opening a chat or loading history never animates
@@ -181,17 +182,17 @@ const ConversationMain = () => {
   // the jump finishes after older pages load, so it reads the newest messages and scroll position through refs
   const [highlightedId, setHighlightedId] = useState(null);
   const latest = useRef({});
-  latest.current = { messages, scrollToKey };
+  latest.current = { items, scrollToKey };
 
   useEffect(() => {
     if (!focusedMessageId) return;
     dispatch(RevealMessage(focusedMessageId)).then((isLoaded) => {
       dispatch(focusMessage(null));
-      const target = latest.current.messages.find((message) => message._id === focusedMessageId);
+      const target = latest.current.items.find((item) => (item.members ?? [item.message]).some((message) => message._id === focusedMessageId))?.message;
       if (!isLoaded || !target) return notify({ severity: "info", message: "That message is no longer in this chat" });
       requestAnimationFrame(() => {
         latest.current.scrollToKey(keyOf(target));
-        setHighlightedId(focusedMessageId);
+        setHighlightedId(target._id);
       });
     });
   }, [focusedMessageId, dispatch]);
@@ -319,6 +320,7 @@ const ConversationMain = () => {
                     <MessageContainer
                       anchorKey={keyOf(message)}
                       message={message}
+                      members={item.members}
                       me={isMine}
                       conversation={activeConversation}
                       isHighlighted={highlightedId === message._id}

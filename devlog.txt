@@ -100,11 +100,18 @@
     - The date floats over the messages only while you scroll, so it never covers one
     - A friend's status shows as a ring around their photo in your chats, and their photo offers to open the status or their profile
     - Your photo on the side rail opens your profile or settings
-    - Reactions sit on the top corner of a message, the two most used with their counts, and a +N chip lists everyone's
+    - Reactions sit in one pill under a message, showing up to three of the most used emoji and how many in all, and tapping it lists who reacted, reacts with the same emoji or takes yours back
+    - A long press or right click on a message opens quick reactions above its menu
     - Your reaction is marked in the reaction picker, and changing it swaps it in place
     - A message deleted for everyone can still be removed from your own screen
     - Voice recording cancels or locks when you let go, so sliding back changes your mind
     - Opening a chat's details eases the chat aside instead of jumping, and its close button sits on the right
+    - A new photo viewer that grows out of the photo you tap: react to, reply to, forward, save or delete each photo of a group on its own, zoom in, swipe between them, and drag down to close
+    - React to a group of photos as a whole or to each photo in it, with every reaction counted together on the group
+    - Deleting or forwarding a group of photos takes every photo in it, and a forwarded group arrives as one group
+    - A reply to a photo or video shows its thumbnail, and tapping it opens that photo and, once closed, shows it in the chat, or takes you to the group when the reply was to a whole group
+    - Choosing Reply always puts the cursor in the message box, including from the photo viewer
+    - A reply to a view-once photo or video quotes it in words only, and says Opened once it has been
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

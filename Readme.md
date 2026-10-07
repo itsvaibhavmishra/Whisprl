@@ -225,6 +225,7 @@ $ npm run build
 │   │   │   ├── socketMiddleware.js
 │   │   │   ├── socketRateLimit.js
 │   │   ├── models/
+│   │   │   ├── albumModel.js
 │   │   │   ├── chatPreferenceModel.js
 │   │   │   ├── conversationModel.js
 │   │   │   ├── friendRequestModel.js
@@ -248,6 +249,7 @@ $ npm run build
 │   │   │   ├── statusRouter.js
 │   │   │   ├── userRouter.js
 │   │   ├── services/
+│   │   │   ├── albumService.js
 │   │   │   ├── authService.js
 │   │   │   ├── blockService.js
 │   │   │   ├── chatPreferenceService.js
@@ -485,6 +487,7 @@ $ npm run build
 │   │   │   │   │   ├── ConversationHeader.js
 │   │   │   │   │   ├── ConversationMain.js
 │   │   │   │   │   ├── displayItems.js
+│   │   │   │   │   ├── displayItems.test.js
 │   │   │   │   │   ├── MentionSuggestions.js
 │   │   │   │   │   ├── PinnedBar.js
 │   │   │   │   │   ├── ShareContactDialog.js
@@ -516,7 +519,6 @@ $ npm run build
 │   │   │   │   │   ├── DeleteMessageDialog.js
 │   │   │   │   │   ├── DocumentMessage.js
 │   │   │   │   │   ├── ForwardDialog.js
-│   │   │   │   │   ├── MediaLightbox.js
 │   │   │   │   │   ├── MediaMessage.js
 │   │   │   │   │   ├── MediaTile.js
 │   │   │   │   │   ├── MessageActions.js
@@ -525,6 +527,7 @@ $ npm run build
 │   │   │   │   │   ├── MessageMeta.js
 │   │   │   │   │   ├── MessageProblems.js
 │   │   │   │   │   ├── MessageText.js
+│   │   │   │   │   ├── ReactionList.js
 │   │   │   │   │   ├── ReactionPicker.js
 │   │   │   │   │   ├── Reactions.js
 │   │   │   │   │   ├── ReplyQuote.js
@@ -540,6 +543,14 @@ $ npm run build
 │   │   │   │   ├── status/
 │   │   │   │   │   ├── AvatarChoices.js
 │   │   │   │   │   ├── useLiveStatuses.js
+│   │   │   │   ├── viewer/
+│   │   │   │   │   ├── Filmstrip.js
+│   │   │   │   │   ├── mediaItems.js
+│   │   │   │   │   ├── MediaViewer.js
+│   │   │   │   │   ├── useFlight.js
+│   │   │   │   │   ├── ViewerActions.js
+│   │   │   │   │   ├── ViewerSlide.js
+│   │   │   │   │   ├── viewerTheme.js
 │   │   │   │   ├── wallpaper/
 │   │   │   │   │   ├── WallpaperChoices.js
 │   │   │   │   │   ├── WallpaperDialog.js
@@ -679,12 +690,16 @@ $ npm run build
 │   │   │   ├── getOtherUser.js
 │   │   │   ├── gradients.js
 │   │   │   ├── groups.js
+│   │   │   ├── heldReactions.js
+│   │   │   ├── heldReactions.test.js
 │   │   │   ├── helmetHandler.js
 │   │   │   ├── links.js
 │   │   │   ├── links.test.js
 │   │   │   ├── messageFiles.js
+│   │   │   ├── messageFiles.test.js
 │   │   │   ├── messagePayload.js
 │   │   │   ├── messageSummary.js
+│   │   │   ├── messageSummary.test.js
 │   │   │   ├── notifications.js
 │   │   │   ├── notify.js
 │   │   │   ├── passkeys.js

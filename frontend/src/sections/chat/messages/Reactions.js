@@ -1,144 +1,93 @@
 import { useEffect, useState } from "react";
-import { ButtonBase, Popover, Stack, Tooltip, Typography } from "@mui/material";
+import { ButtonBase, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { AnimatePresence, m } from "framer-motion";
+import { useSelector } from "react-redux";
 
-import { firstNameIn, listOf } from "@/utils/groups";
-import { tallyReactions } from "@/utils/reactions";
+import ReactionList from "@/sections/chat/messages/ReactionList";
+import { rankedReactions } from "@/utils/reactions";
 
-const SHOWN = 2;
+const SHOWN = 3;
+const HEIGHT = 30;
+const OVERLAP = 7;
 
-export const chipCountOf = (reactions) => Math.min(tallyReactions(reactions).length, SHOWN + 1);
+// how far the pill hangs below what it sits under, so that room can be kept free for it
+export const REACTIONS_DROP = HEIGHT - OVERLAP;
 
 const POP = {
   initial: { scale: 0.3, opacity: 0 },
   animate: { scale: 1, opacity: 1 },
   exit: { scale: 0.3, opacity: 0 },
-  whileHover: { scale: 1.08 },
   transition: { type: "spring", stiffness: 520, damping: 26 },
 };
 
-const chipStyle = (hasMine) => (theme) => ({
-  gap: 0.5,
+// the ring takes the canvas colour, so the pill reads as cut out of the bubble's edge
+const pillStyle = (hasMine) => (theme) => ({
+  height: HEIGHT,
   px: 0.75,
-  minHeight: 26,
+  gap: "2px",
   borderRadius: 99,
-  fontSize: 14,
-  lineHeight: 1.4,
+  border: `2px solid ${theme.palette.chat.canvas}`,
   bgcolor: theme.palette.chat.raised,
-  backgroundImage: hasMine ? `linear-gradient(${alpha(theme.palette.primary.main, 0.22)}, ${alpha(theme.palette.primary.main, 0.22)})` : "none",
-  boxShadow: `0 1px 3px ${theme.palette.chat.shade}, inset 0 0 0 1px ${hasMine ? alpha(theme.palette.primary.main, 0.6) : theme.palette.chat.edge}`,
-  "&.Mui-focusVisible": { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
+  color: theme.palette.text.secondary,
+  boxShadow: hasMine ? `inset 0 0 0 1px ${alpha(theme.palette.primary.main, 0.55)}` : `0 1px 2px ${theme.palette.chat.shade}`,
+  fontSize: 16,
+  lineHeight: 1,
+  zIndex: 1,
+  "&.Mui-focusVisible": { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 1 },
 });
 
-const Count = ({ value, hasMine }) => (
-  <Typography component="span" sx={{ fontSize: 12, fontWeight: 800, fontVariantNumeric: "tabular-nums", color: hasMine ? "primary.main" : "text.secondary" }}>
-    {value}
-  </Typography>
-);
-
-const Reactions = ({ message, conversation, meId, isBare, onReact }) => {
+const Reactions = ({ reactions, conversation, mine, side = "left", inset = 0, onReact, onRemove, sx }) => {
+  const meId = useSelector((state) => state.user.user._id);
   const [listAnchor, setListAnchor] = useState(null);
-  const tally = tallyReactions(message.reactions).sort((one, other) => other.users.length - one.users.length);
-  const shown = tally.slice(0, SHOWN);
-  const foldedCount = tally.length - shown.length;
-  // the chips move only when what they show changes, so a scroll or swipe never sets them drifting after their bubble
-  const rowKey = `${shown.map(({ emoji, users }) => `${emoji}:${users.length}`).join()}|${foldedCount}`;
+  const emojis = rankedReactions(reactions).slice(0, SHOWN).map(({ emoji }) => emoji);
+  const total = reactions.length;
+  const hasMine = reactions.some((reaction) => reaction.user === meId);
 
   useEffect(() => {
-    if (!foldedCount) setListAnchor(null);
-  }, [foldedCount]);
-
-  const namesOf = (users) => listOf(users.map((userId) => firstNameIn(conversation, userId, meId)));
-  const react = (emoji) => {
-    setListAnchor(null);
-    onReact(emoji);
-  };
+    if (!total) setListAnchor(null);
+  }, [total]);
 
   return (
     <>
-      <Stack direction="row" sx={{ position: "absolute", top: isBare ? -22 : -13, right: isBare ? 0 : 12, gap: 0.5, zIndex: 1 }}>
-        {/* the old reaction leaves the row at once, so a changed one swaps in place instead of sliding past it */}
-        <AnimatePresence initial={false} mode="popLayout">
-          {shown.map(({ emoji, users }) => {
-            const hasMine = users.includes(meId);
-            return (
-              <Tooltip key={emoji} title={namesOf(users)}>
-                <ButtonBase
-                  component={m.button}
-                  layout="position"
-                  layoutDependency={rowKey}
-                  {...POP}
-                  onClick={() => onReact(emoji)}
-                  aria-pressed={hasMine}
-                  aria-label={`${emoji} from ${namesOf(users)}`}
-                  sx={chipStyle(hasMine)}
-                >
-                  <span aria-hidden>{emoji}</span>
-                  {users.length > 1 && <Count value={users.length} hasMine={hasMine} />}
-                </ButtonBase>
-              </Tooltip>
-            );
-          })}
-          {foldedCount > 0 && (
-            <ButtonBase
-              key="more"
-              component={m.button}
-              layout="position"
-              layoutDependency={rowKey}
-              {...POP}
-              onClick={(event) => setListAnchor(event.currentTarget)}
-              aria-haspopup="true"
-              aria-expanded={Boolean(listAnchor)}
-              aria-label={`${foldedCount} more reaction${foldedCount === 1 ? "" : "s"}, see everyone's`}
-              sx={chipStyle(false)}
-            >
-              <Count value={`+${foldedCount}`} />
-            </ButtonBase>
-          )}
-        </AnimatePresence>
-      </Stack>
-
-      <Popover
-        open={Boolean(listAnchor)}
-        anchorEl={listAnchor}
-        onClose={() => setListAnchor(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ paper: { sx: { mt: 0.75, p: 0.75, minWidth: 220, maxWidth: 300 } } }}
-      >
-        <Stack role="group" aria-label="Reactions" spacing={0.25}>
-          {tally.map(({ emoji, users }) => {
-            const hasMine = users.includes(meId);
-            return (
-              <ButtonBase
-                key={emoji}
-                onClick={() => react(emoji)}
-                aria-pressed={hasMine}
-                aria-label={`${emoji} from ${namesOf(users)}`}
-                sx={{
-                  gap: 1.25,
-                  px: 1.25,
-                  py: 0.75,
-                  borderRadius: 2,
-                  justifyContent: "flex-start",
-                  textAlign: "left",
-                  bgcolor: (theme) => (hasMine ? alpha(theme.palette.primary.main, 0.14) : "transparent"),
-                  "&:hover, &.Mui-focusVisible": { bgcolor: "action.hover" },
-                }}
-              >
-                <span aria-hidden style={{ fontSize: 20 }}>
+      <AnimatePresence initial={false}>
+        {total > 0 && (
+          <ButtonBase
+            key="pill"
+            component={m.button}
+            {...POP}
+            whileTap={{ scale: 0.94 }}
+            onClick={(event) => setListAnchor(event.currentTarget)}
+            aria-haspopup="dialog"
+            aria-expanded={Boolean(listAnchor)}
+            aria-label={`${total} reaction${total === 1 ? "" : "s"}, ${emojis.join(" ")}. See who reacted`}
+            sx={[pillStyle(hasMine), { position: "absolute", top: `calc(100% - ${OVERLAP}px)`, [side]: inset }, sx ?? {}]}
+          >
+            <AnimatePresence initial={false} mode="popLayout">
+              {emojis.map((emoji) => (
+                <m.span key={emoji} {...POP} aria-hidden style={{ display: "inline-block" }}>
                   {emoji}
-                </span>
-                <Typography noWrap sx={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600 }}>
-                  {namesOf(users)}
-                </Typography>
-                <Count value={users.length} hasMine={hasMine} />
-              </ButtonBase>
-            );
-          })}
-        </Stack>
-      </Popover>
+                </m.span>
+              ))}
+            </AnimatePresence>
+            {total > 1 && (
+              <Typography component="span" sx={{ ml: 0.5, fontSize: 13, fontWeight: 700, color: "inherit", fontVariantNumeric: "tabular-nums" }}>
+                {total}
+              </Typography>
+            )}
+          </ButtonBase>
+        )}
+      </AnimatePresence>
+      <ReactionList
+        anchorEl={listAnchor}
+        side={side}
+        reactions={reactions}
+        conversation={conversation}
+        mine={mine}
+        onReact={onReact}
+        onRemove={onRemove}
+        onClose={() => setListAnchor(null)}
+      />
     </>
   );
 };
