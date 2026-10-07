@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { CssBaseline, useMediaQuery } from '@mui/material';
 import {
   createTheme,
@@ -37,6 +37,12 @@ export default function ThemeProvider({ children }) {
   );
 
   const theme = createTheme(themeOptions);
+  const barColor = theme.palette.chat.list;
+
+  // the in-app mode can differ from the device's, so both media-keyed tags take the app's top-edge colour
+  useEffect(() => {
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute('content', barColor));
+  }, [barColor]);
 
   theme.components = componentsOverride(theme);
 

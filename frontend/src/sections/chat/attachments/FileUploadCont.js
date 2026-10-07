@@ -1,44 +1,31 @@
-import { Stack, IconButton, useTheme } from "@mui/material";
+import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { X } from "phosphor-react";
-import { useDispatch } from "react-redux";
-import FileHeader from "@/sections/chat/attachments/FileHeader";
+import { useDispatch, useSelector } from "react-redux";
+
+import { ClearAttachments } from "@/redux/slices/actions/attachmentActions";
 import FileBody from "@/sections/chat/attachments/FileBody";
 import FileFooter from "@/sections/chat/attachments/FileFooter";
-import { ClearAttachments } from "@/redux/slices/actions/attachmentActions";
 
 const FileUploadCont = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
+  const count = useSelector((state) => state.chat.files.length);
 
   return (
-    <Stack
-      sx={{
-        flex: 1,
-        backgroundColor: theme.palette.background.paper,
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      {/* Top-right close button */}
-      <IconButton
-        onClick={() => dispatch(ClearAttachments())}
-        size="small"
-        sx={{
-          position: "absolute",
-          top: 8,
-          right: 8,
-          zIndex: 10,
-          backgroundColor: theme.palette.background.default,
-          "&:hover": { backgroundColor: theme.palette.action.hover },
-        }}
-      >
-        <X size={18} />
-      </IconButton>
-
-      <FileHeader />
+    <Stack sx={{ flex: 1, minHeight: 0 }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: { xs: 1, md: 2 }, py: 1 }}>
+        <Tooltip title="Discard">
+          <IconButton aria-label="Discard attachments" onClick={() => dispatch(ClearAttachments())} sx={{ bgcolor: "chat.pill", "&:hover": { bgcolor: "chat.raised" } }}>
+            <X size={20} weight="bold" />
+          </IconButton>
+        </Tooltip>
+        <Typography sx={{ px: 1.5, py: 0.5, borderRadius: 99, fontSize: 13, fontWeight: 700, bgcolor: "chat.pill" }}>
+          {count === 1 ? "1 file ready to send" : `${count} files ready to send`}
+        </Typography>
+      </Stack>
       <FileBody />
       <FileFooter />
     </Stack>
   );
 };
+
 export default FileUploadCont;

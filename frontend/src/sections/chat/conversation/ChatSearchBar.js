@@ -6,9 +6,45 @@ import { useDispatch, useSelector } from "react-redux";
 import useIsLoading from "@/hooks/useIsLoading";
 import { HISTORY_LIMIT, LoadHistory } from "@/redux/slices/actions/messageActions";
 import { focusMessage } from "@/redux/slices/chatSlice";
+import { GLASS_BAR } from "@/sections/chat/conversation/ConversationHeader";
+import { MATCH_HIGHLIGHT, MESSAGES_ID } from "@/sections/chat/conversation/ConversationMain";
 import { withArrivals } from "@/utils/chats";
 
 const SETTLE_MS = 300;
+
+const rangesOf = (needle, root) => {
+  const ranges = [];
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = node.textContent.toLowerCase();
+    for (let at = text.indexOf(needle); at !== -1; at = text.indexOf(needle, at + needle.length)) {
+      const range = new Range();
+      range.setStart(node, at);
+      range.setEnd(node, at + needle.length);
+      ranges.push(range);
+    }
+  }
+  return ranges;
+};
+
+// marks every match on screen through the browser's highlight registry, so no message re-renders as you type
+const useMatchHighlight = (needle) => {
+  useEffect(() => {
+    const messages = document.getElementById(MESSAGES_ID);
+    if (!window.CSS?.highlights || !needle || !messages) return undefined;
+    const paint = () => {
+      const texts = [...messages.querySelectorAll("[data-searchable]")];
+      CSS.highlights.set(MATCH_HIGHLIGHT, new window.Highlight(...texts.flatMap((text) => rangesOf(needle, text))));
+    };
+    paint();
+    const observer = new MutationObserver(paint);
+    observer.observe(messages, { childList: true, subtree: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      CSS.highlights.delete(MATCH_HIGHLIGHT);
+    };
+  }, [needle]);
+};
 
 const searchableTextOf = (message) =>
   [message.message, message.contact && `${message.contact.firstName} ${message.contact.lastName}`, message.file?.name]
@@ -16,8 +52,7 @@ const searchableTextOf = (message) =>
     .join(" ")
     .toLowerCase();
 
-const newestMatchesFor = (query, messages) => {
-  const needle = query.trim().toLowerCase();
+const newestMatchesFor = (needle, messages) => {
   if (!needle) return [];
   return messages
     .filter((message) => !message.event && !message.deletedAt && searchableTextOf(message).includes(needle))
@@ -30,9 +65,12 @@ const ChatSearchBar = ({ onClose }) => {
   const isGathering = useIsLoading(LoadHistory);
   const [query, setQuery] = useState("");
   const [position, setPosition] = useState(0);
+  const needle = query.trim().toLowerCase();
+
+  useMatchHighlight(needle);
 
   const gathered = history[activeConversation._id];
-  const matches = newestMatchesFor(query, withArrivals(gathered, messages));
+  const matches = newestMatchesFor(needle, withArrivals(gathered, messages));
 
   useEffect(() => {
     dispatch(LoadHistory(activeConversation._id));
@@ -45,7 +83,7 @@ const ChatSearchBar = ({ onClose }) => {
     if (!newestMatch) return;
     const timer = setTimeout(() => dispatch(focusMessage(newestMatch)), SETTLE_MS);
     return () => clearTimeout(timer);
-  }, [query, newestMatch, dispatch]);
+  }, [needle, newestMatch, dispatch]);
 
   const step = (direction) => {
     if (!matches.length) return;
@@ -55,7 +93,7 @@ const ChatSearchBar = ({ onClose }) => {
   };
 
   const status = () => {
-    if (!query.trim()) return gathered && !gathered.isComplete ? `Searching your latest ${HISTORY_LIMIT.toLocaleString()} messages` : "";
+    if (!needle) return gathered && !gathered.isComplete ? `Searching your latest ${HISTORY_LIMIT.toLocaleString()} messages` : "";
     if (isGathering && !matches.length) return "Searching";
     return matches.length ? `${position + 1} of ${matches.length}` : "No matches";
   };
@@ -66,7 +104,7 @@ const ChatSearchBar = ({ onClose }) => {
       alignItems="center"
       spacing={1}
       role="search"
-      sx={{ px: { xs: 1.5, md: 2.5 }, py: 0.75, bgcolor: "background.default", borderBottom: 1, borderColor: "divider" }}
+      sx={{ ...GLASS_BAR, px: { xs: 1.5, md: 2.5 }, py: 0.75 }}
     >
       <MagnifyingGlass size={18} aria-hidden />
       <InputBase
@@ -79,10 +117,10 @@ const ChatSearchBar = ({ onClose }) => {
         }}
         placeholder="Search this chat"
         inputProps={{ "aria-label": "Search this chat" }}
-        sx={{ flex: 1, minWidth: 0 }}
+        sx={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 500 }}
       />
       {isGathering && <CircularProgress size={14} aria-label="Gathering messages" />}
-      <Typography variant="caption" role="status" sx={{ color: "text.secondary", whiteSpace: "nowrap" }}>
+      <Typography variant="caption" role="status" sx={{ color: "text.secondary", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
         {status()}
       </Typography>
       <Tooltip title="Newer match">

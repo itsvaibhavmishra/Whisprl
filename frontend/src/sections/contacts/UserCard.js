@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
 
 // redux imports
@@ -98,12 +98,7 @@ const UserCard = ({ thisUser, fromSection, isLoading }) => {
                   height={isSmallScreen ? 60 : 80}
                 />
               ) : (
-                getAvatar(
-                  thisUser?.avatar,
-                  thisUser?.firstName,
-                  theme,
-                  isSmallScreen ? 60 : 80
-                )
+                getAvatar(thisUser?.avatar, thisUser?.firstName, isSmallScreen ? 60 : 80)
               )}
 
               {/* Name and Email */}

@@ -47,7 +47,7 @@ const eventSchema = mongoose.Schema(
 );
 
 // the emoji is sealed like a message, so the server only learns that someone reacted
-const reactionSchema = mongoose.Schema(
+export const reactionSchema = mongoose.Schema(
   {
     user: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
     cipher: { type: cipherSchema, required: true },
@@ -97,6 +97,7 @@ const messageSchema = mongoose.Schema(
     batchTotal: { type: Number },
 
     replyTo: { type: mongoose.Schema.ObjectId, ref: "Message" },
+    replyToAlbum: { type: Boolean },
     forwarded: { type: Boolean },
     editedAt: { type: Date },
 

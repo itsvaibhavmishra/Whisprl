@@ -21,7 +21,7 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     origin: process.env.FRONT_URL || "http://localhost:3000",
-  })
+  }),
 );
 
 // parsing data to json
@@ -47,9 +47,16 @@ app.use(async (req, res, next) => {
   next(createHttpError.NotFound("This route does not exist!"));
 });
 
-const CLIENT_ERRORS = { MulterError: 400, ValidationError: 400, CastError: 400 };
+const CLIENT_ERRORS = {
+  MulterError: 400,
+  ValidationError: 400,
+  CastError: 400,
+};
 
-const statusOf = (error) => error.status || CLIENT_ERRORS[error.name] || (error.code === 11000 ? 409 : 500);
+const statusOf = (error) =>
+  error.status ||
+  CLIENT_ERRORS[error.name] ||
+  (error.code === 11000 ? 409 : 500);
 
 const messageOf = (error, status) => {
   if (error.code === 11000) return "That already exists";
@@ -67,7 +74,8 @@ app.use((error, req, res, next) => {
       status: "error",
       message: messageOf(error, status),
       // what the browser should do next, such as renew its token or log in again
-      ...(error.expose && typeof error.code === "string" && { code: error.code }),
+      ...(error.expose &&
+        typeof error.code === "string" && { code: error.code }),
     },
   });
 });

@@ -12,7 +12,6 @@ import {
   ListItemButton,
   ListItemText,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -20,7 +19,7 @@ import useIsLoading from "@/hooks/useIsLoading";
 import { GetHiddenFrom, SetHiddenFrom } from "@/redux/slices/actions/statusActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { SettingRow } from "@/sections/settings/SettingsSection";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 
 const summaryOf = (hiddenCount) => {
   if (!hiddenCount) return "All your friends.";
@@ -28,7 +27,6 @@ const summaryOf = (hiddenCount) => {
 };
 
 const HiddenFromDialog = ({ onClose }) => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
   const friends = useSelector((state) => state.user.friends).filter((friend) => friend._id !== meId);
@@ -68,7 +66,7 @@ const HiddenFromDialog = ({ onClose }) => {
           {friends.map((friend) => (
             <ListItem key={friend._id} disablePadding>
               <ListItemButton onClick={() => toggle(friend._id)} sx={{ px: 0, borderRadius: 2 }}>
-                <ListItemAvatar>{getAvatar(friend.avatar, friend.firstName, theme, 36)}</ListItemAvatar>
+                <ListItemAvatar>{getAvatar(friend.avatar, friend.firstName, 36)}</ListItemAvatar>
                 <ListItemText primary={`${friend.firstName} ${friend.lastName}`} secondary={friend.username && `@${friend.username}`} />
                 <Checkbox
                   edge="end"

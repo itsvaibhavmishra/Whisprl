@@ -17,9 +17,12 @@ export default function CssBaseline() {
           WebkitOverflowScrolling: 'touch',
           scrollbarGutter: 'stable',
         },
+        // the page reaches under a phone's notch, so in landscape the sides step clear of it
         body: {
           width: '100%',
           height: '100%',
+          paddingLeft: 'env(safe-area-inset-left)',
+          paddingRight: 'env(safe-area-inset-right)',
         },
         '#root': {
           width: '100%',

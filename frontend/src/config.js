@@ -10,6 +10,7 @@ export const defaultSettings = {
   sounds: true,
   notifications: false,
   use24Hour: false,
+  wallpapers: { all: "aurora", doodles: true, chats: {} },
 };
 
 export const NAVBAR = {

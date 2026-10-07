@@ -1,16 +1,3 @@
-import {
-  //   Nav Buttons
-  UserCircle,
-  ChatCircleDots,
-  CircleDashed,
-  UserList,
-  Gear,
-
-  //   Profile Menu
-  IdentificationCard,
-
-} from "phosphor-react";
-
 const MembersList = [
   {
     _id: 0,
@@ -97,45 +84,4 @@ const Friend_Requests = [
   },
 ];
 
-const Nav_Buttons = [
-  {
-    index: 0,
-    icon: <UserCircle size={28} />,
-    address: "profile", // route to /profile
-  },
-  {
-    index: 1,
-    icon: <ChatCircleDots />,
-    address: "chat", // route to /chat
-  },
-  {
-    index: 2,
-    icon: <CircleDashed />,
-    address: "status", // route to /status
-  },
-  {
-    index: 3,
-    icon: <UserList />,
-    address: "contact", // route to /contact
-  },
-  {
-    index: 4,
-    icon: <Gear />,
-    address: "settings", // route to /settings
-  },
-];
-
-const Profile_Menu = [
-  {
-    title: "Profile",
-    icon: <IdentificationCard size={18} />,
-    address: "profile", // route to /profile
-  },
-  {
-    title: "Settings",
-    icon: <Gear size={18} />,
-    address: "settings", // route to /settings
-  },
-];
-
-export { Nav_Buttons, MembersList, Friend_Requests, Profile_Menu };
+export { MembersList, Friend_Requests };

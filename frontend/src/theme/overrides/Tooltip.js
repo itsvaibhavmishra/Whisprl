@@ -1,14 +1,20 @@
 export default function Tooltip(theme) {
   const isLight = theme.palette.mode === 'light';
+  const background = isLight ? theme.palette.chat.rail : '#26344D';
 
   return {
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          backgroundColor: theme.palette.grey[isLight ? 800 : 700],
+          backgroundColor: background,
+          color: '#E9EEF6',
+          fontSize: 12,
+          fontWeight: 600,
+          padding: theme.spacing(0.75, 1.25),
+          borderRadius: 8,
         },
         arrow: {
-          color: theme.palette.grey[isLight ? 800 : 700],
+          color: background,
         },
       },
     },

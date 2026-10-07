@@ -1,4 +1,4 @@
-import { formatMessageTime } from "@/utils/formatMessageTime";
+import { formatDayLabel, formatMessageTime } from "@/utils/formatMessageTime";
 
 const now = new Date(2026, 9, 5, 18, 30);
 const clockOf = (date) => date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
@@ -23,4 +23,12 @@ test("the 24-hour clock is used when it is chosen in settings", () => {
   expect(formatMessageTime(afternoon, { now, use24Hour: true })).toContain("15:05");
   expect(formatMessageTime(afternoon, { now })).not.toContain("15:05");
   expect(formatMessageTime(new Date(2026, 9, 5, 9, 5), { now, use24Hour: true })).toContain("09:05");
+});
+
+test("a day label reads Today, Yesterday, the weekday within a week, and the date after that", () => {
+  expect(formatDayLabel(new Date(2026, 9, 5, 0, 10), now)).toBe("Today");
+  expect(formatDayLabel(new Date(2026, 9, 4, 23, 50), now)).toBe("Yesterday");
+  expect(formatDayLabel(new Date(2026, 9, 1, 9, 5), now)).toBe(new Date(2026, 9, 1).toLocaleDateString([], { weekday: "long" }));
+  expect(formatDayLabel(new Date(2026, 8, 20, 9, 5), now)).not.toContain("2026");
+  expect(formatDayLabel(new Date(2025, 8, 20, 9, 5), now)).toContain("2025");
 });

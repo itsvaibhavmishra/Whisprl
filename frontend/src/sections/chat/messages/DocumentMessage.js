@@ -43,7 +43,7 @@ const DocumentRow = ({ file }) => {
       </Box>
 
       <Stack sx={{ flex: 1, minWidth: 0, maxWidth: 160 }}>
-        <Typography variant="body2" noWrap>
+        <Typography data-searchable variant="body2" noWrap>
           {file.fileName}
         </Typography>
         {caption && (

@@ -116,6 +116,9 @@ export const wholePercents = (onPercent) => {
 
 export const attachmentUrl = (id) => held.get(id)?.url ?? null;
 
+// a plain file, or one this browser sent and still holds, opens without decrypting anything
+export const ownUrlOf = (file) => file.url ?? (file.localId && attachmentUrl(file.localId));
+
 export const keepSealedCopy = (id, data) => {
   held.get(id).sealed = new Blob([data]);
 };

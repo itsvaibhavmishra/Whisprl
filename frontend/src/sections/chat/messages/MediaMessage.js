@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { useRef, useState } from "react";
+import { Box, ButtonBase, Typography } from "@mui/material";
 
-import MediaLightbox from "@/sections/chat/messages/MediaLightbox";
 import MediaTile from "@/sections/chat/messages/MediaTile";
 import { TransferOverlay, useTransfer } from "@/sections/chat/messages/TransferRing";
-import { fileKeyOf, isMediaFile } from "@/utils/messageFiles";
+import MediaViewer from "@/sections/chat/viewer/MediaViewer";
+import { mediaKeyOf } from "@/sections/chat/viewer/mediaItems";
+import { formatDuration } from "@/utils/video";
 
 const GRID_CELL_SIZE = 130;
 const MAX_VISIBLE = 4;
@@ -24,10 +25,13 @@ const cellStyleOf = (media, index) => {
   return { height: GRID_CELL_SIZE };
 };
 
+const labelOf = (file) => (file.fileType === "video" ? `Open video, ${formatDuration(file.duration)}` : "Open photo");
+
 // one circle for the whole group while it sends; opening it shows each file's own
-const MediaMessage = ({ files }) => {
+const MediaMessage = ({ items, conversation }) => {
   const [viewing, setViewing] = useState(null);
-  const media = files.filter(isMediaFile);
+  const tiles = useRef([]);
+  const media = items.map((item) => item.file);
   const transfer = useTransfer(media);
   if (!media.length) return null;
 
@@ -40,19 +44,25 @@ const MediaMessage = ({ files }) => {
           position: "relative",
           display: "grid",
           gap: "2px",
-          maxWidth: media.length === 1 ? 260 : GRID_CELL_SIZE * 2 + 2,
+          // a set width, since a photo still decrypting has no size of its own to give the bubble
+          width: media.length === 1 ? 260 : GRID_CELL_SIZE * 2 + 2,
+          maxWidth: "100%",
           borderRadius: "inherit",
           overflow: "hidden",
           ...gridStyleOf(media.length),
         }}
       >
-        {media.slice(0, MAX_VISIBLE).map((file, index) => (
-          <Box
-            key={fileKeyOf(file, index)}
+        {items.slice(0, MAX_VISIBLE).map((item, index) => (
+          <ButtonBase
+            key={mediaKeyOf(item)}
+            ref={(node) => {
+              tiles.current[index] = node;
+            }}
             onClick={() => setViewing(index)}
-            sx={{ position: "relative", overflow: "hidden", cursor: "pointer", ...cellStyleOf(media, index) }}
+            aria-label={labelOf(item.file)}
+            sx={{ position: "relative", overflow: "hidden", "&.Mui-focusVisible": { outline: "2px solid #fff", outlineOffset: -4 }, ...cellStyleOf(media, index) }}
           >
-            <MediaTile file={file} />
+            <MediaTile file={item.file} />
             {index === MAX_VISIBLE - 1 && extraCount > 0 && (
               <Box sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", bgcolor: "rgba(0, 0, 0, 0.55)" }}>
                 <Typography variant="h5" sx={{ color: "#fff", fontWeight: 700 }}>
@@ -60,12 +70,20 @@ const MediaMessage = ({ files }) => {
                 </Typography>
               </Box>
             )}
-          </Box>
+          </ButtonBase>
         ))}
         {transfer && <TransferOverlay transfer={transfer} />}
       </Box>
 
-      <MediaLightbox open={viewing !== null} onClose={() => setViewing(null)} items={media} startIndex={viewing ?? 0} />
+      {viewing !== null && (
+        <MediaViewer
+          items={items}
+          startIndex={viewing}
+          conversation={conversation}
+          tileOf={(index) => tiles.current[Math.min(index, MAX_VISIBLE - 1)]}
+          onClose={() => setViewing(null)}
+        />
+      )}
     </>
   );
 };

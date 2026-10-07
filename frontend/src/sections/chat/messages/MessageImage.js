@@ -2,7 +2,8 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 
 import useFileUrl from "@/hooks/useFileUrl";
 
-const MessageImage = ({ file, fit = "cover" }) => {
+// onPhotoLoad hears from the photo itself, never from the blurred preview shown before it
+const MessageImage = ({ file, fit = "cover", onPhotoLoad }) => {
   const { url, failed } = useFileUrl(file);
   const notice = (file.isLost && "Not sent") || (failed && "Could not open this photo");
   const isWaiting = !notice && (file.isUploading || !url);
@@ -15,6 +16,7 @@ const MessageImage = ({ file, fit = "cover" }) => {
           component="img"
           src={source}
           alt={file.fileName}
+          onLoad={url ? onPhotoLoad : undefined}
           sx={{
             width: "100%",
             height: "100%",

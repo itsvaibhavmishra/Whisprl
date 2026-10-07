@@ -1,31 +1,28 @@
-import { Box, Stack, useTheme } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import { m } from "framer-motion";
 
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 
 const SLIDE = { type: "spring", stiffness: 420, damping: 34 };
 
-const SeenPhoto = ({ person }) => {
-  const theme = useTheme();
-
-  return (
-    <Box sx={{ borderRadius: "50%", border: 2, borderColor: "background.paper", lineHeight: 0 }}>
-      {getAvatar(person.avatar, person.firstName, theme, 16)}
-    </Box>
-  );
-};
+const SeenPhoto = ({ person }) => (
+  <Box sx={{ borderRadius: "50%", border: 2, borderColor: "chat.canvas", lineHeight: 0 }}>
+    {getAvatar(person.avatar, person.firstName, 16)}
+  </Box>
+);
 
 // slides only when it moves to another message, so it stays pinned to its bubble while the list shifts
 const SeenMarker = ({ person, label, messageId }) => (
-  <m.div
+  <Box
+    component={m.div}
     layoutId="seen-marker"
     layoutDependency={messageId}
     {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
     transition={SLIDE}
-    style={{ position: "absolute", right: -8, bottom: -8, lineHeight: 0 }}
+    sx={{ position: "absolute", right: { xs: -20, md: -24 }, bottom: 0, lineHeight: 0 }}
   >
     <SeenPhoto person={person} />
-  </m.div>
+  </Box>
 );
 
 export default SeenMarker;

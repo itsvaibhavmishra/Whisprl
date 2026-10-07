@@ -10,7 +10,7 @@
 ## Build and check
 
 ```sh
-cd backend && npm install && npm start       # the API under nodemon, reads backend/.env
+cd backend && npm install && npm run dev     # the API under nodemon, reads backend/.env
 cd frontend && npm install -f && npm start   # the app via react-app-rewired, reads frontend/.env
 scripts/check.sh                             # the gate
 ```

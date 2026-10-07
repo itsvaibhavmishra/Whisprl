@@ -5,6 +5,7 @@ import {
   ReceiveMessage,
   ReceivePins,
   RemovedMessage,
+  ReceiveAlbumUpdate,
   ReceiveMessageUpdate,
 } from "@/redux/slices/actions/chatActions";
 import {
@@ -34,6 +35,7 @@ let handshakeRetries = 0;
 const serverEvents = () => ({
   message_received: ReceiveMessage,
   message_updated: ReceiveMessageUpdate,
+  album_updated: ReceiveAlbumUpdate,
   receipts: applyReceipt,
   online_friends: updateOnlineUsers,
   start_typing: updateTypingConvo,

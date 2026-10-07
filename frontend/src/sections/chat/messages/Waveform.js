@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 const KEY_STEP = 0.05;
 const MIN_BAR_PERCENT = 12;
 
-const Waveform = ({ bars, progress = 0, playedColor, restColor, height = 28, onSeek, valueText }) => {
+const Waveform = ({ bars, progress = 0, playedColor, restColor, height = 24, onSeek, valueText }) => {
   const seekTo = (fraction) => onSeek(Math.min(Math.max(fraction, 0), 1));
 
   const seekable = onSeek && {

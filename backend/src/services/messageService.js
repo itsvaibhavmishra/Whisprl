@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { albumsFor } from "#src/services/albumService.js";
 import { MEMBER_FIELDS, QUOTED_FIELDS, findMemberConversation, firstIdAt, populateMembers } from "#src/services/conversationService.js";
 import { blockerBetween } from "#src/services/blockService.js";
 import { clearedAtFor } from "#src/services/chatPreferenceService.js";
@@ -105,10 +106,11 @@ export const toClientMessage = (message, conversation) => {
 export const withQuote = (message) => (message.replyTo ? message.populate("replyTo", QUOTED_FIELDS) : message);
 
 // a reply must quote this chat, and a forward copies a message the sender can already read, file included
-export const linksOf = async (conversation, user_id, { replyTo, forwardOf }) => {
+export const linksOf = async (conversation, user_id, { replyTo, replyToAlbum, forwardOf }) => {
   const links = {};
   if (replyTo && mongoose.isValidObjectId(replyTo) && (await MessageModel.exists({ _id: replyTo, conversation: conversation._id }))) {
     links.replyTo = replyTo;
+    if (replyToAlbum === true) links.replyToAlbum = true;
   }
   if (forwardOf && mongoose.isValidObjectId(forwardOf)) {
     const original = await MessageModel.findOne({ _id: forwardOf, deletedAt: null, event: { $exists: false }, viewOnce: { $ne: true } });
@@ -282,7 +284,7 @@ const pageOf = (filter, direction, size) =>
     .populate("replyTo", QUOTED_FIELDS);
 
 // newest first by default; after a message to read on from it; around one to jump straight to it
-export const getConvoMessages = async (conversation, reader_id, { before, after, around } = {}) => {
+const pageFrom = async (conversation, reader_id, { before, after, around }) => {
   const clearedAt = await clearedAtFor(reader_id, conversation._id);
   const readable = (range) => readableBy(conversation, reader_id, range, clearedAt);
 
@@ -302,4 +304,9 @@ export const getConvoMessages = async (conversation, reader_id, { before, after,
 
   const page = await pageOf(readable(isId(before) ? { $lt: before } : {}), -1, PAGE_SIZE);
   return { messages: page.slice(0, PAGE_SIZE).reverse(), hasMore: page.length > PAGE_SIZE };
+};
+
+export const getConvoMessages = async (conversation, reader_id, range = {}) => {
+  const page = await pageFrom(conversation, reader_id, range);
+  return { ...page, albums: await albumsFor(conversation._id, page.messages) };
 };

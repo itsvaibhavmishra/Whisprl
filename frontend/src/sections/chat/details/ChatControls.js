@@ -1,23 +1,22 @@
 import { useState } from "react";
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Divider,
   List,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Archive, BellSlash, Eraser, Flag, Prohibit, Star, Timer, Trash } from "phosphor-react";
+import { alpha } from "@mui/material/styles";
+import { Archive, Eraser, Flag, Prohibit, Timer, Trash } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
-import useSettings from "@/hooks/useSettings";
 import {
   BlockUser,
   ClearChat,
@@ -26,33 +25,32 @@ import {
   UnblockUser,
   UpdateChatPreferences,
 } from "@/redux/slices/actions/chatSettingsActions";
+import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import ReportDialog from "@/sections/chat/details/ReportDialog";
-import { identityOf, isMuted } from "@/utils/chats";
-import { clockOptions } from "@/utils/formatMessageTime";
+import { identityOf } from "@/utils/chats";
 import { DAY_SECONDS, canManage, durationOf } from "@/utils/groups";
 
-const MUTE_CHOICES = [
-  { value: "8h", label: "For 8 hours" },
-  { value: "1w", label: "For 1 week" },
-  { value: "always", label: "Always" },
-];
 const DISAPPEAR_CHOICES = [null, DAY_SECONDS, 7 * DAY_SECONDS, 90 * DAY_SECONDS];
-
-const muteLabelOf = (conversation, use24Hour) => {
-  if (!isMuted(conversation)) return "Off";
-  const until = new Date(conversation.mutedUntil);
-  if (until.getFullYear() > 9000) return "Always";
-  return `Until ${until.toLocaleString(undefined, { weekday: "short", ...clockOptions(use24Hour) })}`;
-};
 
 const disappearLabelOf = (seconds) => (seconds ? durationOf(seconds) : "Off");
 
-const ControlRow = ({ icon: Icon, label, detail, isDanger, ...button }) => (
-  <ListItemButton {...button} sx={isDanger ? { color: "error.main" } : undefined}>
-    <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
-      <Icon size={20} />
-    </ListItemIcon>
-    <ListItemText primary={label} secondary={detail} />
+export const ControlRow = ({ icon: Icon, label, detail, isDanger, ...button }) => (
+  <ListItemButton {...button} sx={{ gap: 1.5, px: 1, borderRadius: 3, color: isDanger ? "error.main" : "text.primary" }}>
+    <Box
+      sx={{
+        width: 36,
+        height: 36,
+        flexShrink: 0,
+        borderRadius: 2.5,
+        display: "grid",
+        placeItems: "center",
+        color: isDanger ? "error.main" : "primary.main",
+        bgcolor: (theme) => alpha(isDanger ? theme.palette.error.main : theme.palette.primary.main, 0.1),
+      }}
+    >
+      <Icon size={19} weight="bold" />
+    </Box>
+    <ListItemText primary={label} secondary={detail} primaryTypographyProps={{ fontSize: 14, fontWeight: 700 }} secondaryTypographyProps={{ fontSize: 12.5 }} />
   </ListItemButton>
 );
 
@@ -82,9 +80,8 @@ const Confirm = ({ title, text, action, onConfirm, onClose }) => (
 
 const ChatControls = ({ conversation }) => {
   const dispatch = useDispatch();
-  const { use24Hour } = useSettings();
   const { _id: meId, blocked = [] } = useSelector((state) => state.user.user);
-  const [menu, setMenu] = useState(null);
+  const [disappearAnchor, setDisappearAnchor] = useState(null);
   const [dialog, setDialog] = useState(null);
 
   const conversationId = conversation._id;
@@ -92,75 +89,55 @@ const ChatControls = ({ conversation }) => {
   const person = !conversation.isGroup && peer?._id !== meId ? peer : null;
   const hasBlocked = Boolean(person && blocked.includes(person._id));
   const canSetDisappearing = !conversation.isGroup || canManage(conversation, meId);
-  const closeMenu = () => setMenu(null);
-  const choose = (run) => () => {
-    run();
-    closeMenu();
+
+  const chooseDisappearing = (seconds) => {
+    setDisappearAnchor(null);
+    dispatch(SetDisappearing({ conversationId, seconds }));
   };
-  const update = (changes) => dispatch(UpdateChatPreferences({ conversationId, ...changes }));
 
   return (
     <>
-      <Divider />
-      <List aria-label="Chat settings">
-        <ControlRow
-          icon={BellSlash}
-          label="Mute notifications"
-          detail={muteLabelOf(conversation, use24Hour)}
-          onClick={(event) => setMenu({ kind: "mute", anchor: event.currentTarget })}
-        />
-        <ControlRow
-          icon={Star}
-          label={conversation.isFavourite ? "Remove from favourites" : "Add to favourites"}
-          onClick={() => update({ isFavourite: !conversation.isFavourite })}
-        />
-        <ControlRow
-          icon={Timer}
-          label="Disappearing messages"
-          detail={canSetDisappearing ? disappearLabelOf(conversation.disappearAfter) : `${disappearLabelOf(conversation.disappearAfter)}. Only admins can change this`}
-          disabled={!canSetDisappearing}
-          onClick={(event) => setMenu({ kind: "disappear", anchor: event.currentTarget })}
-        />
-        <ControlRow
-          icon={Archive}
-          label={conversation.isArchived ? "Unarchive chat" : "Archive chat"}
-          onClick={() => update({ isArchived: !conversation.isArchived })}
-        />
-        <ControlRow icon={Eraser} label="Clear chat" isDanger onClick={() => setDialog("clear")} />
-        {!conversation.isGroup && <ControlRow icon={Trash} label="Delete chat" isDanger onClick={() => setDialog("delete")} />}
-        {person && (
+      <DetailsSection title="Chat settings">
+        <List aria-label="Chat settings" disablePadding sx={{ pb: 3 }}>
           <ControlRow
-            icon={Prohibit}
-            label={hasBlocked ? `Unblock ${person.firstName}` : `Block ${person.firstName}`}
-            isDanger={!hasBlocked}
-            onClick={() => (hasBlocked ? dispatch(UnblockUser(person._id)) : setDialog("block"))}
+            icon={Timer}
+            label="Disappearing messages"
+            detail={canSetDisappearing ? disappearLabelOf(conversation.disappearAfter) : `${disappearLabelOf(conversation.disappearAfter)}. Only admins can change this`}
+            disabled={!canSetDisappearing}
+            onClick={(event) => setDisappearAnchor(event.currentTarget)}
           />
-        )}
-        {(person || conversation.isGroup) && (
           <ControlRow
-            icon={Flag}
-            label={person ? `Report ${person.firstName}` : "Report group"}
-            isDanger
-            onClick={() => setDialog("report")}
+            icon={Archive}
+            label={conversation.isArchived ? "Unarchive chat" : "Archive chat"}
+            onClick={() => dispatch(UpdateChatPreferences({ conversationId, isArchived: !conversation.isArchived }))}
           />
-        )}
-      </List>
+          <ControlRow icon={Eraser} label="Clear chat" isDanger onClick={() => setDialog("clear")} />
+          {!conversation.isGroup && <ControlRow icon={Trash} label="Delete chat" isDanger onClick={() => setDialog("delete")} />}
+          {person && (
+            <ControlRow
+              icon={Prohibit}
+              label={hasBlocked ? `Unblock ${person.firstName}` : `Block ${person.firstName}`}
+              isDanger={!hasBlocked}
+              onClick={() => (hasBlocked ? dispatch(UnblockUser(person._id)) : setDialog("block"))}
+            />
+          )}
+          {(person || conversation.isGroup) && (
+            <ControlRow
+              icon={Flag}
+              label={person ? `Report ${person.firstName}` : "Report group"}
+              isDanger
+              onClick={() => setDialog("report")}
+            />
+          )}
+        </List>
+      </DetailsSection>
 
-      <Menu anchorEl={menu?.anchor} open={menu?.kind === "mute"} onClose={closeMenu}>
-        {MUTE_CHOICES.map(({ value, label }) => (
-          <MenuItem key={value} onClick={choose(() => update({ mute: value }))}>
-            {label}
-          </MenuItem>
-        ))}
-        {isMuted(conversation) && <MenuItem onClick={choose(() => update({ mute: "off" }))}>Unmute</MenuItem>}
-      </Menu>
-
-      <Menu anchorEl={menu?.anchor} open={menu?.kind === "disappear"} onClose={closeMenu}>
+      <Menu anchorEl={disappearAnchor} open={Boolean(disappearAnchor)} onClose={() => setDisappearAnchor(null)}>
         {DISAPPEAR_CHOICES.map((seconds) => (
           <MenuItem
             key={disappearLabelOf(seconds)}
             selected={(conversation.disappearAfter ?? null) === seconds}
-            onClick={choose(() => dispatch(SetDisappearing({ conversationId, seconds })))}
+            onClick={() => chooseDisappearing(seconds)}
           >
             {disappearLabelOf(seconds)}
           </MenuItem>

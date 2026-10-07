@@ -3,7 +3,7 @@ import { PATH_DASHBOARD } from "@/routes/paths";
 import { Box, Stack, Typography, useTheme, Skeleton } from "@mui/material";
 
 import StyledBadge from "@/components/StyledBadge";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 import { getOtherUser } from "@/utils/getOtherUser";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -87,10 +87,10 @@ const OnlineChatElement = ({
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             variant="dot"
           >
-            {getAvatar(avatar, firstName, theme, 35)}
+            {getAvatar(avatar, firstName, 35)}
           </StyledBadge>
         ) : (
-          getAvatar(avatar, firstName, theme, 35)
+          getAvatar(avatar, firstName, 35)
         )}
         <Typography variant="caption" sx={{ userSelect: "none" }}>
           {isLoading ? (

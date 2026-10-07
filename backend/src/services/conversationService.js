@@ -20,7 +20,7 @@ const MEMBERS = [
 
 export const populateMembers = (conversation) => conversation.populate(MEMBERS);
 
-export const QUOTED_FIELDS = "sender cipher attachment event deletedAt createdAt";
+export const QUOTED_FIELDS = "sender cipher attachment event deletedAt createdAt viewOnce viewedBy";
 
 const PINNED = { path: "pins.message", select: QUOTED_FIELDS };
 

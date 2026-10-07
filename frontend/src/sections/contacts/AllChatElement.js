@@ -14,7 +14,7 @@ import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 
 import StyledBadge from "@/components/StyledBadge";
 import useSettings from "@/hooks/useSettings";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 import formatTime from "@/utils/formatTime";
 import truncateText from "@/utils/truncateText";
 import { getOtherUser } from "@/utils/getOtherUser";
@@ -132,10 +132,10 @@ const AllChatElement = ({
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               variant="dot"
             >
-              {getAvatar(avatar, firstName, theme)}
+              {getAvatar(avatar, firstName)}
             </StyledBadge>
           ) : (
-            getAvatar(avatar, firstName, theme)
+            getAvatar(avatar, firstName)
           )}
 
           {/* Name and message */}

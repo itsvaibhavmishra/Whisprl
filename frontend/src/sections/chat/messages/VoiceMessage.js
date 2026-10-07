@@ -9,12 +9,12 @@ import { attachmentUrl, openedFileUrl } from "@/utils/attachments";
 import { formatDuration } from "@/utils/video";
 
 const SPEEDS = [1, 1.5, 2];
-const CONTROL_SIZE = 38;
+const CONTROL_SIZE = 40;
 
 // one voice message plays at a time, so starting another pauses this one
 let playing = null;
 
-const VoiceMessage = ({ file, isMine }) => {
+const VoiceMessage = ({ file, isMine, stamp }) => {
   const theme = useTheme();
   const audio = useRef(null);
   const frame = useRef(null);
@@ -130,8 +130,8 @@ const VoiceMessage = ({ file, isMine }) => {
           onSeek={transfer || file.isLost || isWaiting ? undefined : seek}
           valueText={`${formatDuration(progress * duration)} of ${formatDuration(duration)}`}
         />
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography variant="caption" sx={{ opacity: 0.8, fontVariantNumeric: "tabular-nums" }}>
+        <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap>
+          <Typography variant="caption" sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", color: isMine ? "rgba(255, 255, 255, 0.9)" : "text.secondary" }}>
             {footnote()}
           </Typography>
           <ButtonBase
@@ -141,6 +141,7 @@ const VoiceMessage = ({ file, isMine }) => {
           >
             {speed}x
           </ButtonBase>
+          {stamp}
         </Stack>
       </Stack>
     </Stack>

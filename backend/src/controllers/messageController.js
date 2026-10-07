@@ -69,7 +69,7 @@ export const resealWaitingMessage = async (req, res, next) => {
 
 // -------------------------- Socket Send Message --------------------------
 export const socketSendMessage = async (socket, payload, acknowledge) => {
-  const { convo_id, clientId, cipher, attachment, batch, replyTo, forwardOf, viewOnce } = payload;
+  const { convo_id, clientId, cipher, attachment, batch, replyTo, replyToAlbum, forwardOf, viewOnce } = payload;
   try {
     const user_id = socket.user._id;
     const conversation = await findSendableConversation(convo_id, user_id);
@@ -83,7 +83,7 @@ export const socketSendMessage = async (socket, payload, acknowledge) => {
       ...(attachment === true && { attachment: { status: "uploading" }, ...(viewOnce === true && { viewOnce: true }) }),
       ...batchOf(batch),
       expiresAt: expiryFor(conversation),
-      ...(await linksOf(conversation, user_id, { replyTo, forwardOf })),
+      ...(await linksOf(conversation, user_id, { replyTo, replyToAlbum, forwardOf })),
     });
 
     if (isNew) socket.to(memberRooms(conversation)).emit("message_received", message);

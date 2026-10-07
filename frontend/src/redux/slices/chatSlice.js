@@ -9,6 +9,9 @@ import {
 
 const initialState = {
   conversations: [],
+  hasLoadedConversations: false,
+  // set when the first list could not load, so an address waiting on it gives up
+  hasConversationsFailed: false,
   // counts every message that reaches the list, so a list fetched before one arrived knows it is older
   arrivals: 0,
   activeConversation: null,
@@ -43,9 +46,10 @@ const initialState = {
   editing: null,
   // a reply, pin or search result asks the chat to bring this message into view
   focusedMessageId: null,
-  isDetailsOpen: false,
   // every decrypted message of a chat, gathered for searching it and listing its media, links and documents
   history: {},
+  // reactions to a whole group of photos, by batch key, kept apart from those to any one photo
+  albumReactions: {},
   commonGroups: {},
 };
 
@@ -105,6 +109,9 @@ const listsOf = (state, conversationId) =>
 
 const conversationsWith = (state, conversationId) =>
   [state.activeConversation, ...state.conversations].filter((conversation) => conversation?._id === conversationId);
+
+// each copy is decrypted on its own and can finish out of order, so an older one never replaces a newer
+const isOlderCopy = (copy, current) => copy.updatedAt < current.updatedAt;
 
 const isSameMessage = (message, other) =>
   message._id === other._id ||
@@ -191,7 +198,8 @@ const slice = createSlice({
     },
 
     setReplyingTo: (state, action) => {
-      state.replyingTo = action.payload;
+      // a fresh copy each time, so replying to the same message again still moves focus to the message box
+      state.replyingTo = action.payload && { ...action.payload };
       state.editing = null;
     },
 
@@ -202,11 +210,18 @@ const slice = createSlice({
 
     // shown at once, and replaced by the server's copy when it echoes back
     reactionChanged: (state, action) => {
-      const { conversationId, messageId, userId, emoji } = action.payload;
+      const { conversationId, messageId, batchKey, userId, emoji } = action.payload;
+      const withMine = (reactions = []) => [...reactions.filter((reaction) => reaction.user !== userId), ...(emoji ? [{ user: userId, emoji }] : [])];
+      if (batchKey) {
+        state.albumReactions[batchKey] = withMine(state.albumReactions[batchKey]);
+        return;
+      }
       const message = messagesOf(state, conversationId)?.find((candidate) => candidate._id === messageId);
-      if (!message) return;
-      const others = (message.reactions ?? []).filter((reaction) => reaction.user !== userId);
-      message.reactions = emoji ? [...others, { user: userId, emoji }] : others;
+      if (message) message.reactions = withMine(message.reactions);
+    },
+
+    albumReactionsShown: (state, action) => {
+      Object.assign(state.albumReactions, action.payload);
     },
 
     windowShown: (state, action) => {
@@ -217,10 +232,6 @@ const slice = createSlice({
 
     focusMessage: (state, action) => {
       state.focusedMessageId = action.payload;
-    },
-
-    setDetailsOpen: (state, action) => {
-      state.isDetailsOpen = action.payload;
     },
 
     historyLoaded: (state, action) => {
@@ -364,11 +375,11 @@ const slice = createSlice({
     replaceMessage: (state, action) => {
       listsOf(state, action.payload.conversation).forEach((messages) => {
         const index = messages.findIndex((message) => message._id === action.payload._id);
-        if (index !== -1) messages[index] = action.payload;
+        if (index !== -1 && !isOlderCopy(action.payload, messages[index])) messages[index] = action.payload;
       });
 
       const conversation = state.conversations.find((convo) => convo.latestMessage?._id === action.payload._id);
-      if (conversation) conversation.latestMessage = action.payload;
+      if (conversation && !isOlderCopy(action.payload, conversation.latestMessage)) conversation.latestMessage = action.payload;
     },
 
     editSettled: (state, action) => {
@@ -420,6 +431,7 @@ const slice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(GetConversations.fulfilled, (state, action) => {
+        state.hasLoadedConversations = true;
         const { conversations, arrivalsWhenAsked } = action.payload;
         const held = new Map(state.conversations.map((conversation) => [conversation._id, conversation]));
         const isNewer = (conversation) => held.get(conversation._id)?.arrival > arrivalsWhenAsked;
@@ -436,8 +448,16 @@ const slice = createSlice({
         const active = state.conversations.find((conversation) => conversation._id === state.activeConversation?._id);
         if (active) state.activeConvoFriendship = active.canMessage;
       })
+      .addCase(GetConversations.rejected, (state) => {
+        if (!state.hasLoadedConversations) state.hasConversationsFailed = true;
+      })
       .addCase(CreateOpenConversation.fulfilled, (state, action) => {
-        open(state, action.payload.conversation, action.payload.isValidFriendShip);
+        const { conversation, isValidFriendShip } = action.payload;
+        // listed straight away, though hidden until its first message, so going back to it finds it
+        if (!state.conversations.some((listed) => listed._id === conversation._id)) {
+          state.conversations.push({ ...conversation, canMessage: isValidFriendShip });
+        }
+        open(state, conversation, isValidFriendShip);
       })
 
       // the newest page, joined onto older pages already loaded when the two overlap
@@ -489,9 +509,9 @@ export const {
   setReplyingTo,
   setEditing,
   reactionChanged,
+  albumReactionsShown,
   focusMessage,
   windowShown,
-  setDetailsOpen,
   historyLoaded,
   commonGroupsLoaded,
   groupUpdated,

@@ -1,18 +1,9 @@
 import { alpha } from "@mui/material/styles";
 
-function createGradient(color1, color2) {
-  return `linear-gradient(to bottom, ${color1}, ${color2})`;
-}
+import { defaultPreset } from "@/utils/colorPresets";
 
-const PRIMARY = {
-  lighterFaded: "#063d7540",
-  lighterFade: "#1B8CFEBF",
-  lighter: "#9BCBFA",
-  light: "#5DA8F5",
-  main: "#1b8cfe",
-  dark: "#0159b2",
-  darker: "#0754a3",
-};
+const NAVY = "#0F1A2B";
+
 const SECONDARY = {
   lighterFaded: "#84A9FF40",
   lighterFade: "#84A9FFBF",
@@ -35,9 +26,9 @@ const SUCCESS = {
   lighterFaded: "#AAF27F40",
   lighterFade: "#AAF27FBF",
   lighter: "#E9FCD4",
-  light: "#AAF27F",
-  main: "#54D62C",
-  dark: "#229A16",
+  light: "#7EE2A8",
+  main: "#2BC48A",
+  dark: "#178A5E",
   darker: "#08660D",
 };
 const WARNING = {
@@ -53,39 +44,32 @@ const ERROR = {
   lighterFaded: "#FFA48D40",
   lighterFade: "#FFA48DBF",
   lighter: "#FFE7D9",
-  light: "#FFA48D",
-  main: "#FF4842",
+  light: "#FF8A8A",
+  main: "#E5484D",
   dark: "#B72136",
   darker: "#7A0C2E",
 };
 
+// cool silver greys with a navy cast, taken from the mascot's body and outline
 const GREY = {
   0: "#FFFFFF",
-  100: "#F9FAFB",
-  200: "#F4F6F8",
-  300: "#DFE3E8",
-  400: "#C4CDD5",
-  500: "#919EAB",
-  600: "#637381",
-  700: "#454F5B",
-  800: "#212B36",
-  900: "#1C232B", // 1E2630 1C232B
-  500_8: alpha("#919EAB", 0.08),
-  500_12: alpha("#919EAB", 0.12),
-  500_16: alpha("#919EAB", 0.16),
-  500_24: alpha("#919EAB", 0.24),
-  500_32: alpha("#919EAB", 0.32),
-  500_48: alpha("#919EAB", 0.48),
-  500_56: alpha("#919EAB", 0.56),
-  500_80: alpha("#919EAB", 0.8),
-};
-
-const GRADIENTS = {
-  primary: createGradient(PRIMARY.light, PRIMARY.main),
-  info: createGradient(INFO.light, INFO.main),
-  success: createGradient(SUCCESS.light, SUCCESS.main),
-  warning: createGradient(WARNING.light, WARNING.main),
-  error: createGradient(ERROR.light, ERROR.main),
+  100: "#F7F9FC",
+  200: "#EEF2F8",
+  300: "#DCE3EE",
+  400: "#B7C3D4",
+  500: "#8A98AE",
+  600: "#5F6E86",
+  700: "#3A4860",
+  800: "#1E2A3D",
+  900: "#131C2B",
+  500_8: alpha("#8A98AE", 0.08),
+  500_12: alpha("#8A98AE", 0.12),
+  500_16: alpha("#8A98AE", 0.16),
+  500_24: alpha("#8A98AE", 0.24),
+  500_32: alpha("#8A98AE", 0.32),
+  500_48: alpha("#8A98AE", 0.48),
+  500_56: alpha("#8A98AE", 0.56),
+  500_80: alpha("#8A98AE", 0.8),
 };
 
 const CHART_COLORS = {
@@ -98,41 +82,71 @@ const CHART_COLORS = {
 
 const COMMON = {
   common: { black: "#000", white: "#fff" },
-  primary: { ...PRIMARY, contrastText: "#fff" },
+  primary: defaultPreset,
   secondary: { ...SECONDARY, contrastText: "#fff" },
   info: { ...INFO, contrastText: "#fff" },
-  success: { ...SUCCESS, contrastText: GREY[800] },
-  warning: { ...WARNING, contrastText: GREY[800] },
+  success: { ...SUCCESS, contrastText: NAVY },
+  warning: { ...WARNING, contrastText: NAVY },
   error: { ...ERROR, contrastText: "#fff" },
   grey: GREY,
-  gradients: GRADIENTS,
   chart: CHART_COLORS,
-  divider: GREY[500_24],
-  action: {
-    hover: GREY[500_8],
-    selected: GREY[500_16],
-    disabled: GREY[500_80],
-    disabledBackground: GREY[500_24],
-    focus: GREY[500_24],
-    hoverOpacity: 0.08,
-    disabledOpacity: 0.48,
-  },
 };
+
+const action = (hoverColor) => ({
+  hover: alpha(hoverColor, 0.06),
+  selected: alpha(hoverColor, 0.1),
+  disabled: GREY[500_80],
+  disabledBackground: GREY[500_24],
+  focus: GREY[500_24],
+  hoverOpacity: 0.06,
+  disabledOpacity: 0.48,
+});
 
 const palette = {
   light: {
     ...COMMON,
     mode: "light",
-    text: { primary: GREY[800], secondary: GREY[600], disabled: GREY[500] },
-    background: { paper: "#F0F3F8", default: "#fff", neutral: GREY[200] },
-    action: { active: GREY[600], ...COMMON.action },
+    text: { primary: NAVY, secondary: GREY[600], disabled: GREY[500] },
+    background: { paper: "#F1F4F9", default: "#FFFFFF", neutral: GREY[200] },
+    divider: alpha(NAVY, 0.09),
+    action: { active: GREY[600], ...action(NAVY) },
+    chat: {
+      rail: NAVY,
+      list: "#FFFFFF",
+      canvas: "#EEF3F9",
+      raised: "#FFFFFF",
+      sheet: "#FFFFFF",
+      bubbleIn: "#FFFFFF",
+      glass: alpha("#FFFFFF", 0.86),
+      pill: alpha("#FFFFFF", 0.9),
+      field: "#EEF2F8",
+      edge: alpha(NAVY, 0.08),
+      doodle: alpha(NAVY, 0.075),
+      shade: alpha(NAVY, 0.08),
+    },
   },
   dark: {
     ...COMMON,
     mode: "dark",
-    text: { primary: "#fff", secondary: GREY[500], disabled: GREY[600] },
-    background: { paper: GREY[800], default: GREY[900], neutral: GREY[500_16] },
-    action: { active: GREY[500], ...COMMON.action },
+    text: { primary: "#E9EEF6", secondary: "#93A1B8", disabled: "#7B8AA2" },
+    background: { paper: "#1A2334", default: "#0D1420", neutral: alpha("#93A1B8", 0.12) },
+    divider: alpha("#9FB2D0", 0.1),
+    action: { active: "#93A1B8", ...action("#C8D6EC") },
+    // each step up is a little lighter, so what floats reads as nearer: canvas, list, field, bubble, raised
+    chat: {
+      rail: "#080C14",
+      list: "#0D1420",
+      canvas: "#080D15",
+      raised: "#252F43",
+      sheet: "#1A2334",
+      bubbleIn: "#1E2839",
+      glass: alpha("#0D1420", 0.86),
+      pill: alpha("#1E2839", 0.95),
+      field: "#151E2D",
+      edge: alpha("#FFFFFF", 0.06),
+      doodle: alpha("#C8D6EC", 0.05),
+      shade: alpha("#000000", 0.45),
+    },
   },
 };
 

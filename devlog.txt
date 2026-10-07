@@ -31,7 +31,7 @@
     - The person who makes a group owns it and chooses admins, who can rename it, change its photo and add people
     - See who has read a group message, with each person's photo under the last one they read
     - Sounds when you send a message and when one arrives, quieter in the chat you have open, with a switch in settings
-    - A redesigned chat page: your chats, the conversation and its details side by side, at /chat
+    - A redesigned chat page at /chat, in light and dark: your chats, the conversation and its details side by side, a navigation rail with Whisprl's mascot, and a fresh doodle pattern
     - Reply to a message, and edit your own messages for 15 minutes after sending
     - Delete a message for yourself, or for everyone in the chat
     - React to messages, end-to-end encrypted, from a quick bar you can change in settings or with a double click or tap
@@ -59,6 +59,9 @@
     - Delete a chat for yourself: it leaves your list and its messages are cleared for you, until a new message brings it back
     - Voice messages up to 15 minutes, end-to-end encrypted: hold the mic to record and let go to send, slide left to cancel, or slide up (or click, on a computer) to record hands-free
     - Voice messages play at 1x, 1.5x or 2x, with a waveform that fills as they play and jumps to wherever you tap
+    - Each chat has its own address, so a refresh keeps it open and Back closes it, the details panel included
+    - Chat wallpapers to choose from, for every chat or just one, with the doodles on or off
+    - A Voice tab in a chat's details lists its voice messages
 
   - Improvements:
     - The artwork loads several times faster, just as sharp
@@ -87,6 +90,28 @@
     - The welcome page and the terms cover end-to-end encryption, group chats, videos and Status
     - An edited message changes the moment you send it, and shows Sending… until it is saved
     - A reply in a group shows the photo and name of the person it answers
+    - Messages show their time, and in one-to-one chats a tick for sent, delivered and seen, with a label for each day
+    - Your messages share one gradient that shifts as they scroll, new messages rise in, and the wallpaper drifts a little with each one you send
+    - The accent colours are now Halo, Violet, Lagoon, Cobalt, Sunset and Rose, each with a brighter shade for dark mode
+    - A letter avatar keeps the same colours wherever that person appears
+    - Dark mode is deeper and calmer, with the wallpaper's colours glowing through the doodles instead of washing over the chat
+    - Searching a chat highlights every match in the messages
+    - Voice messages are half the height, with the time beside their length
+    - The date floats over the messages only while you scroll, so it never covers one
+    - A friend's status shows as a ring around their photo in your chats, and their photo offers to open the status or their profile
+    - Your photo on the side rail opens your profile or settings
+    - Reactions sit in one pill under a message, showing up to three of the most used emoji and how many in all, and tapping it lists who reacted, reacts with the same emoji or takes yours back
+    - A long press or right click on a message opens quick reactions above its menu
+    - Your reaction is marked in the reaction picker, and changing it swaps it in place
+    - A message deleted for everyone can still be removed from your own screen
+    - Voice recording cancels or locks when you let go, so sliding back changes your mind
+    - Opening a chat's details eases the chat aside instead of jumping, and its close button sits on the right
+    - A new photo viewer that grows out of the photo you tap: react to, reply to, forward, save or delete each photo of a group on its own, zoom in, swipe between them, and drag down to close
+    - React to a group of photos as a whole or to each photo in it, with every reaction counted together on the group
+    - Deleting or forwarding a group of photos takes every photo in it, and a forwarded group arrives as one group
+    - A reply to a photo or video shows its thumbnail, and tapping it opens that photo and, once closed, shows it in the chat, or takes you to the group when the reply was to a whole group
+    - Choosing Reply always puts the cursor in the message box, including from the photo viewer
+    - A reply to a view-once photo or video quotes it in words only, and says Opened once it has been
 
   - Fixed:
     - Opening a chat no longer crashes for people who used Whisprl before photo sharing arrived

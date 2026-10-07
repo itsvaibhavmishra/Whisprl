@@ -1,20 +1,43 @@
 import { useState } from "react";
-import {
-  Box,
-  IconButton,
-  InputBase,
-  Stack,
-  Tooltip,
-  useTheme,
-} from "@mui/material";
-import { NumberCircleOne, PaperPlaneTilt, Plus, XCircle } from "phosphor-react";
-import { useSelector, useDispatch } from "react-redux";
-import { setActiveFileIndex } from "@/redux/slices/chatSlice";
+import { Box, ButtonBase, IconButton, InputBase, Stack, Tooltip } from "@mui/material";
+import { NumberCircleOne, PaperPlaneTilt, Plus, X } from "phosphor-react";
+import { useDispatch, useSelector } from "react-redux";
+
 import { ChooseAttachments, RemoveAttachment, SendAttachments } from "@/redux/slices/actions/attachmentActions";
+import { setActiveFileIndex } from "@/redux/slices/chatSlice";
+import { COLUMN_WIDTH, COMPOSER_GUTTER, FIELD_PILL, ROUND_BUTTON } from "@/sections/chat/conversation/Composer";
 import { MAX_ATTACHMENTS, attachmentUrl } from "@/utils/attachments";
 
+const TILE = { position: "relative", width: 56, height: 56, flexShrink: 0, borderRadius: 1.5, overflow: "hidden" };
+
+const Thumbnail = ({ file, isActive, onPick, onRemove }) => (
+  <Box sx={{ position: "relative", flexShrink: 0 }}>
+    <ButtonBase
+      onClick={onPick}
+      aria-label={`Preview ${file.fileName}`}
+      aria-pressed={isActive}
+      sx={{ ...TILE, boxShadow: (theme) => (isActive ? `0 0 0 2.5px ${theme.palette.primary.main}` : `0 0 0 1px ${theme.palette.divider}`) }}
+    >
+      {file.kind === "image" || file.preview ? (
+        <Box component="img" src={file.kind === "image" ? attachmentUrl(file.id) : file.preview} alt="" sx={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        <Box sx={{ width: "100%", height: "100%", display: "grid", placeItems: "center", bgcolor: "chat.raised", fontSize: 11, fontWeight: 800, color: "primary.main" }}>
+          {file.typeLabel}
+        </Box>
+      )}
+    </ButtonBase>
+    <IconButton
+      size="small"
+      aria-label={`Remove ${file.fileName}`}
+      onClick={onRemove}
+      sx={{ position: "absolute", top: -6, right: -6, width: 24, height: 24, color: "common.white", bgcolor: "rgba(6, 12, 22, 0.7)", "&:hover": { bgcolor: "error.main" } }}
+    >
+      <X size={12} weight="bold" />
+    </IconButton>
+  </Box>
+);
+
 const FileFooter = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const { files, activeFileIndex } = useSelector((state) => state.chat);
   const [caption, setCaption] = useState("");
@@ -29,169 +52,66 @@ const FileFooter = () => {
   };
 
   return (
-    <Stack spacing={1.5} sx={{ px: 2, pb: 2 }}>
-      {/* Thumbnail strip */}
-      <Stack
-        direction="row"
-        spacing={1}
-        alignItems="center"
-        sx={{ overflowX: "auto", py: 0.5 }}
-        className="scrollbar"
-      >
-        {/* Add more button */}
-        {files.length < MAX_ATTACHMENTS && (
-          <Box
-            onClick={() => dispatch(ChooseAttachments())}
-            sx={{
-              width: 60,
-              height: 60,
-              minWidth: 60,
-              borderRadius: 1.5,
-              border: `2px dashed ${theme.palette.divider}`,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              cursor: "pointer",
-              "&:hover": {
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
-            <Plus size={24} color={theme.palette.text.secondary} />
-          </Box>
-        )}
-
-        {/* File thumbnails */}
-        {files.map((fileObj, index) => (
-          <Box
-            key={fileObj.id}
-            sx={{
-              position: "relative",
-              width: 60,
-              height: 60,
-              minWidth: 60,
-              borderRadius: 1.5,
-              overflow: "hidden",
-              cursor: "pointer",
-              border:
-                index === activeFileIndex
-                  ? `2px solid ${theme.palette.primary.main}`
-                  : `2px solid transparent`,
-            }}
-            onClick={() => dispatch(setActiveFileIndex(index))}
-          >
-            {fileObj.kind === "image" || fileObj.preview ? (
-              <Box
-                component="img"
-                src={fileObj.kind === "image" ? attachmentUrl(fileObj.id) : fileObj.preview}
-                alt={fileObj.fileName}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: theme.palette.background.default,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+    <Box sx={COMPOSER_GUTTER}>
+      <Stack spacing={1.5} sx={{ maxWidth: COLUMN_WIDTH, mx: "auto" }}>
+        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ overflowX: "auto", p: 0.75 }} className="scrollbar">
+          {files.map((file, index) => (
+            <Thumbnail
+              key={file.id}
+              file={file}
+              isActive={index === activeFileIndex}
+              onPick={() => dispatch(setActiveFileIndex(index))}
+              onRemove={() => dispatch(RemoveAttachment(file.id))}
+            />
+          ))}
+          {files.length < MAX_ATTACHMENTS && (
+            <Tooltip title="Add more">
+              <ButtonBase
+                aria-label="Add more files"
+                onClick={() => dispatch(ChooseAttachments())}
+                sx={{ ...TILE, color: "text.secondary", border: 2, borderStyle: "dashed", borderColor: "divider", bgcolor: "chat.pill", "&:hover": { color: "primary.main", borderColor: "primary.main" } }}
               >
-                <Box
-                  sx={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: theme.palette.primary.main,
-                  }}
+                <Plus size={22} weight="bold" />
+              </ButtonBase>
+            </Tooltip>
+          )}
+        </Stack>
+
+        <Stack direction="row" alignItems="flex-end" sx={{ gap: 1 }}>
+          <Stack direction="row" alignItems="center" sx={{ ...FIELD_PILL, minHeight: 48, px: 0.5 }}>
+            {canBeViewOnce && (
+              <Tooltip title={sendsViewOnce ? "View once is on" : "View once"}>
+                <IconButton
+                  aria-label="View once"
+                  aria-pressed={sendsViewOnce}
+                  onClick={() => setIsViewOnce((isOn) => !isOn)}
+                  sx={{ color: sendsViewOnce ? "primary.main" : "text.secondary" }}
                 >
-                  {fileObj.typeLabel}
-                </Box>
-              </Box>
+                  <NumberCircleOne size={22} weight={sendsViewOnce ? "fill" : "regular"} />
+                </IconButton>
+              </Tooltip>
             )}
-
-            {/* Remove button */}
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(RemoveAttachment(fileObj.id));
+            <InputBase
+              placeholder={sendsViewOnce ? "View once has no caption" : "Add a caption..."}
+              disabled={sendsViewOnce}
+              value={sendsViewOnce ? "" : caption}
+              onChange={(event) => setCaption(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  handleSend();
+                }
               }}
-              sx={{
-                position: "absolute",
-                top: -2,
-                right: -2,
-                p: 0,
-                backgroundColor: theme.palette.background.paper,
-                "&:hover": { backgroundColor: theme.palette.background.paper },
-              }}
-            >
-              <XCircle size={18} weight="fill" color={theme.palette.primary.main} />
-            </IconButton>
-          </Box>
-        ))}
+              inputProps={{ "aria-label": "Caption" }}
+              sx={{ flex: 1, minWidth: 0, px: canBeViewOnce ? 0.5 : 1.5, py: "12px", fontSize: 15, fontWeight: 500 }}
+            />
+          </Stack>
+          <IconButton aria-label="Send" onClick={handleSend} disabled={files.length === 0} sx={ROUND_BUTTON}>
+            <PaperPlaneTilt size={21} weight="fill" />
+          </IconButton>
+        </Stack>
       </Stack>
-
-      {/* Caption input + send button */}
-      <Stack direction="row" spacing={1} alignItems="center">
-        {canBeViewOnce && (
-          <Tooltip title={sendsViewOnce ? "View once is on" : "View once"}>
-            <IconButton
-              aria-label="View once"
-              aria-pressed={sendsViewOnce}
-              onClick={() => setIsViewOnce((isOn) => !isOn)}
-              sx={{ color: sendsViewOnce ? "primary.main" : "text.secondary" }}
-            >
-              <NumberCircleOne size={24} weight={sendsViewOnce ? "fill" : "regular"} />
-            </IconButton>
-          </Tooltip>
-        )}
-        <InputBase
-          placeholder={sendsViewOnce ? "View once has no caption" : "Add a caption..."}
-          disabled={sendsViewOnce}
-          value={sendsViewOnce ? "" : caption}
-          onChange={(e) => setCaption(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          sx={{
-            flex: 1,
-            px: 2,
-            py: 1,
-            borderRadius: 20,
-            backgroundColor: theme.palette.background.default,
-            fontSize: 14,
-          }}
-        />
-        <IconButton
-          aria-label="Send"
-          onClick={handleSend}
-          disabled={files.length === 0}
-          sx={{
-            height: 40,
-            width: 40,
-            backgroundColor: theme.palette.primary.main,
-            borderRadius: 20,
-            "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
-            },
-            "&.Mui-disabled": {
-              backgroundColor: theme.palette.action.disabledBackground,
-            },
-          }}
-        >
-          <PaperPlaneTilt color="#ffffff" size={20} />
-        </IconButton>
-      </Stack>
-    </Stack>
+    </Box>
   );
 };
 

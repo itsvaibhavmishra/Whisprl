@@ -3,11 +3,12 @@ import { ButtonBase, Typography } from "@mui/material";
 import { NumberCircleOne } from "phosphor-react";
 
 import ViewOnceViewer from "@/sections/chat/messages/ViewOnceViewer";
+import { isViewOnceOpened } from "@/utils/messageSummary";
 
 const ViewOnceMessage = ({ message, isMine, isGroup, meId }) => {
   const [isViewing, setIsViewing] = useState(false);
   const viewers = message.viewedBy ?? [];
-  const hasOpened = viewers.includes(meId) || message.attachment?.status === "opened";
+  const hasOpened = isViewOnceOpened(message, meId);
   const canOpen = !isMine && !hasOpened && Boolean(message.file) && message.attachment?.status === "ready";
   const noun = message.file?.kind === "video" ? "Video" : "Photo";
 

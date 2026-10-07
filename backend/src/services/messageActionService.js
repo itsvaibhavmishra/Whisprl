@@ -1,7 +1,8 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { MessageModel } from "#src/models/index.js";
+import { AlbumModel, MessageModel } from "#src/models/index.js";
+import { dropEmptyAlbums } from "#src/services/albumService.js";
 import { findMemberConversation, memberRooms, populateMembers } from "#src/services/conversationService.js";
 import {
   deleteFilesNoLongerUsed,
@@ -44,8 +45,19 @@ export const deleteForEveryone = async (message_id, user_id) => {
   const conversation = await populateMembers(await findMemberConversation(message.conversation, user_id));
   const fileUrls = [message.attachment?.url, ...message.files.map((file) => file.url)].filter(Boolean);
 
-  message.set({ cipher: undefined, message: undefined, attachment: undefined, files: [], reactions: [], deletedAt: new Date() });
+  message.set({
+    cipher: undefined,
+    message: undefined,
+    attachment: undefined,
+    files: [],
+    reactions: [],
+    replyTo: undefined,
+    replyToAlbum: undefined,
+    forwarded: undefined,
+    deletedAt: new Date(),
+  });
   await message.save();
+  await dropEmptyAlbums([message]);
 
   const wasPinned = conversation.pins.some((pin) => pin.message.equals(message._id));
   if (wasPinned) {
@@ -74,6 +86,20 @@ export const setReaction = async (message_id, user_id, cipher) => {
   if (cipher) await MessageModel.updateOne({ _id: message._id }, { $push: { reactions: { user: user_id, cipher } } });
 
   return answer(await MessageModel.findById(message._id), conversation);
+};
+
+// any photo still standing addresses its group, whose record is made by the first reaction to it
+export const setAlbumReaction = async (message_id, user_id, cipher) => {
+  const photo = await findMessage(message_id, { ...STANDING, batchTotal: { $gt: 1 } });
+  const conversation = await findSendableConversation(photo.conversation, user_id);
+  if (cipher) validateCipher(cipher, conversation, user_id);
+
+  const album = { conversation: photo.conversation, sender: photo.sender, batchId: photo.batchId };
+  await AlbumModel.updateOne(album, { $pull: { reactions: { user: user_id } } });
+  if (cipher) await AlbumModel.updateOne(album, { $push: { reactions: { user: user_id, cipher } } }, { upsert: true });
+
+  const saved = await AlbumModel.findOne(album).select("reactions").lean();
+  return { conversation, album: { ...album, reactions: saved?.reactions ?? [] } };
 };
 
 // sent to the members there at the time, less anyone who has since deleted it for themselves
