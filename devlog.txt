@@ -16,6 +16,7 @@
   - New:
 
   - Improvements:
+    - Log out from the menu behind your photo on the side rail, below Settings
 
   - Fixed:
     - Signing in with Google works again

@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Badge, Box, ButtonBase, ListItemIcon, Menu, MenuItem, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Badge, Box, ButtonBase, Divider, ListItemIcon, Menu, MenuItem, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AnimatePresence, m } from "framer-motion";
-import { AddressBook, ChatCircleDots, CircleDashed, Gear, MoonStars, SunDim, UserCircle } from "phosphor-react";
+import { AddressBook, ChatCircleDots, CircleDashed, Gear, MoonStars, SignOut, SunDim, UserCircle } from "phosphor-react";
 import { Link, matchPath, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import useSettings from "@/hooks/useSettings";
+import { LogoutUser } from "@/redux/slices/actions/authActions";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { isMuted } from "@/utils/chats";
@@ -123,6 +124,7 @@ const Mascot = () => (
 );
 
 const SideRail = () => {
+  const dispatch = useDispatch();
   const { pathname } = useLocation();
   const activeId = useSelector((state) => state.chat.activeConversation?._id);
   // back to the chat left open, rather than closing it
@@ -200,6 +202,19 @@ const SideRail = () => {
               <Gear size={18} />
             </ListItemIcon>
             Settings
+          </MenuItem>
+          <Divider sx={{ my: "4px !important" }} />
+          <MenuItem
+            onClick={() => {
+              closeProfileMenu();
+              dispatch(LogoutUser());
+            }}
+            sx={{ color: "error.main" }}
+          >
+            <ListItemIcon sx={{ color: "inherit" }}>
+              <SignOut size={18} />
+            </ListItemIcon>
+            Log out
           </MenuItem>
         </Menu>
       </Stack>
