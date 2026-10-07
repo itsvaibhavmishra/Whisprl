@@ -1,5 +1,5 @@
-import { Divider, IconButton, Stack } from "@mui/material";
-import { GithubLogo, GoogleLogo } from "phosphor-react";
+import { Box, Button, Divider } from "@mui/material";
+import { GithubLogo, GoogleLogo, LinkedinLogo } from "phosphor-react";
 import { useGoogleLogin } from "@react-oauth/google";
 
 import { useDispatch } from "react-redux";
@@ -7,27 +7,17 @@ import {
   GithubLogin,
   GoogleLogin,
   LinkedinLogin,
-} from "../../redux/slices/actions/authActions";
+} from "@/redux/slices/actions/authActions";
 
-import { getOAuthCode } from "../../utils/socialLoginHelpers";
-import Iconify from "../../components/Iconify";
-import { ShowSnackbar } from "../../redux/slices/userSlice";
+import { getOAuthCode } from "@/utils/socialLoginHelpers";
+import { notify } from "@/utils/notify";
 
 const AuthSocial = () => {
   const dispatch = useDispatch();
 
   const baseURL = window.location.origin;
 
-  // ---------- inner functions ----------
-
-  const showSnackbar = (socialType) => {
-    dispatch(
-      ShowSnackbar({
-        severity: "error",
-        message: `Unable to login using ${socialType}`,
-      })
-    );
-  };
+  const showSnackbar = (socialType) => notify({ severity: "error", message: `Unable to login using ${socialType}` });
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
@@ -65,30 +55,32 @@ const AuthSocial = () => {
     }
   };
 
-  // -------------------------------------
+  const providers = [
+    { name: "Google", icon: <GoogleLogo weight="bold" color="#DF3E30" />, onClick: () => googleLogin() },
+    { name: "GitHub", icon: <GithubLogo weight="fill" />, onClick: githubLogin },
+    { name: "LinkedIn", icon: <LinkedinLogo weight="fill" color="#0A66C2" />, onClick: linkedinLogin },
+  ];
 
   return (
     <>
-      <Divider
-        sx={{
-          my: 2.5,
-          typography: "overline",
-          color: "text.disabled",
-        }}
-      >
-        OR
+      <Divider sx={{ my: 3, typography: "body2", color: "text.secondary" }}>
+        or continue with
       </Divider>
-      <Stack direction={"row"} spacing={2} justifyContent={"center"}>
-        <IconButton onClick={() => googleLogin()}>
-          <GoogleLogo color="#DF3E30" />
-        </IconButton>
-        <IconButton color="inherit" onClick={() => githubLogin()}>
-          <GithubLogo />
-        </IconButton>
-        <IconButton onClick={() => linkedinLogin()}>
-          <Iconify icon={"ri:linkedin-line"} color="#1C9CEA" />
-        </IconButton>
-      </Stack>
+      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.5 }}>
+        {providers.map(({ name, icon, onClick }) => (
+          <Button
+            key={name}
+            variant="outlined"
+            color="inherit"
+            startIcon={icon}
+            onClick={onClick}
+            aria-label={`Continue with ${name}`}
+            sx={{ borderColor: "divider" }}
+          >
+            {name}
+          </Button>
+        ))}
+      </Box>
     </>
   );
 };

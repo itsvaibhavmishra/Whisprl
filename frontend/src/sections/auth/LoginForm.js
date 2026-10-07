@@ -1,47 +1,34 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import {
-  IconButton,
-  InputAdornment,
-  Link,
-  Stack,
-  useMediaQuery,
-} from "@mui/material";
+import { Link, Stack } from "@mui/material";
+import { Key } from "phosphor-react";
 import { LoadingButton } from "@mui/lab";
-import { Eye, EyeSlash } from "phosphor-react";
 
-// redux imports
-import { useDispatch, useSelector } from "react-redux";
-import { LoginUser } from "../../redux/slices/actions/authActions";
+import { useDispatch } from "react-redux";
+import { LoginUser, PasskeyLogin } from "@/redux/slices/actions/authActions";
 
-import FormProvider, { RHFTextField } from "../../components/hook-form";
+import FormProvider, { RHFPasswordField, RHFTextField } from "@/components/hook-form";
+import { PATH_AUTH } from "@/routes/paths";
+import { canUsePasskeys } from "@/utils/passkeys";
+import useIsLoading from "@/hooks/useIsLoading";
 
 const LoginForm = () => {
-  // dispatch from redux
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(LoginUser);
+  const isUsingPasskey = useIsLoading(PasskeyLogin);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // hide and show password controller
-  const [showPassword, setShowPassword] = useState(false);
   const recaptchaRef = useRef(null);
 
-  // Login Schema
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required("Email Required").email("Invalid Email"),
-    password: Yup.string()
-      .required("Password Required")
-      .min(8, "Password must be atleast 8 characters long")
-      .matches(/[0-9]/, "Password requires a number")
-      .matches(/[a-z]/, "Password requires a lowercase letter")
-      .matches(/[A-Z]/, "Password requires an uppercase letter")
-      .matches(/[^\w]/, "Password requires a symbol"),
+    password: Yup.string().required("Password required"),
   });
 
-  // Labels
   const defaultValues = {
     email: "",
     password: "",
@@ -56,40 +43,17 @@ const LoginForm = () => {
   const { handleSubmit } = methods;
 
   const onSubmit = async (data) => {
-    try {
-      dispatch(LoginUser({ ...data, recaptchaRef }));
-    } catch (error) {
-      console.log(error);
-    }
+    const result = await dispatch(LoginUser({ ...data, recaptchaRef }));
+    if (LoginUser.fulfilled.match(result) && !result.payload.user) navigate(PATH_AUTH.general.verify);
   };
-
-  // breakpoint
-  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={isSmallScreen ? 0 : 3}>
+      <Stack spacing={2}>
         <RHFTextField name="email" label="Email address" />
-        <RHFTextField
-          name="password"
-          label="Password"
-          type={showPassword ? "text" : "password"}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => {
-                    setShowPassword(!showPassword);
-                  }}
-                >
-                  {showPassword ? <Eye /> : <EyeSlash />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <RHFPasswordField name="password" label="Password" autoComplete="current-password" />
       </Stack>
-      <Stack alignItems={isSmallScreen ? "center" : "flex-end"} sx={{ my: 2 }}>
+      <Stack alignItems="flex-end" sx={{ mt: 1.5 }}>
         <Link
           to="/auth/forgot-password"
           component={RouterLink}
@@ -97,7 +61,7 @@ const LoginForm = () => {
           color="inherit"
           underline="hover"
         >
-          Forgot Password?
+          Forgot your password?
         </Link>
       </Stack>
 
@@ -114,20 +78,25 @@ const LoginForm = () => {
         size="large"
         type="submit"
         variant="contained"
-        sx={{
-          mt: 3,
-          bgcolor: "text.primary",
-          color: (theme) =>
-            theme.palette.mode === "light" ? "common.white" : "grey.800",
-          "&:hover": {
-            bgcolor: "text.primary",
-            color: (theme) =>
-              theme.palette.mode === "light" ? "common.white" : "grey.800",
-          },
-        }}
+        sx={{ mt: 3 }}
       >
-        Login
+        Log in
       </LoadingButton>
+
+      {canUsePasskeys() && (
+        <LoadingButton
+          loading={isUsingPasskey}
+          fullWidth
+          size="large"
+          variant="outlined"
+          color="inherit"
+          startIcon={<Key weight="bold" />}
+          onClick={() => dispatch(PasskeyLogin())}
+          sx={{ mt: 1.5 }}
+        >
+          Log in with a passkey
+        </LoadingButton>
+      )}
     </FormProvider>
   );
 };

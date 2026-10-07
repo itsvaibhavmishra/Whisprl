@@ -2,7 +2,7 @@ import {
   TreeViewCollapseIcon,
   TreeViewExpandIcon,
   TreeViewEndIcon,
-} from './CustomIcons';
+} from '@/theme/overrides/CustomIcons';
 
 export default function TreeView(theme) {
   return {

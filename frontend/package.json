@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "license": "CC0-1.0",
   "dependencies": {
@@ -20,12 +20,12 @@
     "axios": "^1.7.9",
     "framer-motion": "^11.13.1",
     "jwt-decode": "^4.0.0",
+    "mediabunny": "^1.61.3",
     "phosphor-react": "^1.4.1",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
-    "react-dropzone": "^14.3.5",
     "react-easy-crop": "^5.2.0",
     "react-ga4": "^2.1.0",
     "react-google-recaptcha": "^3.1.0",
@@ -72,6 +72,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^axios$": "axios/dist/node/axios.cjs"
+    }
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",

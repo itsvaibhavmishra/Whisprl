@@ -1,11 +1,18 @@
 {
   "name": "backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Whisprl Backend",
   "main": "server.js",
   "type": "module",
+  "imports": {
+    "#*": "./*"
+  },
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "keywords": [
     "Whisprl",
@@ -23,13 +30,12 @@
     "nodemon": "^3.1.7"
   },
   "dependencies": {
+    "@simplewebauthn/server": "^14.0.3",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.5.1",
     "compression": "^1.7.5",
-    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0",
@@ -42,7 +48,6 @@
     "mongoose": "^8.8.4",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
-    "otp-generator": "^4.0.1",
     "socket.io": "^4.8.1",
     "streamifier": "^0.1.1",
     "trim-request": "^1.0.6",

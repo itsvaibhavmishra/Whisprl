@@ -1,34 +1,32 @@
 import { useRef } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Stack, Typography } from "@mui/material";
+import { Stack } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 
-// redux imports
 import { useDispatch, useSelector } from "react-redux";
 import {
   AddOtpEmail,
   SendOTP,
   VerifyOTP,
-} from "../../redux/slices/actions/authActions";
+} from "@/redux/slices/actions/authActions";
 
-import FormProvider, { RHFOtp, RHFTextField } from "../../components/hook-form";
+import FormProvider, { RHFOtp, RHFTextField } from "@/components/hook-form";
+import { PATH_DASHBOARD } from "@/routes/paths";
+import useIsLoading from "@/hooks/useIsLoading";
 
-// ---------------------- Email for OTP Form ----------------------
 export const EmailForm = () => {
-  // dispatch from redux
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(SendOTP);
   const { otpEmail } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  // Email for OTP Schema
   const EmailSchema = Yup.object().shape({
     email: Yup.string().required("Email Required").email("Invalid Email"),
   });
 
-  // Labels
   const defaultValues = {
     email: otpEmail || "",
   };
@@ -43,14 +41,12 @@ export const EmailForm = () => {
   const onSubmit = async (data) => {
     if (otpEmail) {
       try {
-        // api request to backend for verifying email for otp using redux
         dispatch(SendOTP(data));
       } catch (error) {
         console.error(error);
       }
     } else {
       try {
-        // api request to add email to redux store
         dispatch(AddOtpEmail(data));
       } catch (error) {
         console.error(error);
@@ -60,87 +56,40 @@ export const EmailForm = () => {
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      {!otpEmail && (
-        <Typography
-          sx={{
-            pl: 1,
-            color: (theme) => theme.palette.error.main,
-          }}
-        >
-          Please enter email and click Add Email first
-        </Typography>
-      )}
-
-      <Stack
-        direction={"row"}
-        justifyContent={"center"}
-        alignItems={"end"}
-        spacing={2}
-      >
-        <RHFTextField
-          name="email"
-          label="Email address"
-          InputProps={{
-            endAdornment: (
-              <>
-                {!otpEmail ? (
-                  <LoadingButton
-                    loading={isLoading}
-                    size="small"
-                    type="submit"
-                    variant="outlined"
-                    sx={{
-                      py: 1,
-                      width: "9rem",
-                      color: (theme) =>
-                        theme.palette.mode === "light" ? "common.black" : "",
-                      "&:hover": {
-                        bgcolor: "primary.main",
-                        color: "common.white",
-                      },
-                    }}
-                  >
-                    Add Email
-                  </LoadingButton>
-                ) : (
-                  <LoadingButton
-                    loading={isLoading}
-                    size="small"
-                    type="submit"
-                    variant="outlined"
-                    sx={{
-                      py: 1,
-                      width: "9rem",
-                      color: (theme) =>
-                        theme.palette.mode === "light" ? "common.black" : "",
-                      "&:hover": {
-                        bgcolor: "primary.main",
-                        color: "common.white",
-                      },
-                    }}
-                  >
-                    Resend OTP
-                  </LoadingButton>
-                )}
-              </>
-            ),
-          }}
-        />
-      </Stack>
+      <RHFTextField
+        name="email"
+        label="Email address"
+        helperText={
+          otpEmail
+            ? "The code went to this address. Resend it if it has not arrived."
+            : "Send a code to this address first."
+        }
+        InputProps={{
+          endAdornment: (
+            <LoadingButton
+              loading={isLoading}
+              size="small"
+              type="submit"
+              variant="outlined"
+              sx={{ flexShrink: 0, whiteSpace: "nowrap", ml: 1 }}
+            >
+              {otpEmail ? "Resend code" : "Send code"}
+            </LoadingButton>
+          ),
+        }}
+      />
     </FormProvider>
   );
 };
 
-// ---------------------- OTP Form ----------------------
 const VerifyForm = () => {
-  // dispatch from redux
-  const { isLoading } = useSelector((state) => state.auth);
+  const isLoading = useIsLoading(VerifyOTP);
   const { otpEmail } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const recaptchaRef = useRef(null);
 
-  //  OTP Schema
   const VerifySchema = Yup.object().shape({
     otp1: Yup.string().required("Required"),
     otp2: Yup.string().required("Required"),
@@ -150,7 +99,6 @@ const VerifyForm = () => {
     otp6: Yup.string().required("Required"),
   });
 
-  //   Labels
   const defaultValues = {
     otp1: "",
     otp2: "",
@@ -169,24 +117,19 @@ const VerifyForm = () => {
   const { handleSubmit } = methods;
 
   const onSubmit = async (data) => {
-    try {
-      // api request to backend for verifying otp using redux
-      dispatch(
-        VerifyOTP({
-          email: otpEmail,
-          otp: `${data.otp1}${data.otp2}${data.otp3}${data.otp4}${data.otp5}${data.otp6}`,
-          recaptchaRef,
-        })
-      );
-    } catch (error) {
-      console.error(error);
-    }
+    const result = await dispatch(
+      VerifyOTP({
+        email: otpEmail,
+        otp: `${data.otp1}${data.otp2}${data.otp3}${data.otp4}${data.otp5}${data.otp6}`,
+        recaptchaRef,
+      })
+    );
+    if (VerifyOTP.fulfilled.match(result)) navigate(PATH_DASHBOARD.general.profile, { replace: true });
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3}>
-        {/* Custom OTP input */}
+      <Stack spacing={3} sx={{ mt: 3 }}>
         <RHFOtp
           disabled={!otpEmail}
           keyName="otp"
@@ -207,19 +150,9 @@ const VerifyForm = () => {
           type="submit"
           variant="contained"
           disabled={!otpEmail}
-          sx={{
-            mt: 3,
-            bgcolor: "text.primary",
-            color: (theme) =>
-              theme.palette.mode === "light" ? "common.white" : "grey.800",
-            "&:hover": {
-              bgcolor: "text.primary",
-              color: (theme) =>
-                theme.palette.mode === "light" ? "common.white" : "grey.800",
-            },
-          }}
+          sx={{ mt: 1 }}
         >
-          Verify OTP
+          Verify email
         </LoadingButton>
       </Stack>
     </FormProvider>

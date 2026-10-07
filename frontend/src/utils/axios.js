@@ -4,7 +4,4 @@ import axios from "axios";
 axios.defaults.baseURL =
   process.env.REACT_APP_API_ORIGIN || "http://localhost:8000/api";
 
-// Set credentials to true
-axios.defaults.withCredentials = true;
-
 export default axios;

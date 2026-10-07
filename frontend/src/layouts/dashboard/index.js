@@ -1,113 +1,70 @@
 import { useEffect } from "react";
-import { Stack, useMediaQuery } from "@mui/material";
-import { Navigate } from "react-router-dom";
+import { Box, Stack } from "@mui/material";
+import { MotionConfig } from "framer-motion";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector, useStore } from "react-redux";
 
-import Sidebar from "./Sidebar";
-import { connectSocket, socket } from "../../utils/socket";
-
-import { useDispatch, useSelector } from "react-redux";
-import { ShowSnackbar, updateOnlineUsers } from "../../redux/slices/userSlice";
-import {
-  setIsOptimistic,
-  updateMsgConvo,
-  updateTypingConvo,
-} from "../../redux/slices/chatSlice";
-import { GetOnlineFriends } from "../../redux/slices/actions/userActions";
-import { GetConversations } from "../../redux/slices/actions/chatActions";
-import { StartServer } from "../../redux/slices/actions/authActions";
+import { MotionLazyContainer } from "@/components/animate";
+import NavRail from "@/layouts/dashboard/NavRail";
+import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
+import { DeliverWaitingMessages, GetConversations } from "@/redux/slices/actions/chatActions";
+import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
+import { ConnectSocket } from "@/redux/slices/actions/socketActions";
+import { GetStatuses } from "@/redux/slices/actions/statusActions";
+import { selectIsLoading } from "@/redux/slices/requestSlice";
+import { chatPath } from "@/sections/chat/chatRoute";
+import EncryptionGate from "@/sections/encryption/EncryptionGate";
+import { setChatOpener } from "@/utils/notifications";
 
 const DashboardLayout = () => {
-  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down("md"));
-
-  // from redux
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isLoggedIn } = useSelector((state) => state.auth);
-  const { user } = useSelector((state) => state.user);
+  const userId = useSelector((state) => state.user.user._id);
+  const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
+  const store = useStore();
 
-  // get conversations and friends
   useEffect(() => {
-    if (user.token) {
-      // get all conversations
+    if (!isLoggedIn || !userId) return;
+
+    dispatch(ConnectSocket());
+    // previews can only be decrypted once this browser's key is loaded
+    dispatch(PrepareEncryption()).then(() => {
       dispatch(GetConversations());
+      dispatch(DeliverWaitingMessages());
+    });
+    dispatch(GetOnlineFriends());
+  }, [dispatch, isLoggedIn, userId]);
 
-      // get online friends
-      dispatch(GetOnlineFriends());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user._id]);
+  // read from the store as it is now: a login may still be checking its keys, or the Status page may already be loading them
+  useEffect(() => {
+    const state = store.getState();
+    if (state.encryption.status === "ready" && !selectIsLoading(state, GetStatuses)) dispatch(GetStatuses());
+  }, [dispatch, store, isEncryptionReady]);
 
   useEffect(() => {
-    // start server
-    dispatch(StartServer());
+    setChatOpener((conversationId) => {
+      const path = chatPath(conversationId);
+      if (window.location.pathname !== path) navigate(path);
+    });
+  }, [navigate]);
 
-    // toggle approach between Optimistic & Pessimistic (true means use optimistic)
-    dispatch(setIsOptimistic({ isOptimistic: true }));
-
-    // socket connection
-    if ((!socket || !socket.connected) && user._id) {
-      connectSocket(user.token);
-    }
-
-    // socket listeners
-    if (socket) {
-      // socket server error handling
-      socket.on("connect_error", (error) => {
-        dispatch(
-          ShowSnackbar({
-            severity: "error",
-            message: `Socket: ${error.message}`,
-          })
-        );
-      });
-
-      // socket other error handling
-      socket.on("error", (error) => {
-        dispatch(
-          ShowSnackbar({
-            severity: error.status,
-            message: `Socket: ${error.message}`,
-          })
-        );
-      });
-
-      socket.on("message_received", (message) => {
-        dispatch(updateMsgConvo(message));
-      });
-
-      socket.on("online_friends", (friend) => {
-        dispatch(updateOnlineUsers(friend));
-      });
-
-      socket.on("start_typing", (typingData) => {
-        dispatch(updateTypingConvo(typingData));
-      });
-
-      socket.on("stop_typing", (typingData) => {
-        dispatch(updateTypingConvo(typingData));
-      });
-
-      return () => {
-        if (socket) {
-          socket.off("connect_error");
-          socket.off("error");
-          socket.off("message_received");
-          socket.off("online_friends");
-          socket.off("start_typing");
-          socket.off("stop_typing");
-        }
-      };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user._id, user.token]);
-
-  if (!isLoggedIn || !user) {
+  if (!isLoggedIn || !userId) {
     return <Navigate to={"/auth/welcome"} />;
   }
 
   return (
-    <Stack direction={isSmallScreen ? "column-reverse" : "row"}>
-      <Sidebar />
-    </Stack>
+    <MotionLazyContainer>
+      <MotionConfig reducedMotion="user">
+        <Stack direction={{ xs: "column-reverse", md: "row" }} sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
+          <NavRail />
+          <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+            <Outlet />
+          </Box>
+          <EncryptionGate />
+        </Stack>
+      </MotionConfig>
+    </MotionLazyContainer>
   );
 };
 

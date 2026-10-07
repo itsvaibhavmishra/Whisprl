@@ -11,25 +11,117 @@ const fileSchema = mongoose.Schema(
   { _id: false }
 );
 
+const sealedKeySchema = mongoose.Schema(
+  {
+    keyId: { type: String, required: true },
+    iv: { type: String, required: true },
+    data: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+// a direct message names the two keys it was sealed between; a group message carries its key sealed for each member
+export const cipherSchema = mongoose.Schema(
+  {
+    iv: { type: String, required: true },
+    data: { type: String, required: true },
+    keyIds: { type: [String], default: undefined },
+    senderKeyId: { type: String },
+    keys: { type: [sealedKeySchema], default: undefined },
+  },
+  { _id: false }
+);
+
+const eventSchema = mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner", "pinned", "disappearing"],
+      required: true,
+    },
+    users: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+    name: { type: String },
+    seconds: { type: Number },
+  },
+  { _id: false }
+);
+
+// the emoji is sealed like a message, so the server only learns that someone reacted
+export const reactionSchema = mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+    cipher: { type: cipherSchema, required: true },
+  },
+  { _id: false }
+);
+
+// the file itself is encrypted in the browser; its name, type and key travel inside the message's cipher
+const attachmentSchema = mongoose.Schema(
+  {
+    url: { type: String },
+    size: { type: Number },
+    status: { type: String, enum: ["uploading", "ready", "opened"], required: true },
+  },
+  { _id: false }
+);
+
 const messageSchema = mongoose.Schema(
   {
-    sender: { type: mongoose.Schema.ObjectId, ref: "User" },
+    sender: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+
+    // made by the sender's browser, so a resend after a lost acknowledgement finds the saved copy
+    clientId: { type: String },
 
     message: { type: String, trim: true },
 
-    conversation: { type: mongoose.Schema.ObjectId, ref: "Conversation" },
+    cipher: { type: cipherSchema, default: undefined },
 
+    // a change to a group, shown as a note in the chat rather than a bubble
+    event: { type: eventSchema, default: undefined },
+
+    // sealed to the sender alone until the recipient has a key, then re-encrypted by the sender's browser
+    awaitingKey: { type: Boolean },
+
+    deliveredAt: { type: Date },
+    seenAt: { type: Date },
+
+    conversation: { type: mongoose.Schema.ObjectId, ref: "Conversation", required: true },
+
+    // files sent before attachments were encrypted
     files: [fileSchema],
+    attachment: { type: attachmentSchema, default: undefined },
 
-    // batch fields — images sent together share a batchId for grouping
+    // images sent together share a batchId, so they render as one group
     batchId: { type: String },
     batchIndex: { type: Number },
     batchTotal: { type: Number },
+
+    replyTo: { type: mongoose.Schema.ObjectId, ref: "Message" },
+    replyToAlbum: { type: Boolean },
+    forwarded: { type: Boolean },
+    editedAt: { type: Date },
+
+    // deleted for everyone: the content is gone and only this mark remains
+    deletedAt: { type: Date },
+    hiddenFor: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+
+    reactions: [reactionSchema],
+
+    expiresAt: { type: Date },
+
+    // a view-once photo's file is deleted once everyone it was sent to has opened it
+    viewOnce: { type: Boolean },
+    viewedBy: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,
   }
 );
+
+messageSchema.index({ conversation: 1, _id: 1 });
+messageSchema.index({ sender: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: "string" } } });
+messageSchema.index({ sender: 1 }, { partialFilterExpression: { awaitingKey: true } });
+messageSchema.index({ expiresAt: 1 }, { partialFilterExpression: { expiresAt: { $exists: true } } });
 
 // creating model for schema
 const MessageModel = mongoose.model("Message", messageSchema);

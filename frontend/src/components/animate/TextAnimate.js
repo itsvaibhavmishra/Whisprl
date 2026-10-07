@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { m } from 'framer-motion';
 import { Box } from '@mui/material';
-import { varFade } from './varients';
+import { varFade } from '@/components/animate/variants';
 
 TextAnimate.propTypes = {
   text: PropTypes.string.isRequired,

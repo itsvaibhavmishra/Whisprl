@@ -1,4 +1,4 @@
-import { pxToRem, responsiveFontSizes } from '../utils/getFontValue';
+import { pxToRem, responsiveFontSizes } from '@/utils/getFontValue';
 
 const FONT_PRIMARY = 'Manrope, Public Sans, sans-serif';
 
@@ -78,7 +78,7 @@ const typography = {
     fontWeight: 700,
     lineHeight: 24 / 14,
     fontSize: pxToRem(14),
-    textTransform: 'capitalize',
+    textTransform: 'none',
   },
   article: {
     fontWeight: 700,

@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Lottie from "react-lottie";
 
-import Cat404 from "../assets/Illustration/Animations/Cat404.json";
+import Cat404 from "@/assets/illustrations/animations/Cat404.json";
 
 const Page404 = () => {
   return (

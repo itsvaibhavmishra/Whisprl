@@ -1,222 +1,61 @@
-import { createAsyncThunk } from "@reduxjs/toolkit";
+import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
+import { GetFriends } from "@/redux/slices/actions/userActions";
+import { removeFriend } from "@/redux/slices/userSlice";
+import axios from "@/utils/axios";
 
-import { ShowSnackbar, removeFriend } from "../userSlice";
-
-import axios from "../../../utils/axios";
-import { GetFriends } from "./userActions";
-
-// ------------- Get Conversation Thunk -------------
-export const GetUserData = createAsyncThunk(
+// ------------- Get User Data Thunk -------------
+export const GetUserData = createApiThunk(
   "user/getUserData",
-  async (id, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.get(`/user/getUserData/?userId=${id}`);
-
-      return data;
-    } catch (error) {
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
+  async (userId) => (await axios.get("/user/getUserData", { params: { userId } })).data
 );
 
 // ------------- Remove Friend Thunk -------------
-export const RemoveFriend = createAsyncThunk(
-  "friends/remove-friend",
-  async (friend_id, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/friends/remove-friend", {
-        friend_id,
-      });
-
-      // remove friend from friends list
-      dispatch(removeFriend(data));
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const RemoveFriend = createApiThunk("friends/remove-friend", async (friend_id, { dispatch }) => {
+  const { data } = await axios.post("/friends/remove-friend", { friend_id });
+  dispatch(removeFriend(data));
+  notifyResult(data);
+  return data;
+});
 
 // ------------- Get Friend Requests Thunk -------------
-export const GetFriendRequests = createAsyncThunk(
+export const GetFriendRequests = createApiThunk(
   "friends/get-requests",
-  async (arg, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.get("/friends/get-requests");
-
-      return data;
-    } catch (error) {
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
+  async () => (await axios.get("/friends/get-requests")).data
 );
 
 // ------------- Get Sent Requests Thunk -------------
-export const GetSentRequests = createAsyncThunk(
+export const GetSentRequests = createApiThunk(
   "friends/get-sent-requests",
-  async (arg, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.get("/friends/get-sent-requests");
-
-      return data;
-    } catch (error) {
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
+  async () => (await axios.get("/friends/get-sent-requests")).data
 );
 
 // ------------- Search Users Thunk -------------
-export const SearchForUsers = createAsyncThunk(
+export const SearchForUsers = createApiThunk(
   "user/search",
-  async (searchData, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.get(
-        `/user/search/?search=${searchData.keyword}&page=${
-          searchData.page || 0
-        }`
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
+  async ({ keyword, page = 0 }) => (await axios.get("/user/search", { params: { search: keyword, page } })).data
 );
 
 // ------------- Send Request Thunk -------------
-export const SendRequest = createAsyncThunk(
-  "friends/send-request",
-  async (receiver_id, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/friends/send-request", {
-        receiver_id,
-      });
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const SendRequest = createApiThunk("friends/send-request", async (receiver_id) => {
+  const { data } = await axios.post("/friends/send-request", { receiver_id });
+  notifyResult(data);
+  return data;
+});
 
 // ------------- Unsend Request Thunk -------------
-export const UnsendRequest = createAsyncThunk(
-  "friends/cancel-request",
-  async (receiver_id, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/friends/cancel-request", {
-        receiver_id,
-      });
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
-  }
-);
+export const UnsendRequest = createApiThunk("friends/cancel-request", async (receiver_id) => {
+  const { data } = await axios.post("/friends/cancel-request", { receiver_id });
+  notifyResult(data);
+  return data;
+});
 
 // ------------- Accept/Reject Request Thunk -------------
-export const AcceptRejectRequest = createAsyncThunk(
+export const AcceptRejectRequest = createApiThunk(
   "friends/accept-reject-request",
-  async (values, { rejectWithValue, dispatch }) => {
-    try {
-      const { data } = await axios.post("/friends/accept-reject-request", {
-        sender_id: values.sender_id,
-        action_type: values.type,
-      });
-
-      if (values.type === "accept") {
-        dispatch(GetFriends());
-      }
-
-      // show snackbar
-      dispatch(
-        ShowSnackbar({
-          severity: data.status,
-          message: data.message,
-        })
-      );
-
-      return data;
-    } catch (error) {
-      dispatch(
-        ShowSnackbar({
-          severity: error.error.status,
-          message: error.error.message,
-        })
-      );
-      return rejectWithValue(error.error);
-    }
+  async ({ sender_id, type }, { dispatch }) => {
+    const { data } = await axios.post("/friends/accept-reject-request", { sender_id, action_type: type });
+    if (type === "accept") dispatch(GetFriends());
+    notifyResult(data);
+    return data;
   }
 );

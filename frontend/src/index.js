@@ -5,14 +5,14 @@ import { HelmetProvider } from "react-helmet-async";
 import "swiper/css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-import "./index.css";
-import App from "./App";
-import SettingsProvider from "./contexts/SettingsContext";
+import "@/index.css";
+import App from "@/App";
+import SettingsProvider from "@/contexts/SettingsContext";
 // redux imports
 import { Provider as ReduxProvider } from "react-redux";
-import { store } from "./redux/store";
+import { store } from "@/redux/store";
 
-import { injectStore } from "./utils/axiosInterceptors";
+import { injectStore } from "@/utils/session";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 

@@ -85,7 +85,7 @@ EOF
 # the prepare pull request lands, then updates itself and release-ready passes.
 upsert_pull_request production rc "Release $VERSION" "$(
     cat <<EOF
-Merging this publishes **$VERSION**: tag, built frontend bundle, and the GitHub release.
+Merging this publishes **$VERSION**: the tag and the GitHub release.
 
 Red until *Prepare release $VERSION* is merged, because until then \`rc\` is still on $CURRENT.
 

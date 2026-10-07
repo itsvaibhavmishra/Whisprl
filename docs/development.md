@@ -10,7 +10,7 @@
 ## Build and check
 
 ```sh
-cd backend && npm install && npm start       # the API under nodemon, reads backend/.env
+cd backend && npm install && npm run dev     # the API under nodemon, reads backend/.env
 cd frontend && npm install -f && npm start   # the app via react-app-rewired, reads frontend/.env
 scripts/check.sh                             # the gate
 ```
@@ -58,9 +58,11 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 ## What publishes, and what does not
 
 - **A feature branch** publishes nothing. Push as often as you like.
-- **`rc`** publishes a rolling `rc` pre-release: a sandbox proving the release path works before it runs against `production`.
-- **Merging into `production` publishes** a GitHub Release tagged `v<version>` with the built frontend bundle attached. It skips all of that if the tag already
-  exists, so an ordinary merge that did not bump the version cannot cut a duplicate.
+- **`rc`** publishes nothing either.
+- **Merging into `production` publishes** a GitHub Release tagged `v<version>`, with that version's
+  changelog section as its notes. It skips that if the tag already exists, so an ordinary merge
+  that did not bump the version cannot cut a duplicate. Netlify and Render deploy from the
+  branches themselves, so no build is attached.
 - **The `skip release` label** on an `rc` into `production` PR turns off the release-ready
   checks, for a merge that is deliberately not a release.
 
@@ -104,8 +106,8 @@ page nobody can diff:
 | Ruleset | Covers | Enforces |
 |---|---|---|
 | `branches-are-permanent` | `production`, `rc` | no deletion, no force-push |
-| `rc-is-next` | `rc` | PR required, 1 approval, `check` green and up to date, signed commits |
-| `production-is-released` | `production` | the same plus `ready`, and stale approvals dismissed on push |
+| `rc-is-next` | `rc` | PR required, `check` green and up to date, signed commits |
+| `production-is-released` | `production` | the same plus `ready` |
 
 ```sh
 scripts/apply-rulesets.sh          # create or update each one on GitHub, matched by name
@@ -116,8 +118,8 @@ Matching by name means it is safe to run repeatedly and will not stack duplicate
 pushes anything it checks that every required status check corresponds to a real workflow job:
 a ruleset naming a context no workflow produces blocks every merge into that branch forever.
 
-**Apply the rulesets only after the first push.** They require a pull request, an approval and
-a green `check` on `production`; applying them to an empty repository locks you out of your own
+**Apply the rulesets only after the first push.** They require a pull request and a green
+`check` on `production`; applying them to an empty repository locks you out of your own
 initial commit. The correct order is: create the repo, push `production`, branch `rc`, then run
 the script.
 
@@ -131,7 +133,7 @@ Whisprl/
 │   ├── socket.js            WebSocket event handlers
 │   ├── vercel.json
 │   └── src/                 routes, controllers, services, models, middlewares,
-│                            utils, Templates/Mail
+│                            utils, templates/mail
 ├── frontend/                React 18 + MUI app
 │   ├── config-overrides.js  react-app-rewired overrides, including the @ alias
 │   ├── public/              includes _redirects for SPA routing on Netlify
@@ -148,6 +150,19 @@ Whisprl/
 ├── LICENSE                  CC0 1.0
 └── Readme.md
 ```
+
+Where frontend code goes, inside `frontend/src/`:
+
+- **`pages/`**: one file per route, lazy-loaded from `routes/index.js`.
+- **`sections/<page>/`**: the pieces of one page, such as `sections/chat/` for the chat screen,
+  split further when a page has distinct parts (`conversation/`, `messages/`, `attachments/`).
+- **`components/`**: anything used by more than one page, such as `ProfileHero`, the
+  image cropper and the form fields in `hook-form/`.
+- **`layouts/`**, **`redux/`**, **`routes/`**, **`theme/`**, **`contexts/`**, **`hooks/`**,
+  **`utils/`**: as named. Encryption lives in `utils/crypto/`.
+
+Folders are lowercase, files are named after the component or function they export, and every
+import goes through the `@/` alias, siblings included.
 
 ## Conventions
 

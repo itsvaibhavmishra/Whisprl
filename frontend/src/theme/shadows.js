@@ -1,8 +1,8 @@
 import { alpha } from '@mui/material/styles';
-import palette from './palette';
+import palette from '@/theme/palette';
 
-const LIGHT_MODE = palette.light.grey[500];
-const DARK_MODE = '#000000';
+const LIGHT_MODE = palette.light.grey[700];
+const DARK_MODE = '#02060D';
 
 const createShadow = (color) => {
   const transparent1 = alpha(color, 0.2);
@@ -58,11 +58,8 @@ const createCustomShadow = (color) => {
       color,
       0.12
     )}`,
-    dialog: `-40px 40px 80px -8px ${alpha(palette.light.common.black, 0.24)}`,
-    dropdown: `0 0 2px 0 ${alpha(color, 0.24)}, -20px 20px 40px -4px ${alpha(
-      color,
-      0.24
-    )}`,
+    dialog: `0 32px 64px -12px ${alpha(color, 0.36)}, 0 2px 6px ${alpha(color, 0.08)}`,
+    dropdown: `0 16px 40px -8px ${alpha(color, 0.32)}, 0 2px 6px ${alpha(color, 0.08)}`,
   };
 };
 

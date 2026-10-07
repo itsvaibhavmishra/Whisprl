@@ -1,54 +1,26 @@
 import { createContext, useEffect } from "react";
-import { defaultSettings } from "../config";
-import getColorPresets, {
-  defaultPreset,
-  colorPresets,
-} from "../utils/getColorPresets";
-import useLocalStorage from "../hooks/useLocalStorage";
+import { SETTINGS_STORAGE_KEY, defaultSettings } from "@/config";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 const initialState = {
   ...defaultSettings,
-
-  // Mode
   onToggleMode: () => {},
   onChangeMode: () => {},
-
-  // Direction
-  onToggleDirection: () => {},
-  onChangeDirection: () => {},
   onChangeDirectionByLang: () => {},
-
-  // Layout
-  onToggleLayout: () => {},
-  onChangeLayout: () => {},
-
-  // Contrast
-  onToggleContrast: () => {},
-  onChangeContrast: () => {},
-
-  // Color
   onChangeColor: () => {},
-  setColor: defaultPreset,
-  colorOption: [],
-
-  // Stretch
-  onToggleStretch: () => {},
-
-  // Reset
-  onResetSetting: () => {},
+  onToggleSounds: () => {},
+  onSetNotifications: () => {},
+  onToggle24Hour: () => {},
+  onSetWallpaper: () => {},
+  onToggleDoodles: () => {},
 };
 
 const SettingsContext = createContext(initialState);
 
 const SettingsProvider = ({ children }) => {
-  const [settings, setSettings] = useLocalStorage("settings", {
-    themeMode: initialState.themeMode,
-    themeLayout: initialState.themeLayout,
-    themeStretch: initialState.themeStretch,
-    themeContrast: initialState.themeContrast,
-    themeDirection: initialState.themeDirection,
-    themeColorPresets: initialState.themeColorPresets,
-  });
+  const [stored, setSettings] = useLocalStorage(SETTINGS_STORAGE_KEY, defaultSettings);
+  // settings saved by an older version lack the newer keys, so each falls back to its default
+  const settings = { ...defaultSettings, ...stored };
 
   const isArabic = localStorage.getItem("i18nextLng") === "ar";
 
@@ -60,92 +32,52 @@ const SettingsProvider = ({ children }) => {
   }, [isArabic]);
 
   const onToggleMode = () => {
-    setSettings({
-      ...settings,
-      themeMode: settings.themeMode === "light" ? "dark" : "light",
-    });
+    const showingLight =
+      settings.themeMode === "system"
+        ? !window.matchMedia("(prefers-color-scheme: dark)").matches
+        : settings.themeMode === "light";
+    setSettings({ ...settings, themeMode: showingLight ? "dark" : "light" });
   };
 
   const onChangeMode = (event) => {
-    setSettings({
-      ...settings,
-      themeMode: event.target.value,
-    });
-  };
-
-  const onToggleDirection = () => {
-    setSettings({
-      ...settings,
-      themeDirection: settings.themeDirection === "rtl" ? "ltr" : "rtl",
-    });
-  };
-
-  const onChangeDirection = (event) => {
-    setSettings({
-      ...settings,
-      themeDirection: event.target.value,
-    });
+    setSettings({ ...settings, themeMode: event.target.value });
   };
 
   const onChangeDirectionByLang = (lang) => {
-    setSettings({
-      ...settings,
-      themeDirection: lang === "ar" ? "rtl" : "ltr",
-    });
-  };
-
-  const onToggleLayout = () => {
-    setSettings({
-      ...settings,
-      themeLayout:
-        settings.themeLayout === "vertical" ? "horizontal" : "vertical",
-    });
-  };
-
-  const onChangeLayout = (event) => {
-    setSettings({
-      ...settings,
-      themeLayout: event.target.value,
-    });
-  };
-
-  const onToggleContrast = () => {
-    setSettings({
-      ...settings,
-      themeContrast: settings.themeContrast === "default" ? "bold" : "default",
-    });
-  };
-
-  const onChangeContrast = (event) => {
-    setSettings({
-      ...settings,
-      themeContrast: event.target.value,
-    });
+    setSettings({ ...settings, themeDirection: lang === "ar" ? "rtl" : "ltr" });
   };
 
   const onChangeColor = (event) => {
-    setSettings({
-      ...settings,
-      themeColorPresets: event.target.value,
-    });
+    setSettings({ ...settings, themeColorPresets: event.target.value });
   };
 
-  const onToggleStretch = () => {
-    setSettings({
-      ...settings,
-      themeStretch: !settings.themeStretch,
-    });
+  const onToggleSounds = () => {
+    setSettings({ ...settings, sounds: !settings.sounds });
   };
 
-  const onResetSetting = () => {
-    setSettings({
-      themeMode: initialState.themeMode,
-      themeLayout: initialState.themeLayout,
-      themeStretch: initialState.themeStretch,
-      themeContrast: initialState.themeContrast,
-      themeDirection: initialState.themeDirection,
-      themeColorPresets: initialState.themeColorPresets,
-    });
+  const onSetNotifications = (notifications) => {
+    setSettings({ ...settings, notifications });
+  };
+
+  const onToggle24Hour = () => {
+    setSettings({ ...settings, use24Hour: !settings.use24Hour });
+  };
+
+  const { wallpapers } = settings;
+
+  // null sets a chat back to the wallpaper every chat uses
+  const onSetWallpaper = (wallpaper, conversationId) => {
+    if (!conversationId) {
+      setSettings({ ...settings, wallpapers: { ...wallpapers, all: wallpaper } });
+      return;
+    }
+    const { [conversationId]: _, ...others } = wallpapers.chats;
+    const chats = wallpaper ? { ...others, [conversationId]: wallpaper } : others;
+    setSettings({ ...settings, wallpapers: { ...wallpapers, chats } });
+  };
+
+  const onToggleDoodles = () => {
+    setSettings({ ...settings, wallpapers: { ...wallpapers, doodles: !wallpapers.doodles } });
   };
 
   return (
@@ -154,27 +86,13 @@ const SettingsProvider = ({ children }) => {
         ...settings,
         onToggleMode,
         onChangeMode,
-
-        onToggleDirection,
-        onChangeDirection,
         onChangeDirectionByLang,
-
-        onToggleLayout,
-        onChangeLayout,
-
-        onChangeContrast,
-        onToggleContrast,
-
-        onToggleStretch,
-
         onChangeColor,
-        setColor: getColorPresets(settings.themeColorPresets),
-        colorOption: colorPresets.map((color) => ({
-          name: color.name,
-          value: color.main,
-        })),
-
-        onResetSetting,
+        onToggleSounds,
+        onSetNotifications,
+        onToggle24Hour,
+        onSetWallpaper,
+        onToggleDoodles,
       }}
     >
       {children}
