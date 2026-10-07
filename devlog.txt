@@ -18,6 +18,7 @@
   - Improvements:
 
   - Fixed:
+    - Signing in with Google works again
 
   - Developers:
 
