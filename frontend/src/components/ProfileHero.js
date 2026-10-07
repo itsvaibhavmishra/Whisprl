@@ -3,7 +3,7 @@ import { Avatar, Box, Typography } from "@mui/material";
 import catDoodle from "@/assets/backgrounds/catDoodle.webp";
 import { bubbleShape } from "@/sections/welcome/HeroConversation";
 import Wordmark from "@/components/Wordmark";
-import { createAvatar } from "@/utils/createAvatar";
+import { avatarLookOf } from "@/utils/avatars";
 
 const PHOTO_SIZE = { xs: 104, md: 148 };
 const RING = 6;
@@ -27,7 +27,7 @@ const Cover = ({ src, children }) => (
 );
 
 const Photo = ({ src, name, children }) => {
-  const { name: initial, color } = createAvatar(name);
+  const { initial, background } = avatarLookOf(name);
   return (
     <Box
       sx={{
@@ -45,7 +45,7 @@ const Photo = ({ src, name, children }) => {
           fontSize: { xs: 44, md: 60 },
           fontWeight: 800,
           color: "common.white",
-          bgcolor: `${color}.main`,
+          background,
           border: RING,
           borderColor: "background.default",
           boxSizing: "content-box",

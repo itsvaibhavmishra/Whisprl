@@ -9,13 +9,12 @@ import {
   ListItemText,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import useIsLoading from "@/hooks/useIsLoading";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 
 const fullNameOf = (friend) => `${friend.firstName} ${friend.lastName}`;
 
@@ -23,7 +22,6 @@ const fullNameOf = (friend) => `${friend.firstName} ${friend.lastName}`;
 const hasKeys = (friend) => friend.publicKeys?.length > 0;
 
 const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true }) => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const { friends, user } = useSelector((state) => state.user);
   const isLoading = useIsLoading(GetFriends);
@@ -60,7 +58,7 @@ const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true 
           {choosable.map((friend) => (
             <ListItem key={friend._id} disablePadding>
               <ListItemButton onClick={() => toggle(friend._id)} disabled={requireKeys && !hasKeys(friend)}>
-                <ListItemAvatar>{getAvatar(friend.avatar, friend.firstName, theme, 36)}</ListItemAvatar>
+                <ListItemAvatar>{getAvatar(friend.avatar, friend.firstName, 36)}</ListItemAvatar>
                 <ListItemText
                   primary={fullNameOf(friend)}
                   secondary={!requireKeys || hasKeys(friend) ? null : "Has not opened Whisprl since encryption arrived"}

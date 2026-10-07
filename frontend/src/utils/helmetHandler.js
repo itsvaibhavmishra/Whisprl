@@ -41,7 +41,9 @@ const titleFromPath = (path) => {
 
 const HelmetHandler = () => {
   const { pathname } = useLocation();
-  const path = pathname.replace(/\/+$/, "") || "/";
+  const trimmed = pathname.replace(/\/+$/, "") || "/";
+  // an open chat is still the chats page, and its id stays out of titles and canonical links
+  const path = trimmed.startsWith("/chat/") ? "/chat" : trimmed;
   const { title, description } = PAGES[path] || {
     title: titleFromPath(path),
     description: WELCOME.description,

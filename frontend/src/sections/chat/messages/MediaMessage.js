@@ -40,7 +40,9 @@ const MediaMessage = ({ files }) => {
           position: "relative",
           display: "grid",
           gap: "2px",
-          maxWidth: media.length === 1 ? 260 : GRID_CELL_SIZE * 2 + 2,
+          // a set width, since a photo still decrypting has no size of its own to give the bubble
+          width: media.length === 1 ? 260 : GRID_CELL_SIZE * 2 + 2,
+          maxWidth: "100%",
           borderRadius: "inherit",
           overflow: "hidden",
           ...gridStyleOf(media.length),

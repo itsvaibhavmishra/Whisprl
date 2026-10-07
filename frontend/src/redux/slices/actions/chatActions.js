@@ -310,12 +310,6 @@ export const ReceiveMessage = (message) => async (dispatch, getState) => {
   notifyArrival(readable, conversation);
 };
 
-// ------------- Open A Chat From Outside The Page -------------
-export const OpenChatById = (conversationId) => (dispatch, getState) => {
-  const conversation = conversationById(getState(), conversationId);
-  if (conversation && getState().chat.activeConversation?._id !== conversationId) dispatch(OpenConversation(conversation));
-};
-
 // ------------- Pins Changed -------------
 export const ReceivePins = ({ conversation_id, pins }) => async (dispatch, getState) => {
   const conversation = conversationById(getState(), conversation_id);

@@ -4,15 +4,17 @@ export default function Dialog(theme) {
       styleOverrides: {
         paper: {
           boxShadow: theme.customShadows.dialog,
+          backgroundColor: theme.palette.chat.sheet,
+          border: `1px solid ${theme.palette.chat.edge}`,
           '&.MuiPaper-rounded': {
-            borderRadius: Number(theme.shape.borderRadius) * 2,
+            borderRadius: 20,
           },
           '&.MuiDialog-paperFullScreen': {
             borderRadius: 0,
             margin: 0,
           },
           '&.MuiDialog-paper .MuiDialogActions-root': {
-            padding: theme.spacing(3),
+            padding: theme.spacing(1, 3, 3),
           },
           '@media (max-width: 600px)': {
             margin: theme.spacing(2),

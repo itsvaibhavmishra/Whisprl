@@ -21,3 +21,7 @@ export const isDeleted = ({ deletedAt, latestMessage }) =>
 // a live presence update outranks the status the chat list was loaded with
 export const isOnline = (person, onlineFriends) =>
   (onlineFriends.find((friend) => friend._id === person._id)?.onlineStatus ?? person.onlineStatus) === "online";
+
+const MAX_BADGE = 99;
+
+export const badgeOf = (count) => (count > MAX_BADGE ? `${MAX_BADGE}+` : count);

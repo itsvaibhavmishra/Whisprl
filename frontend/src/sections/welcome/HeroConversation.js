@@ -3,8 +3,10 @@ import { keyframes } from "@mui/material/styles";
 import { PaperPlaneRight } from "phosphor-react";
 
 import whisprlFace from "@/assets/icons/logo/WhisprlAvatar.webp";
+import TypingDots from "@/components/TypingDots";
 import { CONVERSATION } from "@/sections/welcome/content";
 import { NO_MOTION } from "@/sections/welcome/styles";
+import { gradientOf } from "@/utils/gradients";
 
 const FIRST_MESSAGE_AT = 400;
 const PAUSE_BEFORE_TYPING = 500;
@@ -41,18 +43,14 @@ const typeThenStop = keyframes`
   100% { opacity: 0; }
 `;
 
-const bounce = keyframes`
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30% { transform: translateY(-3px); opacity: 1; }
-`;
-
 export const bubbleShape = (mine) => ({
   px: 1.75,
   py: 1.1,
   maxWidth: "84%",
-  borderRadius: mine ? "20px 20px 5px 20px" : "20px 20px 20px 5px",
-  bgcolor: mine ? "primary.main" : "background.default",
-  color: mine ? "primary.contrastText" : "text.primary",
+  borderRadius: mine ? "18px 18px 6px 18px" : "18px 18px 18px 6px",
+  background: (theme) => (mine ? gradientOf(theme.palette.primary.bubble) : theme.palette.chat.bubbleIn),
+  color: mine ? "common.white" : "text.primary",
+  boxShadow: (theme) => (mine ? "none" : `0 1px 2px ${theme.palette.chat.shade}`),
   fontSize: 15,
   lineHeight: 1.45,
 });
@@ -68,21 +66,9 @@ const MessageText = ({ parts }) =>
     )
   );
 
-export const TypingDots = () => (
-  <Box sx={{ display: "flex", gap: 0.5 }}>
-    {[0, 1, 2].map((dot) => (
-      <Box
-        key={dot}
-        sx={{
-          width: 7,
-          height: 7,
-          borderRadius: "50%",
-          bgcolor: "text.secondary",
-          animation: `${bounce} 1s ease-in-out ${dot * 150}ms infinite`,
-          [NO_MOTION]: { animation: "none" },
-        }}
-      />
-    ))}
+export const TypingIndicator = () => (
+  <Box sx={{ display: "flex", color: "text.secondary" }}>
+    <TypingDots size={7} />
   </Box>
 );
 
@@ -98,7 +84,7 @@ const TypingBubble = ({ from, until }) => (
       [NO_MOTION]: { display: "none" },
     }}
   >
-    <TypingDots />
+    <TypingIndicator />
   </Box>
 );
 
@@ -165,7 +151,7 @@ export const ChatWindow = ({ label, children, sx }) => (
   <Box
     sx={{
       width: "100%",
-      bgcolor: "background.paper",
+      bgcolor: "chat.canvas",
       border: 1,
       borderColor: "divider",
       borderRadius: "28px",
@@ -191,7 +177,7 @@ export const ChatWindow = ({ label, children, sx }) => (
             height: 12,
             borderRadius: "50%",
             border: 2,
-            borderColor: "background.paper",
+            borderColor: "chat.canvas",
           },
         }}
       >

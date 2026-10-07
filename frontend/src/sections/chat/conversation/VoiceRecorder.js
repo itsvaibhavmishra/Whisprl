@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { keyframes } from "@mui/material/styles";
+import { alpha, keyframes } from "@mui/material/styles";
 import { CaretLeft, CaretUp, LockSimple, Microphone, PaperPlaneTilt, Trash } from "phosphor-react";
 import { useDispatch } from "react-redux";
 
@@ -8,10 +8,11 @@ import { SendVoiceMessage } from "@/redux/slices/actions/attachmentActions";
 import Waveform from "@/sections/chat/messages/Waveform";
 import { notify } from "@/utils/notify";
 import { formatDuration } from "@/utils/video";
-import { MAX_VOICE_SECONDS, MIN_VOICE_SECONDS, MicrophoneRefusal, WAVEFORM_BARS, startVoiceRecording } from "@/utils/voice";
+import { MAX_VOICE_SECONDS, MIN_VOICE_SECONDS, MicrophoneRefusal, startVoiceRecording } from "@/utils/voice";
 
 const CANCEL_PX = 90;
 const LOCK_PX = 70;
+const NO_DRAG = { left: 0, up: 0 };
 // a mouse has nothing to hold, so a click shorter than this records hands-free instead
 const QUICK_PRESS_MS = 250;
 const HOLD_HINT = "Hold to record, let go to send";
@@ -22,16 +23,36 @@ const pulse = keyframes`
   50% { opacity: 0.25; }
 `;
 
+// enough readings to fill a wide bar, with a narrow one clipping the oldest
+const LIVE_BARS = 160;
+
 // the newest readings sit on the right, so the waveform grows in from that side
-const liveBarsOf = (levels) => [...Array(Math.max(WAVEFORM_BARS - levels.length, 0)).fill(0), ...levels.map((level) => level * 100)];
+const liveBarsOf = (levels) => [...Array(Math.max(LIVE_BARS - levels.length, 0)).fill(0), ...levels.map((level) => level * 100)];
+
+// a slide only says what letting go will do, so sliding back before letting go undoes it
+const releaseOf = ({ left, up }) => {
+  const isPastCancel = left < -CANCEL_PX;
+  const isPastLock = up < -LOCK_PX;
+  if (isPastCancel && isPastLock) return left < up ? "cancel" : "lock";
+  if (isPastCancel) return "cancel";
+  return isPastLock ? "lock" : null;
+};
+
+const micLabelOf = (phase, pending) => {
+  if (phase === "locked") return "Send voice message";
+  if (pending === "cancel") return "Release to cancel the recording";
+  if (pending === "lock") return "Release to keep recording hands-free";
+  return "Record a voice message";
+};
 
 const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
   const dispatch = useDispatch();
   const [phase, setPhase] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
   const [levels, setLevels] = useState([]);
-  const [drag, setDrag] = useState({ left: 0, up: 0 });
+  const [drag, setDrag] = useState(NO_DRAG);
   const phaseNow = useRef("idle");
+  const dragNow = useRef(NO_DRAG);
   const recording = useRef(null);
   const attempts = useRef(0);
   const press = useRef(null);
@@ -43,11 +64,16 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
     onRecordingChange(next !== "idle");
   };
 
+  const moveDrag = (next) => {
+    dragNow.current = next;
+    setDrag(next);
+  };
+
   const reset = () => {
     attempts.current += 1;
     recording.current = null;
     moveTo("idle");
-    setDrag({ left: 0, up: 0 });
+    moveDrag(NO_DRAG);
     setLevels([]);
     setElapsed(0);
   };
@@ -89,9 +115,12 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
       const opened = await startVoiceRecording({
         onLevels: (all, seconds) => {
           if (!isCurrent()) return;
-          setLevels(all.slice(-WAVEFORM_BARS));
+          setLevels(all.slice(-LIVE_BARS));
           setElapsed(seconds);
-          if (seconds >= MAX_VOICE_SECONDS) send();
+          if (seconds < MAX_VOICE_SECONDS) return;
+          const isPointingAtCancel = phaseNow.current === "holding" && releaseOf(dragNow.current) === "cancel";
+          if (isPointingAtCancel) cancel();
+          else send();
         },
       });
       // cancelled, or gone from the screen, while the microphone was still opening
@@ -116,20 +145,18 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
 
   const isThePress = (event) => phaseNow.current === "holding" && event.pointerId === press.current.pointerId;
 
+  const dragOf = (event) => ({ left: Math.min(event.clientX - press.current.x, 0), up: Math.min(event.clientY - press.current.y, 0) });
+
   const onPointerMove = (event) => {
     if (!isThePress(event)) return;
-    const left = Math.min(event.clientX - press.current.x, 0);
-    const up = Math.min(event.clientY - press.current.y, 0);
-    if (left < -CANCEL_PX) return cancel();
-    if (up < -LOCK_PX) {
-      setDrag({ left: 0, up: 0 });
-      return moveTo("locked");
-    }
-    setDrag({ left, up });
+    moveDrag(dragOf(event));
   };
 
   const onPointerUp = (event) => {
     if (!isThePress(event)) return;
+    const release = releaseOf(dragOf(event));
+    if (release === "cancel") return cancel();
+    if (release === "lock") return moveTo("locked");
     // letting go before the microphone opened, say at the permission prompt, counts as a quick press
     const isHold = recording.current !== null && performance.now() - press.current.at >= QUICK_PRESS_MS;
     if (isHold) return send();
@@ -146,6 +173,10 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
   };
 
   const isLocked = phase === "locked";
+  const pending = phase === "holding" ? releaseOf(drag) : null;
+  const isCancelPending = pending === "cancel";
+  const isLockPending = pending === "lock";
+  const cancelSlide = Math.max(drag.left, -CANCEL_PX);
 
   return (
     <>
@@ -159,33 +190,48 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
           sx={{
             position: "absolute",
             inset: 0,
-            right: 54,
+            right: 56,
             zIndex: 1,
             px: 1.5,
-            borderRadius: 3,
-            border: 1,
-            borderColor: "divider",
-            bgcolor: "background.paper",
+            borderRadius: "26px",
+            bgcolor: "chat.raised",
+            boxShadow: (theme) => `0 0 0 1px ${theme.palette.chat.edge}`,
           }}
         >
           {isLocked && (
-            <IconButton aria-label="Delete recording" onClick={discard} sx={{ ml: -0.75, color: "error.main" }}>
+            <IconButton aria-label="Delete recording" onClick={discard} sx={{ ml: -0.75, color: "text.secondary", "&:hover": { color: "error.main" } }}>
               <Trash size={20} />
             </IconButton>
           )}
-          <Box aria-hidden sx={{ flexShrink: 0, width: 10, height: 10, borderRadius: "50%", bgcolor: "error.main", animation: `${pulse} 1.2s ease-in-out infinite` }} />
-          <Typography variant="body2" sx={{ minWidth: 38, fontVariantNumeric: "tabular-nums" }}>
-            {formatDuration(elapsed)}
-          </Typography>
-          <Waveform bars={liveBarsOf(levels)} progress={1} playedColor="primary.main" height={24} />
+          <Stack direction="row" alignItems="center" spacing={1.25} sx={{ flexGrow: 1, minWidth: 0, opacity: isCancelPending ? 0.4 : 1, transition: "opacity 120ms" }}>
+            <Box aria-hidden sx={{ flexShrink: 0, width: 10, height: 10, borderRadius: "50%", bgcolor: "error.main", animation: `${pulse} 1.2s ease-in-out infinite`, "@media (prefers-reduced-motion: reduce)": { animation: "none" } }} />
+            <Typography variant="body2" sx={{ minWidth: 38, fontVariantNumeric: "tabular-nums" }}>
+              {formatDuration(elapsed)}
+            </Typography>
+            <Waveform bars={liveBarsOf(levels)} progress={1} playedColor="primary.main" />
+          </Stack>
           {!isLocked && (
             <Stack
               direction="row"
               alignItems="center"
-              sx={{ flexShrink: 0, color: "text.secondary", transform: `translateX(${drag.left}px)`, opacity: 1 + drag.left / CANCEL_PX }}
+              spacing={0.25}
+              sx={{
+                flexShrink: 0,
+                px: 1,
+                py: 0.25,
+                borderRadius: 99,
+                // solid, so the hint stays readable where it slides over the waveform
+                bgcolor: "chat.raised",
+                backgroundImage: (theme) => (isCancelPending ? `linear-gradient(${alpha(theme.palette.error.main, 0.14)}, ${alpha(theme.palette.error.main, 0.14)})` : "none"),
+                color: isCancelPending ? "error.main" : "text.secondary",
+                transform: `translateX(${cancelSlide}px)`,
+                opacity: isCancelPending ? 1 : 1 + cancelSlide / (CANCEL_PX * 2),
+              }}
             >
-              <CaretLeft size={14} aria-hidden />
-              <Typography variant="caption">Slide to cancel</Typography>
+              {isCancelPending ? <Trash size={14} weight="bold" aria-hidden /> : <CaretLeft size={14} aria-hidden />}
+              <Typography variant="caption" sx={{ fontWeight: isCancelPending ? 700 : undefined }}>
+                {isCancelPending ? "Release to cancel" : "Slide to cancel"}
+              </Typography>
             </Stack>
           )}
         </Stack>
@@ -205,13 +251,14 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
             py: 1,
             borderRadius: 4,
             border: 1,
-            borderColor: "divider",
-            bgcolor: "background.paper",
-            color: "text.secondary",
-            transform: `translateY(${drag.up / 2}px)`,
+            borderColor: isLockPending ? "primary.main" : "divider",
+            bgcolor: isLockPending ? "primary.main" : "background.paper",
+            color: isLockPending ? "primary.contrastText" : "text.secondary",
+            transform: `translateY(${Math.max(drag.up, -LOCK_PX) / 2}px)`,
+            transition: "background-color 120ms, border-color 120ms, color 120ms",
           }}
         >
-          <LockSimple size={18} />
+          <LockSimple size={18} weight={isLockPending ? "fill" : "regular"} />
           <CaretUp size={14} />
         </Stack>
       )}
@@ -219,7 +266,7 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
       <Tooltip title={TOOLTIPS[phase]} disableTouchListener>
         <IconButton
           ref={micButton}
-          aria-label={isLocked ? "Send voice message" : "Record a voice message"}
+          aria-label={micLabelOf(phase, pending)}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -231,8 +278,8 @@ const VoiceRecorder = ({ buttonSx, onRecordingChange }) => {
             touchAction: "none",
             userSelect: "none",
             WebkitTouchCallout: "none",
-            transform: phase === "holding" ? "scale(1.15)" : "none",
-            transition: "transform 120ms ease-out",
+            transition: "transform 120ms ease-out, filter 160ms ease",
+            ...(phase === "holding" && { "&, &:active": { transform: "scale(1.15)" } }),
           }}
         >
           {isLocked ? <PaperPlaneTilt size={20} weight="fill" /> : <Microphone size={20} weight="fill" />}

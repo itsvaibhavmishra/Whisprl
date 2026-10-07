@@ -3,7 +3,8 @@ import { Check } from "phosphor-react";
 
 import useSettings from "@/hooks/useSettings";
 import palette from "@/theme/palette";
-import { colorPresets } from "@/utils/getColorPresets";
+import { colorPresets } from "@/utils/colorPresets";
+import { gradientOf } from "@/utils/gradients";
 
 export const MODES = {
   light: { label: "Light", phrase: "in light mode" },
@@ -11,16 +12,9 @@ export const MODES = {
   system: { label: "System", phrase: "matching my device" },
 };
 
-export const ACCENT_NAMES = {
-  default: "Whisprl blue",
-  purple: "Purple",
-  cyan: "Cyan",
-  blue: "Deep blue",
-  orange: "Orange",
-  red: "Red",
-};
+export const ACCENT_NAMES = Object.fromEntries(colorPresets.map(({ name, label }) => [name, label]));
 
-const hiddenInput = { position: "absolute", opacity: 0, width: 1, height: 1, m: 0 };
+const hiddenInput = { position: "absolute", opacity: 0, width: "1px", height: "1px", m: 0 };
 
 const focusRing = {
   "input:focus-visible + &": { outline: 2, outlineColor: "primary.main", outlineOffset: 3 },
@@ -29,15 +23,15 @@ const focusRing = {
 const { light, dark } = palette;
 
 const TILE_BACKGROUND = {
-  light: light.background.default,
-  dark: dark.background.default,
-  system: `linear-gradient(135deg, ${light.background.default} 50%, ${dark.background.default} 50%)`,
+  light: light.chat.canvas,
+  dark: dark.chat.canvas,
+  system: `linear-gradient(135deg, ${light.chat.canvas} 50%, ${dark.chat.canvas} 50%)`,
 };
 
 const INCOMING_BUBBLE = {
-  light: light.grey[300],
-  dark: dark.grey[700],
-  system: `linear-gradient(90deg, ${light.grey[300]} 50%, ${dark.grey[700]} 50%)`,
+  light: light.chat.bubbleIn,
+  dark: dark.chat.bubbleIn,
+  system: `linear-gradient(90deg, ${light.chat.bubbleIn} 50%, ${dark.chat.bubbleIn} 50%)`,
 };
 
 const PickerLabel = ({ id, children, detail }) => (
@@ -79,7 +73,7 @@ export const ThemeModePicker = () => {
                 }}
               >
                 <Box sx={{ width: "64%", height: 12, borderRadius: 6, background: INCOMING_BUBBLE[value] }} />
-                <Box sx={{ width: "46%", height: 12, borderRadius: 6, bgcolor: "primary.main", alignSelf: "flex-end" }} />
+                <Box sx={{ width: "46%", height: 12, borderRadius: 6, background: (theme) => gradientOf(theme.palette.primary.bubble), alignSelf: "flex-end" }} />
               </Stack>
               <Typography variant="body2" sx={{ mt: 1, fontWeight: checked ? 700 : 400 }}>
                 {label}
@@ -101,10 +95,10 @@ export const AccentPicker = () => {
         Accent colour
       </PickerLabel>
       <Stack role="radiogroup" aria-labelledby="accent-label" direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-        {colorPresets.map(({ name, main, contrastText }) => {
+        {colorPresets.map(({ name, label, main, bubble }) => {
           const checked = themeColorPresets === name;
           return (
-            <Box component="label" key={name} title={ACCENT_NAMES[name]} sx={{ position: "relative", cursor: "pointer" }}>
+            <Box component="label" key={name} title={label} sx={{ position: "relative", cursor: "pointer" }}>
               <Box
                 component="input"
                 type="radio"
@@ -112,7 +106,7 @@ export const AccentPicker = () => {
                 value={name}
                 checked={checked}
                 onChange={onChangeColor}
-                aria-label={ACCENT_NAMES[name]}
+                aria-label={label}
                 sx={hiddenInput}
               />
               <Box
@@ -123,8 +117,8 @@ export const AccentPicker = () => {
                   width: 40,
                   height: 40,
                   borderRadius: "50%",
-                  bgcolor: main,
-                  color: contrastText,
+                  background: gradientOf(bubble),
+                  color: "common.white",
                   boxShadow: (theme) => (checked ? `0 0 0 3px ${theme.palette.background.default}, 0 0 0 5px ${main}` : "none"),
                 }}
               >

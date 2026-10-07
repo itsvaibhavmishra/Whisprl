@@ -1,22 +1,22 @@
 import { Typography } from "@mui/material";
 
-// a small solid pill, so notes stay readable over the doodled background
+// nearly opaque rather than blurred, so notes stay readable over any wallpaper without a blur repainting as messages scroll
 const ChatNote = ({ children, sx, ...props }) => (
   <Typography
-    variant="caption"
     component="p"
     {...props}
     sx={{
       alignSelf: "center",
       maxWidth: "85%",
-      m: 0,
       my: 0.75,
       px: 1.5,
       py: 0.5,
       borderRadius: 99,
       textAlign: "center",
+      fontSize: 12,
+      fontWeight: 600,
       color: "text.secondary",
-      bgcolor: "background.default",
+      bgcolor: "chat.pill",
       ...sx,
     }}
   >

@@ -1,4 +1,4 @@
-import { Box, ButtonBase, CircularProgress, IconButton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import { Box, ButtonBase, CircularProgress, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { ImageSquare, TextT, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -7,7 +7,7 @@ import { CancelPosting, ChooseStatusMedia, GetStatuses } from "@/redux/slices/ac
 import { MIN_VISIBLE_PERCENT } from "@/sections/chat/messages/TransferRing";
 import StatusRing from "@/sections/status/StatusRing";
 import useMessageTime from "@/hooks/useMessageTime";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 
 const AVATAR_SIZE = 52;
 
@@ -53,19 +53,17 @@ const PeopleSection = ({ label, groups, onOpen }) =>
   );
 
 const PostingAvatar = ({ percent }) => {
-  const theme = useTheme();
   const { avatar, firstName } = useSelector((state) => state.user.user);
   return (
     <Box sx={{ position: "relative", width: AVATAR_SIZE, height: AVATAR_SIZE, flexShrink: 0, display: "grid", placeItems: "center" }}>
       <CircularProgress variant="determinate" value={Math.max(percent, MIN_VISIBLE_PERCENT)} size={AVATAR_SIZE} thickness={2.5} sx={{ position: "absolute" }} />
-      {getAvatar(avatar, firstName, theme, AVATAR_SIZE - 10)}
+      {getAvatar(avatar, firstName, AVATAR_SIZE - 10)}
     </Box>
   );
 };
 
 const MyStatusRow = ({ group, onOpen, onWrite, onChooseMedia }) => {
   const dispatch = useDispatch();
-  const theme = useTheme();
   const user = useSelector((state) => state.user.user);
   const posting = useSelector((state) => state.status.posting);
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
@@ -81,7 +79,7 @@ const MyStatusRow = ({ group, onOpen, onWrite, onChooseMedia }) => {
   const avatar = () => {
     if (isPosting) return <PostingAvatar percent={posting} />;
     if (group) return <StatusRing person={user} statuses={group.statuses} size={AVATAR_SIZE} />;
-    return getAvatar(user.avatar, user.firstName, theme, AVATAR_SIZE);
+    return getAvatar(user.avatar, user.firstName, AVATAR_SIZE);
   };
 
   return (

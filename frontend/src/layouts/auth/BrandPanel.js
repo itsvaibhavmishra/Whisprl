@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import mascot from "@/assets/icons/logo/Whisprl.webp";
 import { COMMUNITY } from "@/config";
-import { bubbleShape, TypingDots } from "@/sections/welcome/HeroConversation";
+import { bubbleShape, TypingIndicator } from "@/sections/welcome/HeroConversation";
 import { NO_MOTION } from "@/sections/welcome/styles";
 import Wordmark from "@/components/Wordmark";
 import { PATH_AUTH } from "@/routes/paths";
@@ -35,7 +35,7 @@ const FloatingBubble = ({ mine, text, typing, place, delay }) => (
       [NO_MOTION]: { animation: "none" },
     }}
   >
-    {typing ? <TypingDots /> : text}
+    {typing ? <TypingIndicator /> : text}
   </Box>
 );
 

@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
 
 import { PATH_DASHBOARD } from "@/routes/paths";
-import { createAvatar } from "@/utils/createAvatar";
+import { avatarLookOf } from "@/utils/avatars";
 
 const SIGN_IN_METHODS = {
   google: { label: "Google", Icon: GoogleLogo },
@@ -48,9 +48,9 @@ const AccountSummary = () => {
                   key={_id}
                   src={avatar || undefined}
                   alt={firstName}
-                  sx={{ bgcolor: `${createAvatar(firstName).color}.main`, color: "common.white" }}
+                  sx={{ background: avatarLookOf(firstName).background, color: "common.white" }}
                 >
-                  {createAvatar(firstName).name}
+                  {avatarLookOf(firstName).initial}
                 </Avatar>
               ))}
             </AvatarGroup>

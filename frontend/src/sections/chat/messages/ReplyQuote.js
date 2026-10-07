@@ -1,7 +1,7 @@
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 import { summaryOf } from "@/utils/messageSummary";
 
 // in a group the quote carries its author's photo, so a reply shows whose words it answers at a glance
@@ -24,22 +24,24 @@ const ReplyQuote = ({ quote, author, authorName, isMine, onJump }) => {
       }}
       sx={{
         minWidth: 0,
-        px: 1.25,
+        position: "relative",
+        pl: 1.5,
+        pr: 1.25,
         py: 0.75,
-        borderRadius: 1.5,
-        borderLeft: 3,
-        borderColor: isMine ? alpha("#fff", 0.7) : "primary.main",
-        bgcolor: isMine ? alpha("#000", 0.14) : alpha(theme.palette.primary.main, 0.1),
+        borderRadius: 2.5,
+        overflow: "hidden",
+        bgcolor: isMine ? alpha("#fff", 0.16) : alpha(theme.palette.primary.main, 0.1),
+        "&::before": { content: '""', position: "absolute", left: 0, top: 0, bottom: 0, width: 4, bgcolor: isMine ? alpha("#fff", 0.8) : "primary.main" },
         cursor: onJump ? "pointer" : "default",
       }}
     >
       <Stack direction="row" alignItems="center" spacing={0.75}>
-        {author && getAvatar(author.avatar, author.firstName, theme, 16)}
-        <Typography variant="caption" component="p" noWrap sx={{ m: 0, fontWeight: 700, color: isMine ? "inherit" : "primary.main" }}>
+        {author && getAvatar(author.avatar, author.firstName, 16)}
+        <Typography component="p" noWrap sx={{ m: 0, fontSize: 12.5, fontWeight: 800, color: isMine ? "inherit" : "primary.main" }}>
           {authorName}
         </Typography>
       </Stack>
-      <Typography variant="caption" component="p" noWrap sx={{ m: 0, opacity: 0.85 }}>
+      <Typography component="p" noWrap sx={{ m: 0, fontSize: 13, fontWeight: 500, opacity: 0.85 }}>
         {summaryOf(quote) || "Message"}
       </Typography>
     </Box>

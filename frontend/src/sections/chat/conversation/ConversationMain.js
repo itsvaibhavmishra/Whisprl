@@ -1,20 +1,20 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { MotionConfig } from "framer-motion";
-import { Box, Button, CircularProgress, Divider, Stack } from "@mui/material";
+import { Badge, Box, CircularProgress, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { ArrowDown, LockSimple } from "phosphor-react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import MessageContainer from "@/sections/chat/messages/MessageContainer";
-import { MotionLazyContainer } from "@/components/animate";
 import { DidNotUpload, NotSent } from "@/sections/chat/messages/MessageProblems";
 import { useChatScroll } from "@/sections/chat/conversation/useChatScroll";
+import { floatingDayLabelStyles, useFloatingDayLabels } from "@/sections/chat/conversation/useFloatingDayLabels";
 import { UNREAD_DIVIDER, displayItemsOf, keyOf, lastIdOf } from "@/sections/chat/conversation/displayItems";
 import { GetMessages, LoadNewerMessages, LoadOlderMessages } from "@/redux/slices/actions/chatActions";
 import { RevealMessage } from "@/redux/slices/actions/messageActions";
 import { focusMessage, selectActiveOutbox } from "@/redux/slices/chatSlice";
-import ChatCanvas from "@/sections/chat/ChatCanvas";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
 import { notify } from "@/utils/notify";
+import { formatDayLabel } from "@/utils/formatMessageTime";
 import { filesOf } from "@/utils/messageFiles";
 import { describeEvent, typingNamesIn } from "@/utils/groups";
 import TypingBubble, { TYPING_BUBBLE_HEIGHT } from "@/sections/chat/messages/TypingBubble";
@@ -34,19 +34,49 @@ const messageTypeOf = (message) => {
 // an event or a lone emoji stands apart, so the bubbles either side of it start or end a run
 const joinsRun = (item) => Boolean(item) && item.type !== "event" && !isOnlyEmoji(item.message.message);
 
+const dayOf = (message) => new Date(message.createdAt).toDateString();
+
+const DayLabel = ({ children }) => (
+  <Box data-day-label sx={{ position: "sticky", top: 10, zIndex: 2, alignSelf: "center", my: 1, pointerEvents: "none" }}>
+    <Typography
+      component="p"
+      sx={{
+        px: 1.5,
+        py: 0.5,
+        borderRadius: 99,
+        fontSize: 12,
+        fontWeight: 700,
+        color: "text.secondary",
+        bgcolor: "chat.pill",
+        transition: "background-color 240ms ease, box-shadow 240ms ease",
+      }}
+    >
+      {children}
+    </Typography>
+  </Box>
+);
+
+export const MESSAGE_COLUMN_WIDTH = 860;
+export const MESSAGES_ID = "chat-messages";
+export const MATCH_HIGHLIGHT = "chat-search";
+
 const ConversationMain = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user);
   const isLoadingOlder = useIsLoading(LoadOlderMessages);
-  const {
-    messages,
-    activeConversation,
-    typingConversation,
-    hasOlderMessages,
-    hasNewerMessages,
-    unreadMarker,
-    focusedMessageId,
-  } = useSelector((state) => state.chat);
+  const { messages, activeConversation, typingConversation, hasOlderMessages, hasNewerMessages, unreadMarker, focusedMessageId, hasFetched } = useSelector(
+    ({ chat }) => ({
+      messages: chat.messages,
+      activeConversation: chat.activeConversation,
+      typingConversation: chat.typingConversation,
+      hasOlderMessages: chat.hasOlderMessages,
+      hasNewerMessages: chat.hasNewerMessages,
+      unreadMarker: chat.unreadMarker,
+      focusedMessageId: chat.focusedMessageId,
+      hasFetched: chat.hasFetched,
+    }),
+    shallowEqual,
+  );
   const isLoadingNewer = useIsLoading(LoadNewerMessages);
   const outbox = useSelector(selectActiveOutbox);
 
@@ -59,6 +89,26 @@ const ConversationMain = () => {
 
   const items = displayItemsOf(messages, outbox, user);
   const confirmed = items.filter((item) => !item.entry);
+
+  // only a message arriving at the newest end rises in, so opening a chat or loading history never animates
+  const known = useRef({ keys: null, wasShowingLatest: false });
+  const { keys: knownKeys, wasShowingLatest } = known.current;
+  const lastKnownIndex = knownKeys ? items.findLastIndex((item) => knownKeys.has(keyOf(item.message))) : -1;
+  const canRise = Boolean(knownKeys) && (lastKnownIndex >= 0 || knownKeys.size === 0) && wasShowingLatest && !hasNewerMessages;
+
+  useEffect(() => {
+    if (hasFetched || items.length) known.current = { keys: new Set(items.map((item) => keyOf(item.message))), wasShowingLatest: !hasNewerMessages };
+  });
+
+  const days = items.reduce((groups, item, index) => {
+    const day = dayOf(item.message);
+    if (groups.at(-1)?.day !== day) {
+      const repeats = groups.filter((group) => group.day === day).length;
+      groups.push({ day, key: `${day}#${repeats}`, label: formatDayLabel(item.message.createdAt), entries: [] });
+    }
+    groups.at(-1).entries.push({ item, index });
+    return groups;
+  }, []);
 
   const lastConfirmed = confirmed.at(-1)?.message;
   const lastItem = items.at(-1);
@@ -82,7 +132,8 @@ const ConversationMain = () => {
     if (item.type === "queued") return item.entry.status !== "failed" && item === lastItem ? "Sending…" : null;
     if (item.message.isEditPending) return "Sending…";
     if ((!peer && !isGroup) || item.message.sender._id !== user._id) return null;
-    const isLiveStatus = lastIsOursAndUnseen && item === lastItem;
+    // in a one-to-one chat the ticks already say this, so only a message still waiting on a key is spelled out
+    const isLiveStatus = lastIsOursAndUnseen && item === lastItem && (isGroup || item.message.awaitingKey);
     return isLiveStatus || item.message._id === detailsId ? statusOf(item) : null;
   };
 
@@ -119,6 +170,7 @@ const ConversationMain = () => {
     onLoadNewer: loadNewer,
     isShowingLatest: !hasNewerMessages,
   });
+  useFloatingDayLabels(scrollRef);
 
   // from an older stretch the latest page is fetched first, since everything between was never loaded
   const goToLatest = async () => {
@@ -188,8 +240,10 @@ const ConversationMain = () => {
     if (!isAwayFromBottom) setMissed(0);
   }, [isAwayFromBottom]);
 
+  const jumpLabel = missed ? `${missed} new message${missed === 1 ? "" : "s"}` : "Jump to latest";
+
   return (
-    <ChatCanvas sx={{ flexGrow: 1, minHeight: 0, display: "flex" }}>
+    <Box sx={{ position: "relative", flex: "1 1 0", minHeight: 0, display: "flex" }}>
       <Box
         width="100%"
         ref={scrollRef}
@@ -200,36 +254,40 @@ const ConversationMain = () => {
           flexDirection: "column",
           overflowY: "scroll",
           overflowAnchor: "none",
-          pl: { xs: 4, md: 6 },
-          pr: { xs: 1.5, md: 4 },
+          pl: 7,
+          pr: { xs: 2.5, md: 4 },
           pt: 1,
           pb: 0.5,
+          ...floatingDayLabelStyles,
+          [`& ::highlight(${MATCH_HIGHLIGHT})`]: { backgroundColor: (theme) => alpha(theme.palette.primary.glow, 0.45), color: "inherit" },
+          [`& [data-own] ::highlight(${MATCH_HIGHLIGHT})`]: { backgroundColor: "rgba(255, 255, 255, 0.92)", color: "#0A3D73" },
         }}
       >
-        <MotionLazyContainer>
-          <MotionConfig reducedMotion="user">
-            <Stack ref={contentRef} spacing={0.5} sx={{ mt: "auto" }}>
-              <Box ref={topRef} sx={{ display: "flex", justifyContent: "center", minHeight: 24, py: 1 }}>
-                {isLoadingOlder && <CircularProgress size={20} aria-label="Loading older messages" />}
-                {!hasOlderMessages && messages.length > 0 && (
-                  <ChatNote sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-                    <LockSimple size={13} aria-hidden />
-                    Messages here are end-to-end encrypted. Only the people in this chat can read them.
-                  </ChatNote>
-                )}
-              </Box>
+        <Stack ref={contentRef} id={MESSAGES_ID} spacing={0.5} useFlexGap sx={{ mt: "auto", width: "100%", maxWidth: MESSAGE_COLUMN_WIDTH, mx: "auto" }}>
+          <Box ref={topRef} sx={{ display: "flex", justifyContent: "center", minHeight: 24, py: 1 }}>
+            {isLoadingOlder && <CircularProgress size={20} aria-label="Loading older messages" />}
+            {!hasOlderMessages && messages.length > 0 && (
+              <ChatNote sx={{ maxWidth: 340, px: 1.75, py: 1.25, borderRadius: 1.5, fontSize: 12.5, lineHeight: 1.5 }}>
+                <LockSimple size={14} weight="bold" aria-hidden style={{ verticalAlign: "-2px", marginRight: 6 }} />
+                Messages here are end-to-end encrypted. Only the people in this chat can read them.
+              </ChatNote>
+            )}
+          </Box>
 
-              {items.map((item, index) => {
+          {days.map(({ key, label, entries }) => (
+            <Stack key={key} spacing={0.5} useFlexGap>
+              <DayLabel>{label}</DayLabel>
+              {entries.map(({ item, index }, position) => {
                 const { message } = item;
 
-                const divider = message._id === unreadMarker?.firstId && (
+                const unreadLine = message._id === unreadMarker?.firstId && (
                   <Divider
                     data-message-key={UNREAD_DIVIDER}
+                    role="presentation"
                     sx={{
                       my: 1,
-                      typography: "caption",
-                      color: "text.secondary",
-                      "& .MuiDivider-wrapper": { bgcolor: "background.default", borderRadius: 99, px: 1.5, py: 0.25 },
+                      "&::before, &::after": { borderColor: "primary.main", opacity: 0.4 },
+                      "& .MuiDivider-wrapper": { mx: 1.5, px: 1.5, py: 0.5, borderRadius: 99, fontSize: 12, fontWeight: 800, color: "primary.main", bgcolor: "chat.pill" },
                     }}
                   >
                     {unreadMarker.count} unread message{unreadMarker.count === 1 ? "" : "s"}
@@ -239,7 +297,7 @@ const ConversationMain = () => {
                 if (item.type === "event") {
                   return (
                     <Fragment key={keyOf(message)}>
-                      {divider}
+                      {unreadLine}
                       <ChatNote data-message-key={keyOf(message)}>
                         {describeEvent(message, activeConversation, user._id)}
                       </ChatNote>
@@ -247,8 +305,9 @@ const ConversationMain = () => {
                   );
                 }
 
-                const previousItem = items[index - 1];
-                const nextItem = items[index + 1];
+                // a run of bubbles ends with its day, since the day label sits between them
+                const previousItem = entries[position - 1]?.item;
+                const nextItem = entries[position + 1]?.item;
                 const isStartOfSequence = !joinsRun(previousItem) || previousItem.message.sender._id !== message.sender._id;
                 const isEndOfSequence =
                   !joinsRun(nextItem) || nextItem.message.sender._id !== message.sender._id || isOnlyEmoji(message.message);
@@ -256,19 +315,21 @@ const ConversationMain = () => {
 
                 return (
                   <Fragment key={keyOf(message)}>
-                    {divider}
+                    {unreadLine}
                     <MessageContainer
                       anchorKey={keyOf(message)}
                       message={message}
                       me={isMine}
                       conversation={activeConversation}
                       isHighlighted={highlightedId === message._id}
+                      isFresh={canRise && index > lastKnownIndex}
                       onJumpTo={jumpTo}
                       onHoldStill={holdStill}
                       senderName={isGroup && !isMine && isStartOfSequence ? message.sender.firstName : undefined}
                       seenBy={seenRows.get(item)}
                       isQueued={item.type === "queued"}
                       isStartOfSequence={isStartOfSequence}
+                      startsTurn={isStartOfSequence && Boolean(previousItem) && previousItem.type !== "event"}
                       isEndOfSequence={isEndOfSequence}
                       msgType={messageTypeOf(message)}
                       showTime={detailsId === message._id}
@@ -280,31 +341,47 @@ const ConversationMain = () => {
                   </Fragment>
                 );
               })}
-
-              {/* the typing bubble has a slot of its own, so it comes and goes without moving the messages */}
-              <Box sx={{ minHeight: TYPING_BUBBLE_HEIGHT }}>
-                {typists.length > 0 && !hasNewerMessages && <TypingBubble names={typists} isGroup={isGroup} />}
-              </Box>
-              <Box ref={bottomRef} sx={{ display: "flex", justifyContent: "center", minHeight: "1px" }}>
-                {isLoadingNewer && <CircularProgress size={20} aria-label="Loading newer messages" />}
-              </Box>
             </Stack>
-          </MotionConfig>
-        </MotionLazyContainer>
+          ))}
+
+          {/* the typing bubble has a slot of its own, so it comes and goes without moving the messages */}
+          <Box sx={{ minHeight: TYPING_BUBBLE_HEIGHT }}>
+            {typists.length > 0 && !hasNewerMessages && <TypingBubble names={typists} isGroup={isGroup} />}
+          </Box>
+          <Box ref={bottomRef} sx={{ display: "flex", justifyContent: "center", minHeight: "1px" }}>
+            {isLoadingNewer && <CircularProgress size={20} aria-label="Loading newer messages" />}
+          </Box>
+        </Stack>
       </Box>
 
       {(isAwayFromBottom || hasNewerMessages) && (
-        <Button
-          size="small"
-          variant="contained"
-          startIcon={<ArrowDown size={16} />}
-          onClick={goToLatest}
-          sx={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", borderRadius: 20 }}
-        >
-          {missed ? `${missed} new message${missed === 1 ? "" : "s"}` : "Jump to latest"}
-        </Button>
+        <Tooltip title={jumpLabel} placement="left">
+          <IconButton
+            onClick={goToLatest}
+            aria-label={jumpLabel}
+            sx={{
+              position: "absolute",
+              right: { xs: 12, md: 24 },
+              bottom: 12,
+              width: 44,
+              height: 44,
+              color: "text.primary",
+              bgcolor: "chat.raised",
+              boxShadow: (theme) => `0 6px 20px -6px ${theme.palette.chat.shade}, 0 0 0 1px ${theme.palette.divider}`,
+              "&:hover": { bgcolor: "chat.raised", color: "primary.main" },
+            }}
+          >
+            <Badge
+              badgeContent={missed}
+              color="primary"
+              sx={{ "& .MuiBadge-badge": { top: -10, right: -10, fontWeight: 800 } }}
+            >
+              <ArrowDown size={20} weight="bold" />
+            </Badge>
+          </IconButton>
+        </Tooltip>
       )}
-    </ChatCanvas>
+    </Box>
   );
 };
 

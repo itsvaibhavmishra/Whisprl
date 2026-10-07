@@ -1,25 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
-import { ArrowBendUpRight } from "phosphor-react";
+import { m, useReducedMotion } from "framer-motion";
+import { ArrowBendUpRight, Prohibit } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useMessageTime from "@/hooks/useMessageTime";
 import { ReactToMessage } from "@/redux/slices/actions/messageActions";
 import { setReplyingTo } from "@/redux/slices/chatSlice";
+import ChatNote from "@/sections/chat/conversation/ChatNote";
 import ContactCard from "@/sections/chat/messages/ContactCard";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
 import MediaMessage from "@/sections/chat/messages/MediaMessage";
 import MessageActions from "@/sections/chat/messages/MessageActions";
+import MessageMeta, { MetaSpacer } from "@/sections/chat/messages/MessageMeta";
 import MessageText from "@/sections/chat/messages/MessageText";
-import Reactions from "@/sections/chat/messages/Reactions";
+import Reactions, { chipCountOf } from "@/sections/chat/messages/Reactions";
 import ReplyQuote from "@/sections/chat/messages/ReplyQuote";
 import VideoMessage from "@/sections/chat/messages/VideoMessage";
 import ViewOnceMessage from "@/sections/chat/messages/ViewOnceMessage";
 import VoiceMessage from "@/sections/chat/messages/VoiceMessage";
 import SeenMarker, { SeenByRow } from "@/sections/chat/messages/SeenMarker";
 import useSwipeToReply, { SwipeReplyHint } from "@/sections/chat/messages/useSwipeToReply";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar, { nameColorOf } from "@/utils/avatars";
+import { gradientOf } from "@/utils/gradients";
 import { firstNameIn, memberOf } from "@/utils/groups";
 import { filesOf, isMediaFile } from "@/utils/messageFiles";
 import { quickReactionsOf } from "@/utils/reactions";
@@ -36,9 +40,20 @@ const flash = keyframes`
 
 // the corner nearest the next bubble in a run is tucked in, so a run of messages reads as one block
 const cornersOf = (isMine, isStart, isEnd) => {
-  const [outerTop, outerBottom] = [isStart ? 20 : 6, isEnd ? 20 : 6];
-  return isMine ? `20px ${outerTop}px ${outerBottom}px 20px` : `${outerTop}px 20px 20px ${outerBottom}px`;
+  const [outerTop, outerBottom] = [isStart ? 18 : 6, isEnd ? 18 : 6];
+  return isMine ? `18px ${outerTop}px ${outerBottom}px 18px` : `${outerTop}px 18px 18px ${outerBottom}px`;
 };
+
+// fixed to the window, so every bubble of yours shows its own slice of one gradient and shifts as it scrolls
+const ownBubble = (theme) => ({
+  backgroundImage: gradientOf(theme.palette.primary.bubble, 180),
+  backgroundAttachment: "fixed",
+});
+
+// revealed upwards rather than moved, since a transform on any ancestor would cut the fixed gradient loose
+const RISE = { opacity: 0, clipPath: "inset(70% -48px -16px -48px)" };
+const RISE_TO = { opacity: 1, clipPath: "inset(0% -48px -16px -48px)", transitionEnd: { clipPath: "none" } };
+const RISE_TIMING = { duration: 0.26, ease: [0.33, 1, 0.68, 1] };
 
 const MessageContainer = ({
   anchorKey,
@@ -47,6 +62,7 @@ const MessageContainer = ({
   conversation,
   isQueued,
   isStartOfSequence,
+  startsTurn,
   isEndOfSequence,
   msgType,
   showTime,
@@ -56,6 +72,7 @@ const MessageContainer = ({
   senderName,
   seenBy,
   isHighlighted,
+  isFresh,
   onToggleDetails,
   onJumpTo,
   onHoldStill,
@@ -64,12 +81,13 @@ const MessageContainer = ({
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
   const messageTime = useMessageTime();
+  const isStill = useReducedMotion();
   const [menuAnchor, setMenuAnchor] = useState(null);
   const pressTimer = useRef(null);
   const clickTimer = useRef(null);
   const lastClick = useRef(0);
   const wasLongPress = useRef(false);
-  const swipe = useSwipeToReply(isMine ? -1 : 1, () => dispatch(setReplyingTo(message)));
+  const swipe = useSwipeToReply(isMine ? -1 : 1, () => !message.deletedAt && dispatch(setReplyingTo(message)));
 
   useEffect(() => () => clearTimeout(clickTimer.current), []);
 
@@ -81,7 +99,11 @@ const MessageContainer = ({
   const isFileMsg = msgType === "file" || msgType === "file_with_caption";
   const isDeleted = Boolean(message.deletedAt);
   const hasReactions = Boolean(conversation && message.reactions?.length);
-  const canAct = Boolean(conversation && message._id && !isQueued && !isDeleted && !message.event);
+  const reactionChips = hasReactions ? chipCountOf(message.reactions) : 0;
+  const isBare = isDeleted || msgType === "emoji";
+  // a deleted message keeps its menu, so anyone can still clear it from their own screen
+  const hasMenu = Boolean(conversation && message._id && !isQueued && !message.event);
+  const canAct = hasMenu && !isDeleted;
 
   const mentionNames = (message.mentions ?? []).map((userId) => memberOf(conversation, userId)?.firstName).filter(Boolean);
   const quotedSenderId = message.replyTo?.sender?._id ?? message.replyTo?.sender;
@@ -94,18 +116,19 @@ const MessageContainer = ({
   };
   const quickReact = () => canAct && react(quickReactionsOf(user)[0]);
 
-  const backgroundOf = () => {
-    if (isDeleted || msgType === "emoji") return "transparent";
-    return isMine ? theme.palette.primary.main : theme.palette.background.default;
+  const surfaceOf = () => {
+    if (isBare) return { bgcolor: "transparent" };
+    if (isMine) return ownBubble(theme);
+    return { bgcolor: "chat.bubbleIn", boxShadow: `inset 0 0 0 1px ${theme.palette.chat.edge}, 0 1px 2px ${theme.palette.chat.shade}` };
   };
 
   const paddingOf = () => {
     if (isFileMsg) return hasMedia ? 0 : 1;
-    if (msgType === "text") return 1.5;
+    if (msgType === "text") return "8px 12px";
     return "3px 0px";
   };
 
-  const interactions = canAct && {
+  const interactions = hasMenu && {
     onContextMenu: (event) => {
       event.preventDefault();
       setMenuAnchor(event.currentTarget);
@@ -113,7 +136,8 @@ const MessageContainer = ({
     onTouchStart: (event) => {
       const bubble = event.currentTarget;
       wasLongPress.current = false;
-      swipe.handlers.onTouchStart(event);
+      // only a new swipe is gated, so one under way still springs back if its message is deleted partway through
+      if (canAct) swipe.handlers.onTouchStart(event);
       pressTimer.current = setTimeout(() => {
         wasLongPress.current = true;
         setMenuAnchor(bubble);
@@ -144,7 +168,7 @@ const MessageContainer = ({
     clickTimer.current = setTimeout(() => onToggleDetails?.(), DOUBLE_TAP_MS);
   };
 
-  const toggleProps = onToggleDetails && {
+  const toggleProps = onToggleDetails && !isDeleted && {
     onClick: handleClick,
     ...(!isFileMsg && {
       role: "button",
@@ -159,9 +183,28 @@ const MessageContainer = ({
   };
 
   const textColor = isMine && !isDeleted ? "#fff" : theme.palette.text.primary;
-  const hasHeader = message.forwarded || message.replyTo;
+  const hasHeader = message.forwarded || message.replyTo || senderName;
+  const isDirect = Boolean(conversation && !conversation.isGroup && conversation.users?.some((member) => member._id !== user._id));
+  const hasTick = isMine && isDirect;
+  const hasText = !isDeleted && !message.undecryptable && Boolean(message.message) && msgType !== "emoji";
+  const metaPlaceOf = () => {
+    if (hasText) return "float";
+    if (voice) return "inline";
+    return hasMedia && !message.message ? "overlay" : "block";
+  };
+  const metaPlace = metaPlaceOf();
+  const meta = { message, hasTick, isQueued };
+  const stamp = !isDeleted && (
+    <MessageMeta
+      {...meta}
+      isOnBubble={msgType !== "emoji"}
+      isMine={isMine}
+      place={metaPlace}
+      sx={metaPlace === "block" ? { px: isFileMsg ? 0.75 : 0, ...(msgType === "emoji" && isMine && { color: "primary.main" }) } : undefined}
+    />
+  );
 
-  const actions = canAct && (
+  const actions = hasMenu && (
     <MessageActions
       message={message}
       conversation={conversation}
@@ -173,62 +216,64 @@ const MessageContainer = ({
   );
 
   return (
-    <Stack spacing={0.5}>
-      {showTime && (
-        <Typography variant="caption" sx={{ alignSelf: "center", color: "text.secondary" }}>
-          {messageTime(message.createdAt)}
-        </Typography>
-      )}
-      {senderName && (
-        <Typography variant="caption" sx={{ color: "text.secondary", ml: 1.5 }}>
-          {senderName}
-        </Typography>
-      )}
+    <Stack
+      component={m.div}
+      initial={isFresh && !isStill ? RISE : false}
+      animate={RISE_TO}
+      transition={RISE_TIMING}
+      spacing={0.5}
+      useFlexGap
+      sx={{ mt: startsTurn ? { xs: 0.75, md: 1 } : 0 }}
+    >
+      {showTime && !isDeleted && <ChatNote sx={{ my: 0, px: 1.25, py: 0.25 }}>{messageTime(message.createdAt)}</ChatNote>}
       <Stack
         direction="row"
-        data-message-key={anchorKey}
         justifyContent={isMine ? "flex-end" : "flex-start"}
         alignItems="center"
         sx={{
           position: "relative",
-          opacity: isQueued ? 0.7 : 1,
+          opacity: isQueued ? 0.75 : 1,
           "&:hover .message-tools, &:focus-within .message-tools": { opacity: 1 },
         }}
       >
         {!isMine && isEndOfSequence && (
-          <Box sx={{ position: "absolute", top: msgType === "text" || isFileMsg ? 10 : 18, left: -25 }}>
-            {getAvatar(message?.sender?.avatar, message?.sender?.firstName, theme, 20)}
+          <Box sx={{ position: "absolute", bottom: 0, left: -36 }}>
+            {getAvatar(message.sender.avatar, message.sender.firstName, 28)}
           </Box>
         )}
         {swipe.progress > 0 && <SwipeReplyHint progress={swipe.progress} side={isMine ? "right" : "left"} />}
-        {isMine && actions}
+        {/* the anchor is the bubble itself, so room opening above it for reactions moves the list, never the bubble */}
         <Box
+          data-message-key={anchorKey}
           sx={{
             position: "relative",
             minWidth: 0,
-            mb: hasReactions ? 1 : 0,
+            mt: hasReactions ? (isBare ? 3 : 1.5) : 0,
             transform: swipe.offset ? `translateX(${swipe.offset}px)` : "none",
             transition: swipe.offset ? "none" : "transform 180ms ease-out",
           }}
         >
           <Box
             p={paddingOf()}
+            data-own={isMine || undefined}
             {...toggleProps}
             {...interactions}
             sx={{
               "--flash": alpha(theme.palette.primary.main, 0.55),
-              cursor: onToggleDetails ? "pointer" : "default",
+              position: "relative",
+              cursor: toggleProps ? "pointer" : "default",
               display: "flex",
               flexDirection: "column",
               gap: hasHeader ? 0.75 : 0,
               justifyContent: "center",
               alignItems: "stretch",
               width: isFileMsg ? "auto" : "max-content",
-              minWidth: 40,
-              maxWidth: { xs: "16em", md: "26em" },
-              minHeight: 40,
+              // wide enough for its reaction chips, so they never spill past the bubble's edge
+              minWidth: reactionChips ? 20 + 46 * reactionChips : 48,
+              maxWidth: { xs: "17em", md: "28em" },
+              minHeight: 38,
               color: textColor,
-              backgroundColor: backgroundOf(),
+              ...surfaceOf(),
               border: isDeleted ? `1px dashed ${theme.palette.divider}` : "none",
               borderRadius: cornersOf(isMine, isStartOfSequence, isEndOfSequence),
               overflow: "hidden",
@@ -238,7 +283,12 @@ const MessageContainer = ({
             }}
           >
             {hasHeader && (
-              <Stack spacing={0.75} sx={{ p: hasMedia ? 0.75 : 0 }}>
+              <Stack spacing={0.75} sx={{ p: hasMedia || isFileMsg ? 0.75 : 0, pb: 0 }}>
+                {senderName && (
+                  <Typography component="p" noWrap sx={{ m: 0, fontSize: 13, fontWeight: 800, lineHeight: 1.2, color: nameColorOf(senderName, theme.palette.mode) }}>
+                    {senderName}
+                  </Typography>
+                )}
                 {message.forwarded && (
                   <Stack direction="row" spacing={0.5} alignItems="center" sx={{ opacity: 0.75 }}>
                     <ArrowBendUpRight size={12} />
@@ -260,25 +310,24 @@ const MessageContainer = ({
             )}
 
             {isDeleted ? (
-              <Typography variant="body2" sx={{ fontStyle: "italic", color: "text.secondary" }}>
-                {isMine ? "You deleted this message" : "This message was deleted"}
-              </Typography>
+              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ px: 1.5, py: 0.75, color: "text.secondary" }}>
+                <Prohibit size={15} />
+                <Typography sx={{ fontSize: 14, fontStyle: "italic" }}>{isMine ? "You deleted this message" : "This message was deleted"}</Typography>
+              </Stack>
             ) : (
               <>
                 {message.viewOnce && <ViewOnceMessage message={message} isMine={isMine} isGroup={conversation?.isGroup} meId={user._id} />}
                 {message.contact && <ContactCard contact={message.contact} isMine={isMine} />}
                 {hasMedia &&
                   (media.length === 1 && media[0].fileType === "video" ? <VideoMessage file={media[0]} /> : <MediaMessage files={media} />)}
-                {voice && <VoiceMessage file={voice} isMine={isMine} />}
+                {voice && <VoiceMessage file={voice} isMine={isMine} stamp={stamp} />}
                 {hasDocs && (
                   <Box sx={{ mt: hasMedia ? 0.5 : 0 }}>
                     <DocumentMessage files={files} />
                   </Box>
                 )}
                 {message.undecryptable ? (
-                  <Typography variant="body2" sx={{ fontStyle: "italic", opacity: 0.75 }}>
-                    {message.awaitingKey ? WAITING : UNREADABLE}
-                  </Typography>
+                  <Typography sx={{ fontSize: 14, fontStyle: "italic", opacity: 0.75 }}>{message.awaitingKey ? WAITING : UNREADABLE}</Typography>
                 ) : (
                   message.message && (
                     <MessageText
@@ -286,31 +335,29 @@ const MessageContainer = ({
                       mentionNames={mentionNames}
                       isMine={isMine}
                       variant={!isFileMsg && msgType === "emoji" ? "h3" : "body2"}
-                      sx={isFileMsg ? { px: 1.5, pb: 1, pt: 0.5 } : undefined}
+                      trailing={hasText && <MetaSpacer {...meta} />}
+                      sx={{
+                        fontSize: msgType === "emoji" ? undefined : 15,
+                        fontWeight: 500,
+                        lineHeight: 1.45,
+                        ...(isFileMsg && { px: 1.25, pb: 0.75, pt: 0.75 }),
+                        // a caption takes no width of its own, so it wraps beneath the photo instead of stretching the bubble
+                        ...(hasMedia && { width: 0, minWidth: "100%", boxSizing: "border-box" }),
+                      }}
                     />
                   )
                 )}
-                {message.editedAt && (
-                  <Typography variant="caption" sx={{ alignSelf: "flex-end", opacity: 0.7, mt: 0.25, px: isFileMsg ? 1.5 : 0 }}>
-                    Edited
-                  </Typography>
-                )}
               </>
             )}
+            {metaPlace !== "inline" && stamp}
           </Box>
-          {hasReactions && (
-            <Reactions message={message} conversation={conversation} meId={user._id} isMine={isMine} onReact={react} />
-          )}
+          {conversation && <Reactions message={message} conversation={conversation} meId={user._id} isBare={isBare} onReact={react} />}
+          {actions}
         </Box>
-        {!isMine && actions}
         {marker && <SeenMarker {...marker} messageId={message._id} />}
       </Stack>
       {footer}
-      {statusLabel && (
-        <Typography variant="caption" sx={{ alignSelf: "flex-end", color: "text.secondary" }}>
-          {statusLabel}
-        </Typography>
-      )}
+      {statusLabel && !isDeleted && <ChatNote sx={{ alignSelf: "flex-end", my: 0, px: 1, py: 0.25, fontSize: 11.5 }}>{statusLabel}</ChatNote>}
       {seenBy?.length > 0 && <SeenByRow people={seenBy} />}
     </Stack>
   );

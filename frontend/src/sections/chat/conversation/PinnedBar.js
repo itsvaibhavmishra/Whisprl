@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { UnpinMessage } from "@/redux/slices/actions/messageActions";
 import { focusMessage } from "@/redux/slices/chatSlice";
+import { GLASS_BAR } from "@/sections/chat/conversation/ConversationHeader";
 import { summaryOf } from "@/utils/messageSummary";
 
 // opening a pin jumps to it and moves on to the next, so every pin is a tap away
@@ -25,7 +26,7 @@ const PinnedBar = () => {
       direction="row"
       alignItems="center"
       spacing={1}
-      sx={{ px: { xs: 1.5, md: 2.5 }, py: 0.75, bgcolor: "background.default", borderBottom: 1, borderColor: "divider" }}
+      sx={{ ...GLASS_BAR, px: { xs: 1.5, md: 2.5 }, py: 0.75 }}
     >
       <ButtonBase
         onClick={() => {
@@ -43,10 +44,10 @@ const PinnedBar = () => {
           ))}
         </Stack>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="caption" component="p" sx={{ m: 0, fontWeight: 700, color: "primary.main" }}>
+          <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: "primary.main" }}>
             {pins.length > 1 ? `Pinned message ${position + 1} of ${pins.length}` : "Pinned message"}
           </Typography>
-          <Typography variant="body2" noWrap>
+          <Typography noWrap sx={{ fontSize: 14, fontWeight: 500 }}>
             {summaryOf(message) || "Message"}
           </Typography>
         </Box>

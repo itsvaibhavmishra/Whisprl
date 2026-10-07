@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 import { SendRequest } from "@/redux/slices/actions/contactActions";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 
 const ContactCard = ({ contact, isMine }) => {
   const theme = useTheme();
@@ -31,9 +31,9 @@ const ContactCard = ({ contact, isMine }) => {
   return (
     <Stack spacing={1.25} sx={{ minWidth: 200, p: 0.5 }}>
       <Stack direction="row" spacing={1.5} alignItems="center">
-        {getAvatar(contact.avatar, contact.firstName, theme, 40)}
+        {getAvatar(contact.avatar, contact.firstName, 40)}
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="subtitle2" noWrap>
+          <Typography data-searchable variant="subtitle2" noWrap>
             {fullName}
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.75 }}>

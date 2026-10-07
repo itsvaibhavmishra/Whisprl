@@ -1,29 +1,20 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  ButtonBase,
-  Chip,
-  IconButton,
-  InputAdornment,
-  Skeleton,
-  Stack,
-  TextField,
-  Typography,
-  useTheme,
-} from "@mui/material";
-import { Archive, ArrowLeft, MagnifyingGlass, UsersThree, X } from "phosphor-react";
+import { Box, Button, ButtonBase, IconButton, InputBase, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import { Archive, ArrowLeft, CaretRight, MagnifyingGlass, UsersThree, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
+import WhisprlAvatar from "@/assets/icons/logo/WhisprlAvatar.webp";
+import Wordmark from "@/components/Wordmark";
 import useIsLoading from "@/hooks/useIsLoading";
 import { CreateOpenConversation, GetConversations } from "@/redux/slices/actions/chatActions";
 import { SearchForUsers, SendRequest } from "@/redux/slices/actions/contactActions";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
 import { clearSearchUsers } from "@/redux/slices/contactSlice";
 import { clearSearch } from "@/redux/slices/userSlice";
+import ChatAvatar from "@/sections/chat/ChatAvatar";
 import ChatRow from "@/sections/chat/list/ChatRow";
 import { identityOf, isDeleted, peerOf } from "@/utils/chats";
-import getAvatar from "@/utils/createAvatar";
 
 const SEARCH_PAUSE_MS = 400;
 
@@ -42,27 +33,24 @@ const matchesSearch = (conversation, meId, needle) => {
 };
 
 const SectionLabel = ({ children }) => (
-  <Typography variant="subtitle2" component="h2" sx={{ px: 1.5, pt: 2, pb: 0.5, color: "text.secondary" }}>
+  <Typography component="h2" sx={{ px: 1.5, pt: 2.5, pb: 0.75, fontSize: 13, fontWeight: 700, color: "text.secondary" }}>
     {children}
   </Typography>
 );
 
-const PersonSummary = ({ person, name, detail }) => {
-  const theme = useTheme();
-  return (
-    <>
-      {getAvatar(person.avatar, person.firstName, theme, 40)}
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography variant="subtitle2" noWrap>
-          {name}
-        </Typography>
-        <Typography variant="caption" noWrap component="p" sx={{ m: 0, color: "text.secondary" }}>
-          {detail}
-        </Typography>
-      </Box>
-    </>
-  );
-};
+const PersonSummary = ({ person, name, detail }) => (
+  <>
+    <ChatAvatar src={person.avatar} name={person.firstName} size={44} />
+    <Box sx={{ minWidth: 0, flex: 1 }}>
+      <Typography noWrap sx={{ fontSize: 15, fontWeight: 700 }}>
+        {name}
+      </Typography>
+      <Typography noWrap component="p" sx={{ m: 0, fontSize: 13, fontWeight: 500, color: "text.secondary" }}>
+        {detail}
+      </Typography>
+    </Box>
+  </>
+);
 
 const atUsername = (person) => (person.username ? `@${person.username}` : "");
 
@@ -74,7 +62,7 @@ const FriendRow = ({ person, isMe }) => {
     <Box component="li" sx={{ listStyle: "none" }}>
       <ButtonBase
         onClick={() => dispatch(CreateOpenConversation(person._id))}
-        sx={{ width: "100%", gap: 1.5, px: 1.5, py: 1, borderRadius: 2, justifyContent: "flex-start", textAlign: "left", "&:hover": { bgcolor: "action.hover" } }}
+        sx={{ width: "100%", gap: 1.5, px: 1.25, py: 1, borderRadius: 3, justifyContent: "flex-start", textAlign: "left", "&:hover": { bgcolor: "action.hover" } }}
       >
         <PersonSummary
           person={person}
@@ -92,9 +80,9 @@ const StrangerRow = ({ person }) => {
   const isRequestSent = sentRequests.find((sent) => sent.receiverId === person._id)?.isSent ?? person.requestSent;
 
   return (
-    <Box component="li" sx={{ listStyle: "none", display: "flex", alignItems: "center", gap: 1.5, px: 1.5, py: 1 }}>
+    <Box component="li" sx={{ listStyle: "none", display: "flex", alignItems: "center", gap: 1.5, px: 1.25, py: 1 }}>
       <PersonSummary person={person} name={`${person.firstName} ${person.lastName}`} detail={atUsername(person)} />
-      <Button size="small" variant="outlined" disabled={isRequestSent} onClick={() => dispatch(SendRequest(person._id))}>
+      <Button size="small" variant={isRequestSent ? "text" : "contained"} disabled={isRequestSent} onClick={() => dispatch(SendRequest(person._id))} sx={{ borderRadius: 99, flexShrink: 0 }}>
         {isRequestSent ? "Request sent" : "Add friend"}
       </Button>
     </Box>
@@ -106,7 +94,8 @@ const ChatList = ({ onNewGroup }) => {
   const meId = useSelector((state) => state.user.user._id);
   const friendMatches = useSelector((state) => state.user.searchResults);
   const strangerMatches = useSelector((state) => state.contact.searchedUsersList);
-  const { conversations, activeConversation } = useSelector((state) => state.chat);
+  const conversations = useSelector((state) => state.chat.conversations);
+  const activeId = useSelector((state) => state.chat.activeConversation?._id);
   const isLoading = useIsLoading(GetConversations);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
@@ -129,7 +118,7 @@ const ChatList = ({ onNewGroup }) => {
 
   // a cleared chat keeps its place, empty, as it would anywhere else
   const isListed = (conversation) =>
-    conversation._id === activeConversation?._id ||
+    conversation._id === activeId ||
     (!isDeleted(conversation) && Boolean(conversation.latestMessage || conversation.clearedAt));
   // a search looks through archived chats too
   const isInView = (conversation) => Boolean(needle) || Boolean(conversation.isArchived) === isShowingArchived;
@@ -159,75 +148,114 @@ const ChatList = ({ onNewGroup }) => {
   };
 
   const note = emptyNote();
+  const isUnfiltered = !needle && !isShowingArchived && filter === "all" && !archivedCount;
 
   return (
-    <Stack component="nav" aria-label="Chats" sx={{ height: "100%", bgcolor: "background.default" }}>
-      <Stack spacing={2} sx={{ px: 2.5, pt: 3, pb: 1.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+    <Stack component="nav" aria-label="Chats" sx={{ height: "100%", bgcolor: "chat.list" }}>
+      <Stack spacing={1.75} sx={{ px: 2, pt: 1.25, pb: 1.25 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 44 }}>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             {isShowingArchived && (
               <IconButton aria-label="Back to chats" onClick={() => setIsShowingArchived(false)} sx={{ ml: -1 }}>
                 <ArrowLeft size={22} />
               </IconButton>
             )}
-            <Typography component="h1" sx={{ m: 0, fontSize: 30, fontWeight: 800, letterSpacing: "-0.02em" }}>
-              {isShowingArchived ? "Archived" : "Chats"}
+            <Typography component="h1" sx={{ m: 0 }}>
+              <Wordmark name={isShowingArchived ? "Archived" : "Chats"} fontSize={30} />
             </Typography>
           </Stack>
-          <Button size="small" startIcon={<UsersThree size={18} />} onClick={onNewGroup}>
-            New group
-          </Button>
+          <Tooltip title="New group">
+            <IconButton
+              aria-label="New group"
+              onClick={onNewGroup}
+              sx={{ width: 40, height: 40, color: "primary.main", bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), "&:hover": { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.18) } }}
+            >
+              <UsersThree size={20} weight="bold" />
+            </IconButton>
+          </Tooltip>
         </Stack>
 
-        <TextField
-          size="small"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search chats and people"
-          inputProps={{ "aria-label": "Search chats and people" }}
-          InputProps={{
-            sx: { borderRadius: 99, bgcolor: "background.paper", "& fieldset": { border: "none" } },
-            startAdornment: (
-              <InputAdornment position="start">
-                <MagnifyingGlass size={18} />
-              </InputAdornment>
-            ),
-            endAdornment: query && (
-              <InputAdornment position="end">
-                <IconButton size="small" aria-label="Clear search" onClick={() => setQuery("")}>
-                  <X size={14} />
-                </IconButton>
-              </InputAdornment>
-            ),
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1}
+          sx={{
+            height: 42,
+            px: 1.5,
+            borderRadius: 99,
+            bgcolor: "chat.field",
+            color: "text.secondary",
+            border: 1.5,
+            borderColor: "transparent",
+            transition: "border-color 160ms ease, background-color 160ms ease",
+            "&:focus-within": { borderColor: "primary.main", bgcolor: "chat.list" },
           }}
-        />
+        >
+          <MagnifyingGlass size={18} weight="bold" />
+          <InputBase
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search chats and people"
+            inputProps={{ "aria-label": "Search chats and people" }}
+            sx={{ flex: 1, fontSize: 14, fontWeight: 500, color: "text.primary" }}
+          />
+          {query && (
+            <IconButton size="small" aria-label="Clear search" onClick={() => setQuery("")} sx={{ mr: -0.75 }}>
+              <X size={14} weight="bold" />
+            </IconButton>
+          )}
+        </Stack>
 
         {!isShowingArchived && (
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" role="group" aria-label="Show">
-            {Object.entries(FILTERS).map(([value, { label }]) => (
-              <Chip
-                key={value}
-                label={value === "unread" && unreadChats ? `${label} ${unreadChats}` : label}
-                onClick={() => setFilter(value)}
-                color={filter === value ? "primary" : "default"}
-                variant={filter === value ? "filled" : "outlined"}
-                aria-pressed={filter === value}
-                size="small"
-              />
-            ))}
+          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" role="group" aria-label="Show">
+            {Object.entries(FILTERS).map(([value, { label }]) => {
+              const isOn = filter === value;
+              return (
+                <ButtonBase
+                  key={value}
+                  onClick={() => setFilter(value)}
+                  aria-pressed={isOn}
+                  sx={(theme) => {
+                    // a solid chip would be the brightest thing on a dark screen, so at night the chosen one is only tinted
+                    const isNight = theme.palette.mode === "dark";
+                    const onColor = isNight ? theme.palette.primary.light : theme.palette.primary.contrastText;
+                    return {
+                      height: 32,
+                      px: 1.5,
+                      gap: 0.75,
+                      borderRadius: 99,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: isOn ? onColor : theme.palette.text.secondary,
+                      bgcolor: isOn ? (isNight ? alpha(theme.palette.primary.main, 0.16) : theme.palette.primary.main) : theme.palette.chat.field,
+                      boxShadow: isOn && isNight ? `inset 0 0 0 1px ${alpha(theme.palette.primary.main, 0.32)}` : "none",
+                      transition: "background-color 160ms ease, color 160ms ease",
+                      "&:hover": { color: isOn ? onColor : theme.palette.text.primary },
+                    };
+                  }}
+                >
+                  {label}
+                  {value === "unread" && unreadChats > 0 && (
+                    <Box component="span" sx={{ fontSize: 11, fontWeight: 800, opacity: isOn ? 0.85 : 1, color: isOn ? "inherit" : "primary.main" }}>
+                      {unreadChats}
+                    </Box>
+                  )}
+                </ButtonBase>
+              );
+            })}
           </Stack>
         )}
       </Stack>
 
       <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }} className="scrollbar">
         {isLoading && !conversations.length ? (
-          <Stack spacing={1} sx={{ px: 1.5, pt: 1 }}>
-            {[...Array(6).keys()].map((index) => (
-              <Stack key={index} direction="row" spacing={1.5} alignItems="center" sx={{ py: 0.75 }}>
-                <Skeleton variant="circular" width={48} height={48} />
+          <Stack spacing={0.5} sx={{ px: 1.25, pt: 1 }}>
+            {[...Array(7).keys()].map((index) => (
+              <Stack key={index} direction="row" spacing={1.5} alignItems="center" sx={{ py: 1 }}>
+                <Skeleton variant="circular" width={50} height={50} />
                 <Box sx={{ flex: 1 }}>
-                  <Skeleton width="55%" />
-                  <Skeleton width="80%" />
+                  <Skeleton width={`${50 + ((index * 13) % 30)}%`} sx={{ borderRadius: 2 }} />
+                  <Skeleton width={`${70 + ((index * 7) % 25)}%`} sx={{ borderRadius: 2 }} />
                 </Box>
               </Stack>
             ))}
@@ -237,23 +265,22 @@ const ChatList = ({ onNewGroup }) => {
             {!isShowingArchived && !needle && archivedCount > 0 && (
               <ButtonBase
                 onClick={() => setIsShowingArchived(true)}
-                sx={{ width: "100%", gap: 1.5, px: 1.5, py: 1.25, borderRadius: 2, justifyContent: "flex-start", "&:hover": { bgcolor: "action.hover" } }}
+                sx={{ width: "100%", gap: 1.5, px: 1.25, py: 1, borderRadius: 3, justifyContent: "flex-start", "&:hover": { bgcolor: "action.hover" } }}
               >
-                <Box sx={{ width: 48, display: "grid", placeItems: "center", color: "text.secondary" }}>
+                <Box sx={{ width: 50, height: 50, borderRadius: "50%", display: "grid", placeItems: "center", color: "text.secondary", bgcolor: "chat.field" }}>
                   <Archive size={22} />
                 </Box>
-                <Typography variant="subtitle2" sx={{ flex: 1, textAlign: "left" }}>
-                  Archived
-                </Typography>
-                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
+                <Typography sx={{ flex: 1, textAlign: "left", fontSize: 15, fontWeight: 700 }}>Archived</Typography>
+                <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, color: "text.secondary" }}>
                   {archivedCount}
                 </Typography>
+                <CaretRight size={16} weight="bold" />
               </ButtonBase>
             )}
             {shown.length > 0 && (
               <Box component="ul" sx={{ m: 0, p: 0 }}>
                 {shown.map((conversation) => (
-                  <ChatRow key={conversation._id} conversation={conversation} isActive={conversation._id === activeConversation?._id} />
+                  <ChatRow key={conversation._id} conversation={conversation} isActive={conversation._id === activeId} hasChatOpen={Boolean(activeId)} />
                 ))}
               </Box>
             )}
@@ -278,9 +305,10 @@ const ChatList = ({ onNewGroup }) => {
               </>
             )}
             {!shown.length && !people.length && !strangers.length && note && (
-              <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", px: 3, py: 6 }}>
-                {note}
-              </Typography>
+              <Stack alignItems="center" spacing={1.5} sx={{ px: 3, py: 6, textAlign: "center" }}>
+                {isUnfiltered && <Box component="img" src={WhisprlAvatar} alt="" sx={{ width: 96, height: 96, borderRadius: "50%", bgcolor: "chat.field" }} />}
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.secondary", maxWidth: 260 }}>{note}</Typography>
+              </Stack>
             )}
           </>
         )}

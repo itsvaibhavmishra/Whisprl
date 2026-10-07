@@ -10,13 +10,12 @@ import {
   ListItemAvatar,
   ListItemText,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
 import { GetBlocked, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { SettingRow } from "@/sections/settings/SettingsSection";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 
 const countOf = (people) => {
   if (!people.length) return "Nobody. Block someone from their chat details.";
@@ -24,7 +23,6 @@ const countOf = (people) => {
 };
 
 const BlockedPeopleSetting = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const blockedPeople = useSelector((state) => state.user.blockedPeople);
   const [isOpen, setIsOpen] = useState(false);
@@ -57,7 +55,7 @@ const BlockedPeopleSetting = () => {
                   </Button>
                 }
               >
-                <ListItemAvatar>{getAvatar(person.avatar, person.firstName, theme, 36)}</ListItemAvatar>
+                <ListItemAvatar>{getAvatar(person.avatar, person.firstName, 36)}</ListItemAvatar>
                 <ListItemText
                   primary={`${person.firstName} ${person.lastName}`}
                   secondary={person.username && `@${person.username}`}

@@ -388,8 +388,9 @@ $ npm run build
 │   │   │   ├── ProfileHero.js
 │   │   │   ├── ScrollToTop.js
 │   │   │   ├── SitePage.js
+│   │   │   ├── StatusArcs.js
 │   │   │   ├── StyledBadge.js
-│   │   │   ├── ThemeSwitch.js
+│   │   │   ├── TypingDots.js
 │   │   │   ├── Wordmark.js
 │   │   ├── contexts/
 │   │   │   ├── SettingsContext.js
@@ -410,7 +411,7 @@ $ npm run build
 │   │   │   ├── dashboard/
 │   │   │   │   ├── DashboardPage.js
 │   │   │   │   ├── index.js
-│   │   │   │   ├── Sidebar.js
+│   │   │   │   ├── NavRail.js
 │   │   │   ├── docs/
 │   │   │   │   ├── index.js
 │   │   ├── pages/
@@ -474,7 +475,6 @@ $ npm run build
 │   │   │   │   ├── attachments/
 │   │   │   │   │   ├── FileBody.js
 │   │   │   │   │   ├── FileFooter.js
-│   │   │   │   │   ├── FileHeader.js
 │   │   │   │   │   ├── FileUploadCont.js
 │   │   │   │   ├── conversation/
 │   │   │   │   │   ├── AttachMenu.js
@@ -489,13 +489,18 @@ $ npm run build
 │   │   │   │   │   ├── PinnedBar.js
 │   │   │   │   │   ├── ShareContactDialog.js
 │   │   │   │   │   ├── useChatScroll.js
+│   │   │   │   │   ├── useFloatingDayLabels.js
 │   │   │   │   │   ├── useTyping.js
 │   │   │   │   │   ├── VoiceRecorder.js
 │   │   │   │   ├── details/
 │   │   │   │   │   ├── ChatControls.js
 │   │   │   │   │   ├── DetailsPanel.js
+│   │   │   │   │   ├── DetailsSection.js
 │   │   │   │   │   ├── GroupDetails.js
+│   │   │   │   │   ├── HaloAvatar.js
 │   │   │   │   │   ├── PersonDetails.js
+│   │   │   │   │   ├── PhotoViewer.js
+│   │   │   │   │   ├── QuickActions.js
 │   │   │   │   │   ├── ReportDialog.js
 │   │   │   │   │   ├── SharedContent.js
 │   │   │   │   ├── group/
@@ -517,6 +522,7 @@ $ npm run build
 │   │   │   │   │   ├── MessageActions.js
 │   │   │   │   │   ├── MessageContainer.js
 │   │   │   │   │   ├── MessageImage.js
+│   │   │   │   │   ├── MessageMeta.js
 │   │   │   │   │   ├── MessageProblems.js
 │   │   │   │   │   ├── MessageText.js
 │   │   │   │   │   ├── ReactionPicker.js
@@ -531,8 +537,17 @@ $ npm run build
 │   │   │   │   │   ├── ViewOnceViewer.js
 │   │   │   │   │   ├── VoiceMessage.js
 │   │   │   │   │   ├── Waveform.js
+│   │   │   │   ├── status/
+│   │   │   │   │   ├── AvatarChoices.js
+│   │   │   │   │   ├── useLiveStatuses.js
+│   │   │   │   ├── wallpaper/
+│   │   │   │   │   ├── WallpaperChoices.js
+│   │   │   │   │   ├── WallpaperDialog.js
+│   │   │   │   │   ├── wallpapers.js
+│   │   │   │   ├── ChatAvatar.js
 │   │   │   │   ├── ChatCanvas.js
 │   │   │   │   ├── EmptyChat.js
+│   │   │   │   ├── chatRoute.js
 │   │   │   ├── contacts/
 │   │   │   │   ├── AllChatElement.js
 │   │   │   │   ├── ChatSearchResults.js
@@ -566,6 +581,7 @@ $ npm run build
 │   │   │   │   ├── SettingsSection.js
 │   │   │   │   ├── StatusPrivacySetting.js
 │   │   │   │   ├── UsernameSetting.js
+│   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
 │   │   │   │   ├── StatusComposer.js
 │   │   │   │   ├── StatusList.js
@@ -649,18 +665,19 @@ $ npm run build
 │   │   │   │   ├── statusCipher.js
 │   │   │   │   ├── statusCipher.test.js
 │   │   │   ├── attachments.js
+│   │   │   ├── avatars.js
 │   │   │   ├── axios.js
 │   │   │   ├── chats.js
 │   │   │   ├── chats.test.js
-│   │   │   ├── createAvatar.js
+│   │   │   ├── colorPresets.js
 │   │   │   ├── formatMessageTime.js
 │   │   │   ├── formatMessageTime.test.js
 │   │   │   ├── formatTime.js
 │   │   │   ├── formRules.js
 │   │   │   ├── formRules.test.js
-│   │   │   ├── getColorPresets.js
 │   │   │   ├── getFontValue.js
 │   │   │   ├── getOtherUser.js
+│   │   │   ├── gradients.js
 │   │   │   ├── groups.js
 │   │   │   ├── helmetHandler.js
 │   │   │   ├── links.js

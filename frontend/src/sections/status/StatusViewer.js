@@ -14,7 +14,6 @@ import {
   ListItemText,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { keyframes } from "@mui/system";
 import { Eye, Trash, X } from "phosphor-react";
@@ -23,7 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 import useFileUrl from "@/hooks/useFileUrl";
 import { DeleteStatus, MarkStatusViewed } from "@/redux/slices/actions/statusActions";
 import useMessageTime from "@/hooks/useMessageTime";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 import { backgroundOf, isLive, textSizeOf } from "@/utils/statuses";
 
 const SHOW_MS = 6000;
@@ -94,7 +93,6 @@ const StatusMedia = ({ status, isPaused, onReady }) => {
 
 // arrow keys pressed in the list stay there, rather than moving the statuses behind it
 const ViewersList = ({ views, onClose }) => {
-  const theme = useTheme();
   const messageTime = useMessageTime();
   return (
     <Dialog open onClose={onClose} onKeyDown={(event) => event.stopPropagation()} fullWidth maxWidth="xs" aria-labelledby="viewers-title">
@@ -103,7 +101,7 @@ const ViewersList = ({ views, onClose }) => {
         <List disablePadding>
           {views.map(({ user, viewedAt }) => (
             <ListItem key={user._id} disableGutters>
-              <ListItemAvatar>{getAvatar(user.avatar, user.firstName, theme, 36)}</ListItemAvatar>
+              <ListItemAvatar>{getAvatar(user.avatar, user.firstName, 36)}</ListItemAvatar>
               <ListItemText primary={`${user.firstName} ${user.lastName}`} secondary={messageTime(viewedAt)} />
             </ListItem>
           ))}
@@ -115,7 +113,6 @@ const ViewersList = ({ views, onClose }) => {
 
 const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClose }) => {
   const dispatch = useDispatch();
-  const theme = useTheme();
   const messageTime = useMessageTime();
   const [isReady, setIsReady] = useState(status.content.kind === "text");
   const [isListingViewers, setIsListingViewers] = useState(false);
@@ -131,7 +128,7 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
       <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, background: "linear-gradient(rgba(0, 0, 0, 0.55), transparent)" }}>
         <Segments count={count} position={position} durationMs={durationOf(status)} isRunning={isReady && !isListingViewers} onDone={onNext} />
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 1.5, py: 1, color: "#fff" }}>
-          {getAvatar(owner.avatar, owner.firstName, theme, 36)}
+          {getAvatar(owner.avatar, owner.firstName, 36)}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="subtitle2" noWrap>
               {isOwn ? "My status" : `${owner.firstName} ${owner.lastName}`}

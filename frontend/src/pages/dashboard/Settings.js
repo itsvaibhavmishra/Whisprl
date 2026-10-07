@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Stack, Switch, Typography, useTheme } from "@mui/material";
+import { Box, Button, Stack, Switch, Typography } from "@mui/material";
 import { ArrowUpRight, SignOut } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
@@ -17,9 +17,10 @@ import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import UsernameSetting from "@/sections/settings/UsernameSetting";
 import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
 import StatusPrivacySetting from "@/sections/settings/StatusPrivacySetting";
+import WallpaperSetting from "@/sections/settings/WallpaperSetting";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
-import getAvatar from "@/utils/createAvatar";
+import getAvatar from "@/utils/avatars";
 import useSettings from "@/hooks/useSettings";
 import { previewSound } from "@/utils/sounds";
 
@@ -103,13 +104,16 @@ const NotificationSetting = () => {
 
 const Settings = () => {
   const dispatch = useDispatch();
-  const theme = useTheme();
   const { email, firstName, lastName, avatar } = useSelector((state) => state.user.user);
   const [changingPassword, setChangingPassword] = useState(false);
 
   return (
     <DashboardPage title="Settings" description="Make Whisprl look the way you like, and look after your account." maxWidth={1040}>
       <Appearance />
+
+      <Box sx={{ mt: { xs: 7, md: 10 } }}>
+        <WallpaperSetting />
+      </Box>
 
       <Box
         sx={{
@@ -126,7 +130,7 @@ const Settings = () => {
             <SettingLink
               component={RouterLink}
               to={PATH_DASHBOARD.general.profile}
-              leading={getAvatar(avatar, firstName, theme, 48)}
+              leading={getAvatar(avatar, firstName, 48)}
               label={`${firstName} ${lastName}`}
               description="Edit your photo, cover, name and status."
             />

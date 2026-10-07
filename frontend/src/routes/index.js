@@ -43,7 +43,7 @@ export default function Router() {
       element: <DashboardLayout />,
       children: [
         { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
-        { path: "chat", element: <ChatPage /> },
+        { path: "chat/*", element: <ChatPage /> },
         { path: "app", element: <Navigate to={DEFAULT_PATH} replace /> },
         { path: "status", element: <StatusPage /> },
         { path: "profile", element: <ProfilePage /> },

@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from "@mui/material";
 import { CircleDashed, LockSimple } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { PAGE_HEIGHT_WITH_TAB_BAR } from "@/layouts/dashboard/NavRail";
 import { GetStatuses } from "@/redux/slices/actions/statusActions";
 import ChatCanvas from "@/sections/chat/ChatCanvas";
 import StatusComposer from "@/sections/status/StatusComposer";
@@ -55,7 +56,7 @@ const Status = () => {
   const closeViewer = useCallback(() => setViewing(null), []);
 
   return (
-    <Box sx={{ display: "flex", flexGrow: 1, minWidth: 0, height: { xs: "calc(100dvh - 65px)", md: "100dvh" }, bgcolor: "background.default" }}>
+    <Box sx={{ display: "flex", flexGrow: 1, minWidth: 0, height: { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100dvh" }, bgcolor: "background.default" }}>
       <Box sx={{ width: { xs: "100%", md: LIST_WIDTH }, flexShrink: 0, borderRight: 1, borderColor: "divider" }}>
         <StatusList myGroup={myGroup} recent={recent} viewed={viewed} onOpen={open} onCompose={setDraft} />
       </Box>

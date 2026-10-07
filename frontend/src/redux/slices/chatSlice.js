@@ -9,6 +9,9 @@ import {
 
 const initialState = {
   conversations: [],
+  hasLoadedConversations: false,
+  // set when the first list could not load, so an address waiting on it gives up
+  hasConversationsFailed: false,
   // counts every message that reaches the list, so a list fetched before one arrived knows it is older
   arrivals: 0,
   activeConversation: null,
@@ -43,7 +46,6 @@ const initialState = {
   editing: null,
   // a reply, pin or search result asks the chat to bring this message into view
   focusedMessageId: null,
-  isDetailsOpen: false,
   // every decrypted message of a chat, gathered for searching it and listing its media, links and documents
   history: {},
   commonGroups: {},
@@ -217,10 +219,6 @@ const slice = createSlice({
 
     focusMessage: (state, action) => {
       state.focusedMessageId = action.payload;
-    },
-
-    setDetailsOpen: (state, action) => {
-      state.isDetailsOpen = action.payload;
     },
 
     historyLoaded: (state, action) => {
@@ -420,6 +418,7 @@ const slice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(GetConversations.fulfilled, (state, action) => {
+        state.hasLoadedConversations = true;
         const { conversations, arrivalsWhenAsked } = action.payload;
         const held = new Map(state.conversations.map((conversation) => [conversation._id, conversation]));
         const isNewer = (conversation) => held.get(conversation._id)?.arrival > arrivalsWhenAsked;
@@ -436,8 +435,16 @@ const slice = createSlice({
         const active = state.conversations.find((conversation) => conversation._id === state.activeConversation?._id);
         if (active) state.activeConvoFriendship = active.canMessage;
       })
+      .addCase(GetConversations.rejected, (state) => {
+        if (!state.hasLoadedConversations) state.hasConversationsFailed = true;
+      })
       .addCase(CreateOpenConversation.fulfilled, (state, action) => {
-        open(state, action.payload.conversation, action.payload.isValidFriendShip);
+        const { conversation, isValidFriendShip } = action.payload;
+        // listed straight away, though hidden until its first message, so going back to it finds it
+        if (!state.conversations.some((listed) => listed._id === conversation._id)) {
+          state.conversations.push({ ...conversation, canMessage: isValidFriendShip });
+        }
+        open(state, conversation, isValidFriendShip);
       })
 
       // the newest page, joined onto older pages already loaded when the two overlap
@@ -491,7 +498,6 @@ export const {
   reactionChanged,
   focusMessage,
   windowShown,
-  setDetailsOpen,
   historyLoaded,
   commonGroupsLoaded,
   groupUpdated,

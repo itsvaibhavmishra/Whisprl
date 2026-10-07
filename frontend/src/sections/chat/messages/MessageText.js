@@ -19,8 +19,8 @@ const withMentions = (text, mentionNames, isMine) => {
   );
 };
 
-const MessageText = ({ text, mentionNames = [], isMine, variant = "body2", sx }) => (
-  <Typography variant={variant} component="p" sx={{ m: 0, whiteSpace: "pre-wrap", wordBreak: "break-word", ...sx }}>
+const MessageText = ({ text, mentionNames = [], isMine, variant = "body2", trailing, sx }) => (
+  <Typography data-searchable variant={variant} component="p" sx={{ m: 0, whiteSpace: "pre-wrap", wordBreak: "break-word", ...sx }}>
     {splitLinks(text).map((part, index) =>
       part.href ? (
         <Link
@@ -38,6 +38,7 @@ const MessageText = ({ text, mentionNames = [], isMine, variant = "body2", sx })
         <Fragment key={index}>{withMentions(part.text, mentionNames, isMine)}</Fragment>
       )
     )}
+    {trailing}
   </Typography>
 );
 

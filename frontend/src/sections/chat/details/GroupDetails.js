@@ -7,13 +7,11 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Divider,
   IconButton,
   List,
   Stack,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { PencilSimple, SignOut, UserPlus } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,8 +20,10 @@ import ImageMenu from "@/components/ImageMenu";
 import { LeaveGroup, UpdateGroup } from "@/redux/slices/actions/groupActions";
 import AddMembersDialog from "@/sections/chat/group/AddMembersDialog";
 import GroupMemberRow from "@/sections/chat/group/GroupMemberRow";
+import { ControlRow } from "@/sections/chat/details/ChatControls";
+import { DetailsSection } from "@/sections/chat/details/DetailsSection";
+import HaloAvatar from "@/sections/chat/details/HaloAvatar";
 import useIsLoading from "@/hooks/useIsLoading";
-import getAvatar from "@/utils/createAvatar";
 import { MAX_GROUP_NAME, MAX_GROUP_SIZE, canManage, isAdminOf, isOwnerOf, membersLabel } from "@/utils/groups";
 
 const rankOf = (group, userId) => {
@@ -51,7 +51,7 @@ const GroupName = ({ group, canRename }) => {
   if (draft === null) {
     return (
       <Stack direction="row" alignItems="center" spacing={0.5}>
-        <Typography variant="h6" sx={{ wordBreak: "break-word", textAlign: "center" }}>
+        <Typography sx={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.25, wordBreak: "break-word", textAlign: "center" }}>
           {group.name}
         </Typography>
         {canRename && (
@@ -91,8 +91,7 @@ const GroupName = ({ group, canRename }) => {
   );
 };
 
-const GroupDetails = ({ group, sharedContent }) => {
-  const theme = useTheme();
+const GroupDetails = ({ group, sharedContent, quickActions }) => {
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
   const isLeaving = useIsLoading(LeaveGroup);
@@ -111,48 +110,44 @@ const GroupDetails = ({ group, sharedContent }) => {
 
   return (
     <>
-      <Stack alignItems="center" spacing={1} sx={{ px: 3, pt: 1, pb: 3 }}>
-        <Box sx={{ position: "relative", mb: 1 }}>
-          {getAvatar(group.picture, group.name, theme, 96)}
-          {isManager && (
-            <Box sx={{ position: "absolute", right: -4, bottom: -4 }}>
-              <ImageMenu kind="group" hasImage={!!group.picture} onChange={changePicture} />
-            </Box>
-          )}
+      <Stack alignItems="center" spacing={0.5} sx={{ px: 3, pt: 3.5, pb: 2.5 }}>
+        <Box sx={{ mb: 1.5 }}>
+          <HaloAvatar src={group.picture} name={group.name}>
+            {isManager && (
+              <Box sx={{ position: "absolute", right: 0, bottom: 0 }}>
+                <ImageMenu kind="group" hasImage={!!group.picture} onChange={changePicture} />
+              </Box>
+            )}
+          </HaloAvatar>
         </Box>
         <GroupName group={group} canRename={isManager} />
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {membersLabel(group)}
-        </Typography>
+        <Typography sx={{ fontSize: 13, fontWeight: 600, color: "text.secondary" }}>{membersLabel(group)}</Typography>
       </Stack>
 
-      <Divider />
+      {quickActions}
       {sharedContent}
-      <Divider />
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, pt: 2 }}>
-        <Typography variant="subtitle2">Members</Typography>
-        {isManager && group.users.length < MAX_GROUP_SIZE && (
-          <Button size="small" startIcon={<UserPlus />} onClick={() => setIsAdding(true)}>
-            Add people
-          </Button>
-        )}
-      </Stack>
-      <List>
-        {members.map((member) => (
-          <GroupMemberRow key={member._id} group={group} member={member} meId={meId} />
-        ))}
-      </List>
-
-      <Divider />
-      <Button
-        color="error"
-        startIcon={<SignOut />}
-        onClick={() => setIsConfirmingLeave(true)}
-        sx={{ m: 2, justifyContent: "flex-start" }}
+      <DetailsSection
+        title="Members"
+        action={
+          isManager &&
+          group.users.length < MAX_GROUP_SIZE && (
+            <Button size="small" startIcon={<UserPlus weight="bold" />} onClick={() => setIsAdding(true)} sx={{ borderRadius: 99 }}>
+              Add people
+            </Button>
+          )
+        }
       >
-        Leave group
-      </Button>
+        <List disablePadding>
+          {members.map((member) => (
+            <GroupMemberRow key={member._id} group={group} member={member} meId={meId} />
+          ))}
+        </List>
+      </DetailsSection>
+
+      <Box sx={{ px: 1, pt: 1.5 }}>
+        <ControlRow icon={SignOut} label="Leave group" isDanger onClick={() => setIsConfirmingLeave(true)} />
+      </Box>
 
       {isManager && <AddMembersDialog group={group} open={isAdding} onClose={() => setIsAdding(false)} />}
 
