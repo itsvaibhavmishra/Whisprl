@@ -261,6 +261,7 @@ const slice = createSlice({
         ...group,
         ...preferencesIn(previous),
         latestMessage: previous?.latestMessage ?? null,
+        latestReaction: previous?.latestReaction ?? null,
         pins: previous?.pins ?? [],
         unread: previous?.unread ?? 0,
       };
@@ -389,7 +390,7 @@ const slice = createSlice({
       });
     },
 
-    // a reader's receipt covers every message in the conversation they did not send
+    // a reader's receipt covers every message in the conversation they did not send, its row's latest included
     applyReceipt: (state, action) => {
       const { conversation_id, reader, receipt, at, upTo } = action.payload;
       if (upTo) {
@@ -398,14 +399,23 @@ const slice = createSlice({
         });
         return;
       }
-      if (state.activeConversation?._id !== conversation_id) return;
 
-      state.messages
-        .filter((message) => message.sender._id !== reader && !message.awaitingKey)
-        .forEach((message) => {
-          message.deliveredAt ??= at;
-          if (receipt === "seen") message.seenAt ??= at;
-        });
+      const stamp = (message) => {
+        if (message.sender?._id === reader || message.awaitingKey) return;
+        message.deliveredAt ??= at;
+        if (receipt === "seen") message.seenAt ??= at;
+      };
+      listsOf(state, conversation_id).forEach((messages) => messages.forEach(stamp));
+      conversationsWith(state, conversation_id).forEach((conversation) => conversation.latestMessage && stamp(conversation.latestMessage));
+    },
+
+    reactionPreviewed: (state, action) => {
+      const { conversationId, latestReaction } = action.payload;
+      conversationsWith(state, conversationId).forEach((conversation) => {
+        conversation.latestReaction = latestReaction;
+      });
+      const conversation = state.conversations.find((convo) => convo._id === conversationId);
+      if (latestReaction && conversation) state.conversations = [conversation, ...state.conversations.filter((convo) => convo._id !== conversationId)];
     },
 
     updateMemberKeys: (state, action) => {
@@ -510,6 +520,7 @@ export const {
   setEditing,
   reactionChanged,
   albumReactionsShown,
+  reactionPreviewed,
   focusMessage,
   windowShown,
   historyLoaded,

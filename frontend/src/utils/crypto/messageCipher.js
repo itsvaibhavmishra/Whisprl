@@ -132,6 +132,9 @@ const readReactions = async (sealed = [], conversation, bind) => {
 
 export const decryptAlbumReactions = (album, conversation) => readReactions(album.reactions, conversation, reactionBinding(album, true));
 
+export const decryptReaction = ({ cipher, user, message, batchId }, conversation) =>
+  openMessage({ cipher, sender: user }, conversation, reactionBinding(message, Boolean(batchId))).catch(() => null);
+
 export const decryptMessage = async (message, conversation) => {
   if (!message?.cipher && !message?.replyTo && !message?.reactions?.length) return message;
   const [content, replyTo, reactions] = await Promise.all([

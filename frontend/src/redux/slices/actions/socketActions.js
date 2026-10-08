@@ -7,9 +7,10 @@ import {
   RemovedMessage,
   ReceiveAlbumUpdate,
   ReceiveMessageUpdate,
+  ReceiveReactionPreview,
+  ReceiveReceipt,
 } from "@/redux/slices/actions/chatActions";
 import {
-  applyReceipt,
   chatCleared,
   disappearingChanged,
   preferencesChanged,
@@ -19,6 +20,7 @@ import {
 } from "@/redux/slices/chatSlice";
 import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { statusRemoved, viewerAdded } from "@/redux/slices/statusSlice";
+import { GetFriendRequests } from "@/redux/slices/actions/contactActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
 import { ReceiveStatus } from "@/redux/slices/actions/statusActions";
 import { notify } from "@/utils/notify";
@@ -36,7 +38,8 @@ const serverEvents = () => ({
   message_received: ReceiveMessage,
   message_updated: ReceiveMessageUpdate,
   album_updated: ReceiveAlbumUpdate,
-  receipts: applyReceipt,
+  receipts: ReceiveReceipt,
+  reaction_preview: ReceiveReactionPreview,
   online_friends: updateOnlineUsers,
   start_typing: updateTypingConvo,
   stop_typing: updateTypingConvo,
@@ -47,6 +50,7 @@ const serverEvents = () => ({
   status_posted: ReceiveStatus,
   status_removed: statusRemoved,
   status_viewed: viewerAdded,
+  friend_requests_changed: GetFriendRequests,
 });
 
 const listen = (dispatch, getState) => {
@@ -69,6 +73,7 @@ const listen = (dispatch, getState) => {
     if (hasConnected) dispatch(CatchUp());
     hasConnected = true;
     dispatch(FlushOutbox());
+    dispatch(GetFriendRequests());
   });
 
   // socket.io retries a dropped connection by itself, but not one the server refused or closed, so this retries with a renewed token

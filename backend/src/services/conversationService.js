@@ -23,6 +23,7 @@ export const populateMembers = (conversation) => conversation.populate(MEMBERS);
 export const QUOTED_FIELDS = "sender cipher attachment event deletedAt createdAt viewOnce viewedBy";
 
 const PINNED = { path: "pins.message", select: QUOTED_FIELDS };
+const LATEST_REACTION = { path: "latestReaction.message", select: `${QUOTED_FIELDS} batchId` };
 
 const MAX_PINS = 3;
 const UNREAD_CAP = 100;
@@ -128,6 +129,7 @@ export const getUserConversations = async (user) => {
   const conversations = await ConversationModel.find({ users: user._id, ...CURRENT })
     .populate(MEMBERS)
     .populate({ path: "latestMessage", select: "-hiddenFor" })
+    .populate(LATEST_REACTION)
     .populate(PINNED)
     .sort({ updatedAt: -1 });
 
@@ -142,12 +144,13 @@ export const getUserConversations = async (user) => {
   return conversations.map((conversation, index) => {
     const preference = preferenceOf(conversation);
     const json = conversation.toJSON();
-    const isClearedSinceLatest = preference.clearedAt && json.latestMessage && new Date(json.latestMessage.createdAt) <= preference.clearedAt;
+    const isClearedSince = (date) => Boolean(preference.clearedAt && date && new Date(date) <= preference.clearedAt);
     return {
       ...json,
       ...preference,
       users: withPresenceHidden(json.users, blocked),
-      latestMessage: isClearedSinceLatest ? null : json.latestMessage,
+      latestMessage: isClearedSince(json.latestMessage?.createdAt) ? null : json.latestMessage,
+      latestReaction: isClearedSince(json.latestReaction?.at) ? null : json.latestReaction,
       unread: unreadCounts[index],
       canMessage: conversation.isGroup || reachable.has(String(peerIdOf(conversation, user))),
     };
@@ -155,6 +158,19 @@ export const getUserConversations = async (user) => {
 };
 
 export const pinsOf = async (conversation) => (await conversation.populate(PINNED)).toJSON().pins;
+
+// a reaction stands in its chat's row like a message would, so it moves the chat up as one does
+export const noteReaction = async (conversation_id, reaction) => {
+  const latestReaction = { ...reaction, at: new Date() };
+  const conversation = await ConversationModel.findByIdAndUpdate(conversation_id, { latestReaction }, { new: true }).populate(LATEST_REACTION);
+  return { conversation: conversation_id, latestReaction: conversation.toJSON().latestReaction };
+};
+
+// taking a reaction back clears it only while it is still the latest, and leaves the chat where it sits
+export const forgetReaction = async (conversation_id, match) => {
+  const cleared = await ConversationModel.findOneAndUpdate({ _id: conversation_id, ...match }, { $unset: { latestReaction: "" } }, { timestamps: false });
+  return cleared && { conversation: conversation_id, latestReaction: null };
+};
 
 // a fourth pin replaces the oldest, as a chat keeps only the few that matter now
 export const pinMessage = async (conversation_id, user_id, message_id) => {
