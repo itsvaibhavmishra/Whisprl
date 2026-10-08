@@ -1,4 +1,4 @@
-import { backgroundOf, groupByOwner, isLive, TEXT_BACKGROUNDS } from "@/utils/statuses";
+import { ageOf, backgroundOf, groupByOwner, isLive, reactionsOf, TEXT_BACKGROUNDS, topReactions } from "@/utils/statuses";
 
 const statusOf = (ownerId, createdAt, isViewed = false) => ({ _id: `${ownerId}-${createdAt}`, owner: { _id: ownerId }, createdAt, isViewed });
 
@@ -23,4 +23,18 @@ test("a status is gone once its time is up", () => {
 test("a background the palette does not have falls back to its first", () => {
   expect(backgroundOf(2)).toBe(TEXT_BACKGROUNDS[2]);
   expect(backgroundOf("url(evil)")).toBe(TEXT_BACKGROUNDS[0]);
+});
+
+test("an update's age reads in minutes, then hours", () => {
+  const now = Date.parse("2026-10-06T12:00Z");
+  expect(ageOf("2026-10-06T11:59:30Z", now)).toBe("Just now");
+  expect(ageOf("2026-10-06T11:35Z", now)).toBe("25m ago");
+  expect(ageOf("2026-10-06T07:00Z", now)).toBe("5h ago");
+  expect(ageOf("2026-10-05T11:00Z", now)).toBe("Yesterday");
+});
+
+test("the reactions summary shows each emoji once, up to three", () => {
+  const reactions = reactionsOf([{ reaction: "❤️" }, {}, { reaction: "❤️" }, { reaction: "🔥" }, { reaction: "😂" }, { reaction: "👏" }]);
+  expect(reactions).toHaveLength(5);
+  expect(topReactions(reactions)).toBe("❤️🔥😂");
 });

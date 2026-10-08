@@ -18,7 +18,7 @@ const StatusMedia = ({ status, isPaused, onReady, onMention }) => {
     if (!video.current) return;
     if (isPaused) video.current.pause();
     else video.current.play().catch(() => {});
-  }, [isPaused]);
+  }, [isPaused, url]);
 
   if (failed) return <Typography sx={{ color: "#fff" }}>This status could not be opened</Typography>;
 

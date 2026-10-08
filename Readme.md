@@ -610,17 +610,21 @@ $ npm run build
 │   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
 │   │   │   │   ├── AudienceDialog.js
+│   │   │   │   ├── DeleteUpdateDialog.js
 │   │   │   │   ├── DiscoverGrid.js
+│   │   │   │   ├── EveryonePill.js
+│   │   │   │   ├── NewUpdateMenu.js
 │   │   │   │   ├── ReplyBar.js
 │   │   │   │   ├── SeenBy.js
 │   │   │   │   ├── ShareStatusDialog.js
 │   │   │   │   ├── StatusComposer.js
 │   │   │   │   ├── StatusHeader.js
-│   │   │   │   ├── StatusHome.js
 │   │   │   │   ├── StatusList.js
 │   │   │   │   ├── StatusMedia.js
-│   │   │   │   ├── StatusRing.js
+│   │   │   │   ├── StatusPane.js
+│   │   │   │   ├── StatusSlide.js
 │   │   │   │   ├── StatusViewer.js
+│   │   │   │   ├── YourUpdates.js
 │   │   │   ├── terms/
 │   │   │   │   ├── content.js
 │   │   │   ├── welcome/
@@ -739,6 +743,7 @@ $ npm run build
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
 │   │   │   ├── sounds.js
+│   │   │   ├── spokenOnly.js
 │   │   │   ├── statuses.js
 │   │   │   ├── statuses.test.js
 │   │   │   ├── truncateText.js

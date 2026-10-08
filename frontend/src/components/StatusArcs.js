@@ -2,6 +2,7 @@ import { Box, useTheme } from "@mui/material";
 
 const GAP_DEGREES = 8;
 
+// colour alone tells seen from unseen too faintly, so a seen arc is also half as thick
 const StatusArcs = ({ statuses, size, stroke, sx }) => {
   const theme = useTheme();
   const radius = (size - stroke) / 2;
@@ -35,7 +36,7 @@ const StatusArcs = ({ statuses, size, stroke, sx }) => {
           cy={size / 2}
           r={radius}
           fill="none"
-          strokeWidth={stroke}
+          strokeWidth={status.isViewed === false ? stroke : stroke / 2}
           strokeLinecap={count > 1 ? "round" : "butt"}
           stroke={status.isViewed === false ? theme.palette.primary.main : theme.palette.text.disabled}
           strokeDasharray={`${arc} ${circumference - arc}`}

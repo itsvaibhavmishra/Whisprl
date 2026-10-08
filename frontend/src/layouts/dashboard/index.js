@@ -10,7 +10,7 @@ import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 import { DeliverWaitingMessages, GetConversations } from "@/redux/slices/actions/chatActions";
 import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
 import { ConnectSocket } from "@/redux/slices/actions/socketActions";
-import { GetStatuses } from "@/redux/slices/actions/statusActions";
+import { GetDiscover, GetStatuses } from "@/redux/slices/actions/statusActions";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
 import { chatPath } from "@/sections/chat/chatRoute";
 import EncryptionGate from "@/sections/encryption/EncryptionGate";
@@ -39,7 +39,9 @@ const DashboardLayout = () => {
   // read from the store as it is now: a login may still be checking its keys, or the Status page may already be loading them
   useEffect(() => {
     const state = store.getState();
-    if (state.encryption.status === "ready" && !selectIsLoading(state, GetStatuses)) dispatch(GetStatuses());
+    if (state.encryption.status !== "ready") return;
+    if (!selectIsLoading(state, GetStatuses)) dispatch(GetStatuses());
+    if (!selectIsLoading(state, GetDiscover)) dispatch(GetDiscover());
   }, [dispatch, store, isEncryptionReady]);
 
   useEffect(() => {

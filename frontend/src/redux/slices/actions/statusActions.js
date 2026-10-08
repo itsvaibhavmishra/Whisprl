@@ -150,7 +150,7 @@ const SendAboutStatus = createApiThunk("status/send-about", async ({ to, status,
 
 export const ReplyToStatus = ({ status, text }) => SendAboutStatus({ to: status.owner._id, status, about: "reply", text });
 
-export const ShareStatus = ({ status, friendIds }) => (dispatch) => friendIds.forEach((to) => dispatch(SendAboutStatus({ to, status, about: "share" })));
+export const ShareStatus = ({ status, friendIds, text }) => (dispatch) => friendIds.forEach((to) => dispatch(SendAboutStatus({ to, status, about: "share", text })));
 
 // only someone the update was sealed for hears about a mention, since the notice carries its preview
 const TellMentioned = (status, sealedFor) => (dispatch) => {

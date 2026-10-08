@@ -3,6 +3,7 @@ import { CheckCircle, Circle } from "phosphor-react";
 import { useWatch } from "react-hook-form";
 
 import { PASSWORD_RULES } from "@/utils/formRules";
+import { SPOKEN_ONLY } from "@/utils/spokenOnly";
 
 const PasswordChecklist = ({ name }) => {
   const password = useWatch({ name }) || "";
@@ -20,7 +21,7 @@ const PasswordChecklist = ({ name }) => {
             {met ? <CheckCircle size={16} weight="fill" aria-hidden="true" /> : <Circle size={16} aria-hidden="true" />}
             <Typography variant="body2" component="span" sx={{ fontWeight: 400 }}>
               {label}
-              <Box component="span" sx={{ position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" }}>
+              <Box component="span" sx={SPOKEN_ONLY}>
                 {met ? ", done" : ", not yet"}
               </Box>
             </Typography>

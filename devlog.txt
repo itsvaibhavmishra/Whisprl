@@ -22,9 +22,10 @@
     - Tap a mention in someone's status to open that person's profile
     - Reply to a friend's status or send a quick reaction; a reply lands in your chat quoting it, and your own status shows who reacted
     - A friend you mention in a status gets a message about it
-    - The Status page's right side is home to your updates, with views and reactions on each and buttons to add one; on a phone it opens from My status
+    - Your own updates have a view of their own, with views and reactions on each: beside the list on a computer, a screen of its own on a phone
+    - Updates play full screen with a pause button (or space, or a long press), rarer actions behind ⋯, reactions when you ask for them, who saw your update one tap away, and the people before and after it on a wide screen
     - Move and zoom the photo inside a status, and resize or turn text and stickers from the keyboard
-    - Share a status with everyone on Whisprl; friends see it with a globe, and anyone else finds it in Discover, beside your updates on a computer or behind a Friends and Discover switch on a phone
+    - Share a status with everyone on Whisprl; friends see it as usual, and anyone else finds it in Discover, beside the list on a computer or as a screen of its own on a phone
     - React to an update shared with everyone, open its owner's profile from it, or report it
     - Send an update shared with everyone to friends, as a card in their chat that opens it while it lasts
 

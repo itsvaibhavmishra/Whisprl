@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, Stack, Typography, useMediaQuery } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
+import useIsLoading from "@/hooks/useIsLoading";
 import { PAGE_HEIGHT_WITH_TAB_BAR } from "@/layouts/dashboard/NavRail";
 import { ChooseStatusMedia, GetDiscover, GetStatuses } from "@/redux/slices/actions/statusActions";
 import DiscoverGrid from "@/sections/status/DiscoverGrid";
 import StatusComposer from "@/sections/status/StatusComposer";
-import StatusHome from "@/sections/status/StatusHome";
 import StatusList from "@/sections/status/StatusList";
+import StatusPane from "@/sections/status/StatusPane";
 import StatusViewer from "@/sections/status/StatusViewer";
+import YourUpdates from "@/sections/status/YourUpdates";
 import { groupByOwner, isLive } from "@/utils/statuses";
 
-const LIST_WIDTH = 360;
+const LIST_WIDTH = { md: 340, lg: 380 };
 
 const Status = () => {
   const dispatch = useDispatch();
@@ -24,6 +26,8 @@ const Status = () => {
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
   const statuses = useSelector((state) => state.status.statuses);
   const discover = useSelector((state) => state.status.discover);
+  const isFetchingStatuses = useIsLoading(GetStatuses);
+  const isFetchingDiscover = useIsLoading(GetDiscover);
   const [draft, setDraft] = useState(null);
   const [shownPerson, setShownPerson] = useState(null);
 
@@ -40,13 +44,16 @@ const Status = () => {
   const viewed = friends.filter((group) => !group.hasUnseen);
   const discovered = groupByOwner(discover.filter((status) => isLive(status)));
 
+  const shown = params.get("show");
+  const pane = shown === "yours" ? "yours" : "discover";
+  const isPaneOpen = isWide || Boolean(shown);
   const personId = params.get("person");
   const isPlayable = [...groups, ...discovered].some((group) => group.owner._id === personId);
-  const isHomeAsked = params.get("show") === "yours";
   // the viewer waits for the first person's updates to load, then stays until it runs out of updates itself
   const isViewerOpen = Boolean(personId) && (isPlayable || shownPerson === personId);
 
-  const play = (ownerId, statusId) => setParams(statusId ? { person: ownerId, update: statusId } : { person: ownerId });
+  const showPane = (choice) => setParams(choice === "discover" && isWide ? {} : { show: choice }, { replace: isWide });
+  const play = (ownerId, statusId) => setParams({ ...(shown && { show: shown }), person: ownerId, ...(statusId && { update: statusId }) });
 
   // opened from inside the app, closing steps back to where it was opened; opened from outside, it only clears
   const leave = useCallback(() => (location.key === "default" ? setParams({}, { replace: true }) : navigate(-1)), [location.key, navigate, setParams]);
@@ -69,45 +76,41 @@ const Status = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexGrow: 1, minWidth: 0, height: { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100dvh" }, bgcolor: "background.default" }}>
-      {(isWide || !isHomeAsked) && (
-        <Box sx={{ width: { xs: "100%", md: LIST_WIDTH }, flexShrink: 0, borderRight: 1, borderColor: "divider" }}>
+    <Box sx={{ display: "flex", flexGrow: 1, minWidth: 0, height: { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100dvh" }, bgcolor: "chat.list" }}>
+      {(isWide || !shown) && (
+        <Box sx={{ width: { xs: "100%", ...LIST_WIDTH }, flexShrink: 0, borderRight: (theme) => ({ xs: "none", md: `1px solid ${theme.palette.divider}` }) }}>
           <StatusList
             myGroup={myGroup}
             recent={recent}
             viewed={viewed}
+            discoverUnseen={discovered.filter((group) => group.hasUnseen).length}
+            selected={isWide ? pane : null}
+            isWide={isWide}
+            isLoading={!isEncryptionReady || isFetchingStatuses}
             onOpen={(ownerId) => play(ownerId)}
-            onOpenMine={isWide ? () => play(meId) : () => setParams({ show: "yours" })}
+            onOpenMine={() => showPane("yours")}
+            onOpenDiscover={() => showPane("discover")}
             onWrite={write}
             onChooseMedia={chooseMedia}
-            discovered={isWide ? null : discovered}
           />
         </Box>
       )}
 
-      {(isWide || isHomeAsked) && (
+      {isPaneOpen && (
         <Box component="main" sx={{ flex: 1, minWidth: 0 }}>
-          <StatusHome
-            statuses={myGroup?.statuses ?? []}
-            onWrite={write}
-            onChooseMedia={chooseMedia}
-            onPlay={(statusId) => play(meId, statusId)}
-            onBack={isWide ? undefined : leave}
-          >
-            {isWide && (
-              <Stack spacing={1.5}>
-                <Box>
-                  <Typography component="h2" sx={{ m: 0, fontSize: 20, fontWeight: 800 }}>
-                    Discover
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Updates shared with everyone, from people beyond your friends
-                  </Typography>
-                </Box>
-                <DiscoverGrid groups={discovered} onOpen={(ownerId) => play(ownerId)} />
-              </Stack>
-            )}
-          </StatusHome>
+          {pane === "yours" ? (
+            <YourUpdates
+              statuses={myGroup?.statuses ?? []}
+              onWrite={write}
+              onChooseMedia={chooseMedia}
+              onPlay={(statusId) => play(meId, statusId)}
+              onBack={isWide ? undefined : leave}
+            />
+          ) : (
+            <StatusPane title="Discover" subtitle="Updates shared with everyone, from people beyond your friends" onBack={isWide ? undefined : leave}>
+              <DiscoverGrid groups={discovered} isLoading={!isEncryptionReady || isFetchingDiscover} onOpen={(ownerId) => play(ownerId)} />
+            </StatusPane>
+          )}
         </Box>
       )}
 
