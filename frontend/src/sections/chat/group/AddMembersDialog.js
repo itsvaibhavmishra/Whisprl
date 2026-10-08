@@ -3,7 +3,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from
 import { useDispatch } from "react-redux";
 
 import { AddGroupMembers } from "@/redux/slices/actions/groupActions";
-import FriendPicker from "@/sections/chat/group/FriendPicker";
+import FriendPicker from "@/components/FriendPicker";
 import useIsLoading from "@/hooks/useIsLoading";
 import { MAX_GROUP_SIZE } from "@/utils/groups";
 

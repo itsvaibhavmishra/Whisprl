@@ -35,7 +35,7 @@ export const EditMessage = createApiThunk("message/edit", async ({ message: edit
   dispatch(replaceMessage({ ...message, message: text, mentions, editedAt: new Date().toISOString(), isEditPending: true }));
   try {
     const conversation = conversationById(getState(), message.conversation);
-    const cipher = await encryptMessage(encodePayload({ text, mentions }), conversation, getState().user.user._id);
+    const cipher = await encryptMessage(encodePayload({ text, mentions, statusQuote: message.statusQuote }), conversation, getState().user.user._id);
     await axios.patch(`/message/${message._id}`, { cipher });
     dispatch(editSettled(message));
   } catch (error) {

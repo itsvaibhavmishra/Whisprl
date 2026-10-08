@@ -4,7 +4,7 @@ import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
 import { isDisposableEmail } from "#src/utils/checkDispose.js";
-import { assertStrongPassword, assertValidName, normalizeEmail } from "#src/utils/accountRules.js";
+import { assertStrongPassword, assertValidName, normalizeEmail, normalizeUsername } from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
 import otpMail from "#src/templates/mail/otp.js";
 import resetMail from "#src/templates/mail/reset.js";
@@ -67,12 +67,18 @@ export const authenticate = async (token) => {
 };
 
 // -------------------------- Log in and sign up --------------------------
-export const loginWithPassword = async (email, password) => {
-  if (!email || !password) throw createHttpError.BadRequest("Required fields: email & password");
+// a username never holds an @, and only verified accounts log in by one, so an account still verifying goes by its email
+const accountFilterOf = (identifier) => {
+  const value = String(identifier).trim();
+  return value.indexOf("@") > 0 ? { email: normalizeEmail(value) } : { username: normalizeUsername(value), verified: true };
+};
 
-  const user = await UserModel.findOne({ email: normalizeEmail(email) }).select("+password");
+export const loginWithPassword = async (identifier, password) => {
+  if (!identifier || !password) throw createHttpError.BadRequest("Required fields: email or username & password");
+
+  const user = await UserModel.findOne(accountFilterOf(identifier)).select("+password");
   if (!user || !(await user.correctPassword(String(password)))) {
-    throw createHttpError.Unauthorized("Incorrect email or password");
+    throw createHttpError.Unauthorized("Incorrect email, username or password");
   }
 
   return user;

@@ -72,7 +72,6 @@ const UsersSearchResults = ({
         overflowX: "hidden",
         zIndex: 2,
       }}
-      className="scrollbar"
     >
       {/* initial loader */}
       {isLoading && currentPage - 1 === 0 ? (

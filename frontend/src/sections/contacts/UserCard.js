@@ -120,7 +120,7 @@ const UserCard = ({ thisUser, fromSection, isLoading }) => {
                   {isLoading ? (
                     <Skeleton animation="wave" width={150} />
                   ) : (
-                    thisUser?.email
+                    thisUser?.username && `@${thisUser.username}`
                   )}
                 </Typography>
               </Stack>

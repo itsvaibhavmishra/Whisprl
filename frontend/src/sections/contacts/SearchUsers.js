@@ -93,7 +93,7 @@ const SearchUsers = () => {
           variant="caption"
           sx={{ color: theme.palette.text.secondary, textAlign: "center" }}
         >
-          Search users via their name or email{" "}
+          Search users via their name or username{" "}
           {searchedUsersCount &&
             `| Search Result: ${
               searchedUsersCount > 0 && `: ${searchedUsersCount}`

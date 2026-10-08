@@ -89,6 +89,10 @@ const PREFERENCE_KEYS = ["mutedUntil", "isFavourite", "isArchived", "clearedAt",
 const preferencesIn = (conversation) =>
   Object.fromEntries(PREFERENCE_KEYS.filter((key) => conversation?.[key] !== undefined).map((key) => [key, conversation[key]]));
 
+const listOnce = (state, conversation) => {
+  if (!state.conversations.some((listed) => listed._id === conversation._id)) state.conversations.push(conversation);
+};
+
 const open = (state, conversation, canMessage) => {
   const cached = state.cache[conversation._id];
   const listed = state.conversations.find((candidate) => candidate._id === conversation._id);
@@ -270,6 +274,8 @@ const slice = createSlice({
       if (state.activeConversation?._id === group._id) state.activeConversation = { ...updated };
     },
 
+    conversationListed: (state, action) => listOnce(state, action.payload),
+
     setConnection: (state, action) => {
       state.connection = action.payload;
       // a stop_typing sent while this tab was away never arrives, so nobody is left typing forever
@@ -279,6 +285,11 @@ const slice = createSlice({
     // ---------- Draft attachments ----------
     addFiles: (state, action) => {
       state.files.push(action.payload);
+    },
+
+    fileEdited: (state, action) => {
+      const edited = state.files.find((file) => file.id === action.payload.id);
+      if (edited) Object.assign(edited, action.payload);
     },
 
     removeFile: (state, action) => {
@@ -464,9 +475,7 @@ const slice = createSlice({
       .addCase(CreateOpenConversation.fulfilled, (state, action) => {
         const { conversation, isValidFriendShip } = action.payload;
         // listed straight away, though hidden until its first message, so going back to it finds it
-        if (!state.conversations.some((listed) => listed._id === conversation._id)) {
-          state.conversations.push({ ...conversation, canMessage: isValidFriendShip });
-        }
+        listOnce(state, { ...conversation, canMessage: isValidFriendShip });
         open(state, conversation, isValidFriendShip);
       })
 
@@ -528,7 +537,9 @@ export const {
   groupUpdated,
   clearConversation: clearChat,
   setConnection,
+  conversationListed,
   addFiles,
+  fileEdited,
   removeFile,
   transferProgress,
   transferEnded,

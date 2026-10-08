@@ -15,7 +15,7 @@ import {
 import { useDispatch } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
-import { BlockUser, ReportChat } from "@/redux/slices/actions/chatSettingsActions";
+import { BlockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { notify } from "@/utils/notify";
 
 const REASONS = [
@@ -27,19 +27,18 @@ const REASONS = [
 ];
 const MAX_NOTE = 500;
 
-// a person can be reported and blocked in one go; a group is reported as a whole
-const ReportDialog = ({ conversation, person, onClose }) => {
+// a person can be reported and blocked in one go; a group or an update is reported as a whole
+const ReportDialog = ({ subject, explanation, report, details, person, onClose }) => {
   const dispatch = useDispatch();
-  const isSending = useIsLoading(ReportChat);
+  const isSending = useIsLoading(report);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [alsoBlock, setAlsoBlock] = useState(false);
-  const subject = person ? person.firstName : conversation.name;
 
   const send = async (event) => {
     event.preventDefault();
-    const result = await dispatch(ReportChat({ conversationId: conversation._id, userId: person?._id, reason, note: note.trim() }));
-    if (!ReportChat.fulfilled.match(result)) return;
+    const result = await dispatch(report({ ...details, reason, note: note.trim() }));
+    if (!report.fulfilled.match(result)) return;
     if (alsoBlock) await dispatch(BlockUser(person));
     notify({ severity: "success", message: "Thanks, your report was sent" });
     onClose();
@@ -50,16 +49,14 @@ const ReportDialog = ({ conversation, person, onClose }) => {
       <form onSubmit={send}>
         <DialogTitle id="report-title">Report {subject}</DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ mb: 1 }}>
-            Messages stay end-to-end encrypted, so the report holds only what you tell us here.
-          </DialogContentText>
+          <DialogContentText sx={{ mb: 1 }}>{explanation}</DialogContentText>
           <RadioGroup aria-label="Why are you reporting this?" value={reason} onChange={(event) => setReason(event.target.value)}>
             {REASONS.map(({ value, label }) => (
               <FormControlLabel key={value} value={value} control={<Radio size="small" />} label={label} />
             ))}
           </RadioGroup>
           <TextField
-            label="Anything else we should know (optional)"
+            label="Anything else? (optional)"
             value={note}
             onChange={(event) => setNote(event.target.value)}
             inputProps={{ maxLength: MAX_NOTE }}

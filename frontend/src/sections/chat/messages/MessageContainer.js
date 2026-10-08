@@ -10,6 +10,7 @@ import { ReactToMessage } from "@/redux/slices/actions/messageActions";
 import { setReplyingTo } from "@/redux/slices/chatSlice";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
 import ContactCard from "@/sections/chat/messages/ContactCard";
+import StatusQuote from "@/sections/chat/messages/StatusQuote";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
 import MediaMessage from "@/sections/chat/messages/MediaMessage";
 import MessageActions from "@/sections/chat/messages/MessageActions";
@@ -103,12 +104,18 @@ const MessageContainer = ({
   const isDeleted = Boolean(message.deletedAt);
   const isAlbum = Boolean(members);
   const hasReactions = Boolean(conversation && message.reactions?.length);
-  const isBare = isDeleted || msgType === "emoji";
+  const statusQuote = !isDeleted && message.statusQuote;
+  const isQuoteOnly = Boolean(statusQuote) && !message.message;
+  const isBare = isDeleted || msgType === "emoji" || isQuoteOnly;
   // a deleted message keeps its menu, so anyone can still clear it from their own screen
   const hasMenu = Boolean(conversation && message._id && !isQueued && !message.event);
   const canAct = hasMenu && !isDeleted;
 
-  const mentionNames = (message.mentions ?? []).map((userId) => memberOf(conversation, userId)?.firstName).filter(Boolean);
+  // messages written before usernames mention people as @FirstName, so both forms are highlighted
+  const mentionNames = (message.mentions ?? []).flatMap((userId) => {
+    const member = memberOf(conversation, userId);
+    return member ? [member.username, member.firstName] : [];
+  }).filter(Boolean);
   const quotedSenderId = message.replyTo?.sender?._id ?? message.replyTo?.sender;
   const quotedAuthor = conversation?.isGroup && (quotedSenderId === user._id ? user : memberOf(conversation, quotedSenderId));
 
@@ -131,6 +138,7 @@ const MessageContainer = ({
   };
 
   const paddingOf = () => {
+    if (isQuoteOnly) return 0;
     if (isFileMsg) return hasMedia ? 0 : 1;
     if (msgType === "text") return "8px 12px";
     return "3px 0px";
@@ -208,10 +216,10 @@ const MessageContainer = ({
   const stamp = !isDeleted && (
     <MessageMeta
       {...meta}
-      isOnBubble={msgType !== "emoji"}
+      isOnBubble={!isBare}
       isMine={isMine}
       place={metaPlace}
-      sx={metaPlace === "block" ? { px: isFileMsg ? 0.75 : 0, ...(msgType === "emoji" && isMine && { color: "primary.main" }) } : undefined}
+      sx={metaPlace === "block" ? { px: isFileMsg ? 0.75 : 0, ...(isBare && isMine && { color: "primary.main" }) } : undefined}
     />
   );
 
@@ -261,10 +269,14 @@ const MessageContainer = ({
           sx={{
             position: "relative",
             minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: isMine ? "flex-end" : "flex-start",
             transform: swipe.offset ? `translateX(${swipe.offset}px)` : "none",
             transition: swipe.offset ? "none" : "transform 180ms ease-out",
           }}
         >
+          {statusQuote && <StatusQuote quote={statusQuote} isMine={isMine} />}
           <Box
             p={paddingOf()}
             data-own={isMine || undefined}
@@ -282,7 +294,7 @@ const MessageContainer = ({
               width: isFileMsg ? "auto" : "max-content",
               minWidth: 48,
               maxWidth: { xs: "17em", md: "28em" },
-              minHeight: 38,
+              minHeight: isQuoteOnly ? 0 : 38,
               color: textColor,
               ...surfaceOf(),
               border: isDeleted ? `1px dashed ${theme.palette.divider}` : "none",

@@ -18,7 +18,7 @@ const MentionSuggestions = ({ anchorEl, people, activeIndex, onPick }) => (
             }}
           >
             <ListItemAvatar sx={{ minWidth: 40 }}>{getAvatar(person.avatar, person.firstName, 28)}</ListItemAvatar>
-            <ListItemText primary={`${person.firstName} ${person.lastName}`} />
+            <ListItemText primary={`${person.firstName} ${person.lastName}`} secondary={`@${person.username}`} />
           </ListItemButton>
         ))}
       </List>

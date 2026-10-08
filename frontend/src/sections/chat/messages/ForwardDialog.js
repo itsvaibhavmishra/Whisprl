@@ -48,7 +48,7 @@ const ForwardDialog = ({ messages, open, onClose }) => {
       <DialogTitle id="forward-title">Forward to</DialogTitle>
       <DialogContent>
         <TextField size="small" label="Search chats" value={query} onChange={(event) => setQuery(event.target.value)} fullWidth sx={{ mt: 1 }} />
-        <List dense sx={{ maxHeight: 320, overflowY: "auto" }} className="scrollbar">
+        <List dense sx={{ maxHeight: 320, overflowY: "auto" }}>
           {matching.map(({ conversation, name, avatar }) => {
             const isChosen = chosen.includes(conversation._id);
             return (

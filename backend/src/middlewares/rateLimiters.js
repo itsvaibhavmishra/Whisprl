@@ -7,6 +7,7 @@ const MINUTE = 60 * 1000;
 
 const byIp = (req) => req.ip;
 const byIpAndEmail = (req) => `${req.ip}:${normalizeEmail(req.body.email)}`;
+const byIpAndAccount = (req) => `${req.ip}:${normalizeEmail(req.body.identifier ?? req.body.email)}`;
 const byUser = (req) => String(req.user._id);
 
 const tooManyRequests = (req, res, next) => {
@@ -27,7 +28,7 @@ const limit = (windowMinutes, max, keyGenerator, options = {}) =>
   });
 
 // only failed attempts count, so someone who logs in and out often is never locked out
-export const loginLimit = () => limit(15, 10, byIpAndEmail, { skipSuccessfulRequests: true });
+export const loginLimit = () => limit(15, 10, byIpAndAccount, { skipSuccessfulRequests: true });
 export const signupLimit = () => limit(60, 10, byIp);
 export const emailLimit = () => limit(60, 5, byIpAndEmail);
 export const codeLimit = () => limit(15, 10, byIp);

@@ -19,10 +19,10 @@ import {
   updateTypingConvo,
 } from "@/redux/slices/chatSlice";
 import { updateOnlineUsers } from "@/redux/slices/userSlice";
-import { statusRemoved, viewerAdded } from "@/redux/slices/statusSlice";
+import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
 import { GetFriendRequests } from "@/redux/slices/actions/contactActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
-import { ReceiveStatus } from "@/redux/slices/actions/statusActions";
+import { ReceiveStatus, ReceiveStatusReaction } from "@/redux/slices/actions/statusActions";
 import { notify } from "@/utils/notify";
 import { dropAccessToken } from "@/utils/session";
 import { socket } from "@/utils/socket";
@@ -49,7 +49,8 @@ const serverEvents = () => ({
   disappearing_changed: disappearingChanged,
   status_posted: ReceiveStatus,
   status_removed: statusRemoved,
-  status_viewed: viewerAdded,
+  status_viewed: viewSaved,
+  status_reacted: ReceiveStatusReaction,
   friend_requests_changed: GetFriendRequests,
 });
 

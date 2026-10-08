@@ -46,8 +46,8 @@ const Hero = () => (
         }}
       >
         Message friends and groups the moment you think of them, and share
-        photos, videos and statuses, all end-to-end encrypted. Free, open
-        source, and right in your browser.
+        photos, videos and statuses with them, all end-to-end encrypted. Free,
+        open source, and right in your browser.
       </Typography>
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 4 }}>

@@ -15,15 +15,33 @@
 
   - New:
     - A reaction shows in the chat list, as “Bianca reacted ❤️ to …”, until the next message
+    - Log in with your username or your email, in the same box
+    - Choose who sees each status update as you share it: all friends, all but some, or only a few, starting from your Settings choice
+    - Make a status like a story: text in eight fonts with colours, sizes and backgrounds, emoji and @mention stickers, pen, marker, neon and eraser brushes, gradient backgrounds and city filters, and drag, pinch, turn or bin anything you place
+    - Add text, stickers and drawing to each photo or video before you send it in a chat
+    - Tap a mention in someone's status to open that person's profile
+    - Reply to a friend's status or send a quick reaction; a reply lands in your chat quoting it, and your own status shows who reacted
+    - A friend you mention in a status gets a message about it
+    - Your own updates have a view of their own, with views and reactions on each: beside the list on a computer, a screen of its own on a phone
+    - Updates play full screen with a pause button (or space, or a long press), rarer actions behind ⋯, reactions when you ask for them, who saw your update one tap away, and the people before and after it on a wide screen
+    - Move and zoom the photo inside a status, and resize or turn text and stickers from the keyboard
+    - Share a status with everyone on Whisprl; friends see it as usual, and anyone else finds it in Discover, beside the list on a computer or as a screen of its own on a phone
+    - React to an update shared with everyone, open its owner's profile from it, or report it
+    - Send an update shared with everyone to friends, as a card in their chat that opens it while it lasts
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings
     - The bar at the bottom of a phone matches the side rail: Chats, Status, Contacts, and your photo opening your profile, settings, light or dark mode and Log out
     - Contacts shows how many friend requests are waiting, the moment one arrives
+    - Your email stays private: nobody else on Whisprl can see it or find you by it, and search goes by name or username
+    - Mentioning someone in a group inserts their @username, and suggestions match usernames as well as names
+    - Every scrolling area uses the chat's thin scrollbar, which shows while the pointer is over it
 
   - Fixed:
     - Signing in with Google works again
     - The chat list keeps up as things happen: ticks turn to delivered and seen, edits and deletions show at once, and reading a chat in one tab clears it in the others
+    - The change password dialog no longer shows two scrollbars of its own
+    - Clicking beside a status closes it
 
   - Developers:
 

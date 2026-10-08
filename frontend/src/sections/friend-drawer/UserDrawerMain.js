@@ -19,6 +19,7 @@ import RemoveFriendDialog from "@/sections/friend-drawer/RemoveFriendDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 import {
+  AcceptRejectRequest,
   RemoveFriend,
   SendRequest,
   UnsendRequest,
@@ -64,11 +65,7 @@ const UserDrawerMain = ({
 
     // Friend Request Handler
     else if (isFrom === "FriendRequests") {
-      if (type === "accept") {
-        // dispatch accept request
-      } else if (type === "reject") {
-        // dispatch reject request
-      }
+      await dispatch(AcceptRejectRequest({ sender_id: userData?._id, type }));
       toggleDrawer();
     }
 
@@ -132,7 +129,7 @@ const UserDrawerMain = ({
                 color={isRequestSent ? "error" : "success"}
                 onClick={() => handleButtonClick("send_unsend")}
               >
-                {isRequestSent ? "Unsend Requset" : "Send Requset"}
+                {isRequestSent ? "Unsend Request" : "Send Request"}
               </LoadingButton>
             ) : isFrom === "FriendRequests" ? (
               <>
@@ -184,7 +181,7 @@ const UserDrawerMain = ({
             {isLoading ? (
               <Skeleton animation="wave" height={20} width="10em" />
             ) : (
-              userData.email
+              userData.username && `@${userData.username}`
             )}
           </Typography>
           <Typography variant="subtitle1">

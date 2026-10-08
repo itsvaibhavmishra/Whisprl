@@ -371,6 +371,16 @@ $ npm run build
 │   │   │   ├── image-cropper/
 │   │   │   │   ├── cropImage.js
 │   │   │   │   ├── ImageCropper.js
+│   │   │   ├── media-editor/
+│   │   │   │   ├── FilterStrip.js
+│   │   │   │   ├── LayerView.js
+│   │   │   │   ├── MediaEditor.js
+│   │   │   │   ├── MentionPicker.js
+│   │   │   │   ├── Stage.js
+│   │   │   │   ├── TextEditor.js
+│   │   │   │   ├── ToolControls.js
+│   │   │   │   ├── ToolSheet.js
+│   │   │   │   ├── useStageGestures.js
 │   │   │   ├── search/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── Search.js
@@ -384,10 +394,12 @@ $ npm run build
 │   │   │   ├── AppearanceMenu.js
 │   │   │   ├── AppearancePickers.js
 │   │   │   ├── EmojiPicker.js
+│   │   │   ├── FriendPicker.js
 │   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
 │   │   │   ├── ProfileHero.js
+│   │   │   ├── ReportDialog.js
 │   │   │   ├── ScrollToTop.js
 │   │   │   ├── SitePage.js
 │   │   │   ├── StatusArcs.js
@@ -400,10 +412,13 @@ $ npm run build
 │   │   │   ├── index.js
 │   │   ├── hooks/
 │   │   │   ├── useFileUrl.js
+│   │   │   ├── useFittedSize.js
+│   │   │   ├── useImageBitmap.js
 │   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
 │   │   │   ├── useMessageTime.js
+│   │   │   ├── useObjectUrl.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
 │   │   ├── layouts/
@@ -505,12 +520,10 @@ $ npm run build
 │   │   │   │   │   ├── PersonDetails.js
 │   │   │   │   │   ├── PhotoViewer.js
 │   │   │   │   │   ├── QuickActions.js
-│   │   │   │   │   ├── ReportDialog.js
 │   │   │   │   │   ├── SharedContent.js
 │   │   │   │   ├── group/
 │   │   │   │   │   ├── AddMembersDialog.js
 │   │   │   │   │   ├── CreateGroupDialog.js
-│   │   │   │   │   ├── FriendPicker.js
 │   │   │   │   │   ├── GroupMemberRow.js
 │   │   │   │   ├── list/
 │   │   │   │   │   ├── ChatList.js
@@ -533,6 +546,7 @@ $ npm run build
 │   │   │   │   │   ├── Reactions.js
 │   │   │   │   │   ├── ReplyQuote.js
 │   │   │   │   │   ├── SeenMarker.js
+│   │   │   │   │   ├── StatusQuote.js
 │   │   │   │   │   ├── TransferRing.js
 │   │   │   │   │   ├── TypingBubble.js
 │   │   │   │   │   ├── useSwipeToReply.js
@@ -595,10 +609,22 @@ $ npm run build
 │   │   │   │   ├── UsernameSetting.js
 │   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
+│   │   │   │   ├── AudienceDialog.js
+│   │   │   │   ├── DeleteUpdateDialog.js
+│   │   │   │   ├── DiscoverGrid.js
+│   │   │   │   ├── EveryonePill.js
+│   │   │   │   ├── NewUpdateMenu.js
+│   │   │   │   ├── ReplyBar.js
+│   │   │   │   ├── SeenBy.js
+│   │   │   │   ├── ShareStatusDialog.js
 │   │   │   │   ├── StatusComposer.js
+│   │   │   │   ├── StatusHeader.js
 │   │   │   │   ├── StatusList.js
-│   │   │   │   ├── StatusRing.js
+│   │   │   │   ├── StatusMedia.js
+│   │   │   │   ├── StatusPane.js
+│   │   │   │   ├── StatusSlide.js
 │   │   │   │   ├── StatusViewer.js
+│   │   │   │   ├── YourUpdates.js
 │   │   │   ├── terms/
 │   │   │   │   ├── content.js
 │   │   │   ├── welcome/
@@ -676,6 +702,13 @@ $ npm run build
 │   │   │   │   ├── sessionKeys.test.js
 │   │   │   │   ├── statusCipher.js
 │   │   │   │   ├── statusCipher.test.js
+│   │   │   ├── media-editor/
+│   │   │   │   ├── draw.js
+│   │   │   │   ├── filters.js
+│   │   │   │   ├── fonts.js
+│   │   │   │   ├── layout.js
+│   │   │   │   ├── palette.js
+│   │   │   │   ├── render.js
 │   │   │   ├── attachments.js
 │   │   │   ├── avatars.js
 │   │   │   ├── axios.js
@@ -710,6 +743,7 @@ $ npm run build
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
 │   │   │   ├── sounds.js
+│   │   │   ├── spokenOnly.js
 │   │   │   ├── statuses.js
 │   │   │   ├── statuses.test.js
 │   │   │   ├── truncateText.js

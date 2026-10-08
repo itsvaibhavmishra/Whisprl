@@ -176,7 +176,6 @@ const ContactList = () => {
                 overflowX: "hidden",
               }}
               spacing={4}
-              className="scrollbar"
             >
               {isLoadingFriends
                 ? MembersList.map((e) => {

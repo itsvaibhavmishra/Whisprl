@@ -45,7 +45,6 @@ const PersonDetails = ({ conversation, sharedContent, quickActions }) => {
         </AvatarChoices>
         <Typography sx={{ mt: 2, fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.25 }}>{name}</Typography>
         {peer.username && <Typography sx={{ mt: 0.25, fontSize: 14, fontWeight: 700, color: "primary.main" }}>@{peer.username}</Typography>}
-        {peer.email && <Typography sx={{ mt: 0.25, fontSize: 13, fontWeight: 500, color: "text.secondary", wordBreak: "break-all" }}>{peer.email}</Typography>}
         {peer.activityStatus && (
           <Stack direction="row" spacing={1} sx={{ mt: 2, px: 2, py: 1.25, borderRadius: 3, bgcolor: "chat.field", textAlign: "left", maxWidth: "100%" }}>
             <Box sx={{ color: "primary.main", display: "grid", pt: 0.25 }}>

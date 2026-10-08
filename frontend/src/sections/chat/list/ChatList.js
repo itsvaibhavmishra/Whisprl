@@ -247,7 +247,7 @@ const ChatList = ({ onNewGroup }) => {
         )}
       </Stack>
 
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }} className="scrollbar">
+      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
         {isLoading && !conversations.length ? (
           <Stack spacing={0.5} sx={{ px: 1.25, pt: 1 }}>
             {[...Array(7).keys()].map((index) => (

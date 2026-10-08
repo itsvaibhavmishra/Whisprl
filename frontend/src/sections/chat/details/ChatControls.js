@@ -21,12 +21,13 @@ import {
   BlockUser,
   ClearChat,
   DeleteChat,
+  ReportChat,
   SetDisappearing,
   UnblockUser,
   UpdateChatPreferences,
 } from "@/redux/slices/actions/chatSettingsActions";
+import ReportDialog from "@/components/ReportDialog";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
-import ReportDialog from "@/sections/chat/details/ReportDialog";
 import { identityOf } from "@/utils/chats";
 import { DAY_SECONDS, canManage, durationOf } from "@/utils/groups";
 
@@ -175,7 +176,16 @@ const ChatControls = ({ conversation }) => {
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog === "report" && <ReportDialog conversation={conversation} person={person} onClose={() => setDialog(null)} />}
+      {dialog === "report" && (
+        <ReportDialog
+          subject={person ? person.firstName : conversation.name}
+          explanation="Messages stay end-to-end encrypted, so the report holds only what you tell us here."
+          report={ReportChat}
+          details={{ conversationId: conversation._id, userId: person?._id }}
+          person={person}
+          onClose={() => setDialog(null)}
+        />
+      )}
     </>
   );
 };

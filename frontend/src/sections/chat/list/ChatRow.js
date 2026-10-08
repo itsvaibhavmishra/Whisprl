@@ -16,6 +16,7 @@ import { badgeOf, identityOf, isMuted, isOnline as isPersonOnline } from "@/util
 import formatTime from "@/utils/formatTime";
 import { describeEvent, memberOf, typingLabel, typingNamesIn } from "@/utils/groups";
 import { quoteSummaryOf, summaryOf } from "@/utils/messageSummary";
+import { SPOKEN_ONLY } from "@/utils/spokenOnly";
 
 const ROW_SLIDE = { type: "spring", stiffness: 520, damping: 42 };
 const REORDER = { duration: 0.28, ease: [0.33, 1, 0.68, 1] };
@@ -28,7 +29,6 @@ const previewIconOf = (message) => {
   return PREVIEW_ICONS[message.file?.kind] ?? null;
 };
 
-const SPOKEN_ONLY = { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" };
 
 const Receipt = ({ message }) => {
   if (message.seenAt) return <Checks size={16} weight="bold" role="img" aria-label="Seen" />;

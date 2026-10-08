@@ -6,6 +6,7 @@ import {
   albumReactionsShown,
   applyReceipt,
   closeActiveConversation,
+  conversationListed,
   countUnread,
   dropQueuedMessage,
   markRead,
@@ -79,6 +80,17 @@ export const CreateOpenConversation = createApiThunk(
     return { ...data, conversation: await readableConversation(data.conversation) };
   }
 );
+
+// a friend's chat, made if there is none yet, without leaving whichever chat is open
+export const DirectConversationWith = (friendId) => async (dispatch, getState) => {
+  const isWithFriend = (conversation) => !conversation.isGroup && conversation.users.some((member) => member._id === friendId);
+  const listed = getState().chat.conversations.find(isWithFriend);
+  if (listed) return listed;
+  const { data } = await axios.post("/conversation/create-open-conversation", { receiver_id: friendId });
+  const conversation = { ...(await readableConversation(data.conversation)), canMessage: data.isValidFriendShip };
+  dispatch(conversationListed(conversation));
+  return conversation;
+};
 
 // every group on the page is listed, so one whose last reaction went while it was out of view shows none
 const readableAlbumReactions = async ({ messages, albums = [] }, conversation) => {
@@ -203,10 +215,12 @@ export const quoteOf = (message) => {
 };
 
 // shown at once from the outbox; the server's copy replaces it once it is saved
-export const SendTextMessage = ({ text, mentions, contact, forwardOf, file, batch, conversationId }) => (dispatch, getState) => {
+export const SendTextMessage = ({ text, mentions, contact, statusQuote, forwardOf, file, batch, conversationId }) => (dispatch, getState) => {
   const { chat, user } = getState();
   const targetId = conversationId ?? chat.activeConversation._id;
   const isHere = targetId === chat.activeConversation?._id;
+  // a forward or a word about a status was not written in this chat, so it leaves a reply started here alone
+  const takesReply = isHere && !forwardOf && !statusQuote;
   if (isHere && chat.hasNewerMessages) dispatch(GetMessages(targetId));
 
   dispatch(
@@ -219,13 +233,14 @@ export const SendTextMessage = ({ text, mentions, contact, forwardOf, file, batc
       text,
       mentions,
       contact,
+      statusQuote,
       forwardOf,
       file,
       batch,
-      replyTo: isHere && !forwardOf ? quoteOf(chat.replyingTo) : null,
+      replyTo: takesReply ? quoteOf(chat.replyingTo) : null,
     })
   );
-  if (isHere && !forwardOf) dispatch(setReplyingTo(null));
+  if (takesReply) dispatch(setReplyingTo(null));
   dispatch(FlushOutbox());
 };
 
@@ -254,8 +269,8 @@ const plaintextOf = (entry) =>
   entry.file ? JSON.stringify({ caption: entry.caption ?? entry.text, file: entry.file }) : encodePayload(entry);
 
 const confirmQueued = (entry, saved, dispatch) => {
-  const { text, caption, file, mentions, contact, replyTo } = entry;
-  dispatch(messageArrived({ ...saved, message: text ?? caption ?? "", file, mentions, contact, replyTo: replyTo ?? saved.replyTo, reactions: [] }));
+  const { text, caption, file, mentions, contact, statusQuote, replyTo } = entry;
+  dispatch(messageArrived({ ...saved, message: text ?? caption ?? "", file, mentions, contact, statusQuote, replyTo: replyTo ?? saved.replyTo, reactions: [] }));
   playSound("sent");
   if (!entry.file || entry.forwardOf) return;
   markAttachmentSent(entry.clientId, saved._id);

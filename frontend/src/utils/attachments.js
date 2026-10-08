@@ -24,10 +24,12 @@ export const ATTACHMENT_TYPES = {
 export const MAX_ATTACHMENTS = 5;
 export const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
 
-const LONG_EDGE = 1600;
+export const LONG_EDGE = 1600;
 const PREVIEW_EDGE = 24;
 const PHOTO_QUALITY = 0.8;
 const PREVIEW_QUALITY = 0.5;
+const THUMBNAIL_EDGE = 320;
+const THUMBNAIL_QUALITY = 0.7;
 
 const drawWithin = (bitmap, longEdge) => {
   const scale = Math.min(1, longEdge / Math.max(bitmap.width, bitmap.height));
@@ -47,6 +49,19 @@ const shrink = async (bitmap, file) => {
   const shrunk = await new Promise((resolve) => drawWithin(bitmap, LONG_EDGE).toBlob(resolve, "image/jpeg", PHOTO_QUALITY));
   if (!shrunk || shrunk.size >= file.size) return file;
   return new File([shrunk], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: file.lastModified });
+};
+
+export const thumbnailOf = async (file) => {
+  const bitmap = await createImageBitmap(file);
+  const thumbnail = drawWithin(bitmap, THUMBNAIL_EDGE).toDataURL("image/jpeg", THUMBNAIL_QUALITY);
+  bitmap.close();
+  return thumbnail;
+};
+
+export const preparedFromCanvas = async (canvas, name) => {
+  const photo = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", PHOTO_QUALITY));
+  const preview = drawWithin(canvas, PREVIEW_EDGE).toDataURL("image/jpeg", PREVIEW_QUALITY);
+  return { file: new File([photo], name, { type: "image/jpeg" }), width: canvas.width, height: canvas.height, preview };
 };
 
 export const prepareImage = async (file) => {
@@ -86,6 +101,14 @@ export const replaceHeldFile = (id, file) => {
   URL.revokeObjectURL(attachment.url);
   Object.assign(attachment, { file, url: URL.createObjectURL(file) });
 };
+
+// an edited photo keeps the file it was made from, so editing it again starts from the original
+export const replaceWithEdited = (id, file) => {
+  held.get(id).original ??= held.get(id).file;
+  replaceHeldFile(id, file);
+};
+
+export const originalFileOf = (id) => held.get(id)?.original ?? held.get(id)?.file;
 
 // each step of a send replaces the one before, so its bubble stops whichever is running and a stale step knows it is stale
 export const startTransfer = (id) => {
@@ -141,10 +164,11 @@ export const releaseAttachment = (id) => {
   held.delete(id);
 };
 
+// a status for everyone is stored as it is, so without a key it is used just as it was downloaded
 const downloadAndOpen = (sealed) =>
   fetch(sealed.url)
     .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject(new Error("File not found"))))
-    .then((data) => openFile(data, sealed));
+    .then((data) => (sealed.key ? openFile(data, sealed) : data));
 
 // a view-once photo is never kept, so it is downloaded and decrypted only for the moment it is shown
 export const openViewOnceFile = async (sealed) => new Blob([await downloadAndOpen(sealed)], { type: sealed.mimeType });

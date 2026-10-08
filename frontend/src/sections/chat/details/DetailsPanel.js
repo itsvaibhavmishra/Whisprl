@@ -42,7 +42,7 @@ const DetailsPanel = ({ open }) => {
         </Typography>
         {!isPhone && closeButton}
       </Stack>
-      <Box sx={{ flex: 1, overflowY: "auto" }} className="scrollbar">
+      <Box sx={{ flex: 1, overflowY: "auto" }}>
         {conversation.isGroup ? (
           <GroupDetails group={conversation} sharedContent={sharedContent} quickActions={quickActions} />
         ) : (
