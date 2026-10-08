@@ -1,15 +1,20 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { GetHiddenFrom, GetStatuses, SetHiddenFrom } from "@/redux/slices/actions/statusActions";
+import { BlockUser } from "@/redux/slices/actions/chatSettingsActions";
+import { GetDiscover, GetHiddenFrom, GetStatuses, SetHiddenFrom } from "@/redux/slices/actions/statusActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
   // oldest first, each with its decrypted `content`
   statuses: [],
+  // updates for everyone from people who are not friends, in the same order
+  discover: [],
   // how far this tab's status has got through compressing and uploading, in percent, or null when nothing is posting
   posting: null,
   hiddenFrom: [],
 };
+
+const statusById = (state, statusId) => [...state.statuses, ...state.discover].find((status) => status._id === statusId);
 
 const slice = createSlice({
   name: "status",
@@ -20,9 +25,10 @@ const slice = createSlice({
     },
     statusRemoved: (state, action) => {
       state.statuses = state.statuses.filter((status) => status._id !== action.payload._id);
+      state.discover = state.discover.filter((status) => status._id !== action.payload._id);
     },
     statusSeen: (state, action) => {
-      const status = state.statuses.find((each) => each._id === action.payload);
+      const status = statusById(state, action.payload);
       if (status) status.isViewed = true;
     },
     // a later event about the same viewer, such as their reaction, is folded into their one view
@@ -34,7 +40,7 @@ const slice = createSlice({
       else status.views.push(action.payload.view);
     },
     reactionChosen: (state, action) => {
-      const status = state.statuses.find((each) => each._id === action.payload.statusId);
+      const status = statusById(state, action.payload.statusId);
       if (status) Object.assign(status, { myReaction: action.payload.emoji, isViewed: true });
     },
     postingProgress: (state, action) => {
@@ -46,11 +52,19 @@ const slice = createSlice({
       .addCase(GetStatuses.fulfilled, (state, action) => {
         state.statuses = action.payload;
       })
+      .addCase(GetDiscover.fulfilled, (state, action) => {
+        state.discover = action.payload;
+      })
       .addCase(GetHiddenFrom.fulfilled, (state, action) => {
         state.hiddenFrom = action.payload;
       })
       .addCase(SetHiddenFrom.fulfilled, (state, action) => {
         state.hiddenFrom = action.payload;
+      })
+      .addCase(BlockUser.fulfilled, (state, action) => {
+        const isTheirs = (status) => status.owner._id === action.payload._id;
+        state.statuses = state.statuses.filter((status) => !isTheirs(status));
+        state.discover = state.discover.filter((status) => !isTheirs(status));
       })
       .addCase(logout, () => initialState);
   },

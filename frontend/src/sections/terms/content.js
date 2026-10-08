@@ -47,7 +47,7 @@ export const SECTIONS = [
     blocks: [
       "What you send stays yours. By sending it, you let Whisprl store it and deliver it to the people in that conversation, and that is all it is used for.",
       "You are responsible for what you send, and for having the right to share it.",
-      "Messages, photos, videos, voice messages, documents, reactions and statuses are end-to-end encrypted: they are locked in your browser before they leave it, and only the people they are for can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
+      "Messages, photos, videos, voice messages, documents, reactions and statuses shared with friends are end-to-end encrypted: they are locked in your browser before they leave it, and only the people they are for can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
       "A status is deleted after 24 hours, along with its photo or video, and only the person who posted it can see who viewed it.",
       "Whisprl uses your microphone only while you are recording a voice message.",
     ],
@@ -62,7 +62,7 @@ export const SECTIONS = [
           "your name, username, profile picture and status, so friends can find and recognise you",
           "your email address, to sign you in and send you codes. Nobody else on Whisprl can see it or find you by it",
           "your password and one-time codes, stored only as one-way hashes, so nobody can read your password, including the people who run Whisprl",
-          "your friends list and conversations, and your messages, files and statuses, encrypted so only the people they are for can open them",
+          "your friends list and conversations, and your messages, files and the statuses you share with friends, encrypted so only the people they are for can open them",
           "who has viewed each status, shown only to the person who posted it",
           "whether you are online, so your friends can see it",
           "which sign-in methods you have connected, and the public half of any passkey you add and of the key each browser you log in on keeps, which can only check a sign-in, never make one",

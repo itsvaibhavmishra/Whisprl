@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@mui/material";
-import { CaretDown, UsersThree } from "phosphor-react";
+import { CaretDown, Globe, UsersThree } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import MediaEditor from "@/components/media-editor/MediaEditor";
@@ -20,7 +20,8 @@ const StatusComposer = ({ draft, onClose }) => {
   // friends lists include their owner, and a mention is only worth making for someone who will see the update
   const canMention = (friend) => {
     if (friend._id === user._id) return false;
-    return audience.only ? audience.only.includes(friend._id) : !audience.except.includes(friend._id);
+    const leftOut = audience.everyone ? hiddenFrom : audience.except ?? [];
+    return audience.only ? audience.only.includes(friend._id) : !leftOut.includes(friend._id);
   };
 
   useEffect(() => {
@@ -46,7 +47,7 @@ const StatusComposer = ({ draft, onClose }) => {
         footer={
           <Button
             onClick={() => setIsChoosingAudience(true)}
-            startIcon={<UsersThree size={18} />}
+            startIcon={audience.everyone ? <Globe size={18} /> : <UsersThree size={18} />}
             endIcon={<CaretDown size={14} />}
             aria-label={`Who can see this update: ${audienceLabelOf(audience)}`}
             sx={{ color: "#fff", borderRadius: 99, px: 1.5, bgcolor: "rgba(255, 255, 255, 0.14)", "&:hover": { bgcolor: "rgba(255, 255, 255, 0.22)" } }}

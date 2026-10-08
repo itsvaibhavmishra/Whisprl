@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, useMediaQuery } from "@mui/material";
+import { Box, Stack, Typography, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { PAGE_HEIGHT_WITH_TAB_BAR } from "@/layouts/dashboard/NavRail";
-import { ChooseStatusMedia, GetStatuses } from "@/redux/slices/actions/statusActions";
+import { ChooseStatusMedia, GetDiscover, GetStatuses } from "@/redux/slices/actions/statusActions";
+import DiscoverGrid from "@/sections/status/DiscoverGrid";
 import StatusComposer from "@/sections/status/StatusComposer";
 import StatusHome from "@/sections/status/StatusHome";
 import StatusList from "@/sections/status/StatusList";
@@ -22,11 +23,14 @@ const Status = () => {
   const meId = useSelector((state) => state.user.user._id);
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
   const statuses = useSelector((state) => state.status.statuses);
+  const discover = useSelector((state) => state.status.discover);
   const [draft, setDraft] = useState(null);
   const [shownPerson, setShownPerson] = useState(null);
 
   useEffect(() => {
-    if (isEncryptionReady) dispatch(GetStatuses());
+    if (!isEncryptionReady) return;
+    dispatch(GetStatuses());
+    dispatch(GetDiscover());
   }, [dispatch, isEncryptionReady]);
 
   const groups = groupByOwner(statuses.filter((status) => isLive(status)));
@@ -34,9 +38,10 @@ const Status = () => {
   const friends = groups.filter((group) => group !== myGroup);
   const recent = friends.filter((group) => group.hasUnseen);
   const viewed = friends.filter((group) => !group.hasUnseen);
+  const discovered = groupByOwner(discover.filter((status) => isLive(status)));
 
   const personId = params.get("person");
-  const isPlayable = groups.some((group) => group.owner._id === personId);
+  const isPlayable = [...groups, ...discovered].some((group) => group.owner._id === personId);
   const isHomeAsked = params.get("show") === "yours";
   // the viewer waits for the first person's updates to load, then stays until it runs out of updates itself
   const isViewerOpen = Boolean(personId) && (isPlayable || shownPerson === personId);
@@ -56,8 +61,12 @@ const Status = () => {
     if (chosen) setDraft(chosen);
   };
 
-  // your own updates play on their own; a friend's run on through everyone listed after them
-  const queueFor = (ownerId) => (ownerId === meId ? [meId] : [...recent, ...viewed].map((group) => group.owner._id));
+  // your own updates play on their own, and anyone else's run on through the people listed alongside them
+  const queueFor = (ownerId) => {
+    if (ownerId === meId) return [meId];
+    const isDiscovered = discovered.some((group) => group.owner._id === ownerId);
+    return (isDiscovered ? discovered : [...recent, ...viewed]).map((group) => group.owner._id);
+  };
 
   return (
     <Box sx={{ display: "flex", flexGrow: 1, minWidth: 0, height: { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100dvh" }, bgcolor: "background.default" }}>
@@ -71,6 +80,7 @@ const Status = () => {
             onOpenMine={isWide ? () => play(meId) : () => setParams({ show: "yours" })}
             onWrite={write}
             onChooseMedia={chooseMedia}
+            discovered={isWide ? null : discovered}
           />
         </Box>
       )}
@@ -83,7 +93,21 @@ const Status = () => {
             onChooseMedia={chooseMedia}
             onPlay={(statusId) => play(meId, statusId)}
             onBack={isWide ? undefined : leave}
-          />
+          >
+            {isWide && (
+              <Stack spacing={1.5}>
+                <Box>
+                  <Typography component="h2" sx={{ m: 0, fontSize: 20, fontWeight: 800 }}>
+                    Discover
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    Updates shared with everyone, from people beyond your friends
+                  </Typography>
+                </Box>
+                <DiscoverGrid groups={discovered} onOpen={(ownerId) => play(ownerId)} />
+              </Stack>
+            )}
+          </StatusHome>
         </Box>
       )}
 

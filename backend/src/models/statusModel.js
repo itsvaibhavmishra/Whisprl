@@ -19,13 +19,16 @@ const viewSchema = mongoose.Schema(
   { _id: false }
 );
 
-// what a status shows, and whether it is text, a photo or a video, is sealed inside its cipher
+// what a status shows is sealed inside its cipher, unless it is for everyone, when it is kept as it is in content
 const statusSchema = mongoose.Schema(
   {
     owner: { type: mongoose.Schema.ObjectId, ref: "User", required: true, index: true },
-    cipher: { type: cipherSchema, required: true },
+    isPublic: { type: Boolean, default: false },
+    cipher: { type: cipherSchema, required() { return !this.isPublic; } },
+    content: { type: mongoose.Schema.Types.Mixed, default: undefined },
     file: { type: statusFileSchema, default: undefined },
     audience: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+    excluded: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     views: [viewSchema],
     expiresAt: { type: Date, required: true, index: true },
   },
@@ -33,6 +36,7 @@ const statusSchema = mongoose.Schema(
 );
 
 statusSchema.index({ audience: 1, expiresAt: 1 });
+statusSchema.index({ isPublic: 1, expiresAt: 1 });
 
 const StatusModel = mongoose.model("Status", statusSchema);
 

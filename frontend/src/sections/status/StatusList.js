@@ -1,10 +1,12 @@
-import { Box, ButtonBase, CircularProgress, IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { ImageSquare, TextT, X } from "phosphor-react";
+import { useState } from "react";
+import { Box, ButtonBase, CircularProgress, IconButton, Stack, Tab, Tabs, Tooltip, Typography } from "@mui/material";
+import { Globe, ImageSquare, TextT, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
 import { CancelPosting, GetStatuses } from "@/redux/slices/actions/statusActions";
 import { MIN_VISIBLE_PERCENT } from "@/sections/chat/messages/TransferRing";
+import DiscoverGrid from "@/sections/status/DiscoverGrid";
 import StatusRing from "@/sections/status/StatusRing";
 import useMessageTime from "@/hooks/useMessageTime";
 import getAvatar from "@/utils/avatars";
@@ -31,9 +33,12 @@ const PersonRow = ({ group, onOpen }) => {
           <Typography variant="subtitle2" noWrap>
             {`${group.owner.firstName} ${group.owner.lastName}`}
           </Typography>
-          <Typography variant="caption" component="p" sx={{ m: 0, color: "text.secondary" }}>
-            {messageTime(group.latestAt)}
-          </Typography>
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: "text.secondary" }}>
+            <Typography variant="caption" component="p" sx={{ m: 0 }}>
+              {messageTime(group.latestAt)}
+            </Typography>
+            {group.statuses.some((status) => status.isPublic) && <Globe size={12} role="img" aria-label="Shared with everyone on Whisprl" />}
+          </Stack>
         </Box>
       </ButtonBase>
     </Box>
@@ -127,8 +132,10 @@ const MyStatusRow = ({ group, onOpen, onWrite, onChooseMedia }) => {
   );
 };
 
-const StatusList = ({ myGroup, recent, viewed, onOpen, onOpenMine, onWrite, onChooseMedia }) => {
+// a phone has no right pane, so Discover sits behind a switch above the list instead
+const StatusList = ({ myGroup, recent, viewed, onOpen, onOpenMine, onWrite, onChooseMedia, discovered }) => {
   const isLoading = useIsLoading(GetStatuses);
+  const [tab, setTab] = useState("friends");
 
   return (
     <Stack component="nav" aria-label="Status updates" sx={{ height: "100%", bgcolor: "background.default" }}>
@@ -138,18 +145,31 @@ const StatusList = ({ myGroup, recent, viewed, onOpen, onOpenMine, onWrite, onCh
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
-        <MyStatusRow group={myGroup} onOpen={onOpenMine} onWrite={onWrite} onChooseMedia={onChooseMedia} />
+      {discovered && (
+        <Tabs value={tab} onChange={(_, chosen) => setTab(chosen)} variant="fullWidth" aria-label="Whose updates" sx={{ px: 1.5 }}>
+          <Tab value="friends" label="Friends" />
+          <Tab value="discover" label="Discover" />
+        </Tabs>
+      )}
 
-        <PeopleSection label="Recent" groups={recent} onOpen={onOpen} />
-        <PeopleSection label="Viewed" groups={viewed} onOpen={onOpen} />
+      {tab === "discover" && discovered ? (
+        <Box sx={{ flex: 1, overflowY: "auto", p: 1.5 }}>
+          <DiscoverGrid groups={discovered} onOpen={onOpen} />
+        </Box>
+      ) : (
+        <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
+          <MyStatusRow group={myGroup} onOpen={onOpenMine} onWrite={onWrite} onChooseMedia={onChooseMedia} />
 
-        {!isLoading && !recent.length && !viewed.length && (
-          <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", px: 3, py: 6 }}>
-            No updates from your friends right now.
-          </Typography>
-        )}
-      </Box>
+          <PeopleSection label="Recent" groups={recent} onOpen={onOpen} />
+          <PeopleSection label="Viewed" groups={viewed} onOpen={onOpen} />
+
+          {!isLoading && !recent.length && !viewed.length && (
+            <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", px: 3, py: 6 }}>
+              No updates from your friends right now.
+            </Typography>
+          )}
+        </Box>
+      )}
     </Stack>
   );
 };

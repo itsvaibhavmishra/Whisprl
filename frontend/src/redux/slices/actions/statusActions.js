@@ -24,7 +24,7 @@ const withReactions = async (status, meId) => {
   return { ...others, myReaction: await openedReaction(ownReaction, status, { _id: meId }) };
 };
 
-const withContent = async (status, meId) => ({ ...(await withReactions(status, meId)), content: await openStatus(status) });
+const withContent = async (status, meId) => ({ ...(await withReactions(status, meId)), content: status.isPublic ? status.content : await openStatus(status) });
 
 // a status this browser cannot open is left out rather than shown empty
 const readable = async (statuses, meId) =>
@@ -35,6 +35,10 @@ const readable = async (statuses, meId) =>
 // ------------- Statuses -------------
 export const GetStatuses = createApiThunk("status/list", async (_, { getState }) =>
   readable((await axios.get("/status")).data.statuses, getState().user.user._id)
+);
+
+export const GetDiscover = createApiThunk("status/discover", async (_, { getState }) =>
+  readable((await axios.get("/status/discover")).data.statuses, getState().user.user._id)
 );
 
 export const ReceiveStatus = (status) => async (dispatch, getState) => {
@@ -76,7 +80,7 @@ const contentOf = ({ kind, edits, file, width, height, duration, preview }, seal
   kind,
   alt: altOf(edits),
   mentions: mentionsOf(edits, { width, height }),
-  file: { key: sealed.key, iv: sealed.iv, mimeType: file.type, width, height, duration, preview },
+  file: { ...(sealed && { key: sealed.key, iv: sealed.iv }), mimeType: file.type, width, height, duration, preview },
 });
 
 export const PostStatus = (draft) => async (dispatch, getState) => {
@@ -87,17 +91,24 @@ export const PostStatus = (draft) => async (dispatch, getState) => {
   report(0);
 
   try {
+    const isForEveryone = Boolean(draft.audience?.everyone);
     const ready = await drawnStoryOf(draft, signal, report);
-    const sealed = await sealFile(await ready.file.arrayBuffer());
+    const sealed = isForEveryone ? null : await sealFile(await ready.file.arrayBuffer());
     // large enough for its card and a reply's quote, unlike the blur a chat photo carries
     const preview = ready.kind === "video" ? ready.preview : await thumbnailOf(ready.file);
     const content = contentOf({ ...ready, preview }, sealed);
+    // the friends who will see it, whom anything not for everyone is sealed for and a mention may be told about
     const { sealedFor } = (await axios.post("/status/sealed-for", { audience: draft.audience }, { signal })).data;
 
     const form = new FormData();
-    form.append("cipher", JSON.stringify(await encryptStatus(content, sealedFor, getState().user.user._id)));
     if (draft.audience) form.append("audience", JSON.stringify(draft.audience));
-    form.append("file", new Blob([sealed.data]));
+    if (isForEveryone) {
+      form.append("content", JSON.stringify(content));
+      form.append("file", ready.file);
+    } else {
+      form.append("cipher", JSON.stringify(await encryptStatus(content, sealedFor, getState().user.user._id)));
+      form.append("file", new Blob([sealed.data]));
+    }
 
     const uploadFrom = ready.kind === "video" ? COMPRESS_SHARE : 0;
     const onUploadProgress = ({ loaded, total }) => total && report(uploadFrom + (loaded / total) * (100 - uploadFrom));
@@ -132,19 +143,26 @@ export const ReceiveStatusReaction = ({ status_id, view }) => async (dispatch, g
 };
 
 // ------------- Replies And Mentions -------------
-const SendAboutStatus = createApiThunk("status/send-about", async ({ to, status, text = "", isMention }, { dispatch }) => {
+const SendAboutStatus = createApiThunk("status/send-about", async ({ to, status, about, text = "" }, { dispatch }) => {
   const conversation = await dispatch(DirectConversationWith(to));
-  dispatch(SendTextMessage({ conversationId: conversation._id, text, statusQuote: { ...quoteOfStatus(status), isMention } }));
+  dispatch(SendTextMessage({ conversationId: conversation._id, text, statusQuote: quoteOfStatus(status, about) }));
 });
 
-export const ReplyToStatus = ({ status, text }) => SendAboutStatus({ to: status.owner._id, status, text });
+export const ReplyToStatus = ({ status, text }) => SendAboutStatus({ to: status.owner._id, status, about: "reply", text });
+
+export const ShareStatus = ({ status, friendIds }) => (dispatch) => friendIds.forEach((to) => dispatch(SendAboutStatus({ to, status, about: "share" })));
 
 // only someone the update was sealed for hears about a mention, since the notice carries its preview
 const TellMentioned = (status, sealedFor) => (dispatch) => {
   const canSee = new Set(sealedFor.map((person) => person._id));
   const mentioned = new Set((status.content.mentions ?? []).map((mention) => mention.userId));
-  [...mentioned].filter((to) => canSee.has(to)).forEach((to) => dispatch(SendAboutStatus({ to, status, isMention: true })));
+  [...mentioned].filter((to) => canSee.has(to)).forEach((to) => dispatch(SendAboutStatus({ to, status, about: "mention" })));
 };
+
+// ------------- Report -------------
+export const ReportStatus = createApiThunk("status/report", async ({ statusId, reason, note }) => {
+  await axios.post(`/status/${statusId}/report`, { reason, note });
+});
 
 // ------------- Delete -------------
 export const DeleteStatus = createApiThunk("status/delete", async (statusId, { dispatch }) => {

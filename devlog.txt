@@ -24,6 +24,9 @@
     - A friend you mention in a status gets a message about it
     - The Status page's right side is home to your updates, with views and reactions on each and buttons to add one; on a phone it opens from My status
     - Move and zoom the photo inside a status, and resize or turn text and stickers from the keyboard
+    - Share a status with everyone on Whisprl; friends see it with a globe, and anyone else finds it in Discover, beside your updates on a computer or behind a Friends and Discover switch on a phone
+    - React to an update shared with everyone, open its owner's profile from it, or report it
+    - Send an update shared with everyone to friends, as a card in their chat that opens it while it lasts
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings

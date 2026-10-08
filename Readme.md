@@ -399,6 +399,7 @@ $ npm run build
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
 │   │   │   ├── ProfileHero.js
+│   │   │   ├── ReportDialog.js
 │   │   │   ├── ScrollToTop.js
 │   │   │   ├── SitePage.js
 │   │   │   ├── StatusArcs.js
@@ -519,7 +520,6 @@ $ npm run build
 │   │   │   │   │   ├── PersonDetails.js
 │   │   │   │   │   ├── PhotoViewer.js
 │   │   │   │   │   ├── QuickActions.js
-│   │   │   │   │   ├── ReportDialog.js
 │   │   │   │   │   ├── SharedContent.js
 │   │   │   │   ├── group/
 │   │   │   │   │   ├── AddMembersDialog.js
@@ -610,9 +610,12 @@ $ npm run build
 │   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
 │   │   │   │   ├── AudienceDialog.js
+│   │   │   │   ├── DiscoverGrid.js
 │   │   │   │   ├── ReplyBar.js
 │   │   │   │   ├── SeenBy.js
+│   │   │   │   ├── ShareStatusDialog.js
 │   │   │   │   ├── StatusComposer.js
+│   │   │   │   ├── StatusHeader.js
 │   │   │   │   ├── StatusHome.js
 │   │   │   │   ├── StatusList.js
 │   │   │   │   ├── StatusMedia.js

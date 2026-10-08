@@ -164,10 +164,11 @@ export const releaseAttachment = (id) => {
   held.delete(id);
 };
 
+// a status for everyone is stored as it is, so without a key it is used just as it was downloaded
 const downloadAndOpen = (sealed) =>
   fetch(sealed.url)
     .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject(new Error("File not found"))))
-    .then((data) => openFile(data, sealed));
+    .then((data) => (sealed.key ? openFile(data, sealed) : data));
 
 // a view-once photo is never kept, so it is downloaded and decrypted only for the moment it is shown
 export const openViewOnceFile = async (sealed) => new Blob([await downloadAndOpen(sealed)], { type: sealed.mimeType });

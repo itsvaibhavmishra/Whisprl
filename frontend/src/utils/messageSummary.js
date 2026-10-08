@@ -13,7 +13,7 @@ export const summaryOf = (message) => {
   if (message.undecryptable) return message.awaitingKey ? "Message on its way" : "Encrypted message";
   if (message.viewOnce) return message.file?.kind === "video" ? "View once video" : "View once photo";
   if (message.contact) return `Contact: ${message.contact.firstName} ${message.contact.lastName}`;
-  if (message.statusQuote && !message.message) return message.statusQuote.isMention ? "Mentioned in a status" : "Replied to a status";
+  if (message.statusQuote && !message.message) return { mention: "Mentioned in a status", share: "Shared a status" }[message.statusQuote.about] ?? "Replied to a status";
   if (message.file) return message.message || { image: "Photo", video: "Video", voice: "Voice message" }[message.file.kind] || message.file.name;
   if (message.message) return message.message;
   if (!message.files?.length) return "";

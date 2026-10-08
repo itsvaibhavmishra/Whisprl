@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, Button, ButtonBase, Dialog, Drawer, IconButton, Stack, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, ButtonBase, Dialog, Drawer, Stack, Typography, useMediaQuery } from "@mui/material";
 import { keyframes } from "@mui/system";
-import { Eye, Trash, X } from "phosphor-react";
+import { Eye } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
-import useMessageTime from "@/hooks/useMessageTime";
+import ReportDialog from "@/components/ReportDialog";
 import { GetSentRequests } from "@/redux/slices/actions/contactActions";
-import { DeleteStatus, MarkStatusViewed } from "@/redux/slices/actions/statusActions";
+import { DeleteStatus, MarkStatusViewed, ReportStatus } from "@/redux/slices/actions/statusActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
 import ReplyBar, { keepArrows } from "@/sections/status/ReplyBar";
 import SeenBy, { seenByLabel } from "@/sections/status/SeenBy";
+import ShareStatusDialog from "@/sections/status/ShareStatusDialog";
+import StatusHeader from "@/sections/status/StatusHeader";
 import StatusMedia from "@/sections/status/StatusMedia";
-import getAvatar from "@/utils/avatars";
 import { backgroundOf, isLive, textSizeOf } from "@/utils/statuses";
 
 const SHOW_MS = 6000;
@@ -54,18 +55,18 @@ const Segments = ({ count, position, durationMs, isRunning, onDone }) => (
   </Stack>
 );
 
-const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClose }) => {
+const StatusSlide = ({ status, position, count, isOwn, canReply, onNext, onPrevious, onClose }) => {
   const dispatch = useDispatch();
-  const messageTime = useMessageTime();
   const isWide = useMediaQuery((theme) => theme.breakpoints.up("md"));
   const [isReady, setIsReady] = useState(status.content.kind === "text");
   const [isListingViewers, setIsListingViewers] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [profileId, setProfileId] = useState(null);
+  const [dialog, setDialog] = useState(null);
   const friends = useSelector((state) => state.user.friends);
   const { friendRequests, sentRequests } = useSelector((state) => state.contact);
   const { owner, content } = status;
-  const isPaused = isListingViewers || isTyping || Boolean(profileId);
+  const isPaused = isListingViewers || isTyping || Boolean(profileId) || Boolean(dialog);
   const markReady = useCallback(() => setIsReady(true), []);
 
   const openProfile = (userId) => {
@@ -89,25 +90,15 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
       <Box sx={{ position: "relative", height: "100%", width: "100%", maxWidth: 520, display: "flex", flexDirection: "column" }}>
         <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 3, background: "linear-gradient(rgba(0, 0, 0, 0.55), transparent)" }}>
           <Segments count={count} position={position} durationMs={durationOf(status)} isRunning={isReady && !isPaused} onDone={onNext} />
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 1.5, py: 1, color: "#fff" }}>
-            {getAvatar(owner.avatar, owner.firstName, 36)}
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle2" noWrap>
-                {isOwn ? "My status" : `${owner.firstName} ${owner.lastName}`}
-              </Typography>
-              <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                {messageTime(status.createdAt)}
-              </Typography>
-            </Box>
-            {isOwn && (
-              <IconButton aria-label="Delete status" onClick={() => dispatch(DeleteStatus(status._id))} sx={{ color: "inherit" }}>
-                <Trash size={22} />
-              </IconButton>
-            )}
-            <IconButton aria-label="Close" onClick={onClose} sx={{ color: "inherit" }}>
-              <X size={22} />
-            </IconButton>
-          </Stack>
+          <StatusHeader
+            status={status}
+            isOwn={isOwn}
+            onOpenProfile={() => openProfile(owner._id)}
+            onShare={() => setDialog("share")}
+            onReport={() => setDialog("report")}
+            onDelete={() => dispatch(DeleteStatus(status._id))}
+            onClose={onClose}
+          />
         </Box>
 
         <Box sx={{ position: "relative", flex: 1, minHeight: 0, display: "grid", placeItems: "center", bgcolor: content.kind === "text" ? backgroundOf(content.background) : "#000" }}>
@@ -123,7 +114,7 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
         </Box>
 
         {content.caption && <Typography sx={{ px: 2, pt: 1.5, color: "#fff", textAlign: "center", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{content.caption}</Typography>}
-        {!isOwn && <ReplyBar status={status} onTyping={setIsTyping} />}
+        {!isOwn && <ReplyBar status={status} canReply={canReply} onTyping={setIsTyping} />}
         {isOwn && !isWide && (
           <Button startIcon={<Eye size={18} />} onClick={() => setIsListingViewers(true)} disabled={!status.views.length} sx={{ color: "#fff", my: 1 }}>
             {seenByLabel(status.views)}
@@ -133,6 +124,22 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
         <Drawer anchor="bottom" open={isListingViewers} onClose={() => setIsListingViewers(false)} onKeyDown={keepArrows} sx={{ zIndex: "modal" }} PaperProps={{ sx: { maxHeight: "70dvh", borderTopLeftRadius: 20, borderTopRightRadius: 20 } }}>
           <SeenBy views={status.views} />
         </Drawer>
+        {dialog && (
+          <Box onKeyDown={keepArrows}>
+            {dialog === "share" ? (
+              <ShareStatusDialog status={status} onClose={() => setDialog(null)} />
+            ) : (
+              <ReportDialog
+                subject={`${owner.firstName}'s update`}
+                explanation="An update disappears after 24 hours, so tell us here what was wrong with it."
+                report={ReportStatus}
+                details={{ statusId: status._id }}
+                person={owner}
+                onClose={() => setDialog(null)}
+              />
+            )}
+          </Box>
+        )}
         {profileId && (
           <Box onKeyDown={keepArrows}>
             <UserProfileDrawer openDrawer toggleDrawer={() => setProfileId(null)} selectedUserData={{ _id: profileId }} {...relationTo(profileId)} />
@@ -152,7 +159,9 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
 // people play in the order the list had when the viewer opened, so seeing a status does not reshuffle them
 const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
   const meId = useSelector((state) => state.user.user._id);
-  const allStatuses = useSelector((state) => state.status.statuses);
+  const friendsStatuses = useSelector((state) => state.status.statuses);
+  const discover = useSelector((state) => state.status.discover);
+  const allStatuses = [...friendsStatuses, ...discover];
   const statusesOf = (ownerId) => allStatuses.filter((status) => status.owner._id === ownerId && isLive(status));
 
   const [order] = useState(ownerIds);
@@ -201,6 +210,7 @@ const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
         position={statuses.indexOf(status)}
         count={statuses.length}
         isOwn={status.owner._id === meId}
+        canReply={!discover.includes(status)}
         onNext={next}
         onPrevious={previous}
         onClose={onClose}

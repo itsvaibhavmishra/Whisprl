@@ -1,5 +1,5 @@
 import { Box, Button, ButtonBase, IconButton, Stack, Typography } from "@mui/material";
-import { ArrowLeft, CircleDashed, Eye, ImageSquare, LockSimple, Play, TextT } from "phosphor-react";
+import { ArrowLeft, CircleDashed, Eye, Globe, ImageSquare, LockSimple, Play, TextT } from "phosphor-react";
 import { useSelector } from "react-redux";
 
 import useMessageTime from "@/hooks/useMessageTime";
@@ -26,7 +26,7 @@ const UpdateCard = ({ status, onPlay }) => {
   return (
     <ButtonBase
       onClick={() => onPlay(status._id)}
-      aria-label={`Your update from ${messageTime(status.createdAt)}, ${seenByLabel(status.views)}${reactionsLabel(reactions)}`}
+      aria-label={`Your update from ${messageTime(status.createdAt)}${status.isPublic ? ", shared with everyone" : ""}, ${seenByLabel(status.views)}${reactionsLabel(reactions)}`}
       sx={{ flexDirection: "column", alignItems: "stretch", width: "100%", borderRadius: 3, overflow: "hidden", bgcolor: "background.paper", textAlign: "left", boxShadow: (theme) => `0 12px 28px -18px ${theme.palette.chat.shade}` }}
     >
       <Box sx={{ position: "relative", aspectRatio: "9 / 16", display: "grid", placeItems: "center", bgcolor: content.kind === "text" ? backgroundOf(content.background) : "#000" }}>
@@ -35,6 +35,11 @@ const UpdateCard = ({ status, onPlay }) => {
           <Typography sx={{ px: 1.5, color: "#fff", fontSize: 13, fontWeight: 700, textAlign: "center", overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {content.text}
           </Typography>
+        )}
+        {status.isPublic && (
+          <Box sx={{ position: "absolute", left: 8, top: 8, display: "grid", placeItems: "center", width: 26, height: 26, borderRadius: "50%", color: "#fff", bgcolor: "rgba(0, 0, 0, 0.55)" }}>
+            <Globe size={14} />
+          </Box>
         )}
         {content.kind === "video" && (
           <Box sx={{ position: "absolute", right: 8, bottom: 8, display: "grid", placeItems: "center", width: 28, height: 28, borderRadius: "50%", color: "#fff", bgcolor: "rgba(0, 0, 0, 0.55)" }}>
@@ -58,7 +63,7 @@ const UpdateCard = ({ status, onPlay }) => {
   );
 };
 
-const StatusHome = ({ statuses, onWrite, onChooseMedia, onPlay, onBack }) => {
+const StatusHome = ({ statuses, onWrite, onChooseMedia, onPlay, onBack, children }) => {
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
   const newestFirst = [...statuses].reverse();
 
@@ -101,8 +106,10 @@ const StatusHome = ({ statuses, onWrite, onChooseMedia, onPlay, onBack }) => {
 
         <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ color: "text.secondary" }}>
           <LockSimple size={14} aria-hidden />
-          <Typography variant="caption">Your status updates are end-to-end encrypted.</Typography>
+          <Typography variant="caption">Updates you share with friends are end-to-end encrypted.</Typography>
         </Stack>
+
+        {children}
       </Stack>
     </ChatCanvas>
   );

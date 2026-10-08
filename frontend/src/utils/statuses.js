@@ -13,7 +13,15 @@ export const textSizeOf = (text) => {
 
 export const isLive = (status, now = Date.now()) => new Date(status.expiresAt).getTime() > now;
 
-export const quoteOfStatus = ({ _id, owner, content, expiresAt }) => ({ _id, ownerId: owner._id, preview: content.file?.preview, expiresAt });
+// a shared card can reach someone its owner blocked or hides updates from, so only a reply or a mention carries the preview
+export const quoteOfStatus = ({ _id, owner, content, expiresAt }, about) => ({
+  _id,
+  about,
+  ownerId: owner._id,
+  ownerName: owner.firstName,
+  preview: about === "share" ? undefined : content.file?.preview,
+  expiresAt,
+});
 
 export const statusLinkOf = (ownerId, statusId) => `${PATH_DASHBOARD.general.status}?person=${ownerId}&update=${statusId}`;
 

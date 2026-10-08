@@ -19,7 +19,8 @@ const rise = keyframes`
 // arrow keys pressed in a field or a sheet stay there, rather than moving the statuses behind it
 export const keepArrows = (event) => event.key.startsWith("Arrow") && event.stopPropagation();
 
-const ReplyBar = ({ status, onTyping }) => {
+// a stranger's update for everyone takes reactions only, since chats are between friends
+const ReplyBar = ({ status, canReply, onTyping }) => {
   const dispatch = useDispatch();
   const field = useRef(null);
   const [text, setText] = useState("");
@@ -57,25 +58,27 @@ const ReplyBar = ({ status, onTyping }) => {
           </IconButton>
         ))}
       </Stack>
-      <Box component="form" onSubmit={send} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <InputBase
-          value={text}
-          onChange={(event) => {
-            setText(event.target.value);
-            setIsSent(false);
-          }}
-          inputRef={field}
-          onKeyDown={keepArrows}
-          onFocus={() => onTyping(true)}
-          onBlur={() => onTyping(false)}
-          placeholder={isSent ? `Sent to ${name}` : `Reply to ${name}…`}
-          inputProps={{ "aria-label": `Reply to ${name}`, maxLength: MAX_REPLY }}
-          sx={{ flex: 1, color: "inherit", px: 2, py: 1, borderRadius: 99, border: "1px solid rgba(255, 255, 255, 0.45)", "& input::placeholder": { color: "inherit", opacity: 0.7 } }}
-        />
-        <IconButton type="submit" aria-label="Send reply" disabled={!text.trim()} sx={{ color: "inherit", "&.Mui-disabled": { color: "rgba(255, 255, 255, 0.35)" } }}>
-          <PaperPlaneTilt size={22} weight="fill" />
-        </IconButton>
-      </Box>
+      {canReply && (
+        <Box component="form" onSubmit={send} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <InputBase
+            value={text}
+            onChange={(event) => {
+              setText(event.target.value);
+              setIsSent(false);
+            }}
+            inputRef={field}
+            onKeyDown={keepArrows}
+            onFocus={() => onTyping(true)}
+            onBlur={() => onTyping(false)}
+            placeholder={isSent ? `Sent to ${name}` : `Reply to ${name}…`}
+            inputProps={{ "aria-label": `Reply to ${name}`, maxLength: MAX_REPLY }}
+            sx={{ flex: 1, color: "inherit", px: 2, py: 1, borderRadius: 99, border: "1px solid rgba(255, 255, 255, 0.45)", "& input::placeholder": { color: "inherit", opacity: 0.7 } }}
+          />
+          <IconButton type="submit" aria-label="Send reply" disabled={!text.trim()} sx={{ color: "inherit", "&.Mui-disabled": { color: "rgba(255, 255, 255, 0.35)" } }}>
+            <PaperPlaneTilt size={22} weight="fill" />
+          </IconButton>
+        </Box>
+      )}
       {sentReaction && (
         <Typography key={sentReaction.key} aria-hidden sx={{ position: "absolute", left: "50%", bottom: 120, zIndex: 4, fontSize: 64, pointerEvents: "none", animation: `${rise} 1200ms ease-out forwards` }}>
           {sentReaction.emoji}

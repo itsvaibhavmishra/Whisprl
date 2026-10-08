@@ -6,10 +6,12 @@ import { readLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiter
 import {
   createStatus,
   deleteStatus,
+  getDiscover,
   getHiddenFrom,
   getSealedFor,
   getStatuses,
   reactStatus,
+  reportStatusUpdate,
   updateHiddenFrom,
   viewStatus,
 } from "#src/controllers/statusController.js";
@@ -20,6 +22,8 @@ const statusRouter = express.Router();
 
 statusRouter.route("/").get(protect, readLimit(), getStatuses).post(protect, uploadLimit(), upload.single("file"), createStatus);
 
+statusRouter.route("/discover").get(protect, readLimit(), getDiscover);
+
 statusRouter.route("/sealed-for").get(protect, readLimit(), getSealedFor).post(protect, readLimit(), getSealedFor);
 
 statusRouter.route("/hidden-from").get(protect, readLimit(), getHiddenFrom).put(protect, writeLimit(), updateHiddenFrom);
@@ -29,5 +33,7 @@ statusRouter.route("/:status_id").delete(protect, writeLimit(), deleteStatus);
 statusRouter.route("/:status_id/view").post(protect, writeLimit(), viewStatus);
 
 statusRouter.route("/:status_id/react").post(protect, writeLimit(), reactStatus);
+
+statusRouter.route("/:status_id/report").post(protect, writeLimit(), reportStatusUpdate);
 
 export default statusRouter;

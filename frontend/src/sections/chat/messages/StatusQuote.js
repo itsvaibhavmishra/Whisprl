@@ -1,11 +1,13 @@
 import { Box, ButtonBase, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { Globe } from "phosphor-react";
 import { useNavigate } from "react-router-dom";
 
 import { isLive, statusLinkOf } from "@/utils/statuses";
 
 const labelOf = (quote, isMine) => {
-  if (quote.isMention) return isMine ? "You mentioned them in your status" : "Mentioned you in their status";
+  if (quote.about === "mention") return isMine ? "You mentioned them in your status" : "Mentioned you in their status";
+  if (quote.about === "share") return isMine ? `You shared ${quote.ownerName}'s status` : `Shared ${quote.ownerName}'s status`;
   return isMine ? "You replied to their status" : "Replied to your status";
 };
 
@@ -33,8 +35,12 @@ const StatusQuote = ({ quote, isMine }) => {
         bgcolor: (theme) => (isMine ? alpha("#fff", 0.16) : alpha(theme.palette.primary.main, 0.1)),
       }}
     >
-      <Box sx={{ width: 44, height: 78, flexShrink: 0, borderRadius: 1.5, overflow: "hidden", bgcolor: "rgba(0, 0, 0, 0.25)" }}>
-        {quote.preview && <Box component="img" src={quote.preview} alt="" sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: isAvailable ? 1 : 0.5 }} />}
+      <Box sx={{ width: 44, height: 78, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 1.5, overflow: "hidden", bgcolor: "rgba(0, 0, 0, 0.25)" }}>
+        {quote.preview ? (
+          <Box component="img" src={quote.preview} alt="" sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: isAvailable ? 1 : 0.5 }} />
+        ) : (
+          quote.about === "share" && <Globe size={22} aria-hidden />
+        )}
       </Box>
       <Box sx={{ minWidth: 0 }}>
         <Typography variant="caption" component="p" sx={{ m: 0, fontWeight: 700 }}>

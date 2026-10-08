@@ -38,7 +38,7 @@ export const FEATURES = [
   {
     Icon: LockSimple,
     title: "End-to-end encrypted",
-    body: "Messages, photos, videos, voice messages and statuses are locked in your browser before they leave it, so only the people they are for can open them.",
+    body: "Messages, photos, videos, voice messages and statuses for friends are locked in your browser before they leave it, so only the people they are for can open them.",
   },
   {
     Icon: UsersThree,
@@ -113,7 +113,7 @@ export const FAQS = [
   {
     question: "Can anyone else read my messages?",
     answer:
-      "No. Your messages, photos, videos, voice messages, documents, reactions and statuses are encrypted in your browser before they leave it, and only the people they are for hold the keys to open them. Whisprl's servers store them, but cannot read them.",
+      "No. Your messages, photos, videos, voice messages, documents, reactions and the statuses you share with friends are encrypted in your browser before they leave it, and only the people they are for hold the keys to open them. Whisprl's servers store them, but cannot read them.",
   },
   {
     question: "What is a MERN chat app?",
