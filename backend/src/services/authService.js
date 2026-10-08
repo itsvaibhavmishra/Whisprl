@@ -6,6 +6,7 @@ import { UserModel } from "#src/models/index.js";
 import { isDisposableEmail } from "#src/utils/checkDispose.js";
 import { assertStrongPassword, assertValidName, normalizeEmail, normalizeUsername } from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
+import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import otpMail from "#src/templates/mail/otp.js";
 import resetMail from "#src/templates/mail/reset.js";
 import { formatRemainingTime, transporter } from "#src/services/mailer.js";
@@ -103,6 +104,7 @@ export const registerUser = async ({ firstName, lastName, email, password }) => 
   const user = existing ?? new UserModel({ email: address });
   user.set({ firstName, lastName, password });
   user.username ??= await availableUsername(firstName, lastName);
+  user.coverStyle ??= randomCoverStyle();
   await user.save();
 
   return user;

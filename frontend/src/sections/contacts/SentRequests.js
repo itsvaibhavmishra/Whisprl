@@ -8,7 +8,8 @@ import HangingBuddy from "@/assets/illustrations/animations/HangingBuddy.json";
 
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
-import { GetSentRequests } from "@/redux/slices/actions/contactActions";
+import { GetRequests } from "@/redux/slices/actions/contactActions";
+import RequestNote from "@/components/profile/RequestNote";
 import useIsLoading from "@/hooks/useIsLoading";
 
 const SentRequests = () => {
@@ -16,14 +17,12 @@ const SentRequests = () => {
 
   // from redux
   const dispatch = useDispatch();
-  const isSentRequestsLoading = useIsLoading(GetSentRequests);
-  const { sentRequests } = useSelector(
-    (state) => state.contact
-  );
+  const isSentRequestsLoading = useIsLoading(GetRequests);
+  const outgoing = useSelector((state) => state.contact.outgoing);
   const { showFriendsMenu } = useSelector((state) => state.user);
 
   useEffect(() => {
-    dispatch(GetSentRequests());
+    dispatch(GetRequests());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showFriendsMenu]);
 
@@ -39,12 +38,13 @@ const SentRequests = () => {
         </Typography>
         <Grid container spacing={3}>
           {!isSentRequestsLoading ? (
-            sentRequests?.length !== 0 ? (
-              sentRequests?.map((recipient) => (
+            outgoing.length !== 0 ? (
+              outgoing.map((request) => (
                 <UserCard
-                  thisUser={recipient}
+                  thisUser={request.person}
                   fromSection={"SentRequests"}
-                  key={recipient?._id}
+                  note={<RequestNote request={request} isMine />}
+                  key={request._id}
                 />
               ))
             ) : (

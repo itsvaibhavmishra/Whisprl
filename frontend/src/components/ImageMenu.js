@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
-import { Button, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { Camera, Trash, UploadSimple } from "phosphor-react";
 
 import ImageCropper from "@/components/image-cropper/ImageCropper";
@@ -14,24 +13,10 @@ const KINDS = {
   group: { noun: "group photo", crop: { title: "Crop the group photo", aspect: 1, round: true, maxWidth: 512 } },
 };
 
-const glass = (theme) => ({
-  bgcolor: alpha(theme.palette.background.paper, 0.85),
-  backdropFilter: "blur(6px)",
-  "&:hover": { bgcolor: theme.palette.background.paper },
-});
-
-const ImageMenu = ({ kind, hasImage, onChange }) => {
-  const { noun, crop } = KINDS[kind];
+// the returned picker holds the hidden file input and the cropper, so it has to be rendered once
+export const useCroppedImage = (kind, onChange) => {
   const fileInput = useRef(null);
-  const [anchor, setAnchor] = useState(null);
   const [imageToCrop, setImageToCrop] = useState(null);
-
-  const pickFile = () => {
-    setAnchor(null);
-    fileInput.current.click();
-  };
-
-  const openMenu = (event) => (hasImage ? setAnchor(event.currentTarget) : pickFile());
 
   const choose = (event) => {
     const [file] = event.target.files;
@@ -50,34 +35,50 @@ const ImageMenu = ({ kind, hasImage, onChange }) => {
     if (cropped) onChange(cropped);
   };
 
+  const picker = (
+    <>
+      <input ref={fileInput} type="file" accept={ACCEPTED_TYPES.join(",")} hidden onChange={choose} />
+      {imageToCrop && <ImageCropper image={imageToCrop} {...KINDS[kind].crop} onCancel={() => closeCropper()} onCrop={closeCropper} />}
+    </>
+  );
+
+  return { pick: () => fileInput.current.click(), picker };
+};
+
+const ImageMenu = ({ kind, hasImage, onChange }) => {
+  const { noun } = KINDS[kind];
+  const { pick, picker } = useCroppedImage(kind, onChange);
+  const [anchor, setAnchor] = useState(null);
+
+  const pickFile = () => {
+    setAnchor(null);
+    pick();
+  };
+
+  const openMenu = (event) => (hasImage ? setAnchor(event.currentTarget) : pickFile());
+
   const label = hasImage ? `Change ${noun}` : `Add a ${noun}`;
 
   return (
     <>
-      {kind !== "cover" ? (
-        <Tooltip title={label}>
-          <IconButton
-            aria-label={label}
-            onClick={openMenu}
-            sx={{
-              width: 40,
-              height: 40,
-              bgcolor: "background.paper",
-              color: "text.primary",
-              border: 2,
-              borderColor: "background.default",
-              boxShadow: (theme) => theme.customShadows?.z8,
-              "&:hover": { bgcolor: "background.neutral" },
-            }}
-          >
-            <Camera size={20} weight="bold" />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Button color="inherit" startIcon={<Camera />} onClick={openMenu} sx={glass}>
-          {label}
-        </Button>
-      )}
+      <Tooltip title={label}>
+        <IconButton
+          aria-label={label}
+          onClick={openMenu}
+          sx={{
+            width: 40,
+            height: 40,
+            bgcolor: "background.paper",
+            color: "text.primary",
+            border: 2,
+            borderColor: "background.default",
+            boxShadow: (theme) => theme.customShadows?.z8,
+            "&:hover": { bgcolor: "background.neutral" },
+          }}
+        >
+          <Camera size={20} weight="bold" />
+        </IconButton>
+      </Tooltip>
 
       <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
         <MenuItem onClick={pickFile}>
@@ -100,8 +101,7 @@ const ImageMenu = ({ kind, hasImage, onChange }) => {
         </MenuItem>
       </Menu>
 
-      <input ref={fileInput} type="file" accept={ACCEPTED_TYPES.join(",")} hidden onChange={choose} />
-      {imageToCrop && <ImageCropper image={imageToCrop} {...crop} onCancel={() => closeCropper()} onCrop={closeCropper} />}
+      {picker}
     </>
   );
 };

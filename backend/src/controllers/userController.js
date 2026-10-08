@@ -12,11 +12,12 @@ import {
 import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionService.js";
 import { changeUsername, checkUsername } from "#src/services/usernameService.js";
 import { assertText, assertValidName } from "#src/utils/accountRules.js";
+import { assertCoverStyle } from "#src/utils/coverStyles.js";
 
 // -------------------------- Update Profile --------------------------
 export const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, activityStatus } = req.body;
+    const { firstName, lastName, activityStatus, coverPattern, coverPalette } = req.body;
     const user = req.user;
 
     if (!firstName || !lastName || !activityStatus) {
@@ -34,9 +35,15 @@ export const updateProfile = async (req, res, next) => {
       );
     }
 
+    const fields = { firstName, lastName, activityStatus };
+    if (coverPattern || coverPalette) {
+      assertCoverStyle(coverPattern, coverPalette);
+      fields.coverStyle = { pattern: coverPattern, palette: coverPalette };
+    }
+
     const uploads = { avatar: req.files?.avatar?.[0], cover: req.files?.cover?.[0] };
     const removals = { avatar: req.body.removeAvatar === "true", cover: req.body.removeCover === "true" };
-    await saveProfile(user, { firstName, lastName, activityStatus }, uploads, removals);
+    await saveProfile(user, fields, uploads, removals);
 
     return res.status(200).json({
       status: "success",
@@ -46,6 +53,7 @@ export const updateProfile = async (req, res, next) => {
         lastName: user.lastName,
         avatar: user.avatar,
         cover: user.cover,
+        coverStyle: user.coverStyle,
         activityStatus: user.activityStatus,
       },
     });

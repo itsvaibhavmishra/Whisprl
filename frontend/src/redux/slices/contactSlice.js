@@ -1,13 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {
-  AcceptRejectRequest,
-  GetFriendRequests,
-  GetSentRequests,
-  GetUserData,
-  SearchForUsers,
-  SendRequest,
-  UnsendRequest,
-} from "@/redux/slices/actions/contactActions";
+import { AcceptRejectRequest, CancelRequest, GetRequests, GetUserData, SearchForUsers } from "@/redux/slices/actions/contactActions";
 
 const initialState = {
   searchedUsersList: [],
@@ -15,17 +7,13 @@ const initialState = {
 
   showFriendsMenu: false,
 
-  sentRequests: [],
-
-  friendRequests: [],
+  // notes stay sealed here and are opened only where they are shown
+  incoming: [],
+  outgoing: [],
+  cooldowns: [],
+  latestRequestsFetch: null,
 
   userData: {},
-};
-
-const markSent = (state, receiverId, isSent) => {
-  const request = state.sentRequests.find((sent) => sent.receiverId === receiverId);
-  if (request) request.isSent = isSent;
-  else state.sentRequests.push({ receiverId, isSent });
 };
 
 const slice = createSlice({
@@ -47,28 +35,25 @@ const slice = createSlice({
       .addCase(GetUserData.fulfilled, (state, action) => {
         state.userData = action.payload.userData;
       })
-      .addCase(GetFriendRequests.fulfilled, (state, action) => {
-        state.friendRequests = action.payload.friendRequests;
+      // a burst of changes starts overlapping fetches, and only the newest may land
+      .addCase(GetRequests.pending, (state, action) => {
+        state.latestRequestsFetch = action.meta.requestId;
+      })
+      .addCase(GetRequests.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.latestRequestsFetch) return;
+        const { incoming, outgoing, cooldowns } = action.payload;
+        Object.assign(state, { incoming, outgoing, cooldowns });
       })
       .addCase(SearchForUsers.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;
         state.searchedUsersList = found ? action.payload.users : null;
         state.searchedUsersCount = found ? action.payload.usersFound : null;
-        state.sentRequests = [];
-      })
-      .addCase(SendRequest.fulfilled, (state, action) => {
-        markSent(state, action.payload.receiver._id, true);
-      })
-      .addCase(UnsendRequest.fulfilled, (state, action) => {
-        markSent(state, action.payload.receiver_id, false);
       })
       .addCase(AcceptRejectRequest.fulfilled, (state, action) => {
-        state.friendRequests = state.friendRequests.filter(
-          (request) => request?.sender?._id !== action.payload.sender_id
-        );
+        state.incoming = state.incoming.filter((request) => request.person._id !== action.payload.sender_id);
       })
-      .addCase(GetSentRequests.fulfilled, (state, action) => {
-        state.sentRequests = action.payload.sentRequests;
+      .addCase(CancelRequest.fulfilled, (state, action) => {
+        state.outgoing = state.outgoing.filter((request) => request.person._id !== action.payload.receiver_id);
       });
   },
 });

@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { FriendRequestModel, UserModel } from "#src/models/index.js";
+import { startCooldown } from "#src/services/requestCooldownService.js";
 
 const BLOCKED_FIELDS = "firstName lastName username avatar";
 
@@ -9,21 +10,18 @@ const assertSomeoneElse = (user, other_id) => {
   if (!mongoose.isValidObjectId(other_id) || user._id.equals(other_id)) throw createHttpError.BadRequest("Choose someone else");
 };
 
-// a block withdraws any friend request between the two, so neither can reach the other that way either
+// a block withdraws any friend request between the two, and theirs ends with a decline's cooldown so the block stays unseen
 export const blockUser = async (user, other_id) => {
   assertSomeoneElse(user, other_id);
   const other = await UserModel.findById(other_id).select(BLOCKED_FIELDS);
   if (!other) throw createHttpError.NotFound("User does not exist");
 
-  await Promise.all([
+  const [, theirRequest] = await Promise.all([
     UserModel.updateOne({ _id: user._id }, { $addToSet: { blocked: other._id } }),
-    FriendRequestModel.deleteMany({
-      $or: [
-        { sender: user._id, recipient: other._id },
-        { sender: other._id, recipient: user._id },
-      ],
-    }),
+    FriendRequestModel.findOneAndDelete({ sender: other._id, recipient: user._id }),
+    FriendRequestModel.deleteOne({ sender: user._id, recipient: other._id }),
   ]);
+  if (theirRequest) await startCooldown(other._id, user._id);
   return other;
 };
 

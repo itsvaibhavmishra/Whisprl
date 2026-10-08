@@ -234,6 +234,7 @@ $ npm run build
 │   │   │   ├── passkeyChallengeModel.js
 │   │   │   ├── passkeyModel.js
 │   │   │   ├── reportModel.js
+│   │   │   ├── requestCooldownModel.js
 │   │   │   ├── sessionModel.js
 │   │   │   ├── statusModel.js
 │   │   │   ├── userModel.js
@@ -264,6 +265,7 @@ $ npm run build
 │   │   │   ├── messageService.js
 │   │   │   ├── passkeyService.js
 │   │   │   ├── reportService.js
+│   │   │   ├── requestCooldownService.js
 │   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
 │   │   │   ├── statusService.js
@@ -276,6 +278,7 @@ $ npm run build
 │   │   ├── utils/
 │   │   │   ├── accountRules.js
 │   │   │   ├── checkDispose.js
+│   │   │   ├── coverStyles.js
 │   │   │   ├── escapeRegex.js
 │   │   │   ├── sha256.js
 │   ├── .env copy
@@ -313,11 +316,11 @@ $ npm run build
 │   ├── src/
 │   │   ├── assets/
 │   │   │   ├── backgrounds/
-│   │   │   │   ├── catDoodle.png
-│   │   │   │   ├── catDoodle.webp
-│   │   │   │   ├── catDoodle2.png
-│   │   │   │   ├── catDoodle3.png
 │   │   │   │   ├── chatDoodles.svg
+│   │   │   ├── covers/
+│   │   │   │   ├── cats.svg
+│   │   │   │   ├── sky.svg
+│   │   │   │   ├── whispers.svg
 │   │   │   ├── icons/
 │   │   │   │   ├── logo/
 │   │   │   │   │   ├── Whisprl.png
@@ -381,6 +384,11 @@ $ npm run build
 │   │   │   │   ├── ToolControls.js
 │   │   │   │   ├── ToolSheet.js
 │   │   │   │   ├── useStageGestures.js
+│   │   │   ├── profile/
+│   │   │   │   ├── RequestButton.js
+│   │   │   │   ├── RequestComposer.js
+│   │   │   │   ├── RequestNote.js
+│   │   │   │   ├── SendRequestDialog.js
 │   │   │   ├── search/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── Search.js
@@ -398,6 +406,7 @@ $ npm run build
 │   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
+│   │   │   ├── ProfileCover.js
 │   │   │   ├── ProfileHero.js
 │   │   │   ├── ReportDialog.js
 │   │   │   ├── ScrollToTop.js
@@ -419,6 +428,7 @@ $ npm run build
 │   │   │   ├── useLocalStorage.js
 │   │   │   ├── useMessageTime.js
 │   │   │   ├── useObjectUrl.js
+│   │   │   ├── useRelationship.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
 │   │   ├── layouts/
@@ -596,6 +606,7 @@ $ npm run build
 │   │   │   │   ├── UserProfileDrawer.js
 │   │   │   ├── profile/
 │   │   │   │   ├── AccountSummary.js
+│   │   │   │   ├── CoverPicker.js
 │   │   │   │   ├── ProfileEditor.js
 │   │   │   ├── settings/
 │   │   │   │   ├── BlockedPeopleSetting.js
@@ -697,6 +708,8 @@ $ npm run build
 │   │   │   │   ├── keyWrap.js
 │   │   │   │   ├── messageCipher.js
 │   │   │   │   ├── messageCipher.test.js
+│   │   │   │   ├── noteCipher.js
+│   │   │   │   ├── noteCipher.test.js
 │   │   │   │   ├── recoveryKey.js
 │   │   │   │   ├── sessionKeys.js
 │   │   │   │   ├── sessionKeys.test.js
@@ -715,6 +728,7 @@ $ npm run build
 │   │   │   ├── chats.js
 │   │   │   ├── chats.test.js
 │   │   │   ├── colorPresets.js
+│   │   │   ├── covers.js
 │   │   │   ├── formatMessageTime.js
 │   │   │   ├── formatMessageTime.test.js
 │   │   │   ├── formatTime.js
@@ -738,6 +752,8 @@ $ npm run build
 │   │   │   ├── notify.js
 │   │   │   ├── passkeys.js
 │   │   │   ├── reactions.js
+│   │   │   ├── relationship.js
+│   │   │   ├── relationship.test.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── session.js
 │   │   │   ├── socialLoginHelpers.js

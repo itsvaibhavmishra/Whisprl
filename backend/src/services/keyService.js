@@ -35,9 +35,12 @@ export const currentKeyIdOf = (user) => user.publicKeys.at(-1)?.keyId ?? null;
 
 const KEYS_CHANGED = "Your keys changed on another device. Reload Whisprl and try again.";
 
+// accounts older than encryption have no keys field at all, which $size never matches
+const hasKeyCount = (count) => (count ? { publicKeys: { $size: count } } : { "publicKeys.0": { $exists: false } });
+
 // matching the key count the request started from makes the check and the write one step
 const updateIfKeysUnchanged = async (user, update) => {
-  const { matchedCount } = await UserModel.updateOne({ _id: user._id, publicKeys: { $size: user.publicKeys.length } }, update);
+  const { matchedCount } = await UserModel.updateOne({ _id: user._id, ...hasKeyCount(user.publicKeys.length) }, update);
   if (!matchedCount) throw createHttpError.Conflict(KEYS_CHANGED);
 };
 

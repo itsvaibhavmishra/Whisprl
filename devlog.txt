@@ -28,6 +28,9 @@
     - Share a status with everyone on Whisprl; friends see it as usual, and anyone else finds it in Discover, beside the list on a computer or as a screen of its own on a phone
     - React to an update shared with everyone, open its owner's profile from it, or report it
     - Send an update shared with everyone to friends, as a card in their chat that opens it while it lasts
+    - Add a short message to a friend request, so they know who is asking; it stays end-to-end encrypted and becomes the first message of your chat once they accept
+    - Every profile gets a doodle cover, Cats, Whispers or Night sky, in one of the accent colours; existing accounts get one too
+    - Choose your cover's pattern and colour, or shuffle them, from Edit cover on your profile; a photo still works, and removing it brings your pattern back
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings
@@ -36,13 +39,20 @@
     - Your email stays private: nobody else on Whisprl can see it or find you by it, and search goes by name or username
     - Mentioning someone in a group inserts their @username, and suggestions match usernames as well as names
     - Every scrolling area uses the chat's thin scrollbar, which shows while the pointer is over it
+    - Friend requests update live for both people: a new request, an accept, a cancel or a removed friend shows at once without a reload
+    - After a request is declined, you can ask the same person again after 24 hours
+    - The sender of a request cannot tell whether it was read until it is accepted
 
   - Fixed:
     - Signing in with Google works again
     - The chat list keeps up as things happen: ticks turn to delivered and seen, edits and deletions show at once, and reading a chat in one tab clears it in the others
     - The change password dialog no longer shows two scrollbars of its own
     - Clicking beside a status closes it
+    - Searching for people no longer shows whether someone who is not your friend is online
+    - Someone who is no longer your friend can no longer see you typing in your old chat
+    - Accounts made before encryption can now set it up
 
   - Developers:
 
   - Internal:
+    - The old cat doodle cover images are gone, about 950 KB lighter

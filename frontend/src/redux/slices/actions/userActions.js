@@ -9,12 +9,14 @@ const blobUrlToFile = async (blobUrl, fileName) => {
 // ------------- Update Profile Thunk -------------
 export const UpdateProfile = createApiThunk(
   "user/update-profile",
-  async ({ firstName, lastName, activityStatus, ...images }, { getState }) => {
+  async ({ firstName, lastName, activityStatus, coverPattern, coverPalette, ...images }, { getState }) => {
     const saved = getState().user.user;
     const formData = new FormData();
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
     formData.append("activityStatus", activityStatus);
+    formData.append("coverPattern", coverPattern);
+    formData.append("coverPalette", coverPalette);
     for (const [kind, removeField] of [["avatar", "removeAvatar"], ["cover", "removeCover"]]) {
       if (images[kind].startsWith("blob:")) {
         formData.append(kind, await blobUrlToFile(images[kind], `${kind}.jpg`));

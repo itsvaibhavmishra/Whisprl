@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, ButtonBase, Drawer, Stack, Typography } from "@mui/material";
 import { keyframes } from "@mui/system";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import ReportDialog from "@/components/ReportDialog";
-import { GetSentRequests } from "@/redux/slices/actions/contactActions";
 import { MarkStatusViewed, ReportStatus } from "@/redux/slices/actions/statusActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
@@ -73,22 +72,13 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
   const holdTimer = useRef(null);
   const viewsPill = useRef(null);
   const wasHeld = useRef(false);
-  const friends = useSelector((state) => state.user.friends);
-  const { friendRequests, sentRequests } = useSelector((state) => state.contact);
   const { owner, content } = status;
   const isPaused = isUserPaused || isHeld || isListingViewers || isTyping || isPicking || isMoreOpen || Boolean(profileId) || Boolean(dialog);
   const markReady = useCallback(() => setIsReady(true), []);
 
   const openProfile = (userId) => {
     dispatch(GetFriends());
-    dispatch(GetSentRequests());
     setProfileId(userId);
-  };
-
-  const relationTo = (userId) => {
-    if (friends.some((friend) => friend._id === userId)) return { isFrom: "Contacts" };
-    if (friendRequests.some((request) => request.sender?._id === userId)) return { isFrom: "FriendRequests" };
-    return { isFrom: "SearchUsers", isRequestSent: sentRequests.some((sent) => String(sent.receiverId) === userId && sent.isSent) };
   };
 
   // holding a finger or the mouse down pauses, and letting go after a hold must not also count as a tap
@@ -242,7 +232,7 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
               onClose={() => setDialog(null)}
             />
           )}
-          {profileId && <UserProfileDrawer openDrawer toggleDrawer={() => setProfileId(null)} selectedUserData={{ _id: profileId }} {...relationTo(profileId)} />}
+          {profileId && <UserProfileDrawer openDrawer toggleDrawer={() => setProfileId(null)} selectedUserData={{ _id: profileId }} />}
         </Box>
       )}
     </Stack>

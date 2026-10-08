@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcrypt";
 
+import { COVER_PALETTES, COVER_PATTERNS } from "#src/utils/coverStyles.js";
+
 const PASSWORD_COST = 12;
 
 const publicKeySchema = mongoose.Schema(
@@ -41,6 +43,14 @@ const passwordResetSchema = mongoose.Schema(
   { _id: false }
 );
 
+const coverStyleSchema = mongoose.Schema(
+  {
+    pattern: { type: String, enum: COVER_PATTERNS, required: true },
+    palette: { type: String, enum: COVER_PALETTES, required: true },
+  },
+  { _id: false }
+);
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
@@ -49,6 +59,8 @@ const userSchema = mongoose.Schema(
     usernameChangedAt: { type: Date },
     avatar: { type: String },
     cover: { type: String, default: "" },
+    // the doodle drawn when there is no cover photo, or once it is removed
+    coverStyle: { type: coverStyleSchema },
     email: {
       type: String,
       required: [true, "Email is required"],

@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { Box, Button, ButtonBase, IconButton, InputBase, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, ButtonBase, IconButton, InputBase, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Archive, ArrowLeft, CaretRight, MagnifyingGlass, UsersThree, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import WhisprlAvatar from "@/assets/icons/logo/WhisprlAvatar.webp";
+import RequestButton from "@/components/profile/RequestButton";
 import Wordmark from "@/components/Wordmark";
 import useIsLoading from "@/hooks/useIsLoading";
 import { CreateOpenConversation, GetConversations } from "@/redux/slices/actions/chatActions";
-import { SearchForUsers, SendRequest } from "@/redux/slices/actions/contactActions";
+import { SearchForUsers } from "@/redux/slices/actions/contactActions";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
 import { clearSearchUsers } from "@/redux/slices/contactSlice";
 import { clearSearch } from "@/redux/slices/userSlice";
@@ -74,20 +75,12 @@ const FriendRow = ({ person, isMe }) => {
   );
 };
 
-const StrangerRow = ({ person }) => {
-  const dispatch = useDispatch();
-  const sentRequests = useSelector((state) => state.contact.sentRequests);
-  const isRequestSent = sentRequests.find((sent) => sent.receiverId === person._id)?.isSent ?? person.requestSent;
-
-  return (
-    <Box component="li" sx={{ listStyle: "none", display: "flex", alignItems: "center", gap: 1.5, px: 1.25, py: 1 }}>
-      <PersonSummary person={person} name={`${person.firstName} ${person.lastName}`} detail={atUsername(person)} />
-      <Button size="small" variant={isRequestSent ? "text" : "contained"} disabled={isRequestSent} onClick={() => dispatch(SendRequest(person._id))} sx={{ borderRadius: 99, flexShrink: 0 }}>
-        {isRequestSent ? "Request sent" : "Add friend"}
-      </Button>
-    </Box>
-  );
-};
+const StrangerRow = ({ person }) => (
+  <Box component="li" sx={{ listStyle: "none", display: "flex", alignItems: "center", gap: 1.5, px: 1.25, py: 1 }}>
+    <PersonSummary person={person} name={`${person.firstName} ${person.lastName}`} detail={atUsername(person)} />
+    <RequestButton person={person} size="small" sx={{ borderRadius: 99, flexShrink: 0 }} />
+  </Box>
+);
 
 const ChatList = ({ onNewGroup }) => {
   const dispatch = useDispatch();

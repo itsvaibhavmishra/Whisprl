@@ -13,58 +13,28 @@ import LoadingButton from "@mui/lab/LoadingButton";
 
 import getAvatar from "@/utils/avatars";
 import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
+import RequestButton from "@/components/profile/RequestButton";
+import useIsLoading from "@/hooks/useIsLoading";
 
 // redux imports
-import { useDispatch, useSelector } from "react-redux";
-import {
-  AcceptRejectRequest,
-  SendRequest,
-  UnsendRequest,
-} from "@/redux/slices/actions/contactActions";
+import { useDispatch } from "react-redux";
+import { AcceptRejectRequest } from "@/redux/slices/actions/contactActions";
 
-const UserCard = ({ thisUser, fromSection, isLoading }) => {
+const UserCard = ({ thisUser, fromSection, isLoading, note }) => {
   const theme = useTheme();
 
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [isActionsLoading, setIsActionsLoading] = useState(false);
+  const isAnswering = useIsLoading(AcceptRejectRequest);
 
   const dispatch = useDispatch();
-  const { sentRequests } = useSelector((state) => state.contact);
 
-  const sentRequest = sentRequests?.find(
-    (request) => request.receiverId === thisUser?._id
-  );
-  const isRequestSent = sentRequest
-    ? sentRequest.isSent
-    : thisUser?.requestSent;
-
-  const handleButtonClick = async (e, type) => {
-    e.stopPropagation();
-
-    // Friend Requests Handler
-    if (fromSection === "FriendRequests") {
-      setIsActionsLoading(true);
-      await dispatch(AcceptRejectRequest({ sender_id: thisUser?._id, type }));
-      setIsActionsLoading(false);
-    }
-
-    // Send Request Handler
-    else if (type === "sendRequest" && !isRequestSent) {
-      setIsActionsLoading(true);
-      await dispatch(SendRequest(thisUser?._id));
-      setIsActionsLoading(false);
-    }
-
-    // Unsend Request Handler
-    else if (type === "unsendRequest" && isRequestSent) {
-      setIsActionsLoading(true);
-      await dispatch(UnsendRequest(thisUser?._id));
-      setIsActionsLoading(false);
-    }
+  const answer = (event, type) => {
+    event.stopPropagation();
+    dispatch(AcceptRejectRequest({ sender_id: thisUser?._id, type }));
   };
 
   const toggleDrawer = () => {
-    if (!isLoading && !isActionsLoading) {
+    if (!isLoading) {
       setOpenDrawer(!openDrawer);
     }
   };
@@ -81,7 +51,7 @@ const UserCard = ({ thisUser, fromSection, isLoading }) => {
           "&:hover": {
             backgroundColor: theme.palette.primary.lighterFaded,
             backdropFilter: "blur(10px)",
-            cursor: !isLoading && !isActionsLoading ? "pointer" : "default",
+            cursor: !isLoading ? "pointer" : "default",
           },
         }}
         onClick={toggleDrawer}
@@ -125,63 +95,30 @@ const UserCard = ({ thisUser, fromSection, isLoading }) => {
                 </Typography>
               </Stack>
             </Stack>
+            {note}
             {/* Request Options */}
-            {fromSection === "FriendRequests" ? (
+            {isLoading ? (
+              <LoadingButton loading variant="text">
+                Loading
+              </LoadingButton>
+            ) : fromSection === "FriendRequests" ? (
               <Stack direction={"row"} justifyContent={"flex-end"} spacing={1}>
-                <LoadingButton
-                  loading={isLoading || isActionsLoading}
-                  variant="text"
-                  color="error"
-                  onClick={(e) => handleButtonClick(e, "reject")}
-                >
+                <LoadingButton loading={isAnswering} variant="text" color="error" onClick={(e) => answer(e, "reject")}>
                   Reject
                 </LoadingButton>
-                <LoadingButton
-                  loading={isLoading || isActionsLoading}
-                  variant="outlined"
-                  color="success"
-                  onClick={(e) => handleButtonClick(e, "accept")}
-                >
+                <LoadingButton loading={isAnswering} variant="outlined" color="success" onClick={(e) => answer(e, "accept")}>
                   Accept
                 </LoadingButton>
               </Stack>
-            ) : fromSection === "SearchUsers" ||
-              fromSection === "SentRequests" ? (
-              <LoadingButton
-                loading={isLoading || isActionsLoading}
-                variant="text"
-                color={!isRequestSent ? "success" : "error"}
-                onClick={(e) =>
-                  handleButtonClick(
-                    e,
-                    !isRequestSent ? "sendRequest" : "unsendRequest"
-                  )
-                }
-              >
-                {!isRequestSent ? "Send Request" : "Unsend Request"}
-              </LoadingButton>
             ) : (
-              <LoadingButton
-                loading={isLoading}
-                variant="text"
-                color="primary"
-                onClick={toggleDrawer}
-              >
-                View User
-              </LoadingButton>
+              <RequestButton person={thisUser} variant="text" />
             )}
           </Stack>
         </CardContent>
       </Card>
 
       {/* Drawer */}
-      <UserProfileDrawer
-        isFrom={fromSection}
-        openDrawer={openDrawer}
-        toggleDrawer={toggleDrawer}
-        selectedUserData={thisUser}
-        isRequestSent={isRequestSent}
-      />
+      <UserProfileDrawer openDrawer={openDrawer} toggleDrawer={toggleDrawer} selectedUserData={thisUser} />
     </Grid>
   );
 };

@@ -11,6 +11,8 @@ import ProfileHero from "@/components/ProfileHero";
 import { UpdateProfile } from "@/redux/slices/actions/userActions";
 import AccountSummary from "@/sections/profile/AccountSummary";
 import ImageMenu from "@/components/ImageMenu";
+import CoverPicker from "@/sections/profile/CoverPicker";
+import { coverStyleOf } from "@/utils/covers";
 import { nameRule } from "@/utils/formRules";
 
 const STATUS_LIMIT = 50;
@@ -27,13 +29,18 @@ const ProfileSchema = Yup.object({
   cover: Yup.string(),
 });
 
-const toFormValues = ({ firstName, lastName, activityStatus, avatar, cover }) => ({
-  firstName: firstName || "",
-  lastName: lastName || "",
-  activityStatus: activityStatus || "",
-  avatar: avatar || "",
-  cover: cover || "",
-});
+const toFormValues = (user) => {
+  const { pattern, palette } = coverStyleOf(user);
+  return {
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    activityStatus: user.activityStatus || "",
+    avatar: user.avatar || "",
+    cover: user.cover || "",
+    coverPattern: pattern,
+    coverPalette: palette,
+  };
+};
 
 const SectionTitle = ({ id, children }) => (
   <Typography id={id} component="h2" sx={{ m: 0, mb: 2.5, fontSize: 18, fontWeight: 700 }}>
@@ -100,6 +107,11 @@ const ProfileEditor = () => {
   }, [user, isDirty, reset]);
 
   const changeImage = (field) => (url) => setValue(field, url, { shouldDirty: true });
+  const changeCoverStyle = ({ pattern, palette }) => {
+    setValue("coverPattern", pattern, { shouldDirty: true });
+    setValue("coverPalette", palette, { shouldDirty: true });
+  };
+  const liveCoverStyle = { pattern: live.coverPattern, palette: live.coverPalette };
 
   const onSubmit = async (values) => {
     const result = await dispatch(UpdateProfile(values));
@@ -111,8 +123,8 @@ const ProfileEditor = () => {
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <ProfileHero
-        profile={{ ...live, username: user.username }}
-        coverAction={<ImageMenu kind="cover" hasImage={!!live.cover} onChange={changeImage("cover")} />}
+        profile={{ ...live, username: user.username, coverStyle: liveCoverStyle }}
+        coverAction={<CoverPicker coverStyle={liveCoverStyle} photo={live.cover} onStyleChange={changeCoverStyle} onPhotoChange={changeImage("cover")} />}
         photoAction={<ImageMenu kind="photo" hasImage={!!live.avatar} onChange={changeImage("avatar")} />}
       />
 

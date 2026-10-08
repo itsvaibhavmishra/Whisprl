@@ -2,11 +2,12 @@ import createHttpError from "http-errors";
 import sizeOf from "image-size";
 import mongoose from "mongoose";
 
-import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
+import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { presenceShownTo } from "#src/services/blockService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { assertStrongPassword, normalizeUsername } from "#src/utils/accountRules.js";
+import { randomCoverStyle } from "#src/utils/coverStyles.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -25,7 +26,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar cover activityStatus createdAt publicKeys";
+export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
 
 export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -61,6 +62,16 @@ export const saveProfile = async (user, fields, uploads, removals) => {
   await Promise.allSettled(replaced.filter(isCloudinaryFile).map(deleteFile));
 };
 
+// accounts made before covers had styles are each given one when the server starts
+export const giveEveryoneACoverStyle = async () => {
+  const missing = await UserModel.find({ coverStyle: { $exists: false } }).select("_id").lean();
+  if (!missing.length) return 0;
+  await UserModel.bulkWrite(
+    missing.map(({ _id }) => ({ updateOne: { filter: { _id, coverStyle: { $exists: false } }, update: { coverStyle: randomCoverStyle() } } }))
+  );
+  return missing.length;
+};
+
 export const getPublicProfile = (user_id) => {
   if (!mongoose.isValidObjectId(user_id)) throw createHttpError.BadRequest("Query required");
   return UserModel.findById(user_id).select(PUBLIC_PROFILE_FIELDS);
@@ -82,6 +93,7 @@ export const getOwnProfile = async (user) => {
     usernameChangedAt: user.usernameChangedAt,
     avatar: user.avatar,
     cover: user.cover,
+    coverStyle: user.coverStyle,
     email: user.email,
     activityStatus: user.activityStatus,
     createdAt: user.createdAt,
@@ -112,6 +124,8 @@ const SEARCH_PAGE_SIZE = 10;
 const skipFor = (page) => Math.max(0, Number.parseInt(page, 10) || 0) * SEARCH_PAGE_SIZE;
 
 const SEARCH_FIELDS = "firstName lastName username avatar activityStatus onlineStatus";
+// presence is for friends, so strangers are found without it
+const STRANGER_FIELDS = "firstName lastName username avatar activityStatus";
 
 // never by email, so nobody can find out whether an address has an account
 const nameOrUsernameFilter = (keyword) => {
@@ -130,18 +144,11 @@ const nameOrUsernameFilter = (keyword) => {
 export const searchForUsers = async (keyword, page, user) => {
   const filter = { ...nameOrUsernameFilter(keyword), _id: { $nin: user.friends }, verified: true };
 
-  const [users, totalCount, requestedIds] = await Promise.all([
-    UserModel.find(filter)
-      .select(SEARCH_FIELDS)
-      .skip(skipFor(page))
-      .limit(SEARCH_PAGE_SIZE)
-      .lean(),
+  const [users, totalCount] = await Promise.all([
+    UserModel.find(filter).select(STRANGER_FIELDS).skip(skipFor(page)).limit(SEARCH_PAGE_SIZE).lean(),
     UserModel.countDocuments(filter),
-    FriendRequestModel.find({ sender: user._id }).distinct("recipient"),
   ]);
-
-  const requested = new Set(requestedIds.map(String));
-  return { users: users.map((found) => ({ ...found, requestSent: requested.has(String(found._id)) })), totalCount };
+  return { users, totalCount };
 };
 
 export const searchFriendsOf = async (user, keyword, page) => {

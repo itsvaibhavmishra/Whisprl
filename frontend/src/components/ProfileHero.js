@@ -1,6 +1,6 @@
 import { Avatar, Box, Typography } from "@mui/material";
 
-import catDoodle from "@/assets/backgrounds/catDoodle.webp";
+import ProfileCover from "@/components/ProfileCover";
 import { bubbleShape } from "@/sections/welcome/HeroConversation";
 import Wordmark from "@/components/Wordmark";
 import { avatarLookOf } from "@/utils/avatars";
@@ -8,23 +8,10 @@ import { avatarLookOf } from "@/utils/avatars";
 const PHOTO_SIZE = { xs: 104, md: 148 };
 const RING = 6;
 
-const Cover = ({ src, children }) => (
-  <Box
-    sx={{
-      position: "relative",
-      aspectRatio: "3 / 1",
-      borderRadius: { xs: "20px", md: "28px" },
-      overflow: "hidden",
-      bgcolor: "primary.lighterFaded",
-      backgroundImage: src ? `url(${src})` : `url(${catDoodle})`,
-      backgroundSize: src ? "cover" : "300px",
-      backgroundPosition: "center",
-      backgroundBlendMode: (theme) => (!src && theme.palette.mode === "light" ? "luminosity" : "normal"),
-    }}
-  >
-    {children}
-  </Box>
-);
+const PHOTO_AT = {
+  xs: { x: 16 + RING + PHOTO_SIZE.xs / 2, radius: PHOTO_SIZE.xs / 2 + RING },
+  md: { x: 32 + RING + PHOTO_SIZE.md / 2, radius: PHOTO_SIZE.md / 2 + RING },
+};
 
 const Photo = ({ src, name, children }) => {
   const { initial, background } = avatarLookOf(name);
@@ -77,14 +64,14 @@ const StatusBubble = ({ status }) => (
 );
 
 const ProfileHero = ({ profile, coverAction, photoAction }) => {
-  const { firstName, lastName, username, avatar, cover, activityStatus } = profile;
+  const { firstName, lastName, username, avatar, activityStatus } = profile;
   const fullName = `${firstName} ${lastName}`.trim();
 
   return (
     <Box>
-      <Cover src={cover}>
+      <ProfileCover profile={profile} photoAt={PHOTO_AT} sx={{ aspectRatio: "3 / 1", borderRadius: { xs: "20px", md: "28px" } }}>
         {coverAction && <Box sx={{ position: "absolute", top: 12, right: 12 }}>{coverAction}</Box>}
-      </Cover>
+      </ProfileCover>
       <Box
         sx={{
           display: "grid",

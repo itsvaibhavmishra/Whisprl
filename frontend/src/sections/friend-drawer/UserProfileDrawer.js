@@ -11,13 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { GetUserData } from "@/redux/slices/actions/contactActions";
 import useIsLoading from "@/hooks/useIsLoading";
 
-const UserProfileDrawer = ({
-  openDrawer,
-  toggleDrawer,
-  selectedUserData,
-  isFrom,
-  isRequestSent,
-}) => {
+const UserProfileDrawer = ({ openDrawer, toggleDrawer, selectedUserData }) => {
   const theme = useTheme();
 
   // from redux
@@ -68,13 +62,7 @@ const UserProfileDrawer = ({
         </Box>
 
         {/* Main */}
-        <UserDrawerMain
-          toggleDrawer={toggleDrawer}
-          userData={userData}
-          isLoading={isUserDataLoading}
-          isFrom={isFrom}
-          isRequestSent={isRequestSent}
-        />
+        <UserDrawerMain toggleDrawer={toggleDrawer} userData={userData} isLoading={isUserDataLoading} />
       </Box>
     </Drawer>
   );

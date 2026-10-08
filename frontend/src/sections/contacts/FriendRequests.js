@@ -8,7 +8,8 @@ import NoResultsFound from "@/assets/illustrations/animations/NoResultsFound.jso
 
 // redux imports
 import { useDispatch, useSelector } from "react-redux";
-import { GetFriendRequests } from "@/redux/slices/actions/contactActions";
+import { GetRequests } from "@/redux/slices/actions/contactActions";
+import RequestNote from "@/components/profile/RequestNote";
 import useIsLoading from "@/hooks/useIsLoading";
 
 const FriendRequests = () => {
@@ -16,14 +17,12 @@ const FriendRequests = () => {
 
   // from redux
   const dispatch = useDispatch();
-  const isRequestsLoading = useIsLoading(GetFriendRequests);
-  const { friendRequests } = useSelector(
-    (state) => state.contact
-  );
+  const isRequestsLoading = useIsLoading(GetRequests);
+  const incoming = useSelector((state) => state.contact.incoming);
   const { showFriendsMenu } = useSelector((state) => state.user);
 
   useEffect(() => {
-    dispatch(GetFriendRequests());
+    dispatch(GetRequests());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showFriendsMenu]);
 
@@ -39,12 +38,13 @@ const FriendRequests = () => {
         </Typography>
         <Grid container spacing={3}>
           {!isRequestsLoading ? (
-            friendRequests?.length !== 0 ? (
-              friendRequests?.map((sender) => (
+            incoming.length !== 0 ? (
+              incoming.map((request) => (
                 <UserCard
-                  thisUser={sender?.sender}
+                  thisUser={request.person}
                   fromSection={"FriendRequests"}
-                  key={sender?.sender?._id}
+                  note={<RequestNote request={request} isMine={false} />}
+                  key={request._id}
                 />
               ))
             ) : (

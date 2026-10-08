@@ -131,8 +131,8 @@ const slice = createSlice({
         state.user.quickReactions = action.payload.quickReactions;
       })
       .addCase(GetMyProfile.fulfilled, (state, action) => {
-        const { firstName, lastName, username, usernameChangedAt, avatar, cover, email, activityStatus, ...summary } = action.payload.user;
-        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, cover, email, activityStatus };
+        const { firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
+        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus };
         state.accountSummary = summary;
       })
       .addCase(SearchFriends.fulfilled, (state, action) => {

@@ -2,14 +2,14 @@ import express from "express";
 import trimRequest from "trim-request";
 
 import { protect } from "#src/middlewares/authMiddleware.js";
-import { readLimit, searchLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
+import { readLimit, requestLimit, searchLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   acceptRejectRequest,
   cancelRequest,
   getFriends,
+  getNoteTarget,
   getOnlineFriends,
   getRequests,
-  getSentRequests,
   removeFriend,
   searchFriends,
   sendRequest,
@@ -20,7 +20,10 @@ const friendsRouter = express.Router();
 // Send Friend Request
 friendsRouter
   .route("/send-request")
-  .post(trimRequest.all, protect, writeLimit(), sendRequest);
+  .post(trimRequest.all, protect, requestLimit(), sendRequest);
+
+// The chat a request's note is sealed for
+friendsRouter.route("/note-target/:user_id").get(trimRequest.all, protect, readLimit(), getNoteTarget);
 
 // Cancel Friend Request
 friendsRouter
@@ -48,12 +51,7 @@ friendsRouter
 // Search for Friends
 friendsRouter.route("/search").get(trimRequest.all, protect, searchLimit(), searchFriends);
 
-// Get List of Friend Requests
-friendsRouter.route("/get-requests").get(trimRequest.all, protect, readLimit(), getRequests);
-
-// Get List of Sent Requests
-friendsRouter
-  .route("/get-sent-requests")
-  .get(trimRequest.all, protect, readLimit(), getSentRequests);
+// Received and sent requests, with the cooldowns still running
+friendsRouter.route("/requests").get(trimRequest.all, protect, readLimit(), getRequests);
 
 export default friendsRouter;

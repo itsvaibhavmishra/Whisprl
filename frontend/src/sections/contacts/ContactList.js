@@ -235,7 +235,6 @@ const ContactList = () => {
         openDrawer={openDrawer}
         toggleDrawer={toggleDrawer}
         selectedUserData={{ _id: selectedUserId }}
-        isFrom={"Contacts"}
       />
     </Stack>
   );

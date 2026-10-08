@@ -16,14 +16,11 @@ import { getSimpleData } from "@/utils/formatTime";
 import RemoveFriendDialog from "@/sections/friend-drawer/RemoveFriendDialog";
 
 // redux imports
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
-import {
-  AcceptRejectRequest,
-  RemoveFriend,
-  SendRequest,
-  UnsendRequest,
-} from "@/redux/slices/actions/contactActions";
+import { AcceptRejectRequest, RemoveFriend } from "@/redux/slices/actions/contactActions";
+import RequestButton from "@/components/profile/RequestButton";
+import useRelationship from "@/hooks/useRelationship";
 
 const getRandomAnimation = () => {
   const randomIndex = Math.floor(Math.random() * 5) + 1;
@@ -32,57 +29,27 @@ const getRandomAnimation = () => {
   );
 };
 
-const UserDrawerMain = ({
-  toggleDrawer,
-  userData,
-  isLoading,
-  isFrom,
-  isRequestSent,
-}) => {
+const UserDrawerMain = ({ toggleDrawer, userData, isLoading }) => {
   const theme = useTheme();
   const navigate = useNavigate();
 
   // from redux
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
-
-  const isCurrentUser = user?._id === userData?._id;
+  const { state } = useRelationship(userData?._id);
 
   const [catAnimation, setCatAnimation] = useState(null);
   const [rfDialog, setRFDialog] = useState(false);
-  const [isActionsLoading, setIsActionsLoading] = useState(false);
 
   const handleButtonClick = async (type) => {
-    // Send Msg / Remove Friend Handler
     if (type === "sendMsg") {
       dispatch(CreateOpenConversation(userData?._id));
-      if (isFrom === "Contacts") navigate(PATH_DASHBOARD.general.chat);
-      toggleDrawer();
+      navigate(PATH_DASHBOARD.general.chat);
     } else if (type === "removeFriend") {
       dispatch(RemoveFriend(userData?._id));
-      toggleDrawer();
-    }
-
-    // Friend Request Handler
-    else if (isFrom === "FriendRequests") {
+    } else {
       await dispatch(AcceptRejectRequest({ sender_id: userData?._id, type }));
-      toggleDrawer();
     }
-
-    // Send/Unsend Request Handler
-    else if (isFrom === "SearchUsers" || isFrom === "SentRequests") {
-      if (isRequestSent) {
-        // dispatch unsend request
-        setIsActionsLoading(true);
-        await dispatch(UnsendRequest(userData?._id));
-        setIsActionsLoading(false);
-      } else {
-        // dispatch send request
-        setIsActionsLoading(true);
-        await dispatch(SendRequest(userData?._id));
-        setIsActionsLoading(false);
-      }
-    }
+    toggleDrawer();
   };
 
   const toggleRFDialog = () => {
@@ -112,66 +79,34 @@ const UserDrawerMain = ({
             spacing={5}
           >
             {/* Action Buttons */}
-            {isCurrentUser ? (
-              <LoadingButton
-                loading={isLoading}
-                size="large"
-                variant="outlined"
-                onClick={() => handleButtonClick("sendMsg")}
-              >
+            {isLoading ? (
+              <LoadingButton loading size="large" variant="outlined">
+                Loading
+              </LoadingButton>
+            ) : state === "self" ? (
+              <LoadingButton size="large" variant="outlined" onClick={() => handleButtonClick("sendMsg")}>
                 Message Yourself
               </LoadingButton>
-            ) : isFrom === "SearchUsers" || isFrom === "SentRequests" ? (
-              <LoadingButton
-                loading={isActionsLoading || isLoading}
-                size="large"
-                variant="outlined"
-                color={isRequestSent ? "error" : "success"}
-                onClick={() => handleButtonClick("send_unsend")}
-              >
-                {isRequestSent ? "Unsend Request" : "Send Request"}
-              </LoadingButton>
-            ) : isFrom === "FriendRequests" ? (
+            ) : state === "friend" ? (
               <>
-                <LoadingButton
-                  loading={isLoading}
-                  size="large"
-                  variant="outlined"
-                  color={"error"}
-                  onClick={() => handleButtonClick("reject")}
-                >
+                <LoadingButton size="large" variant="outlined" color="error" onClick={toggleRFDialog}>
+                  Remove Friend
+                </LoadingButton>
+                <LoadingButton size="large" variant="outlined" onClick={() => handleButtonClick("sendMsg")}>
+                  Send Message
+                </LoadingButton>
+              </>
+            ) : state === "incoming" ? (
+              <>
+                <LoadingButton size="large" variant="outlined" color="error" onClick={() => handleButtonClick("reject")}>
                   Reject Request
                 </LoadingButton>
-                <LoadingButton
-                  loading={isLoading}
-                  size="large"
-                  variant="outlined"
-                  color={"success"}
-                  onClick={() => handleButtonClick("accept")}
-                >
+                <LoadingButton size="large" variant="outlined" color="success" onClick={() => handleButtonClick("accept")}>
                   Accept Friend
                 </LoadingButton>
               </>
             ) : (
-              <>
-                <LoadingButton
-                  loading={isLoading}
-                  size="large"
-                  variant="outlined"
-                  color={"error"}
-                  onClick={toggleRFDialog}
-                >
-                  Remove Friend
-                </LoadingButton>
-                <LoadingButton
-                  loading={isLoading}
-                  size="large"
-                  variant="outlined"
-                  onClick={() => handleButtonClick("sendMsg")}
-                >
-                  Send Message
-                </LoadingButton>
-              </>
+              <RequestButton person={userData} size="large" variant="outlined" />
             )}
           </Stack>
         </Divider>

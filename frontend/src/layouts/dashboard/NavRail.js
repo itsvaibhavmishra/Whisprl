@@ -32,8 +32,8 @@ const useBadgeCounts = () => {
   const unreadChats = useSelector(
     (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
   );
-  const friendRequests = useSelector((state) => state.contact.friendRequests.length);
-  return { [chat]: unreadChats, [contact]: friendRequests };
+  const waitingRequests = useSelector((state) => state.contact.incoming.length);
+  return { [chat]: unreadChats, [contact]: waitingRequests };
 };
 
 const isAt = (pathname, path) => Boolean(matchPath({ path, end: false }, pathname));
