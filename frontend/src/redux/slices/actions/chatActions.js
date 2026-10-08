@@ -4,6 +4,7 @@ import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { ClearAttachments, PrepareQueued, UploadAttachment } from "@/redux/slices/actions/attachmentActions";
 import {
   albumReactionsShown,
+  applyReceipt,
   closeActiveConversation,
   countUnread,
   dropQueuedMessage,
@@ -12,6 +13,7 @@ import {
   openConversation,
   pinsUpdated,
   queueMessage,
+  reactionPreviewed,
   removeMessage,
   replaceMessage,
   requeueMessage,
@@ -22,7 +24,7 @@ import { selectIsLoading } from "@/redux/slices/requestSlice";
 import axios from "@/utils/axios";
 import { socket } from "@/utils/socket";
 import uuidv4 from "@/utils/uuidv4";
-import { decryptAlbumReactions, decryptMessage, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
+import { decryptAlbumReactions, decryptMessage, decryptReaction, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
 import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
 import { withHeldReaction } from "@/utils/heldReactions";
 import { batchKeyOf } from "@/utils/messageFiles";
@@ -39,9 +41,16 @@ const UNREAD_LOOKBACK = 200;
 const readablePins = (pins = [], conversation) =>
   Promise.all(pins.map(async (pin) => ({ ...pin, message: await decryptMessage(pin.message, conversation) })));
 
+const readableReaction = async (reaction, conversation) => {
+  if (!reaction?.message) return null;
+  const [emoji, message] = await Promise.all([decryptReaction(reaction, conversation), decryptMessage(reaction.message, conversation)]);
+  return emoji && { user: reaction.user, emoji, message, isForAlbum: Boolean(reaction.batchId), at: reaction.at };
+};
+
 const readableConversation = async (conversation) => ({
   ...conversation,
   latestMessage: conversation.latestMessage && (await decryptMessage(conversation.latestMessage, conversation)),
+  latestReaction: await readableReaction(conversation.latestReaction, conversation),
   pins: await readablePins(conversation.pins, conversation),
 });
 
@@ -349,6 +358,20 @@ export const ReceiveMessageUpdate = (message) => async (dispatch, getState) => {
   const readable = await decryptMessage(message, conversation);
   dispatch(replaceMessage({ ...readable, reactions: withHeldReaction(readable._id, readable.reactions, getState().user.user._id) }));
   if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(conversation._id));
+};
+
+// ------------- Receive Latest Reaction -------------
+export const ReceiveReactionPreview = ({ conversation: conversationId, latestReaction }) => async (dispatch, getState) => {
+  const conversation = conversationById(getState(), conversationId);
+  if (conversation) dispatch(reactionPreviewed({ conversationId, latestReaction: await readableReaction(latestReaction, conversation) }));
+};
+
+// ------------- Receive Receipts -------------
+// reading a chat in one tab clears its unread count in this person's other tabs too
+export const ReceiveReceipt = (receipt) => (dispatch, getState) => {
+  dispatch(applyReceipt(receipt));
+  const { conversation_id, reader, receipt: kind } = receipt;
+  if (kind === "seen" && reader === getState().user.user._id) dispatch(markRead(conversation_id));
 };
 
 // ------------- Receive Album Reactions -------------

@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Badge, Box, ButtonBase, Divider, ListItemIcon, Menu, MenuItem, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Badge, Box, ButtonBase, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AnimatePresence, m } from "framer-motion";
-import { AddressBook, ChatCircleDots, CircleDashed, Gear, MoonStars, SignOut, SunDim, UserCircle } from "phosphor-react";
+import { AddressBook, ChatCircleDots, CircleDashed, MoonStars, SunDim } from "phosphor-react";
 import { Link, matchPath, useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import useSettings from "@/hooks/useSettings";
-import { LogoutUser } from "@/redux/slices/actions/authActions";
+import ProfileMenu from "@/layouts/dashboard/ProfileMenu";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { isMuted } from "@/utils/chats";
@@ -16,27 +16,31 @@ import getAvatar from "@/utils/avatars";
 import { NIGHT_INK } from "@/utils/colorPresets";
 
 const { chat, status, contact, settings, profile } = PATH_DASHBOARD.general;
+// settings sits behind your photo, so the rail and the bar keep only the places you move between
 const DESTINATIONS = [
-  { path: chat, label: "Chats", Icon: ChatCircleDots },
+  { path: chat, label: "Chats", Icon: ChatCircleDots, badgeWord: "unread" },
   { path: status, label: "Status", Icon: CircleDashed },
-  { path: contact, label: "Contacts", Icon: AddressBook },
-  { path: settings, label: "Settings", Icon: Gear },
+  { path: contact, label: "Contacts", Icon: AddressBook, badgeWord: "waiting" },
 ];
-// settings sits behind your photo on the rail, so the rail keeps only the places you move between
-const RAIL_DESTINATIONS = DESTINATIONS.filter(({ path }) => path !== settings);
 const RAIL_WIDTH = 76;
 const TAB_BAR_HEIGHT = 65;
 export const PAGE_HEIGHT_WITH_TAB_BAR = `calc(100dvh - ${TAB_BAR_HEIGHT}px - env(safe-area-inset-bottom))`;
 const SLIDE = { type: "spring", stiffness: 500, damping: 38 };
 const ON_RAIL = "#9DB0CB";
 
-const useUnreadChats = () =>
-  useSelector((state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length);
+const useBadgeCounts = () => {
+  const unreadChats = useSelector(
+    (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
+  );
+  const friendRequests = useSelector((state) => state.contact.friendRequests.length);
+  return { [chat]: unreadChats, [contact]: friendRequests };
+};
 
 const isAt = (pathname, path) => Boolean(matchPath({ path, end: false }, pathname));
-const spokenLabel = (label, badge) => (badge ? `${label}, ${badge} unread` : label);
+const isAtYou = (pathname) => isAt(pathname, profile) || isAt(pathname, settings);
+const spokenLabel = (label, badge, badgeWord) => (badge ? `${label}, ${badge} ${badgeWord}` : label);
 
-const UnreadBadge = ({ count, children }) => (
+const CountBadge = ({ count, children }) => (
   <Badge
     badgeContent={count}
     sx={{ "& .MuiBadge-badge": { bgcolor: "primary.glow", color: NIGHT_INK, fontWeight: 800, minWidth: 18, height: 18, fontSize: 11 } }}
@@ -45,11 +49,11 @@ const UnreadBadge = ({ count, children }) => (
   </Badge>
 );
 
-const RailItem = ({ label, isActive, badge, children, ...button }) => (
+const RailItem = ({ label, isActive, badge, badgeWord, children, ...button }) => (
   <Tooltip title={label} placement="right">
     <ButtonBase
       {...button}
-      aria-label={spokenLabel(label, badge)}
+      aria-label={spokenLabel(label, badge, badgeWord)}
       aria-current={isActive ? "page" : undefined}
       sx={{
         position: "relative",
@@ -124,17 +128,15 @@ const Mascot = () => (
 );
 
 const SideRail = () => {
-  const dispatch = useDispatch();
   const { pathname } = useLocation();
   const activeId = useSelector((state) => state.chat.activeConversation?._id);
   // back to the chat left open, rather than closing it
   const chatsLink = chatPath(activeId);
   // following a link to the address already open would drop the state that lets Back close the chat
   const stayIfHere = (to) => (to === pathname ? (event) => event.preventDefault() : undefined);
-  const unread = useUnreadChats();
+  const badges = useBadgeCounts();
   const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
   const [profileAnchor, setProfileAnchor] = useState(null);
-  const closeProfileMenu = () => setProfileAnchor(null);
 
   return (
     <Stack
@@ -150,9 +152,9 @@ const SideRail = () => {
       </Tooltip>
 
       <Stack spacing={1.25} sx={{ mt: 5, flex: 1 }}>
-        {RAIL_DESTINATIONS.map(({ path, label, Icon }) => {
+        {DESTINATIONS.map(({ path, label, Icon, badgeWord }) => {
           const isActive = isAt(pathname, path);
-          const badge = path === chat ? unread : 0;
+          const badge = badges[path] ?? 0;
           const to = path === chat ? chatsLink : path;
           return (
             <RailItem
@@ -163,10 +165,11 @@ const SideRail = () => {
               label={label}
               isActive={isActive}
               badge={badge}
+              badgeWord={badgeWord}
             >
-              <UnreadBadge count={badge}>
+              <CountBadge count={badge}>
                 <Icon size={24} weight={isActive ? "fill" : "regular"} />
-              </UnreadBadge>
+              </CountBadge>
             </RailItem>
           );
         })}
@@ -176,57 +179,29 @@ const SideRail = () => {
         <ThemeToggle />
         <RailItem
           label="Profile and settings"
-          isActive={isAt(pathname, profile) || isAt(pathname, settings)}
+          isActive={isAtYou(pathname)}
           onClick={(event) => setProfileAnchor(event.currentTarget)}
           aria-haspopup="menu"
           aria-expanded={Boolean(profileAnchor)}
         >
           {getAvatar(avatar, `${firstName} ${lastName}`, 36)}
         </RailItem>
-        <Menu
+        <ProfileMenu
           anchorEl={profileAnchor}
-          open={Boolean(profileAnchor)}
-          onClose={closeProfileMenu}
+          onClose={() => setProfileAnchor(null)}
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           transformOrigin={{ vertical: "bottom", horizontal: "left" }}
           slotProps={{ paper: { sx: { ml: 1.5, minWidth: 180 } } }}
-        >
-          <MenuItem component={Link} to={profile} onClick={closeProfileMenu}>
-            <ListItemIcon>
-              <UserCircle size={18} />
-            </ListItemIcon>
-            View profile
-          </MenuItem>
-          <MenuItem component={Link} to={settings} onClick={closeProfileMenu}>
-            <ListItemIcon>
-              <Gear size={18} />
-            </ListItemIcon>
-            Settings
-          </MenuItem>
-          <Divider sx={{ my: "4px !important" }} />
-          <MenuItem
-            onClick={() => {
-              closeProfileMenu();
-              dispatch(LogoutUser());
-            }}
-            sx={{ color: "error.main" }}
-          >
-            <ListItemIcon sx={{ color: "inherit" }}>
-              <SignOut size={18} />
-            </ListItemIcon>
-            Log out
-          </MenuItem>
-        </Menu>
+        />
       </Stack>
     </Stack>
   );
 };
 
-const TabLink = ({ to, label, isActive, badge, children }) => (
+const TabItem = ({ label, isActive, badge, badgeWord, children, ...button }) => (
   <ButtonBase
-    component={Link}
-    to={to}
-    aria-label={spokenLabel(label, badge)}
+    {...button}
+    aria-label={spokenLabel(label, badge, badgeWord)}
     aria-current={isActive ? "page" : undefined}
     sx={{ flex: 1, height: "100%", flexDirection: "column", gap: 0.25, color: isActive ? "primary.main" : "text.secondary" }}
   >
@@ -249,8 +224,9 @@ const TabLink = ({ to, label, isActive, badge, children }) => (
 
 const TabBar = () => {
   const { pathname } = useLocation();
-  const unread = useUnreadChats();
+  const badges = useBadgeCounts();
   const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
+  const [profileAnchor, setProfileAnchor] = useState(null);
 
   return (
     <Stack
@@ -269,20 +245,34 @@ const TabBar = () => {
         borderColor: "divider",
       }}
     >
-      {DESTINATIONS.map(({ path, label, Icon }) => {
+      {DESTINATIONS.map(({ path, label, Icon, badgeWord }) => {
         const isActive = isAt(pathname, path);
-        const badge = path === chat ? unread : 0;
+        const badge = badges[path] ?? 0;
         return (
-          <TabLink key={path} to={path} label={label} isActive={isActive} badge={badge}>
-            <UnreadBadge count={badge}>
+          <TabItem key={path} component={Link} to={path} label={label} isActive={isActive} badge={badge} badgeWord={badgeWord}>
+            <CountBadge count={badge}>
               <Icon size={22} weight={isActive ? "fill" : "regular"} />
-            </UnreadBadge>
-          </TabLink>
+            </CountBadge>
+          </TabItem>
         );
       })}
-      <TabLink to={profile} label="You" isActive={isAt(pathname, profile)}>
+      <TabItem
+        label="You"
+        isActive={isAtYou(pathname)}
+        onClick={(event) => setProfileAnchor(event.currentTarget)}
+        aria-haspopup="menu"
+        aria-expanded={Boolean(profileAnchor)}
+      >
         {getAvatar(avatar, `${firstName} ${lastName}`, 24)}
-      </TabLink>
+      </TabItem>
+      <ProfileMenu
+        anchorEl={profileAnchor}
+        hasThemeSwitch
+        onClose={() => setProfileAnchor(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+        slotProps={{ paper: { sx: { mb: 1, minWidth: 180 } } }}
+      />
     </Stack>
   );
 };

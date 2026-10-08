@@ -15,6 +15,18 @@ const announceUpdate = (io, { conversation, message }) => io.to(memberRooms(conv
 
 const announceAlbum = (io, { conversation, album }) => io.to(memberRooms(conversation)).emit("album_updated", album);
 
+const announcePreview = (io, { conversation, preview }) => preview && io.to(memberRooms(conversation)).emit("reaction_preview", preview);
+
+const announceReaction = (io, result) => {
+  announceUpdate(io, result);
+  announcePreview(io, result);
+};
+
+const announceAlbumReaction = (io, result) => {
+  announceAlbum(io, result);
+  announcePreview(io, result);
+};
+
 // -------------------------- Edit --------------------------
 export const edit = handle(async (req, io) =>
   announceUpdate(io, await editMessage(req.params.message_id, req.user._id, req.body.cipher))
@@ -22,11 +34,12 @@ export const edit = handle(async (req, io) =>
 
 // -------------------------- Delete For Everyone --------------------------
 export const removeForEveryone = handle(async (req, io) => {
-  const { conversation, message, isGone, wasPinned } = await deleteForEveryone(req.params.message_id, req.user._id);
+  const { conversation, message, isGone, wasPinned, preview } = await deleteForEveryone(req.params.message_id, req.user._id);
   const rooms = memberRooms(conversation);
 
   if (isGone) io.to(rooms).emit("message_removed", { _id: message._id, conversation: message.conversation });
   else io.to(rooms).emit("message_updated", message);
+  announcePreview(io, { conversation, preview });
   if (wasPinned) await announcePins(io, conversation);
 });
 
@@ -38,19 +51,19 @@ export const removeForMe = handle(async (req, io) =>
 
 // -------------------------- Reactions --------------------------
 export const react = handle(async (req, io) =>
-  announceUpdate(io, await setReaction(req.params.message_id, req.user._id, req.body.cipher))
+  announceReaction(io, await setReaction(req.params.message_id, req.user._id, req.body.cipher))
 );
 
 export const unreact = handle(async (req, io) =>
-  announceUpdate(io, await setReaction(req.params.message_id, req.user._id, null))
+  announceReaction(io, await setReaction(req.params.message_id, req.user._id, null))
 );
 
 export const reactToAlbum = handle(async (req, io) =>
-  announceAlbum(io, await setAlbumReaction(req.params.message_id, req.user._id, req.body.cipher))
+  announceAlbumReaction(io, await setAlbumReaction(req.params.message_id, req.user._id, req.body.cipher))
 );
 
 export const unreactToAlbum = handle(async (req, io) =>
-  announceAlbum(io, await setAlbumReaction(req.params.message_id, req.user._id, null))
+  announceAlbumReaction(io, await setAlbumReaction(req.params.message_id, req.user._id, null))
 );
 
 // -------------------------- View Once --------------------------

@@ -1,3 +1,4 @@
+import { announceRequests } from "#src/controllers/friendsController.js";
 import { blockUser, listBlocked, unblockUser } from "#src/services/blockService.js";
 import { fileReport } from "#src/services/reportService.js";
 
@@ -14,6 +15,7 @@ export const getBlocked = async (req, res, next) => {
 export const block = async (req, res, next) => {
   try {
     const blocked = await blockUser(req.user, req.params.user_id);
+    announceRequests(req, req.user._id, blocked._id);
     const { _id, firstName, lastName, avatar } = req.user;
     if (req.user.friends.some((friendId) => friendId.equals(blocked._id))) {
       req.app.get("io").to(String(blocked._id)).emit("online_friends", { _id, firstName, lastName, avatar, onlineStatus: "offline" });

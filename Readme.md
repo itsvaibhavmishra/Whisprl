@@ -414,6 +414,7 @@ $ npm run build
 │   │   │   │   ├── DashboardPage.js
 │   │   │   │   ├── index.js
 │   │   │   │   ├── NavRail.js
+│   │   │   │   ├── ProfileMenu.js
 │   │   │   ├── docs/
 │   │   │   │   ├── index.js
 │   │   ├── pages/

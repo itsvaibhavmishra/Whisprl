@@ -14,12 +14,16 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - A reaction shows in the chat list, as “Bianca reacted ❤️ to …”, until the next message
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings
+    - The bar at the bottom of a phone matches the side rail: Chats, Status, Contacts, and your photo opening your profile, settings, light or dark mode and Log out
+    - Contacts shows how many friend requests are waiting, the moment one arrives
 
   - Fixed:
     - Signing in with Google works again
+    - The chat list keeps up as things happen: ticks turn to delivered and seen, edits and deletions show at once, and reading a chat in one tab clears it in the others
 
   - Developers:
 

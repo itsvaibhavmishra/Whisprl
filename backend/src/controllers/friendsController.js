@@ -16,10 +16,14 @@ import { assertText } from "#src/utils/accountRules.js";
 
 const summaryOf = ({ _id, firstName, lastName }) => ({ _id, firstName, lastName });
 
+// every tab of each person whose requests changed refetches them, so their badge and list follow along
+export const announceRequests = (req, ...user_ids) => req.app.get("io").to(user_ids.map(String)).emit("friend_requests_changed");
+
 // -------------------------- Send Request --------------------------
 export const sendRequest = async (req, res, next) => {
   try {
     const receiver = await sendFriendRequest(req.user, req.body.receiver_id);
+    announceRequests(req, receiver._id);
 
     res.status(200).json({
       status: "success",
@@ -37,6 +41,7 @@ export const cancelRequest = async (req, res, next) => {
   try {
     const { receiver_id } = req.body;
     await cancelFriendRequest(req.user._id, receiver_id);
+    announceRequests(req, receiver_id);
 
     res.status(200).json({ status: "info", message: "Friend request canceled", receiver_id });
   } catch (error) {
@@ -50,6 +55,7 @@ export const acceptRejectRequest = async (req, res, next) => {
     const { sender_id } = req.body;
     const action = String(req.body.action_type ?? "").toLowerCase();
     await answerFriendRequest(req.user._id, sender_id, action);
+    announceRequests(req, req.user._id);
 
     res.status(200).json(
       action === "accept"
