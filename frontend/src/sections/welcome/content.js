@@ -68,7 +68,7 @@ export const FEATURES = [
   {
     Icon: ShieldCheck,
     title: "Sign in your way",
-    body: "Log in with your email and password, a passkey, or your Google, GitHub or LinkedIn account.",
+    body: "Log in with your email or username and a password, a passkey, or your Google, GitHub or LinkedIn account.",
   },
   {
     Icon: Palette,

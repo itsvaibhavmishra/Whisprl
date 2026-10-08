@@ -86,7 +86,6 @@ const FriendsMenu = () => {
           overflowX: "hidden",
           backgroundColor: theme.palette.background.paper,
         }}
-        className="scrollbar"
       >
         {tabIndex === 0 && <FriendRequests />}
         {tabIndex === 1 && <SearchUsers />}

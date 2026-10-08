@@ -108,7 +108,11 @@ const MessageContainer = ({
   const hasMenu = Boolean(conversation && message._id && !isQueued && !message.event);
   const canAct = hasMenu && !isDeleted;
 
-  const mentionNames = (message.mentions ?? []).map((userId) => memberOf(conversation, userId)?.firstName).filter(Boolean);
+  // messages written before usernames mention people as @FirstName, so both forms are highlighted
+  const mentionNames = (message.mentions ?? []).flatMap((userId) => {
+    const member = memberOf(conversation, userId);
+    return member ? [member.username, member.firstName] : [];
+  }).filter(Boolean);
   const quotedSenderId = message.replyTo?.sender?._id ?? message.replyTo?.sender;
   const quotedAuthor = conversation?.isGroup && (quotedSenderId === user._id ? user : memberOf(conversation, quotedSenderId));
 

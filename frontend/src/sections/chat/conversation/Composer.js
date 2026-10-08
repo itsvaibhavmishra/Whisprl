@@ -26,6 +26,9 @@ const MAX_SUGGESTIONS = 6;
 
 const mentionQueryBefore = (text, caret) => text.slice(0, caret).match(/(?:^|\s)@([^\s@]*)$/)?.[1] ?? null;
 
+const isMentionMatch = (member, query) =>
+  [`${member.firstName} ${member.lastName}`, member.username].some((name) => name?.toLowerCase().startsWith(query.toLowerCase()));
+
 // 36 is the gutter the avatars sit in, so the composer lines up with both edges of the messages
 export const COLUMN_WIDTH = MESSAGE_COLUMN_WIDTH + 36;
 
@@ -112,7 +115,7 @@ const Composer = () => {
     conversation.isGroup && mentionQuery !== null
       ? conversation.users
           .filter((member) => member._id !== meId)
-          .filter((member) => `${member.firstName} ${member.lastName}`.toLowerCase().startsWith(mentionQuery.toLowerCase()))
+          .filter((member) => isMentionMatch(member, mentionQuery))
           .slice(0, MAX_SUGGESTIONS)
       : [];
 
@@ -152,7 +155,7 @@ const Composer = () => {
   }, [value]);
 
   const pickMention = (person) => {
-    insertAtCaret(`@${person.firstName} `, mentionQuery.length + 1);
+    insertAtCaret(`@${person.username} `, mentionQuery.length + 1);
     setMentionIds((ids) => [...new Set([...ids, person._id])]);
     setMentionQuery(null);
   };
@@ -169,7 +172,7 @@ const Composer = () => {
 
     // a mention counts only while its name is still in the text
     const mentions = conversation.users
-      .filter((member) => mentionIds.includes(member._id) && text.includes(`@${member.firstName}`))
+      .filter((member) => mentionIds.includes(member._id) && text.includes(`@${member.username}`))
       .map((member) => member._id);
 
     if (editing) dispatch(EditMessage({ message: editing, text, mentions }));

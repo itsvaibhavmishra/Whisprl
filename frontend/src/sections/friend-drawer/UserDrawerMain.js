@@ -184,7 +184,7 @@ const UserDrawerMain = ({
             {isLoading ? (
               <Skeleton animation="wave" height={20} width="10em" />
             ) : (
-              userData.email
+              userData.username && `@${userData.username}`
             )}
           </Typography>
           <Typography variant="subtitle1">

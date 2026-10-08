@@ -15,15 +15,21 @@
 
   - New:
     - A reaction shows in the chat list, as “Bianca reacted ❤️ to …”, until the next message
+    - Log in with your username or your email, in the same box
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings
     - The bar at the bottom of a phone matches the side rail: Chats, Status, Contacts, and your photo opening your profile, settings, light or dark mode and Log out
     - Contacts shows how many friend requests are waiting, the moment one arrives
+    - Your email stays private: nobody else on Whisprl can see it or find you by it, and search goes by name or username
+    - Mentioning someone in a group inserts their @username, and suggestions match usernames as well as names
+    - Every scrolling area uses the chat's thin scrollbar, which shows while the pointer is over it
 
   - Fixed:
     - Signing in with Google works again
     - The chat list keeps up as things happen: ticks turn to delivered and seen, edits and deletions show at once, and reading a chat in one tab clears it in the others
+    - The change password dialog no longer shows two scrollbars of its own
+    - Clicking beside a status closes it
 
   - Developers:
 

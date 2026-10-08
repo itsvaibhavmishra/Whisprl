@@ -20,7 +20,7 @@ const PasswordChecklist = ({ name }) => {
             {met ? <CheckCircle size={16} weight="fill" aria-hidden="true" /> : <Circle size={16} aria-hidden="true" />}
             <Typography variant="body2" component="span" sx={{ fontWeight: 400 }}>
               {label}
-              <Box component="span" sx={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>
+              <Box component="span" sx={{ position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" }}>
                 {met ? ", done" : ", not yet"}
               </Box>
             </Typography>

@@ -59,7 +59,8 @@ export const SECTIONS = [
       "Whisprl keeps only what it needs to work:",
       {
         list: [
-          "your name, email address, profile picture and status, so friends can find and recognise you",
+          "your name, username, profile picture and status, so friends can find and recognise you",
+          "your email address, to sign you in and send you codes. Nobody else on Whisprl can see it or find you by it",
           "your password and one-time codes, stored only as one-way hashes, so nobody can read your password, including the people who run Whisprl",
           "your friends list and conversations, and your messages, files and statuses, encrypted so only the people they are for can open them",
           "who has viewed each status, shown only to the person who posted it",

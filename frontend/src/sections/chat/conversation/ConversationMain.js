@@ -249,7 +249,6 @@ const ConversationMain = () => {
         width="100%"
         ref={scrollRef}
         onScroll={handleScroll}
-        className="scrollbar"
         sx={{
           display: "flex",
           flexDirection: "column",

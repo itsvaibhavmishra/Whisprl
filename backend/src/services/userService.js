@@ -1,13 +1,12 @@
 import createHttpError from "http-errors";
 import sizeOf from "image-size";
 import mongoose from "mongoose";
-import validator from "validator";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { presenceShownTo } from "#src/services/blockService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
-import { assertStrongPassword, normalizeEmail, normalizeUsername } from "#src/utils/accountRules.js";
+import { assertStrongPassword, normalizeUsername } from "#src/utils/accountRules.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -26,7 +25,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar cover email activityStatus createdAt publicKeys";
+export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar cover activityStatus createdAt publicKeys";
 
 export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -112,11 +111,10 @@ const SEARCH_PAGE_SIZE = 10;
 
 const skipFor = (page) => Math.max(0, Number.parseInt(page, 10) || 0) * SEARCH_PAGE_SIZE;
 
-const SEARCH_FIELDS = "firstName lastName username email avatar activityStatus onlineStatus";
+const SEARCH_FIELDS = "firstName lastName username avatar activityStatus onlineStatus";
 
-const nameOrEmailFilter = (keyword) => {
-  if (validator.isEmail(keyword)) return { email: normalizeEmail(keyword) };
-
+// never by email, so nobody can find out whether an address has an account
+const nameOrUsernameFilter = (keyword) => {
   const pattern = new RegExp(escapeRegex(keyword), "i");
   const username = normalizeUsername(keyword);
   return {
@@ -130,7 +128,7 @@ const nameOrEmailFilter = (keyword) => {
 };
 
 export const searchForUsers = async (keyword, page, user) => {
-  const filter = { ...nameOrEmailFilter(keyword), _id: { $nin: user.friends }, verified: true };
+  const filter = { ...nameOrUsernameFilter(keyword), _id: { $nin: user.friends }, verified: true };
 
   const [users, totalCount, requestedIds] = await Promise.all([
     UserModel.find(filter)
@@ -147,7 +145,7 @@ export const searchForUsers = async (keyword, page, user) => {
 };
 
 export const searchFriendsOf = async (user, keyword, page) => {
-  const filter = { ...nameOrEmailFilter(keyword), _id: { $in: user.friends } };
+  const filter = { ...nameOrUsernameFilter(keyword), _id: { $in: user.friends } };
 
   const [found, totalCount] = await Promise.all([
     UserModel.find(filter).select(SEARCH_FIELDS).skip(skipFor(page)).limit(SEARCH_PAGE_SIZE).lean(),

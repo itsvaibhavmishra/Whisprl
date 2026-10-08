@@ -144,7 +144,7 @@ const StatusList = ({ myGroup, recent, viewed, onOpen, onCompose }) => {
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }} className="scrollbar">
+      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
         <MyStatusRow group={myGroup} onOpen={onOpen} onWrite={() => onCompose({ kind: "text" })} onChooseMedia={chooseMedia} />
 
         <PeopleSection label="Recent" groups={recent} onOpen={onOpen} />

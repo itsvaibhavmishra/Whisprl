@@ -1,31 +1,25 @@
-.scrollbar::-webkit-scrollbar {
+/* every scrolling area shares one thin scrollbar, which shows only while the pointer is over it */
+*::-webkit-scrollbar {
   width: 5px;
+  height: 5px;
   background-color: transparent;
 }
 
-.scrollbar::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   border-radius: 20px;
   background-color: transparent;
 }
 
-.scrollbar:hover::-webkit-scrollbar-thumb {
-  border-radius: 20px;
-  background: #6c6b6b60;
-}
-
-body::-webkit-scrollbar {
-  width: 5px;
-  background-color: transparent;
-}
-
-body::-webkit-scrollbar-thumb {
-  border-radius: 20px;
+*:hover::-webkit-scrollbar-thumb {
   background-color: #6c6b6b60;
 }
 
-body:hover::-webkit-scrollbar-thumb {
-  border-radius: 20px;
-  background: #6c6b6b40;
+/* Chrome drops the styles above wherever these are set, so only a browser without them gets these */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #6c6b6b60 transparent;
+  }
 }
 
 body {

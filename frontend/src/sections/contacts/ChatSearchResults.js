@@ -73,7 +73,6 @@ const ChatSearchResults = ({
         overflowX: "hidden",
       }}
       spacing={2}
-      className="scrollbar"
     >
       <Stack spacing={2.4}>
         {/* initial loader */}

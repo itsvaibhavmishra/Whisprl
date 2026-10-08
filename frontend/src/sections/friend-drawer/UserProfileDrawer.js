@@ -44,7 +44,6 @@ const UserProfileDrawer = ({
       <Box
         width={"100%"}
         height={"100%"}
-        className={"scrollbar"}
         sx={{
           backgroundColor: theme.palette.background.default,
           overflowY: "auto",

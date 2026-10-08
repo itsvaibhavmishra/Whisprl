@@ -210,8 +210,17 @@ const StatusViewer = ({ ownerIds, startOwnerId, onClose }) => {
     if (event.key === "ArrowLeft") previous();
   };
 
+  // the dark around the status stands in for a backdrop, so a click on it closes the viewer
+  const closeFromOutside = (event) => event.target === event.currentTarget && onClose();
+
   return (
-    <Dialog open fullScreen onClose={onClose} onKeyDown={onKeyDown} PaperProps={{ "aria-label": "Status", sx: { bgcolor: "#000" } }}>
+    <Dialog
+      open
+      fullScreen
+      onClose={onClose}
+      onKeyDown={onKeyDown}
+      PaperProps={{ "aria-label": "Status", onClick: closeFromOutside, sx: { bgcolor: "#000" } }}
+    >
       <StatusSlide
         key={status._id}
         status={status}

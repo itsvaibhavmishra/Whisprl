@@ -54,7 +54,7 @@ const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true 
           {query ? "No friends match that name" : "No friends left to add"}
         </Typography>
       ) : (
-        <List dense sx={{ maxHeight: 280, overflowY: "auto" }} className="scrollbar">
+        <List dense sx={{ maxHeight: 280, overflowY: "auto" }}>
           {choosable.map((friend) => (
             <ListItem key={friend._id} disablePadding>
               <ListItemButton onClick={() => toggle(friend._id)} disabled={requireKeys && !hasKeys(friend)}>

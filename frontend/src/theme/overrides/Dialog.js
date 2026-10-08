@@ -16,6 +16,12 @@ export default function Dialog(theme) {
           '&.MuiDialog-paper .MuiDialogActions-root': {
             padding: theme.spacing(1, 3, 3),
           },
+          // a form around a dialog's parts passes the dialog's height on, so only the content scrolls
+          '& > form': {
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+          },
           '@media (max-width: 600px)': {
             margin: theme.spacing(2),
           },

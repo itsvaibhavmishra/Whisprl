@@ -3,7 +3,6 @@ import { Box, Typography } from "@mui/material";
 const DashboardPage = ({ title, description, maxWidth, children }) => (
   <Box
     component="main"
-    className="scrollbar"
     sx={{
       flexGrow: 1,
       minWidth: 0,

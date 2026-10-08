@@ -54,7 +54,7 @@ const FileFooter = () => {
   return (
     <Box sx={COMPOSER_GUTTER}>
       <Stack spacing={1.5} sx={{ maxWidth: COLUMN_WIDTH, mx: "auto" }}>
-        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ overflowX: "auto", p: 0.75 }} className="scrollbar">
+        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ overflowX: "auto", p: 0.75 }}>
           {files.map((file, index) => (
             <Thumbnail
               key={file.id}

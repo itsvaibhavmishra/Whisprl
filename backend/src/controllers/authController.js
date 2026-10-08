@@ -27,7 +27,8 @@ export const respondWithSession = async (req, res, user, message, extra = {}) =>
 // -------------------------- Login auth --------------------------
 export const login = async (req, res, next) => {
   try {
-    const user = await loginWithPassword(req.body.email, req.body.password);
+    // a page loaded before usernames could log in still sends the email under its old name
+    const user = await loginWithPassword(req.body.identifier ?? req.body.email, req.body.password);
 
     if (!user.verified) {
       return res.status(200).json({ status: "info", message: `Hello ${user.firstName}, please verify to login` });
