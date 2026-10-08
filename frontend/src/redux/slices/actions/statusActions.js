@@ -5,6 +5,7 @@ import axios from "@/utils/axios";
 import { sealFile } from "@/utils/crypto/fileCipher";
 import { encryptStatus, openStatus } from "@/utils/crypto/statusCipher";
 import { errorMessageOf, notify } from "@/utils/notify";
+import { altOf, isGif, mentionsOf, renderPhoto, videoOverlayOf } from "@/utils/media-editor/render";
 import { COMPRESS_SHARE, VideoRefusal, compressVideo, probeVideo } from "@/utils/video";
 
 let postingController = null;
@@ -45,17 +46,20 @@ export const ChooseStatusMedia = () => async () => {
 };
 
 // ------------- Post -------------
-const compressedIfVideo = async (draft, signal, report) => {
-  if (draft.kind !== "video") return draft;
+const drawnStoryOf = async (draft, signal, report) => {
+  if (isGif(draft)) return draft;
+  if (draft.kind !== "video") return { ...draft, kind: "image", ...(await renderPhoto({ file: draft.file, edits: draft.edits, isStory: true })) };
   const onProgress = (fraction) => report(fraction * COMPRESS_SHARE);
-  const shrunk = await compressVideo(draft.file, { duration: draft.duration, onProgress, signal });
-  return { ...draft, file: shrunk.file, width: shrunk.width ?? draft.width, height: shrunk.height ?? draft.height };
+  const shrunk = await compressVideo(draft.file, { duration: draft.duration, onProgress, signal, overlay: videoOverlayOf(draft.edits) });
+  return { ...draft, file: shrunk.file, width: shrunk.width ?? draft.width, height: shrunk.height ?? draft.height, preview: shrunk.preview ?? draft.preview };
 };
 
-const contentOf = ({ kind, text, background, caption, file, width, height, duration, preview }, sealed) => {
-  if (kind === "text") return { kind, text, background };
-  return { kind, caption, file: { key: sealed.key, iv: sealed.iv, mimeType: file.type, width, height, duration, preview } };
-};
+const contentOf = ({ kind, edits, file, width, height, duration, preview }, sealed) => ({
+  kind,
+  alt: altOf(edits),
+  mentions: mentionsOf(edits, { width, height }),
+  file: { key: sealed.key, iv: sealed.iv, mimeType: file.type, width, height, duration, preview },
+});
 
 export const PostStatus = (draft) => async (dispatch, getState) => {
   const controller = new AbortController();
@@ -65,14 +69,15 @@ export const PostStatus = (draft) => async (dispatch, getState) => {
   report(0);
 
   try {
-    const ready = await compressedIfVideo(draft, signal, report);
-    const sealed = ready.file && (await sealFile(await ready.file.arrayBuffer()));
+    const ready = await drawnStoryOf(draft, signal, report);
+    const sealed = await sealFile(await ready.file.arrayBuffer());
     const content = contentOf(ready, sealed);
-    const { sealedFor } = (await axios.get("/status/sealed-for", { signal })).data;
+    const { sealedFor } = (await axios.post("/status/sealed-for", { audience: draft.audience }, { signal })).data;
 
     const form = new FormData();
     form.append("cipher", JSON.stringify(await encryptStatus(content, sealedFor, getState().user.user._id)));
-    if (sealed) form.append("file", new Blob([sealed.data]));
+    if (draft.audience) form.append("audience", JSON.stringify(draft.audience));
+    form.append("file", new Blob([sealed.data]));
 
     const uploadFrom = ready.kind === "video" ? COMPRESS_SHARE : 0;
     const onUploadProgress = ({ loaded, total }) => total && report(uploadFrom + (loaded / total) * (100 - uploadFrom));

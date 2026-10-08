@@ -37,6 +37,8 @@ const UserProfileDrawer = ({
       anchor="bottom"
       open={openDrawer}
       onClose={toggleDrawer}
+      // on the modal layer, so it also opens above a dialog such as the status viewer
+      sx={{ zIndex: "modal" }}
       PaperProps={{
         sx: { height: "90%" },
       }}

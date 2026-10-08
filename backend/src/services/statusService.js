@@ -13,20 +13,30 @@ const SWEEP_BATCH = 500;
 
 const STATUS_GONE = "This status is no longer available";
 
-// the owner, and every friend not hidden from it or blocked either way who has a key to seal it for
-export const sealedForOf = async (user) => {
-  const left = await blockedEitherWay(user, user.friends);
-  user.statusHiddenFrom.forEach((id) => left.add(String(id)));
-  const ids = user.friends.filter((id) => !left.has(String(id)));
-  return UserModel.find({ _id: { $in: ids }, "publicKeys.0": { $exists: true } }).select("publicKeys");
+const parseJson = (json, problem) => {
+  try {
+    return JSON.parse(json);
+  } catch {
+    throw createHttpError.BadRequest(problem);
+  }
 };
 
-const parseCipher = (cipherJson) => {
-  try {
-    return JSON.parse(cipherJson);
-  } catch {
-    throw createHttpError.BadRequest("A status must be encrypted. Reload Whisprl to get the latest version.");
-  }
+// no choice sent means Settings decide, so the default can never share wider than Settings allow
+const audienceOf = (user, chosen) => {
+  if (!chosen) return { except: new Set(user.statusHiddenFrom.map(String)) };
+  const audience = typeof chosen === "string" ? parseJson(chosen, "Choose who can see this status") : chosen;
+  const [mode] = Object.keys(audience ?? {});
+  if (!["only", "except"].includes(mode) || !Array.isArray(audience[mode])) throw createHttpError.BadRequest("Choose who can see this status");
+  return { [mode]: new Set(audience[mode].map(String)) };
+};
+
+// the owner, and every friend in the chosen audience, not blocked either way, who has a key to seal it for
+export const sealedForOf = async (user, chosen) => {
+  const { only, except } = audienceOf(user, chosen);
+  const blocked = await blockedEitherWay(user, user.friends);
+  const isChosen = (id) => id === String(user._id) || (only ? only.has(id) : !except.has(id));
+  const ids = user.friends.filter((id) => !blocked.has(String(id)) && isChosen(String(id)));
+  return UserModel.find({ _id: { $in: ids }, "publicKeys.0": { $exists: true } }).select("publicKeys");
 };
 
 // the owner sees who viewed it; everyone else only whether they have
@@ -44,9 +54,9 @@ const toClientStatus = (status, user_id) => {
   };
 };
 
-export const postStatus = async (user, cipherJson, file) => {
-  const cipher = parseCipher(cipherJson);
-  const sealedFor = await sealedForOf(user);
+export const postStatus = async (user, cipherJson, file, chosen) => {
+  const cipher = parseJson(cipherJson, "A status must be encrypted. Reload Whisprl to get the latest version.");
+  const sealedFor = await sealedForOf(user, chosen);
   validateCipher(cipher, { isGroup: true, users: sealedFor }, user._id);
 
   const url = file && (await uploadFile(`Status/${user._id}`, { buffer: file.buffer, mimetype: "application/octet-stream" }));

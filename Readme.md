@@ -371,6 +371,16 @@ $ npm run build
 │   │   │   ├── image-cropper/
 │   │   │   │   ├── cropImage.js
 │   │   │   │   ├── ImageCropper.js
+│   │   │   ├── media-editor/
+│   │   │   │   ├── FilterStrip.js
+│   │   │   │   ├── LayerView.js
+│   │   │   │   ├── MediaEditor.js
+│   │   │   │   ├── MentionPicker.js
+│   │   │   │   ├── Stage.js
+│   │   │   │   ├── TextEditor.js
+│   │   │   │   ├── ToolControls.js
+│   │   │   │   ├── ToolSheet.js
+│   │   │   │   ├── useStageGestures.js
 │   │   │   ├── search/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── Search.js
@@ -384,6 +394,7 @@ $ npm run build
 │   │   │   ├── AppearanceMenu.js
 │   │   │   ├── AppearancePickers.js
 │   │   │   ├── EmojiPicker.js
+│   │   │   ├── FriendPicker.js
 │   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
@@ -400,10 +411,13 @@ $ npm run build
 │   │   │   ├── index.js
 │   │   ├── hooks/
 │   │   │   ├── useFileUrl.js
+│   │   │   ├── useFittedSize.js
+│   │   │   ├── useImageBitmap.js
 │   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
 │   │   │   ├── useMessageTime.js
+│   │   │   ├── useObjectUrl.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
 │   │   ├── layouts/
@@ -510,7 +524,6 @@ $ npm run build
 │   │   │   │   ├── group/
 │   │   │   │   │   ├── AddMembersDialog.js
 │   │   │   │   │   ├── CreateGroupDialog.js
-│   │   │   │   │   ├── FriendPicker.js
 │   │   │   │   │   ├── GroupMemberRow.js
 │   │   │   │   ├── list/
 │   │   │   │   │   ├── ChatList.js
@@ -595,6 +608,7 @@ $ npm run build
 │   │   │   │   ├── UsernameSetting.js
 │   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
+│   │   │   │   ├── AudienceDialog.js
 │   │   │   │   ├── StatusComposer.js
 │   │   │   │   ├── StatusList.js
 │   │   │   │   ├── StatusRing.js
@@ -676,6 +690,13 @@ $ npm run build
 │   │   │   │   ├── sessionKeys.test.js
 │   │   │   │   ├── statusCipher.js
 │   │   │   │   ├── statusCipher.test.js
+│   │   │   ├── media-editor/
+│   │   │   │   ├── draw.js
+│   │   │   │   ├── filters.js
+│   │   │   │   ├── fonts.js
+│   │   │   │   ├── layout.js
+│   │   │   │   ├── palette.js
+│   │   │   │   ├── render.js
 │   │   │   ├── attachments.js
 │   │   │   ├── avatars.js
 │   │   │   ├── axios.js

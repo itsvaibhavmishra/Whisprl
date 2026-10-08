@@ -19,7 +19,7 @@ export const getStatuses = async (req, res, next) => {
 // -------------------------- Who A New Status Is Sealed For --------------------------
 export const getSealedFor = async (req, res, next) => {
   try {
-    res.status(200).json({ status: "success", sealedFor: await sealedForOf(req.user) });
+    res.status(200).json({ status: "success", sealedFor: await sealedForOf(req.user, req.body?.audience) });
   } catch (error) {
     next(error);
   }
@@ -28,7 +28,7 @@ export const getSealedFor = async (req, res, next) => {
 // -------------------------- Post --------------------------
 export const createStatus = async (req, res, next) => {
   try {
-    const { status, forOwner, forAudience } = await postStatus(req.user, req.body.cipher, req.file);
+    const { status, forOwner, forAudience } = await postStatus(req.user, req.body.cipher, req.file, req.body.audience);
     const io = req.app.get("io");
     io.to(String(req.user._id)).emit("status_posted", forOwner);
     // an empty room list would broadcast to every socket

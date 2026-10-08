@@ -19,7 +19,7 @@ const statusRouter = express.Router();
 
 statusRouter.route("/").get(protect, readLimit(), getStatuses).post(protect, uploadLimit(), upload.single("file"), createStatus);
 
-statusRouter.route("/sealed-for").get(protect, readLimit(), getSealedFor);
+statusRouter.route("/sealed-for").get(protect, readLimit(), getSealedFor).post(protect, readLimit(), getSealedFor);
 
 statusRouter.route("/hidden-from").get(protect, readLimit(), getHiddenFrom).put(protect, writeLimit(), updateHiddenFrom);
 

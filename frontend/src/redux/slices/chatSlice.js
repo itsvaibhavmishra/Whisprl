@@ -281,6 +281,11 @@ const slice = createSlice({
       state.files.push(action.payload);
     },
 
+    fileEdited: (state, action) => {
+      const edited = state.files.find((file) => file.id === action.payload.id);
+      if (edited) Object.assign(edited, action.payload);
+    },
+
     removeFile: (state, action) => {
       state.files = state.files.filter((file) => file.id !== action.payload);
       state.activeFileIndex = Math.min(state.activeFileIndex, Math.max(0, state.files.length - 1));
@@ -529,6 +534,7 @@ export const {
   clearConversation: clearChat,
   setConnection,
   addFiles,
+  fileEdited,
   removeFile,
   transferProgress,
   transferEnded,

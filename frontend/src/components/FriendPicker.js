@@ -21,7 +21,7 @@ const fullNameOf = (friend) => `${friend.firstName} ${friend.lastName}`;
 // a friend without keys could not open a single message, so they cannot be added yet
 const hasKeys = (friend) => friend.publicKeys?.length > 0;
 
-const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true }) => {
+const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true, emptyLabel = "No friends left to add" }) => {
   const dispatch = useDispatch();
   const { friends, user } = useSelector((state) => state.user);
   const isLoading = useIsLoading(GetFriends);
@@ -51,7 +51,7 @@ const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true 
         <CircularProgress size={24} sx={{ alignSelf: "center", my: 2 }} aria-label="Loading friends" />
       ) : !choosable.length ? (
         <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", py: 2 }}>
-          {query ? "No friends match that name" : "No friends left to add"}
+          {query ? "No friends match that name" : emptyLabel}
         </Typography>
       ) : (
         <List dense sx={{ maxHeight: 280, overflowY: "auto" }}>

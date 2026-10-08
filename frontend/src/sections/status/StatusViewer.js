@@ -21,7 +21,10 @@ import { useDispatch, useSelector } from "react-redux";
 
 import useFileUrl from "@/hooks/useFileUrl";
 import { DeleteStatus, MarkStatusViewed } from "@/redux/slices/actions/statusActions";
+import { GetSentRequests } from "@/redux/slices/actions/contactActions";
+import { GetFriends } from "@/redux/slices/actions/userActions";
 import useMessageTime from "@/hooks/useMessageTime";
+import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
 import getAvatar from "@/utils/avatars";
 import { backgroundOf, isLive, textSizeOf } from "@/utils/statuses";
 
@@ -59,9 +62,10 @@ const Segments = ({ count, position, durationMs, isRunning, onDone }) => (
 );
 
 // a photo or video is downloaded and decrypted before its time starts running
-const StatusMedia = ({ status, isPaused, onReady }) => {
+const StatusMedia = ({ status, isPaused, onReady, onMention }) => {
   const video = useRef(null);
-  const { file } = status.content;
+  const { file, mentions = [] } = status.content;
+  const alt = status.content.alt || status.content.caption;
   const { url, failed } = useFileUrl({ sealed: { ...file, url: status.file.url } });
 
   useEffect(() => {
@@ -77,16 +81,27 @@ const StatusMedia = ({ status, isPaused, onReady }) => {
   if (failed) return <Typography sx={{ color: "#fff" }}>This status could not be opened</Typography>;
 
   const sx = { width: "100%", height: "100%", objectFit: "contain", display: "block" };
+  const shape = file.width && file.height ? { width: `min(100cqw, 100cqh * ${file.width / file.height})`, aspectRatio: `${file.width} / ${file.height}` } : { width: "100%", height: "100%" };
+  // above the previous and next areas so a mention can be tapped, and see-through to taps everywhere else
   return (
-    <Box sx={{ position: "relative", width: "100%", height: "100%", display: "grid", placeItems: "center" }}>
+    <Box sx={{ position: "relative", zIndex: 2, pointerEvents: "none", width: "100%", height: "100%", display: "grid", placeItems: "center", containerType: "size" }}>
       {!url && file.preview && <Box component="img" src={file.preview} alt="" sx={{ ...sx, position: "absolute", inset: 0, filter: "blur(16px)" }} />}
       {!url && <CircularProgress aria-label="Opening status" sx={{ color: "#fff", position: "absolute" }} />}
-      {url && status.content.kind === "video" && (
-        <Box component="video" ref={video} src={url} autoPlay playsInline onPlaying={onReady} aria-label={status.content.caption || "Video status"} sx={sx} />
-      )}
-      {url && status.content.kind === "image" && (
-        <Box component="img" src={url} alt={status.content.caption || "Photo status"} onLoad={onReady} sx={sx} />
-      )}
+      <Box sx={{ position: "relative", ...shape }}>
+        {url && status.content.kind === "video" && (
+          <Box component="video" ref={video} src={url} autoPlay playsInline onPlaying={onReady} aria-label={alt || "Video status"} sx={sx} />
+        )}
+        {url && status.content.kind === "image" && <Box component="img" src={url} alt={alt || "Photo status"} onLoad={onReady} sx={sx} />}
+        {url &&
+          mentions.map(({ userId, username, box }, index) => (
+            <ButtonBase
+              key={`${userId}-${index}`}
+              aria-label={`Open @${username}'s profile`}
+              onClick={() => onMention(userId)}
+              sx={{ position: "absolute", left: `${box.x * 100}%`, top: `${box.y * 100}%`, width: `${box.width * 100}%`, height: `${box.height * 100}%`, borderRadius: 99, pointerEvents: "auto" }}
+            />
+          ))}
+      </Box>
     </Box>
   );
 };
@@ -116,8 +131,24 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
   const messageTime = useMessageTime();
   const [isReady, setIsReady] = useState(status.content.kind === "text");
   const [isListingViewers, setIsListingViewers] = useState(false);
+  const [profileId, setProfileId] = useState(null);
+  const friends = useSelector((state) => state.user.friends);
+  const { friendRequests, sentRequests } = useSelector((state) => state.contact);
   const { owner, content } = status;
+  const isPaused = isListingViewers || Boolean(profileId);
   const markReady = useCallback(() => setIsReady(true), []);
+
+  const openProfile = (userId) => {
+    dispatch(GetFriends());
+    dispatch(GetSentRequests());
+    setProfileId(userId);
+  };
+
+  const relationTo = (userId) => {
+    if (friends.some((friend) => friend._id === userId)) return { isFrom: "Contacts" };
+    if (friendRequests.some((request) => request.sender?._id === userId)) return { isFrom: "FriendRequests" };
+    return { isFrom: "SearchUsers", isRequestSent: sentRequests.some((sent) => String(sent.receiverId) === userId && sent.isSent) };
+  };
 
   useEffect(() => {
     if (status.isViewed === false) dispatch(MarkStatusViewed(status._id));
@@ -125,8 +156,8 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
 
   return (
     <Box sx={{ position: "relative", height: "100%", width: "100%", maxWidth: 520, mx: "auto", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 2, background: "linear-gradient(rgba(0, 0, 0, 0.55), transparent)" }}>
-        <Segments count={count} position={position} durationMs={durationOf(status)} isRunning={isReady && !isListingViewers} onDone={onNext} />
+      <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 3, background: "linear-gradient(rgba(0, 0, 0, 0.55), transparent)" }}>
+        <Segments count={count} position={position} durationMs={durationOf(status)} isRunning={isReady && !isPaused} onDone={onNext} />
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 1.5, py: 1, color: "#fff" }}>
           {getAvatar(owner.avatar, owner.firstName, 36)}
           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -154,7 +185,7 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
             {content.text}
           </Typography>
         ) : (
-          <StatusMedia status={status} isPaused={isListingViewers} onReady={markReady} />
+          <StatusMedia status={status} isPaused={isPaused} onReady={markReady} onMention={openProfile} />
         )}
         <ButtonBase aria-label="Previous status" onClick={onPrevious} sx={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "30%", zIndex: 1 }} />
         <ButtonBase aria-label="Next status" onClick={onNext} sx={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "70%", zIndex: 1 }} />
@@ -172,6 +203,16 @@ const StatusSlide = ({ status, position, count, isOwn, onNext, onPrevious, onClo
       )}
 
       {isListingViewers && <ViewersList views={status.views} onClose={() => setIsListingViewers(false)} />}
+      {profileId && (
+        <Box onKeyDown={(event) => event.stopPropagation()}>
+          <UserProfileDrawer
+            openDrawer
+            toggleDrawer={() => setProfileId(null)}
+            selectedUserData={{ _id: profileId }}
+            {...relationTo(profileId)}
+          />
+        </Box>
+      )}
     </Box>
   );
 };
