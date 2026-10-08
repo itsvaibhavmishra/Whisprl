@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@mui/material";
 import { useDispatch } from "react-redux";
 
-import SendRequestDialog from "@/components/profile/SendRequestDialog";
+import ProfileSheet from "@/components/profile/ProfileSheet";
 import useIsLoading from "@/hooks/useIsLoading";
 import useRelationship from "@/hooks/useRelationship";
 import { AcceptRejectRequest, CancelRequest } from "@/redux/slices/actions/contactActions";
@@ -21,42 +21,49 @@ const RequestButton = ({ person, ...button }) => {
   const isAnswering = useIsLoading(AcceptRejectRequest);
   const [isAsking, setIsAsking] = useState(false);
 
-  switch (relationship.state) {
-    case "none":
-      return (
-        <>
+  const buttonFor = () => {
+    switch (relationship.state) {
+      case "none":
+        return (
           <Button variant="contained" onClick={onlyHere(() => setIsAsking(true))} {...button}>
             Add friend
           </Button>
-          {isAsking && <SendRequestDialog person={person} onClose={() => setIsAsking(false)} />}
-        </>
-      );
-    case "outgoing":
-      return (
-        <Button color="inherit" disabled={isCancelling} onClick={onlyHere(() => dispatch(CancelRequest(person._id)))} {...button}>
-          Cancel request
-        </Button>
-      );
-    case "incoming":
-      return (
-        <Button
-          variant="contained"
-          disabled={isAnswering}
-          onClick={onlyHere(() => dispatch(AcceptRejectRequest({ sender_id: person._id, type: "accept" })))}
-          {...button}
-        >
-          Accept
-        </Button>
-      );
-    case "cooldown":
-      return (
-        <Button disabled {...button}>
-          {waitLabel(relationship.until)}
-        </Button>
-      );
-    default:
-      return null;
-  }
+        );
+      case "outgoing":
+        return (
+          <Button color="inherit" disabled={isCancelling} onClick={onlyHere(() => dispatch(CancelRequest(person._id)))} {...button}>
+            Cancel request
+          </Button>
+        );
+      case "incoming":
+        return (
+          <Button
+            variant="contained"
+            disabled={isAnswering}
+            onClick={onlyHere(() => dispatch(AcceptRejectRequest({ sender_id: person._id, type: "accept" })))}
+            {...button}
+          >
+            Accept
+          </Button>
+        );
+      case "cooldown":
+        return (
+          <Button disabled {...button}>
+            {waitLabel(relationship.until)}
+          </Button>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // the sheet outlives the button that opened it, which changes the moment a request goes out
+  return (
+    <>
+      {buttonFor()}
+      {isAsking && <ProfileSheet person={person} startWithComposer onClose={() => setIsAsking(false)} />}
+    </>
+  );
 };
 
 export default RequestButton;

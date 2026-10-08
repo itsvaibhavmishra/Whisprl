@@ -6,7 +6,7 @@ import { useDispatch } from "react-redux";
 import ReportDialog from "@/components/ReportDialog";
 import { MarkStatusViewed, ReportStatus } from "@/redux/slices/actions/statusActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
-import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
+import ProfileSheet from "@/components/profile/ProfileSheet";
 import DeleteUpdateDialog from "@/sections/status/DeleteUpdateDialog";
 import ReplyBar, { FOOTER_HEIGHT, keepKeys } from "@/sections/status/ReplyBar";
 import SeenBy, { ViewsPill } from "@/sections/status/SeenBy";
@@ -232,7 +232,7 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
               onClose={() => setDialog(null)}
             />
           )}
-          {profileId && <UserProfileDrawer openDrawer toggleDrawer={() => setProfileId(null)} selectedUserData={{ _id: profileId }} />}
+          {profileId && <ProfileSheet person={profileId === owner._id ? owner : { _id: profileId }} onClose={() => setProfileId(null)} />}
         </Box>
       )}
     </Stack>

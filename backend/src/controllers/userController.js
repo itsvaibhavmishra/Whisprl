@@ -17,22 +17,18 @@ import { assertCoverStyle } from "#src/utils/coverStyles.js";
 // -------------------------- Update Profile --------------------------
 export const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, activityStatus, coverPattern, coverPalette } = req.body;
+    const { firstName, lastName, activityStatus = "", coverPattern, coverPalette } = req.body;
     const user = req.user;
 
-    if (!firstName || !lastName || !activityStatus) {
-      throw createHttpError.BadRequest(
-        "Required fields: firstName, lastName, activityStatus"
-      );
+    if (!firstName || !lastName) {
+      throw createHttpError.BadRequest("Required fields: firstName, lastName");
     }
 
     assertValidName(firstName, lastName);
     assertText(activityStatus);
 
-    if (!validator.isLength(activityStatus, { min: 3, max: 50 })) {
-      throw createHttpError.BadRequest(
-        "Status must be 3 to 50 characters long"
-      );
+    if (!validator.isLength(activityStatus, { max: 50 })) {
+      throw createHttpError.BadRequest("Keep your status under 50 characters");
     }
 
     const fields = { firstName, lastName, activityStatus };
@@ -143,7 +139,7 @@ export const searchUsers = async (req, res, next) => {
 // -------------------------- Get User Data --------------------------
 export const getUserData = async (req, res, next) => {
   try {
-    const userData = await getPublicProfile(req.query.userId);
+    const userData = await getPublicProfile(req.user, req.query.userId);
 
     res.status(200).json({ status: "success", userData });
   } catch (error) {

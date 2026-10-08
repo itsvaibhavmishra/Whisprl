@@ -5,7 +5,8 @@ const HOUR = 60 * 60 * 1000;
 
 const people = {
   meId: "me",
-  friends: [{ _id: "me" }, { _id: "friend" }],
+  blocked: ["blockedFriend"],
+  friends: [{ _id: "me" }, { _id: "friend" }, { _id: "blockedFriend" }],
   incoming: [{ person: { _id: "asker" } }],
   outgoing: [{ person: { _id: "asked" } }],
   cooldowns: [
@@ -18,6 +19,7 @@ const people = {
 test.each([
   ["me", "self"],
   ["friend", "friend"],
+  ["blockedFriend", "blocked"],
   ["asker", "incoming"],
   ["asked", "outgoing"],
   ["declined", "cooldown"],

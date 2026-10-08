@@ -69,10 +69,7 @@ const userSchema = mongoose.Schema(
       lowercase: true,
       validate: [validator.isEmail, "Invalid Email"],
     },
-    activityStatus: {
-      type: String,
-      default: "Hey There! I ❤️ Using Whisprl 😸",
-    },
+    activityStatus: { type: String, default: "" },
     onlineStatus: {
       type: String,
       default: "offline",

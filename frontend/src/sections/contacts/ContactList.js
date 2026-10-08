@@ -18,7 +18,7 @@ import ChatSearchResults from "@/sections/contacts/ChatSearchResults";
 import AllChatElement from "@/sections/contacts/AllChatElement";
 import OnlineFriendsElement from "@/sections/contacts/OnlineFriendsElement";
 import { MembersList } from "@/data";
-import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
+import ProfileSheet from "@/components/profile/ProfileSheet";
 import useIsLoading from "@/hooks/useIsLoading";
 
 const ContactList = () => {
@@ -39,17 +39,9 @@ const ContactList = () => {
   const [usersFound, setUsersFound] = useState([]);
   const [page, setPage] = useState(1);
 
-  const [openDrawer, setOpenDrawer] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState("");
+  const [profileId, setProfileId] = useState(null);
 
   // -------------- inner functions --------------
-  // open close user drawer
-  const toggleDrawer = (selectedId) => {
-    setOpenDrawer(!openDrawer);
-
-    setSelectedUserId(selectedId);
-  };
-
   // function to handle searched term
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -201,7 +193,7 @@ const ContactList = () => {
                               : contact.latestMessage
                           }
                           fromContact={true}
-                          toggleDrawer={toggleDrawer}
+                          toggleDrawer={setProfileId}
                         />
                       ))}
                     </Stack>
@@ -224,18 +216,16 @@ const ContactList = () => {
               currentPage={page}
               onSearchPageChange={handleSearchPageChange}
               currentUser={user._id}
-              toggleDrawer={toggleDrawer}
+              toggleDrawer={setProfileId}
               fromContact={true}
             />
           </Fragment>
         )}
       </Stack>
 
-      <UserProfileDrawer
-        openDrawer={openDrawer}
-        toggleDrawer={toggleDrawer}
-        selectedUserData={{ _id: selectedUserId }}
-      />
+      {profileId && (
+        <ProfileSheet person={friends.find((friend) => friend._id === profileId) ?? { _id: profileId }} onClose={() => setProfileId(null)} />
+      )}
     </Stack>
   );
 };

@@ -12,7 +12,7 @@ import {
 import LoadingButton from "@mui/lab/LoadingButton";
 
 import getAvatar from "@/utils/avatars";
-import UserProfileDrawer from "@/sections/friend-drawer/UserProfileDrawer";
+import ProfileSheet from "@/components/profile/ProfileSheet";
 import RequestButton from "@/components/profile/RequestButton";
 import useIsLoading from "@/hooks/useIsLoading";
 
@@ -23,7 +23,7 @@ import { AcceptRejectRequest } from "@/redux/slices/actions/contactActions";
 const UserCard = ({ thisUser, fromSection, isLoading, note }) => {
   const theme = useTheme();
 
-  const [openDrawer, setOpenDrawer] = useState(false);
+  const [isViewing, setIsViewing] = useState(false);
   const isAnswering = useIsLoading(AcceptRejectRequest);
 
   const dispatch = useDispatch();
@@ -33,9 +33,9 @@ const UserCard = ({ thisUser, fromSection, isLoading, note }) => {
     dispatch(AcceptRejectRequest({ sender_id: thisUser?._id, type }));
   };
 
-  const toggleDrawer = () => {
+  const viewProfile = () => {
     if (!isLoading) {
-      setOpenDrawer(!openDrawer);
+      setIsViewing(true);
     }
   };
 
@@ -54,7 +54,7 @@ const UserCard = ({ thisUser, fromSection, isLoading, note }) => {
             cursor: !isLoading ? "pointer" : "default",
           },
         }}
-        onClick={toggleDrawer}
+        onClick={viewProfile}
       >
         <CardContent>
           <Stack spacing={1.5}>
@@ -117,8 +117,7 @@ const UserCard = ({ thisUser, fromSection, isLoading, note }) => {
         </CardContent>
       </Card>
 
-      {/* Drawer */}
-      <UserProfileDrawer openDrawer={openDrawer} toggleDrawer={toggleDrawer} selectedUserData={thisUser} />
+      {isViewing && <ProfileSheet person={thisUser} onClose={() => setIsViewing(false)} />}
     </Grid>
   );
 };

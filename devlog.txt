@@ -31,6 +31,9 @@
     - Add a short message to a friend request, so they know who is asking; it stays end-to-end encrypted and becomes the first message of your chat once they accept
     - Every profile gets a doodle cover, Cats, Whispers or Night sky, in one of the accent colours; existing accounts get one too
     - Choose your cover's pattern and colour, or shuffle them, from Edit cover on your profile; a photo still works, and removing it brings your pattern back
+    - One profile everywhere: from contacts, search, a shared contact or a status it opens the same view, with Message, Accept or Decline beside their note, Add friend with a note, or Cancel request
+    - Profiles show the friends you share, to friends and to people who asked you, and the groups you are both in
+    - Report someone you have no chat with, straight from their profile
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings
@@ -42,6 +45,8 @@
     - Friend requests update live for both people: a new request, an accept, a cancel or a removed friend shows at once without a reload
     - After a request is declined, you can ask the same person again after 24 hours
     - The sender of a request cannot tell whether it was read until it is accepted
+    - Your status is optional, and the old default line is gone from every profile
+    - Chat details show the person's cover and the same profile header
 
   - Fixed:
     - Signing in with Google works again
@@ -56,3 +61,4 @@
 
   - Internal:
     - The old cat doodle cover images are gone, about 950 KB lighter
+    - The old profile drawer and its five cat animations are gone

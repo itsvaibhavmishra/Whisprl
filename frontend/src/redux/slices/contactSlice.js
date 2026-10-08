@@ -13,7 +13,8 @@ const initialState = {
   cooldowns: [],
   latestRequestsFetch: null,
 
-  userData: {},
+  // each person's full profile once fetched, so opening it again shows at once while it refreshes
+  profiles: {},
 };
 
 const slice = createSlice({
@@ -33,7 +34,7 @@ const slice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(GetUserData.fulfilled, (state, action) => {
-        state.userData = action.payload.userData;
+        state.profiles[action.meta.arg] = action.payload.userData;
       })
       // a burst of changes starts overlapping fetches, and only the newest may land
       .addCase(GetRequests.pending, (state, action) => {

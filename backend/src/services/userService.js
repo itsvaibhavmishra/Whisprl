@@ -2,7 +2,7 @@ import createHttpError from "http-errors";
 import sizeOf from "image-size";
 import mongoose from "mongoose";
 
-import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { presenceShownTo } from "#src/services/blockService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
@@ -72,9 +72,37 @@ export const giveEveryoneACoverStyle = async () => {
   return missing.length;
 };
 
-export const getPublicProfile = (user_id) => {
+// the status accounts once started with, under the app's old and new names, said nothing about anyone
+const OLD_DEFAULT_STATUSES = ["Hey There! I ❤️ Using Whisprl 😸", "Hey There! I ❤️ Using TwinkChat 😸"];
+
+export const clearDefaultStatuses = async () =>
+  (await UserModel.updateMany({ activityStatus: { $in: OLD_DEFAULT_STATUSES } }, { activityStatus: "" })).modifiedCount;
+
+const MUTUAL_PREVIEW = 3;
+
+// everyone counts as their own friend, so both people are left out of what they share
+const mutualFriendsOf = async (viewer, person_id, theirFriends) => {
+  const theirs = new Set(theirFriends.map(String));
+  const shared = viewer.friends.filter((friend_id) => theirs.has(String(friend_id)) && !friend_id.equals(viewer._id) && !friend_id.equals(person_id));
+  const people = await UserModel.find({ _id: { $in: shared.slice(0, MUTUAL_PREVIEW) } }).select("firstName lastName avatar").lean();
+  return { count: shared.length, people };
+};
+
+// shared friends show to a friend or to someone being asked, never to a stranger looking someone up
+const canSeeMutualFriends = async (viewer, person) => {
+  if (viewer._id.equals(person._id)) return false;
+  if (viewer.friends.some((friend_id) => friend_id.equals(person._id))) return true;
+  return Boolean(await FriendRequestModel.exists({ sender: person._id, recipient: viewer._id }));
+};
+
+export const getPublicProfile = async (viewer, user_id) => {
   if (!mongoose.isValidObjectId(user_id)) throw createHttpError.BadRequest("Query required");
-  return UserModel.findById(user_id).select(PUBLIC_PROFILE_FIELDS);
+  const person = await UserModel.findById(user_id).select(`${PUBLIC_PROFILE_FIELDS} friends`).lean();
+  if (!person) throw createHttpError.NotFound("User does not exist");
+
+  const { friends, ...profile } = person;
+  if (!(await canSeeMutualFriends(viewer, person))) return profile;
+  return { ...profile, mutualFriends: await mutualFriendsOf(viewer, person._id, friends) };
 };
 
 export const getOwnProfile = async (user) => {

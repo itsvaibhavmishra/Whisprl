@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Stack, TextField, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -16,7 +16,11 @@ const RequestComposer = ({ person, onSent, onCancel }) => {
   const isSending = useIsLoading(SendRequest);
   const canSeal = useSelector((state) => state.encryption.status === "ready");
   const [text, setText] = useState("");
+  const field = useRef(null);
   const length = lengthOf(text);
+
+  // autoFocus is lost inside a dialog that mounts in a portal, so the field takes focus once it is there
+  useEffect(() => field.current?.focus(), []);
 
   const send = async (event) => {
     event.preventDefault();
@@ -42,7 +46,7 @@ const RequestComposer = ({ person, onSent, onCancel }) => {
         multiline
         minRows={3}
         fullWidth
-        autoFocus
+        inputRef={field}
       />
       <Stack direction="row" alignItems="center" spacing={1}>
         <Typography aria-live="polite" sx={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: "text.secondary", fontVariantNumeric: "tabular-nums" }}>

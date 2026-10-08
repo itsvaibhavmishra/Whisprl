@@ -330,11 +330,6 @@ $ npm run build
 │   │   │   ├── illustrations/
 │   │   │   │   ├── animations/
 │   │   │   │   │   ├── Cat404.json
-│   │   │   │   │   ├── CatAnimation1.json
-│   │   │   │   │   ├── CatAnimation2.json
-│   │   │   │   │   ├── CatAnimation3.json
-│   │   │   │   │   ├── CatAnimation4.json
-│   │   │   │   │   ├── CatAnimation5.json
 │   │   │   │   │   ├── ChillingVibes.json
 │   │   │   │   │   ├── HangingBuddy.json
 │   │   │   │   │   ├── NoResultsFound.json
@@ -385,10 +380,16 @@ $ npm run build
 │   │   │   │   ├── ToolSheet.js
 │   │   │   │   ├── useStageGestures.js
 │   │   │   ├── profile/
+│   │   │   │   ├── CommonGroups.js
+│   │   │   │   ├── ProfileFacts.js
+│   │   │   │   ├── ProfileIdentity.js
+│   │   │   │   ├── ProfileSheet.js
+│   │   │   │   ├── ProfileView.js
+│   │   │   │   ├── RelationshipActions.js
 │   │   │   │   ├── RequestButton.js
 │   │   │   │   ├── RequestComposer.js
 │   │   │   │   ├── RequestNote.js
-│   │   │   │   ├── SendRequestDialog.js
+│   │   │   │   ├── SafetyRows.js
 │   │   │   ├── search/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── Search.js
@@ -401,13 +402,14 @@ $ npm run build
 │   │   │   │   ├── ThemeRtlLayout.js
 │   │   │   ├── AppearanceMenu.js
 │   │   │   ├── AppearancePickers.js
+│   │   │   ├── ConfirmDialog.js
+│   │   │   ├── ControlRow.js
 │   │   │   ├── EmojiPicker.js
 │   │   │   ├── FriendPicker.js
 │   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
 │   │   │   ├── NoData.js
 │   │   │   ├── ProfileCover.js
-│   │   │   ├── ProfileHero.js
 │   │   │   ├── ReportDialog.js
 │   │   │   ├── ScrollToTop.js
 │   │   │   ├── SitePage.js
@@ -600,10 +602,6 @@ $ npm run build
 │   │   │   │   ├── EncryptionGate.js
 │   │   │   │   ├── RecoveryKeyDialog.js
 │   │   │   │   ├── UnlockDialog.js
-│   │   │   ├── friend-drawer/
-│   │   │   │   ├── RemoveFriendDialog.js
-│   │   │   │   ├── UserDrawerMain.js
-│   │   │   │   ├── UserProfileDrawer.js
 │   │   │   ├── profile/
 │   │   │   │   ├── AccountSummary.js
 │   │   │   │   ├── CoverPicker.js

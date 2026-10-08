@@ -1,8 +1,9 @@
 const HOUR_MS = 60 * 60 * 1000;
 
 // one answer for every place that offers a friendship, so a profile, a search row and a contact card never disagree
-export const relationshipWith = (userId, { meId, friends, incoming, outgoing, cooldowns, now = Date.now() }) => {
+export const relationshipWith = (userId, { meId, blocked, friends, incoming, outgoing, cooldowns, now = Date.now() }) => {
   if (userId === meId) return { state: "self" };
+  if (blocked.includes(userId)) return { state: "blocked" };
   if (friends.some((friend) => friend._id === userId)) return { state: "friend" };
 
   const received = incoming.find((request) => request.person._id === userId);

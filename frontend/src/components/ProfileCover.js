@@ -1,9 +1,18 @@
 import { Box } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 
 import { coverColorsOf, coverStyleOf, patternById } from "@/utils/covers";
 
 const LAYER = { position: "absolute", inset: 0, pointerEvents: "none" };
+
+// a control sitting on a cover brings its own frosted ground, so it reads on any photo or pattern
+export const onCover = (theme) => ({
+  color: "text.primary",
+  bgcolor: alpha(theme.palette.background.paper, 0.85),
+  backdropFilter: "blur(6px)",
+  "&:hover": { bgcolor: theme.palette.background.paper },
+  "@media (prefers-contrast: more)": { bgcolor: "background.paper", border: 1, borderColor: "divider" },
+});
 const PAGE_TILE = { xs: 576, sm: 720 };
 
 const eachSize = (values, toCss) => Object.fromEntries(Object.entries(values).map(([breakpoint, value]) => [breakpoint, toCss(value)]));

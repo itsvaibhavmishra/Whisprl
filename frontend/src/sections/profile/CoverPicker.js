@@ -4,19 +4,11 @@ import { alpha } from "@mui/material/styles";
 import { Palette, Shuffle, Trash, UploadSimple } from "phosphor-react";
 
 import { useCroppedImage } from "@/components/ImageMenu";
-import { CoverArt } from "@/components/ProfileCover";
+import { CoverArt, onCover } from "@/components/ProfileCover";
 import { COVER_PALETTES, COVER_PATTERNS, GIVEN_PALETTES, GIVEN_PATTERNS, swatchOf } from "@/utils/covers";
 
 const hiddenInput = { position: "absolute", opacity: 0, width: "1px", height: "1px", m: 0 };
 const groupLabel = { fontSize: 12.5, fontWeight: 700, color: "text.secondary", mb: 1 };
-
-const glass = (theme) => ({
-  color: "text.primary",
-  bgcolor: alpha(theme.palette.background.paper, 0.85),
-  backdropFilter: "blur(6px)",
-  "&:hover": { bgcolor: theme.palette.background.paper },
-  "@media (prefers-contrast: more)": { bgcolor: "background.paper", border: 1, borderColor: "divider" },
-});
 
 const pickOther = (choices, current) => {
   const others = choices.filter((choice) => choice.id !== current);
@@ -153,11 +145,11 @@ const CoverPicker = ({ coverStyle, photo, onStyleChange, onPhotoChange }) => {
   return (
     <>
       {isPhone ? (
-        <IconButton aria-label="Edit cover" onClick={(event) => setAnchor(event.currentTarget)} sx={(theme) => ({ ...glass(theme), width: 40, height: 40 })}>
+        <IconButton aria-label="Edit cover" onClick={(event) => setAnchor(event.currentTarget)} sx={(theme) => ({ ...onCover(theme), width: 40, height: 40 })}>
           <Palette size={20} weight="bold" />
         </IconButton>
       ) : (
-        <Button startIcon={<Palette weight="bold" />} onClick={(event) => setAnchor(event.currentTarget)} sx={glass}>
+        <Button startIcon={<Palette weight="bold" />} onClick={(event) => setAnchor(event.currentTarget)} sx={onCover}>
           Edit cover
         </Button>
       )}

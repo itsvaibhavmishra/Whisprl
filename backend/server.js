@@ -7,7 +7,7 @@ import { initializeSocket } from "#socket.js";
 import { sweepExpiredMessages } from "#src/services/disappearingService.js";
 import { dropKeylessSessions } from "#src/services/sessionService.js";
 import { sweepExpiredStatuses } from "#src/services/statusService.js";
-import { giveEveryoneACoverStyle } from "#src/services/userService.js";
+import { clearDefaultStatuses, giveEveryoneACoverStyle } from "#src/services/userService.js";
 import { giveEveryoneAUsername } from "#src/services/usernameService.js";
 
 // env variables
@@ -32,6 +32,9 @@ mongoose
     giveEveryoneACoverStyle()
       .then((given) => given && console.log(`[DB] Gave ${given} accounts a cover style`))
       .catch((error) => console.log(`[DB] Cover styles not given: ${error.message}`));
+    clearDefaultStatuses()
+      .then((cleared) => cleared && console.log(`[DB] Cleared ${cleared} default statuses`))
+      .catch((error) => console.log(`[DB] Default statuses not cleared: ${error.message}`));
     dropKeylessSessions()
       .then((dropped) => dropped && console.log(`[DB] Ended ${dropped} sessions from before session keys`))
       .catch((error) => console.log(`[DB] Old sessions not ended: ${error.message}`));

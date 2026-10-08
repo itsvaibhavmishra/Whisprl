@@ -7,7 +7,7 @@ import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
 import FormProvider, { RHFTextField } from "@/components/hook-form";
-import ProfileHero from "@/components/ProfileHero";
+import ProfileIdentity from "@/components/profile/ProfileIdentity";
 import { UpdateProfile } from "@/redux/slices/actions/userActions";
 import AccountSummary from "@/sections/profile/AccountSummary";
 import ImageMenu from "@/components/ImageMenu";
@@ -20,11 +20,7 @@ const STATUS_LIMIT = 50;
 const ProfileSchema = Yup.object({
   firstName: nameRule("First name"),
   lastName: nameRule("Last name"),
-  activityStatus: Yup.string()
-    .trim()
-    .required("Status required")
-    .min(3, "Status must be at least 3 characters long")
-    .max(STATUS_LIMIT, `Status cannot be more than ${STATUS_LIMIT} characters`),
+  activityStatus: Yup.string().trim().max(STATUS_LIMIT, `Keep your status under ${STATUS_LIMIT} characters`),
   avatar: Yup.string(),
   cover: Yup.string(),
 });
@@ -122,8 +118,9 @@ const ProfileEditor = () => {
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <ProfileHero
-        profile={{ ...live, username: user.username, coverStyle: liveCoverStyle }}
+      <ProfileIdentity
+        size="page"
+        person={{ ...live, _id: user._id, username: user.username, coverStyle: liveCoverStyle }}
         coverAction={<CoverPicker coverStyle={liveCoverStyle} photo={live.cover} onStyleChange={changeCoverStyle} onPhotoChange={changeImage("cover")} />}
         photoAction={<ImageMenu kind="photo" hasImage={!!live.avatar} onChange={changeImage("avatar")} />}
       />
@@ -153,7 +150,7 @@ const ProfileEditor = () => {
               minRows={2}
               helperText={
                 <Box component="span" sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                  <span>Shown in the bubble beside your photo.</span>
+                  <span>Optional, shown in the bubble beside your photo.</span>
                   <span>
                     {live.activityStatus.length}/{STATUS_LIMIT}
                   </span>
