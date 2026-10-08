@@ -25,11 +25,17 @@ const slice = createSlice({
       const status = state.statuses.find((each) => each._id === action.payload);
       if (status) status.isViewed = true;
     },
-    viewerAdded: (state, action) => {
+    // a later event about the same viewer, such as their reaction, is folded into their one view
+    viewSaved: (state, action) => {
       const status = state.statuses.find((each) => each._id === action.payload.status_id);
-      if (status?.views && !status.views.some((view) => view.user._id === action.payload.view.user._id)) {
-        status.views.push(action.payload.view);
-      }
+      if (!status?.views) return;
+      const earlier = status.views.find((view) => view.user._id === action.payload.view.user._id);
+      if (earlier) Object.assign(earlier, action.payload.view, { viewedAt: earlier.viewedAt });
+      else status.views.push(action.payload.view);
+    },
+    reactionChosen: (state, action) => {
+      const status = state.statuses.find((each) => each._id === action.payload.statusId);
+      if (status) Object.assign(status, { myReaction: action.payload.emoji, isViewed: true });
     },
     postingProgress: (state, action) => {
       state.posting = action.payload;
@@ -52,4 +58,4 @@ const slice = createSlice({
 
 export default slice.reducer;
 
-export const { statusAdded, statusRemoved, statusSeen, viewerAdded, postingProgress } = slice.actions;
+export const { statusAdded, statusRemoved, statusSeen, viewSaved, reactionChosen, postingProgress } = slice.actions;

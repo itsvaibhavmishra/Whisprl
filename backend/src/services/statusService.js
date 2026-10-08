@@ -8,7 +8,7 @@ import { validateCipher } from "#src/services/messageService.js";
 
 const STATUS_LIFETIME_MS = 24 * 60 * 60 * 1000;
 const PERSON_FIELDS = "firstName lastName username avatar";
-const OWNER_FIELDS = `${PERSON_FIELDS} publicKeys`;
+const KEYED_FIELDS = `${PERSON_FIELDS} publicKeys`;
 const SWEEP_BATCH = 500;
 
 const STATUS_GONE = "This status is no longer available";
@@ -39,10 +39,11 @@ export const sealedForOf = async (user, chosen) => {
   return UserModel.find({ _id: { $in: ids }, "publicKeys.0": { $exists: true } }).select("publicKeys");
 };
 
-// the owner sees who viewed it; everyone else only whether they have
+// the owner sees who viewed it and how they reacted; everyone else only their own view and reaction
 const toClientStatus = (status, user_id) => {
   const { _id, owner, cipher, file, createdAt, expiresAt, views } = status.toObject();
   const isOwn = String(owner._id) === String(user_id);
+  const ownView = views.find((view) => String(view.user._id) === String(user_id));
   return {
     _id,
     owner,
@@ -50,7 +51,7 @@ const toClientStatus = (status, user_id) => {
     file,
     createdAt,
     expiresAt,
-    ...(isOwn ? { views } : { isViewed: views.some((view) => String(view.user._id) === String(user_id)) }),
+    ...(isOwn ? { views } : { isViewed: Boolean(ownView), ownReaction: ownView?.reaction }),
   };
 };
 
@@ -67,7 +68,7 @@ export const postStatus = async (user, cipherJson, file, chosen) => {
     audience: sealedFor.filter((person) => !person._id.equals(user._id)).map((person) => person._id),
     expiresAt: new Date(Date.now() + STATUS_LIFETIME_MS),
   });
-  await status.populate("owner", OWNER_FIELDS);
+  await status.populate("owner", KEYED_FIELDS);
   return { status, forOwner: toClientStatus(status, user._id), forAudience: toClientStatus(status, null) };
 };
 
@@ -79,8 +80,8 @@ export const listStatuses = async (user) => {
     $or: [{ owner: user._id }, { audience: user._id, owner: { $in: shownOwners } }],
   })
     .sort({ createdAt: 1 })
-    .populate("owner", OWNER_FIELDS)
-    .populate("views.user", PERSON_FIELDS);
+    .populate("owner", KEYED_FIELDS)
+    .populate("views.user", KEYED_FIELDS);
   return statuses.map((status) => toClientStatus(status, user._id));
 };
 
@@ -93,6 +94,23 @@ export const markViewed = async (user, status_id) => {
     { $push: { views: view } }
   ).select("owner");
   return status && { owner: status.owner, view };
+};
+
+// reacting also counts as viewing, and a second reaction replaces the first
+export const reactToStatus = async (user, status_id, cipher) => {
+  if (!mongoose.isValidObjectId(status_id)) throw createHttpError.NotFound(STATUS_GONE);
+  const live = { _id: status_id, audience: user._id, expiresAt: { $gt: new Date() } };
+  const status = await StatusModel.findOne(live).populate("owner", KEYED_FIELDS);
+  const isStillFriend = status && user.friends.some((friend_id) => friend_id.equals(status.owner._id));
+  if (!isStillFriend || (await blockedEitherWay(user, [status.owner._id])).size) throw createHttpError.NotFound(STATUS_GONE);
+  validateCipher(cipher, { isGroup: false, users: [status.owner, user] }, user._id);
+
+  // each write is atomic, so a view arriving at the same moment can never leave two views for one person
+  const viewedAt = new Date();
+  const setReaction = () => StatusModel.updateOne({ ...live, "views.user": user._id }, { $set: { "views.$.reaction": cipher } });
+  const addView = () => StatusModel.updateOne({ ...live, "views.user": { $ne: user._id } }, { $push: { views: { user: user._id, viewedAt, reaction: cipher } } });
+  if (!(await setReaction()).matchedCount && !(await addView()).matchedCount) await setReaction();
+  return { owner: status.owner._id, viewedAt, reaction: cipher };
 };
 
 export const removeStatus = async (user, status_id) => {

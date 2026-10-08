@@ -12,7 +12,7 @@ const FILL = { position: "absolute", inset: 0, width: "100%", height: "100%", di
 const CANVAS = { ...FILL, pointerEvents: "none" };
 const GUIDE = { position: "absolute", bgcolor: "rgba(255, 255, 255, 0.8)", pointerEvents: "none" };
 
-const Stage = ({ media, image, edits, isStory, size, brush, hiddenLayerId, isMuted = true, isReadOnly = false, onStroke, onLayerChange, onLayerRemove, onLayerTap, onSwipe }) => {
+const Stage = ({ media, image, edits, isStory, size, brush, hiddenLayerId, isMuted = true, isReadOnly = false, onStroke, onLayerChange, onLayerRemove, onLayerTap, onSwipe, onPhotoChange }) => {
   const base = useRef(null);
   const strokes = useRef(null);
   const frame = useRef(0);
@@ -20,12 +20,12 @@ const Stage = ({ media, image, edits, isStory, size, brush, hiddenLayerId, isMut
   const url = useObjectUrl(playsFile ? media.file : null);
   const ratio = pixelRatio();
   const pixels = { width: Math.round(size.width * ratio), height: Math.round(size.height * ratio) };
-  const { filter, background } = edits;
+  const { filter, background, photo } = edits;
   const bin = binOf(size);
 
   useEffect(() => {
-    if (!playsFile && (image || !media)) drawBase(base.current.getContext("2d"), { image, edits: { filter, background }, isStory });
-  }, [playsFile, image, media, filter, background, isStory, pixels.width, pixels.height]);
+    if (!playsFile && (image || !media)) drawBase(base.current.getContext("2d"), { image, edits: { filter, background, photo }, isStory });
+  }, [playsFile, image, media, filter, background, photo, isStory, pixels.width, pixels.height]);
 
   const redrawStrokes = useCallback((live) => drawStrokes(strokes.current.getContext("2d"), live ? [...edits.strokes, live] : edits.strokes), [edits.strokes]);
 
@@ -33,9 +33,10 @@ const Stage = ({ media, image, edits, isStory, size, brush, hiddenLayerId, isMut
     redrawStrokes(null);
   }, [redrawStrokes, pixels.width, pixels.height]);
 
-  const { drag, handlers } = useStageGestures({
+  const { drag, onWheel, handlers } = useStageGestures({
     size,
     layers: edits.layers,
+    photo,
     brush,
     onLiveStroke: (stroke) => {
       cancelAnimationFrame(frame.current);
@@ -50,11 +51,30 @@ const Stage = ({ media, image, edits, isStory, size, brush, hiddenLayerId, isMut
     onLayerRemove,
     onLayerTap,
     onSwipe,
+    onPhotoChange,
   });
   const dragged = drag && edits.layers.find((layer) => layer.id === drag.id);
 
+  const root = useRef(null);
+  const latestWheel = useRef(onWheel);
+  latestWheel.current = onWheel;
+  const canZoom = Boolean(onWheel);
+
+  // attached by hand, since React's wheel listener is passive and cannot stop a trackpad pinch from zooming the page
+  useEffect(() => {
+    if (!canZoom) return undefined;
+    const node = root.current;
+    const zoom = (event) => {
+      event.preventDefault();
+      latestWheel.current(event);
+    };
+    node.addEventListener("wheel", zoom, { passive: false });
+    return () => node.removeEventListener("wheel", zoom);
+  }, [canZoom]);
+
   return (
     <Box
+      ref={root}
       role="group"
       aria-label="Canvas"
       {...(!isReadOnly && handlers)}

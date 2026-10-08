@@ -1,3 +1,5 @@
+import { PATH_DASHBOARD } from "@/routes/paths";
+
 // a text status names one of these by its place, so what it shows is always one of them
 export const TEXT_BACKGROUNDS = ["#4F46C8", "#0F766E", "#B4471A", "#A3245E", "#1F2A37", "#1D6FA5"];
 
@@ -10,6 +12,10 @@ export const textSizeOf = (text) => {
 };
 
 export const isLive = (status, now = Date.now()) => new Date(status.expiresAt).getTime() > now;
+
+export const quoteOfStatus = ({ _id, owner, content, expiresAt }) => ({ _id, ownerId: owner._id, preview: content.file?.preview, expiresAt });
+
+export const statusLinkOf = (ownerId, statusId) => `${PATH_DASHBOARD.general.status}?person=${ownerId}&update=${statusId}`;
 
 // each person's statuses oldest first, and whoever posted last first
 export const groupByOwner = (statuses) => {

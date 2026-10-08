@@ -4,6 +4,7 @@ import { mentionLayoutOf, textLayoutOf } from "@/utils/media-editor/layout";
 import { GRADIENTS, inkOn } from "@/utils/media-editor/palette";
 
 export const BRUSHES = ["Pen", "Marker", "Neon", "Eraser"];
+export const CONTAINED_PHOTO = { x: 0, y: 0, scale: 1 };
 
 const EMOJI_FONTS = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 const MENTION_INK = ["#f58529", "#dd2a7b", "#8134af"];
@@ -117,7 +118,12 @@ const drawScaled = (context, image, scale, width, height) =>
 
 export const drawCovering = (context, image, width, height) => drawScaled(context, image, Math.max(width / image.width, height / image.height), width, height);
 
-const drawContained = (context, image, width, height) => drawScaled(context, image, Math.min(width / image.width, height / image.height), width, height);
+const drawPlaced = (context, image, placement, width, height) => {
+  context.save();
+  context.translate(placement.x * width, placement.y * height);
+  drawScaled(context, image, Math.min(width / image.width, height / image.height) * placement.scale, width, height);
+  context.restore();
+};
 
 const shrunkCanvas = (width, height, shrink) => {
   const canvas = Object.assign(document.createElement("canvas"), { width: Math.ceil(width / shrink), height: Math.ceil(height / shrink) });
@@ -157,7 +163,7 @@ export const drawBase = (context, { image, edits, isStory }) => {
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, width, height);
   }
-  drawContained(context, image, width, height);
+  drawPlaced(context, image, edits.photo ?? CONTAINED_PHOTO, width, height);
   const { matrix } = filterNamed(edits.filter);
   if (matrix) applyMatrix(context, matrix);
 };

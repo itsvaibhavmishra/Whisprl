@@ -258,6 +258,7 @@ const MediaEditor = ({ media, initialEdits = NO_EDITS, isStory = false, people =
               onLayerRemove={removeLayer}
               onLayerTap={editText}
               onSwipe={isPhoto && !tool ? swipeFilter : undefined}
+              onPhotoChange={isStory && isPhoto ? (photo) => setEdits((current) => ({ ...current, photo })) : undefined}
             />
           ) : (
             <CircularProgress aria-label="Opening the editor" sx={{ color: "#fff" }} />

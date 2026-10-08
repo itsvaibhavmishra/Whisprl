@@ -89,6 +89,10 @@ const PREFERENCE_KEYS = ["mutedUntil", "isFavourite", "isArchived", "clearedAt",
 const preferencesIn = (conversation) =>
   Object.fromEntries(PREFERENCE_KEYS.filter((key) => conversation?.[key] !== undefined).map((key) => [key, conversation[key]]));
 
+const listOnce = (state, conversation) => {
+  if (!state.conversations.some((listed) => listed._id === conversation._id)) state.conversations.push(conversation);
+};
+
 const open = (state, conversation, canMessage) => {
   const cached = state.cache[conversation._id];
   const listed = state.conversations.find((candidate) => candidate._id === conversation._id);
@@ -269,6 +273,8 @@ const slice = createSlice({
       else state.conversations[index] = updated;
       if (state.activeConversation?._id === group._id) state.activeConversation = { ...updated };
     },
+
+    conversationListed: (state, action) => listOnce(state, action.payload),
 
     setConnection: (state, action) => {
       state.connection = action.payload;
@@ -469,9 +475,7 @@ const slice = createSlice({
       .addCase(CreateOpenConversation.fulfilled, (state, action) => {
         const { conversation, isValidFriendShip } = action.payload;
         // listed straight away, though hidden until its first message, so going back to it finds it
-        if (!state.conversations.some((listed) => listed._id === conversation._id)) {
-          state.conversations.push({ ...conversation, canMessage: isValidFriendShip });
-        }
+        listOnce(state, { ...conversation, canMessage: isValidFriendShip });
         open(state, conversation, isValidFriendShip);
       })
 
@@ -533,6 +537,7 @@ export const {
   groupUpdated,
   clearConversation: clearChat,
   setConnection,
+  conversationListed,
   addFiles,
   fileEdited,
   removeFile,

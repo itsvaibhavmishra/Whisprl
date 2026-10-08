@@ -28,6 +28,8 @@ export const LONG_EDGE = 1600;
 const PREVIEW_EDGE = 24;
 const PHOTO_QUALITY = 0.8;
 const PREVIEW_QUALITY = 0.5;
+const THUMBNAIL_EDGE = 320;
+const THUMBNAIL_QUALITY = 0.7;
 
 const drawWithin = (bitmap, longEdge) => {
   const scale = Math.min(1, longEdge / Math.max(bitmap.width, bitmap.height));
@@ -47,6 +49,13 @@ const shrink = async (bitmap, file) => {
   const shrunk = await new Promise((resolve) => drawWithin(bitmap, LONG_EDGE).toBlob(resolve, "image/jpeg", PHOTO_QUALITY));
   if (!shrunk || shrunk.size >= file.size) return file;
   return new File([shrunk], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: file.lastModified });
+};
+
+export const thumbnailOf = async (file) => {
+  const bitmap = await createImageBitmap(file);
+  const thumbnail = drawWithin(bitmap, THUMBNAIL_EDGE).toDataURL("image/jpeg", THUMBNAIL_QUALITY);
+  bitmap.close();
+  return thumbnail;
 };
 
 export const preparedFromCanvas = async (canvas, name) => {

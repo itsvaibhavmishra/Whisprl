@@ -14,6 +14,7 @@ const viewSchema = mongoose.Schema(
   {
     user: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
     viewedAt: { type: Date, required: true },
+    reaction: { type: cipherSchema, default: undefined },
   },
   { _id: false }
 );

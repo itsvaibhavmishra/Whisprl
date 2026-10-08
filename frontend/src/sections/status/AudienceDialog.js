@@ -26,13 +26,14 @@ const sameAudience = (one, other) => {
 
 // each choice keeps its own ticks, so moving between them never turns the people left out into the only ones
 const AudienceDialog = ({ audience, onSave, onClose }) => {
-  const [choice, setChoice] = useState(() => choiceOf(audience));
-  const [ticked, setTicked] = useState(() => ({ except: audience.except ?? [], only: audience.only ?? [] }));
+  const [openedWith] = useState(audience);
+  const [choice, setChoice] = useState(() => choiceOf(openedWith));
+  const [ticked, setTicked] = useState(() => ({ except: openedWith.except ?? [], only: openedWith.only ?? [] }));
 
-  // Done without a change keeps whatever applied before, so Settings still apply even if they had not loaded yet
+  // Done without a change keeps whatever applied before, so Settings still apply even if they load while this is open
   const save = () => {
     const chosen = choice === "only" ? { only: ticked.only } : { except: choice === "except" ? ticked.except : [] };
-    if (!sameAudience(chosen, audience)) onSave(chosen);
+    if (!sameAudience(chosen, openedWith)) onSave(chosen);
     onClose();
   };
 

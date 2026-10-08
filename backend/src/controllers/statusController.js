@@ -2,10 +2,14 @@ import {
   listStatuses,
   markViewed,
   postStatus,
+  reactToStatus,
   removeStatus,
   sealedForOf,
   setHiddenFrom,
 } from "#src/services/statusService.js";
+
+// the owner opens a viewer's reaction with that viewer's public key
+const viewerOf = ({ _id, firstName, lastName, username, avatar, publicKeys }) => ({ _id, firstName, lastName, username, avatar, publicKeys });
 
 // -------------------------- Statuses --------------------------
 export const getStatuses = async (req, res, next) => {
@@ -44,10 +48,21 @@ export const viewStatus = async (req, res, next) => {
   try {
     const viewed = await markViewed(req.user, req.params.status_id);
     if (viewed) {
-      const { _id, firstName, lastName, username, avatar } = req.user;
-      const view = { user: { _id, firstName, lastName, username, avatar }, viewedAt: viewed.view.viewedAt };
+      const view = { user: viewerOf(req.user), viewedAt: viewed.view.viewedAt };
       req.app.get("io").to(String(viewed.owner)).emit("status_viewed", { status_id: req.params.status_id, view });
     }
+    res.status(200).json({ status: "success" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Reacted --------------------------
+export const reactStatus = async (req, res, next) => {
+  try {
+    const { owner, viewedAt, reaction } = await reactToStatus(req.user, req.params.status_id, req.body.cipher);
+    const reacted = { user: viewerOf(req.user), viewedAt, reaction };
+    req.app.get("io").to(String(owner)).emit("status_reacted", { status_id: req.params.status_id, view: reacted });
     res.status(200).json({ status: "success" });
   } catch (error) {
     next(error);

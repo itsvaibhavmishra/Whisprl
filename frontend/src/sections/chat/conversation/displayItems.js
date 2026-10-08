@@ -56,6 +56,7 @@ const queuedMessage = (entry, me) => ({
   createdAt: entry.createdAt,
   file: entry.file,
   contact: entry.contact,
+  statusQuote: entry.statusQuote,
   mentions: entry.mentions,
   replyTo: entry.replyTo,
   replyToAlbum: entry.replyTo?.isAlbum,

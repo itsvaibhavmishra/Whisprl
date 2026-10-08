@@ -10,6 +10,7 @@ import { ReactToMessage } from "@/redux/slices/actions/messageActions";
 import { setReplyingTo } from "@/redux/slices/chatSlice";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
 import ContactCard from "@/sections/chat/messages/ContactCard";
+import StatusQuote from "@/sections/chat/messages/StatusQuote";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
 import MediaMessage from "@/sections/chat/messages/MediaMessage";
 import MessageActions from "@/sections/chat/messages/MessageActions";
@@ -335,6 +336,7 @@ const MessageContainer = ({
               <>
                 {message.viewOnce && <ViewOnceMessage message={message} isMine={isMine} isGroup={conversation?.isGroup} meId={user._id} />}
                 {message.contact && <ContactCard contact={message.contact} isMine={isMine} />}
+                {message.statusQuote && <StatusQuote quote={message.statusQuote} isMine={isMine} />}
                 {hasMedia &&
                   (media.length === 1 && media[0].fileType === "video" ? <VideoMessage file={media[0]} /> : <MediaMessage items={mediaItems} conversation={conversation} />)}
                 {voice && <VoiceMessage file={voice} isMine={isMine} stamp={stamp} />}

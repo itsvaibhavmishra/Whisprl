@@ -20,6 +20,10 @@
     - Make a status like a story: text in eight fonts with colours, sizes and backgrounds, emoji and @mention stickers, pen, marker, neon and eraser brushes, gradient backgrounds and city filters, and drag, pinch, turn or bin anything you place
     - Add text, stickers and drawing to each photo or video before you send it in a chat
     - Tap a mention in someone's status to open that person's profile
+    - Reply to a friend's status or send a quick reaction; a reply lands in your chat quoting it, and your own status shows who reacted
+    - A friend you mention in a status gets a message about it
+    - The Status page's right side is home to your updates, with views and reactions on each and buttons to add one; on a phone it opens from My status
+    - Move and zoom the photo inside a status, and resize or turn text and stickers from the keyboard
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings

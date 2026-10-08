@@ -1,12 +1,16 @@
 import { useEffect, useRef } from "react";
 import { Box } from "@mui/material";
 
+import { scaled } from "@/components/media-editor/useStageGestures";
 import { drawLayer, pixelRatio } from "@/utils/media-editor/draw";
 import { layerBoxOf } from "@/utils/media-editor/layout";
 
 const NUDGE = 0.01;
 const BINNED_SCALE = 0.3;
 const NUDGES = { ArrowLeft: [-NUDGE, 0], ArrowRight: [NUDGE, 0], ArrowUp: [0, -NUDGE], ArrowDown: [0, NUDGE] };
+const RESIZES = { "+": 1.1, "=": 1.1, "-": 0.9 };
+const TURN = Math.PI / 12;
+const TURNS = { "[": -TURN, "]": TURN };
 
 const labelOf = (layer) => {
   if (layer.kind === "text") return `Text: ${layer.text}`;
@@ -46,6 +50,8 @@ const LayerView = ({ layer, stage, isHidden, binOffset, isInteractive, onChange,
       event.preventDefault();
       onChange({ x: layer.x + nudge[0], y: layer.y + nudge[1] });
     }
+    if (RESIZES[event.key]) onChange({ scale: scaled(layer.scale, RESIZES[event.key]) });
+    if (TURNS[event.key]) onChange({ rotation: layer.rotation + TURNS[event.key] });
     if (event.key === "Delete" || event.key === "Backspace") onRemove();
     if (event.key === "Enter") onTap();
   };

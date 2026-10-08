@@ -9,6 +9,7 @@ import {
   getHiddenFrom,
   getSealedFor,
   getStatuses,
+  reactStatus,
   updateHiddenFrom,
   viewStatus,
 } from "#src/controllers/statusController.js";
@@ -26,5 +27,7 @@ statusRouter.route("/hidden-from").get(protect, readLimit(), getHiddenFrom).put(
 statusRouter.route("/:status_id").delete(protect, writeLimit(), deleteStatus);
 
 statusRouter.route("/:status_id/view").post(protect, writeLimit(), viewStatus);
+
+statusRouter.route("/:status_id/react").post(protect, writeLimit(), reactStatus);
 
 export default statusRouter;

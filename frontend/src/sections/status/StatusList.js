@@ -3,7 +3,7 @@ import { ImageSquare, TextT, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
-import { CancelPosting, ChooseStatusMedia, GetStatuses } from "@/redux/slices/actions/statusActions";
+import { CancelPosting, GetStatuses } from "@/redux/slices/actions/statusActions";
 import { MIN_VISIBLE_PERCENT } from "@/sections/chat/messages/TransferRing";
 import StatusRing from "@/sections/status/StatusRing";
 import useMessageTime from "@/hooks/useMessageTime";
@@ -85,7 +85,7 @@ const MyStatusRow = ({ group, onOpen, onWrite, onChooseMedia }) => {
   return (
     <Stack direction="row" alignItems="center" spacing={0.5} sx={{ px: 1 }}>
       <ButtonBase
-        onClick={group ? () => onOpen(user._id) : onChooseMedia}
+        onClick={group ? onOpen : onChooseMedia}
         disabled={isPosting || !isEncryptionReady}
         sx={{ ...rowButton, flex: 1, minWidth: 0, px: 0.5 }}
       >
@@ -127,14 +127,8 @@ const MyStatusRow = ({ group, onOpen, onWrite, onChooseMedia }) => {
   );
 };
 
-const StatusList = ({ myGroup, recent, viewed, onOpen, onCompose }) => {
-  const dispatch = useDispatch();
+const StatusList = ({ myGroup, recent, viewed, onOpen, onOpenMine, onWrite, onChooseMedia }) => {
   const isLoading = useIsLoading(GetStatuses);
-
-  const chooseMedia = async () => {
-    const draft = await dispatch(ChooseStatusMedia());
-    if (draft) onCompose(draft);
-  };
 
   return (
     <Stack component="nav" aria-label="Status updates" sx={{ height: "100%", bgcolor: "background.default" }}>
@@ -145,7 +139,7 @@ const StatusList = ({ myGroup, recent, viewed, onOpen, onCompose }) => {
       </Box>
 
       <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
-        <MyStatusRow group={myGroup} onOpen={onOpen} onWrite={() => onCompose({ kind: "text" })} onChooseMedia={chooseMedia} />
+        <MyStatusRow group={myGroup} onOpen={onOpenMine} onWrite={onWrite} onChooseMedia={onChooseMedia} />
 
         <PeopleSection label="Recent" groups={recent} onOpen={onOpen} />
         <PeopleSection label="Viewed" groups={viewed} onOpen={onOpen} />

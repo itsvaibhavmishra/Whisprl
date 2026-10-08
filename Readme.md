@@ -546,6 +546,7 @@ $ npm run build
 │   │   │   │   │   ├── Reactions.js
 │   │   │   │   │   ├── ReplyQuote.js
 │   │   │   │   │   ├── SeenMarker.js
+│   │   │   │   │   ├── StatusQuote.js
 │   │   │   │   │   ├── TransferRing.js
 │   │   │   │   │   ├── TypingBubble.js
 │   │   │   │   │   ├── useSwipeToReply.js
@@ -609,8 +610,12 @@ $ npm run build
 │   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
 │   │   │   │   ├── AudienceDialog.js
+│   │   │   │   ├── ReplyBar.js
+│   │   │   │   ├── SeenBy.js
 │   │   │   │   ├── StatusComposer.js
+│   │   │   │   ├── StatusHome.js
 │   │   │   │   ├── StatusList.js
+│   │   │   │   ├── StatusMedia.js
 │   │   │   │   ├── StatusRing.js
 │   │   │   │   ├── StatusViewer.js
 │   │   │   ├── terms/
