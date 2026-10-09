@@ -158,7 +158,7 @@ const skipFor = (page, size = SEARCH_PAGE_SIZE) => Math.max(0, Number.parseInt(p
 
 const SEARCH_FIELDS = "firstName lastName username avatar activityStatus onlineStatus";
 // presence is for friends, so strangers are found without it
-const STRANGER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus";
+const STRANGER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt";
 
 // never by email, so nobody can find out whether an address has an account
 const nameOrUsernameFilter = (keyword) => {

@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, Box, Stack, Typography } from "@mui/material";
+import { Avatar, AvatarGroup, Box, Skeleton, Stack, Typography } from "@mui/material";
 
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { avatarLookOf } from "@/utils/avatars";
@@ -25,12 +25,12 @@ const Fact = ({ label, children }) => (
 
 const ProfileFacts = ({ person }) => {
   const { createdAt, mutualFriends } = person;
-  if (!createdAt) return null;
 
+  // the section holds its place until the full profile arrives, so nothing below it moves when it does
   return (
     <DetailsSection title="About">
       <Box component="dl" sx={{ m: 0 }}>
-        <Fact label="On Whisprl since">{joinedOn(createdAt)}</Fact>
+        <Fact label="On Whisprl since">{createdAt ? joinedOn(createdAt) : <Skeleton width={120} sx={{ borderRadius: 1 }} />}</Fact>
         {mutualFriends?.count > 0 && (
           <Fact label="Mutual friends">
             <Stack direction="row" spacing={1.25} alignItems="center">

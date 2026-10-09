@@ -12,6 +12,7 @@ import { FIND_PATH, contactPathOf } from "@/sections/contacts/contactsRoute";
 import { ageOf } from "@/utils/statuses";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const FROM_REQUESTS = { backLabel: "Back to requests" };
 const COLLAPSE = { duration: 0.2, ease: [0.33, 1, 0.68, 1] };
 
 // a request can wait for weeks, so past a day it counts days and then shows its date
@@ -37,13 +38,13 @@ const RequestItem = ({ request, isMine }) => {
       aria-label={name}
       sx={{ display: "flex", gap: 1.5, py: 2, overflow: "hidden" }}
     >
-      <ButtonBase component={Link} to={contactPathOf(person)} aria-label={`View ${name}'s profile`} sx={{ alignSelf: "start", borderRadius: "50%" }}>
+      <ButtonBase component={Link} to={contactPathOf(person)} state={FROM_REQUESTS} aria-label={`View ${name}'s profile`} sx={{ alignSelf: "start", borderRadius: "50%" }}>
         <ChatAvatar src={person.avatar} name={person.firstName} size={48} />
       </ButtonBase>
       <Stack spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
         <Box>
           <Stack direction="row" alignItems="baseline" spacing={1}>
-            <Typography component={Link} to={contactPathOf(person)} noWrap sx={{ minWidth: 0, fontSize: 15, fontWeight: 700, color: "text.primary", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
+            <Typography component={Link} to={contactPathOf(person)} state={FROM_REQUESTS} noWrap sx={{ minWidth: 0, fontSize: 15, fontWeight: 700, color: "text.primary", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}>
               {name}
             </Typography>
             <Typography component="time" dateTime={request.createdAt} sx={{ flexShrink: 0, fontSize: 12.5, fontWeight: 500, color: "text.secondary" }}>

@@ -24,10 +24,10 @@ const listed = (names, count) => {
   return names.join(" and ");
 };
 
-const reasonOf = ({ mutualFriends, sharedGroups }) => {
-  if (mutualFriends.count) return `Friends with ${listed(mutualFriends.names, mutualFriends.count)}`;
-  const others = sharedGroups.count - 1;
-  return others > 0 ? `In ${sharedGroups.names[0]} and ${others} more group${others === 1 ? "" : "s"}` : `In ${sharedGroups.names[0]}`;
+const reasonOf = ({ friendsInCommon, groupsInCommon }) => {
+  if (friendsInCommon.count) return `Friends with ${listed(friendsInCommon.names, friendsInCommon.count)}`;
+  const others = groupsInCommon.count - 1;
+  return others > 0 ? `In ${groupsInCommon.names[0]} and ${others} more group${others === 1 ? "" : "s"}` : `In ${groupsInCommon.names[0]}`;
 };
 
 const SuggestionActions = ({ person }) => {
@@ -61,7 +61,7 @@ const Suggestions = () => {
       )}
       <PersonRows>
         {shown.map((person) => (
-          <PersonRow key={person._id} person={person} detail={reasonOf(person)} action={<SuggestionActions person={person} />} />
+          <PersonRow key={person._id} person={person} detail={reasonOf(person)} action={<SuggestionActions person={person} />} backLabel="Back to Find people" />
         ))}
       </PersonRows>
     </PaneSection>

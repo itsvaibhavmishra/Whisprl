@@ -7,7 +7,7 @@ const SUGGESTION_LIMIT = 20;
 // ranked before the slower lookups, with room for the ones those lookups drop
 const CANDIDATE_LIMIT = 100;
 const NAMED_LINKS = 2;
-const SUGGESTION_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus suggestToFriendsOfFriends";
+const SUGGESTION_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt suggestToFriendsOfFriends";
 
 // for each person, the user's friends who are friends with them and the groups they are both in
 const linksOf = async (user) => {
@@ -43,8 +43,8 @@ const withoutOpenRequests = async (user, ids) => {
 const summaryOf = (labels) => ({ count: labels.length, names: labels.slice(0, NAMED_LINKS) });
 
 const byStrongestLink = (one, other) =>
-  other.mutualFriends.count - one.mutualFriends.count ||
-  other.sharedGroups.count - one.sharedGroups.count ||
+  other.friendsInCommon.count - one.friendsInCommon.count ||
+  other.groupsInCommon.count - one.groupsInCommon.count ||
   one.firstName.localeCompare(other.firstName);
 
 export const suggestionsFor = async (user) => {
@@ -63,9 +63,9 @@ export const suggestionsFor = async (user) => {
     .map(({ suggestToFriendsOfFriends, ...person }) => {
       const { friends, groups } = links.get(String(person._id));
       // turning suggestions off hides the friends two people share, while a group they are both in shows them to each other anyway
-      return { ...person, mutualFriends: summaryOf(suggestToFriendsOfFriends === false ? [] : friends), sharedGroups: summaryOf(groups) };
+      return { ...person, friendsInCommon: summaryOf(suggestToFriendsOfFriends === false ? [] : friends), groupsInCommon: summaryOf(groups) };
     })
-    .filter(({ mutualFriends, sharedGroups }) => mutualFriends.count || sharedGroups.count)
+    .filter(({ friendsInCommon, groupsInCommon }) => friendsInCommon.count || groupsInCommon.count)
     .sort(byStrongestLink)
     .slice(0, SUGGESTION_LIMIT);
 };

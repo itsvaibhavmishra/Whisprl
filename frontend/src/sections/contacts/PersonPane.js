@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Box, IconButton } from "@mui/material";
+import { Box, Button, IconButton } from "@mui/material";
 import { ArrowLeft } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { PANE_INSET, PaneEmpty, READING_WIDTH } from "@/components/Pane";
 import ProfileIdentity from "@/components/profile/ProfileIdentity";
+import { SOFT } from "@/components/profile/RelationshipActions";
 import ProfileView from "@/components/profile/ProfileView";
 import useHasSettled from "@/hooks/useHasSettled";
 import { FindProfile, GetRequests, GetUserData } from "@/redux/slices/actions/contactActions";
@@ -38,7 +40,28 @@ const usePersonAt = (handle) => {
   return { person: known, isMissing };
 };
 
+// a profile opened from a search, a suggestion or a request leads back there, while one opened from the list has the list beside it
+const BackBar = ({ backLabel, onBack }) => {
+  const navigate = useNavigate();
+  if (!backLabel && !onBack) return null;
+
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", minHeight: 44, mb: 1.5 }}>
+      {backLabel ? (
+        <Button onClick={() => navigate(-1)} startIcon={<ArrowLeft weight="bold" />} sx={SOFT}>
+          {backLabel}
+        </Button>
+      ) : (
+        <IconButton aria-label="Back to contacts" onClick={onBack} sx={{ ml: -1 }}>
+          <ArrowLeft size={22} />
+        </IconButton>
+      )}
+    </Box>
+  );
+};
+
 const PersonPane = ({ handle, onBack }) => {
+  const { state } = useLocation();
   const { person, isMissing } = usePersonAt(handle);
   const hasFriends = useHasSettled(GetFriends);
   const hasRequests = useHasSettled(GetRequests);
@@ -48,13 +71,7 @@ const PersonPane = ({ handle, onBack }) => {
   return (
     <Box sx={{ height: "100%", overflowY: "auto", bgcolor: SURFACE }}>
       <Box sx={{ maxWidth: READING_WIDTH, mx: "auto", ...PANE_INSET }}>
-        {onBack && (
-          <Box sx={{ display: "flex", alignItems: "center", minHeight: 44, mb: 1.5 }}>
-            <IconButton aria-label="Back to contacts" onClick={onBack} sx={{ ml: -1 }}>
-              <ArrowLeft size={22} />
-            </IconButton>
-          </Box>
-        )}
+        <BackBar backLabel={state?.backLabel} onBack={onBack} />
         {isMissing && <PaneEmpty text={`No one on Whisprl goes by ${handle}.`} />}
         {!isMissing && isReady && <ProfileView key={person._id} person={person} size="page" surface={SURFACE} />}
         {!isMissing && !isReady && <ProfileIdentity person={{ _id: handle }} size="page" surface={SURFACE} />}

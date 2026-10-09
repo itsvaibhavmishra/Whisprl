@@ -1,21 +1,14 @@
-import { useEffect } from "react";
 import { Box, ButtonBase, Typography } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { GetCommonGroups } from "@/redux/slices/actions/messageActions";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { chatPath } from "@/sections/chat/chatRoute";
 
 const CommonGroups = ({ personId }) => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const groups = useSelector((state) => state.chat.commonGroups[personId]);
-
-  useEffect(() => {
-    dispatch(GetCommonGroups(personId));
-  }, [dispatch, personId]);
 
   if (!groups?.length) return null;
 

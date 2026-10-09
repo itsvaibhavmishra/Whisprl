@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Box, List } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -9,6 +9,7 @@ import RelationshipActions from "@/components/profile/RelationshipActions";
 import SafetyRows from "@/components/profile/SafetyRows";
 import useRelationship from "@/hooks/useRelationship";
 import { GetUserData } from "@/redux/slices/actions/contactActions";
+import { GetCommonGroups } from "@/redux/slices/actions/messageActions";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { isOnline } from "@/utils/chats";
 
@@ -20,15 +21,20 @@ const SECTION_SHIFT = { page: { xs: -0.5, md: 1.5 }, sheet: 0.5 };
 const ProfileView = ({ person: known, size = "sheet", surface, startWithComposer = false }) => {
   const dispatch = useDispatch();
   const fetched = useSelector((state) => state.contact.profiles[known._id]);
+  const hasGroups = useSelector((state) => state.chat.commonGroups[known._id] !== undefined);
   const onlineFriends = useSelector((state) => state.user.onlineFriends);
   const person = { ...known, ...fetched };
   const relationship = useRelationship(person._id);
   const isFriend = relationship.state === "friend";
   const isSelf = relationship.state === "self";
+  const [isAnswered, setIsAnswered] = useState(false);
+  // what loads late appears below everything already showing, all at once, so nothing on screen moves when it lands
+  const isComplete = isAnswered || (Boolean(fetched) && (isSelf || hasGroups));
 
   useEffect(() => {
-    dispatch(GetUserData(known._id));
-  }, [dispatch, known._id]);
+    const groups = isSelf ? null : dispatch(GetCommonGroups(known._id));
+    Promise.all([dispatch(GetUserData(known._id)), groups]).then(() => setIsAnswered(true));
+  }, [dispatch, isSelf, known._id]);
 
   return (
     <Box sx={{ pb: 3 }}>
@@ -40,8 +46,8 @@ const ProfileView = ({ person: known, size = "sheet", surface, startWithComposer
           </Box>
           <Box sx={{ mx: SECTION_SHIFT[size] }}>
             <ProfileFacts person={person} />
-            {!isSelf && <CommonGroups personId={person._id} />}
-            {!isSelf && (
+            {isComplete && !isSelf && <CommonGroups personId={person._id} />}
+            {isComplete && !isSelf && (
               <DetailsSection title="Privacy and safety">
                 <List disablePadding>
                   <SafetyRows person={person} canRemoveFriend={isFriend} />

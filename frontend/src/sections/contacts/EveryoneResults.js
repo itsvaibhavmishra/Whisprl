@@ -14,6 +14,7 @@ import PersonRow, { PersonRows, PersonSkeletons } from "@/sections/contacts/Pers
 import { isOnline } from "@/utils/chats";
 
 const SEARCH_PAUSE_MS = 400;
+const BACK_LABEL = "Back to search";
 const NONE = [];
 
 // one search in flight at a time, so a slow answer to earlier words never lands on later ones
@@ -75,9 +76,9 @@ const EveryoneResults = ({ needle, query }) => {
       <PersonRows>
         {found.map((person) =>
           friendIds.has(person._id) ? (
-            <PersonRow key={person._id} person={person} isOnline={isOnline(person, onlineFriends)} action={<MessageButton person={person} />} />
+            <PersonRow key={person._id} person={person} isOnline={isOnline(person, onlineFriends)} action={<MessageButton person={person} />} backLabel={BACK_LABEL} />
           ) : (
-            <PersonRow key={person._id} person={person} action={<RequestButton person={person} size="small" sx={{ borderRadius: 99 }} />} />
+            <PersonRow key={person._id} person={person} action={<RequestButton person={person} size="small" sx={{ borderRadius: 99 }} />} backLabel={BACK_LABEL} />
           )
         )}
       </PersonRows>

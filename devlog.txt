@@ -56,6 +56,8 @@
     - A new 404 page with the mascot and a way back to your chats
     - Lists, profiles and request cards line up on one edge, on a computer and a phone
     - Contacts opens on Requests when someone is waiting, and on Find people when no one is
+    - A profile opened from a search, a suggestion or a request has a Back button to where you were, keeping your search
+    - Profiles open without jumping: when someone joined shows straight away, and what loads later arrives once, below the rest
     - Friends of your friends see the friends you share on your profile, unless you turn suggestions off
     - Someone who declined your request, or whose friendship ended, is never suggested to you again
     - Contacts waits for your friends and requests before saying none are waiting, so a friend's profile never offers Add friend while it loads

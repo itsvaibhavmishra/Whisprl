@@ -21,9 +21,11 @@ const ProfileSheet = ({ person, startWithComposer = false, onClose }) => {
       onTouchStart={keepInside}
       onTouchMove={keepInside}
       onTouchEnd={keepInside}
+      // held near the top, so a profile that fills in grows downward instead of moving the whole sheet
+      sx={{ "& .MuiDialog-container": { alignItems: { sm: "flex-start" } } }}
       PaperProps={{
         "aria-label": person.firstName ? `${person.firstName}'s profile` : "Profile",
-        sx: { width: { sm: 480 }, maxWidth: "100%", maxHeight: { sm: "min(88dvh, 880px)" }, borderRadius: { sm: 2 }, overflow: "hidden", backgroundImage: "none" },
+        sx: { width: { sm: 480 }, maxWidth: "100%", maxHeight: { sm: "min(88dvh, 880px)" }, mt: { sm: "6dvh" }, borderRadius: { sm: 2 }, overflow: "hidden", backgroundImage: "none" },
       }}
     >
       <Box sx={{ overflowY: "auto" }}>

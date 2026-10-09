@@ -10,7 +10,7 @@ import { saveMessage, validateCipher } from "#src/services/messageService.js";
 import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requestCooldownService.js";
 import { forgetSuggestionsBetween } from "#src/services/suggestionService.js";
 
-const FRIEND_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus onlineStatus publicKeys.keyId";
+const FRIEND_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt onlineStatus publicKeys.keyId";
 // every key they ever had, so a note still opens after its sender moves to a new one
 const REQUESTER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
 

@@ -14,7 +14,7 @@ const ROW_SLIDE = { type: "spring", stiffness: 520, damping: 42 };
 const SETTLE = { duration: 0.28, ease: [0.33, 1, 0.68, 1] };
 
 // the row is a link, so the avatar's status button and the trailing action sit beside it as siblings rather than inside it
-const PersonRow = ({ person, isSelected = false, isOnline = false, detail, action }) => {
+const PersonRow = ({ person, isSelected = false, isOnline = false, detail, action, backLabel }) => {
   const statuses = useLiveStatuses(person._id);
   const name = `${person.firstName} ${person.lastName}`;
 
@@ -52,6 +52,7 @@ const PersonRow = ({ person, isSelected = false, isOnline = false, detail, actio
       <ButtonBase
         component={Link}
         to={contactPathOf(person)}
+        state={backLabel && { backLabel }}
         aria-current={isSelected ? "page" : undefined}
         sx={{
           position: "relative",
