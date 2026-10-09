@@ -6,7 +6,7 @@
 A Real-Time web-based MERN Chat App by Vaibhaw Mishra.
 { Development in Progress }
 
-![Whisprl](https://i.imgur.com/CMGzVa3.png)
+![Whisprl](https://res.cloudinary.com/ecombidding/image/upload/v1791568414/portfolio/projects/whisprl-cover.png)
 
 ## ✅ Site Status
 
