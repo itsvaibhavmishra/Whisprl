@@ -12,6 +12,7 @@ import {
 } from "@/redux/slices/actions/userActions";
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 import { BlockUser, GetBlocked, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
+import { ConfirmRecoveryKeySaved, ConfirmUsername, GetOnboarding, MarkWhatsNewSeen, SaveBirthdayStep, SkipSetupStep } from "@/redux/slices/actions/onboardingActions";
 
 const initialState = {
   user: {
@@ -25,6 +26,7 @@ const initialState = {
   },
   accountSummary: null,
   latestProfileRead: null,
+  latestOnboardingRead: null,
   passkeys: [],
   blockedPeople: [],
 
@@ -147,6 +149,14 @@ const slice = createSlice({
       .addCase(UpdateBirthdaySetting.rejected, (state, action) => {
         state.user.showBirthdayToFriends = !action.meta.arg;
       })
+      .addCase(GetOnboarding.pending, (state, action) => {
+        state.latestOnboardingRead = action.meta.requestId;
+      })
+      .addCase(GetOnboarding.fulfilled, (state, action) => {
+        // a step saved while this was loading is newer than what it brought back
+        if (action.meta.requestId !== state.latestOnboardingRead) return;
+        state.user = { ...state.user, ...action.payload.user };
+      })
       .addCase(GetMyProfile.pending, (state, action) => {
         state.latestProfileRead = action.meta.requestId;
       })
@@ -168,6 +178,18 @@ const slice = createSlice({
       .addCase(GetOnlineFriends.fulfilled, (state, action) => {
         state.onlineFriends = action.payload.onlineFriends;
       })
+      .addMatcher(
+        isAnyOf(SaveBirthdayStep.pending, ConfirmUsername.pending, ConfirmRecoveryKeySaved.pending, SkipSetupStep.pending, MarkWhatsNewSeen.pending),
+        (state) => {
+          state.latestOnboardingRead = null;
+        }
+      )
+      .addMatcher(
+        isAnyOf(SaveBirthdayStep.fulfilled, ConfirmUsername.fulfilled, ConfirmRecoveryKeySaved.fulfilled, SkipSetupStep.fulfilled, MarkWhatsNewSeen.fulfilled),
+        (state, action) => {
+          state.user = { ...state.user, ...action.payload.user };
+        }
+      )
       .addMatcher(
         isAnyOf(GetPasskeys.fulfilled, AddPasskey.fulfilled, LinkPasskey.fulfilled, RemovePasskey.fulfilled),
         (state, action) => {

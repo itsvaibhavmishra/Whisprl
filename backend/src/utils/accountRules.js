@@ -45,8 +45,15 @@ export const birthdayFrom = (value) => {
     throw createHttpError.BadRequest("That date doesn't exist");
   }
   if (date > new Date()) throw createHttpError.BadRequest("A birthday can't be in the future");
-  if (ageOn(new Date(), { day, month, year }) < MIN_AGE) throw createHttpError.BadRequest(`You must be at least ${MIN_AGE} to use Whisprl`);
   return { day, month, year };
+};
+
+export const isOldEnough = (birthday) => ageOn(new Date(), birthday) >= MIN_AGE;
+
+export const oldEnoughBirthdayFrom = (value) => {
+  const birthday = birthdayFrom(value);
+  if (birthday && !isOldEnough(birthday)) throw createHttpError.BadRequest(`You must be at least ${MIN_AGE} to use Whisprl`);
+  return birthday;
 };
 
 const USERNAME = /^(?=.{3,20}$)[a-z0-9]+(?:[._][a-z0-9]+)*$/;

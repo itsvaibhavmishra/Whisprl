@@ -93,6 +93,7 @@ export const signInWithProvider = async (provider, credential) => {
   // nobody proved they own an unverified account's password, so the provider's proof replaces it
   if (!user.verified) {
     user.verified = true;
+    user.isNewAccount = true;
     user.password = undefined;
     user.verification = undefined;
   }

@@ -5,11 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { PaneSection } from "@/components/Pane";
 import RequestButton from "@/components/profile/RequestButton";
 import { SOFT } from "@/components/profile/RelationshipActions";
+import useHasSettled from "@/hooks/useHasSettled";
 import useInfiniteScroll from "@/hooks/useInfiniteScroll";
 import useIsLoading from "@/hooks/useIsLoading";
 import useOpenChat from "@/hooks/useOpenChat";
 import { FindEveryone } from "@/redux/slices/actions/contactActions";
 import { GetPublicStatusesOf } from "@/redux/slices/actions/statusActions";
+import { GetFriends } from "@/redux/slices/actions/userActions";
 import PersonRow, { PersonRows, PersonSkeletons } from "@/sections/contacts/PersonRow";
 import { isOnline } from "@/utils/chats";
 
@@ -59,9 +61,11 @@ const EveryoneResults = ({ needle, query }) => {
   const onlineFriends = useSelector((state) => state.user.onlineFriends);
   const { keyword, people, total, pages } = useSelector((state) => state.contact.everyone);
   const isLoading = useIsLoading(FindEveryone);
+  const hasFriends = useHasSettled(GetFriends);
   const search = useEveryoneSearch(needle);
 
-  const isAnswered = keyword === needle;
+  // a friend is only known once the friends list is in, so results wait for it rather than offer a friend Add friend
+  const isAnswered = keyword === needle && hasFriends;
   const found = isAnswered ? people : NONE;
   const hasMore = isAnswered && found.length < total;
   const endMarker = useInfiniteScroll(() => search(pages), { isActive: hasMore && !isLoading, length: found.length });

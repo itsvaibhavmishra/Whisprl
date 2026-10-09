@@ -25,6 +25,8 @@ export const PATH_AUTH = {
   },
 };
 
+export const PATH_SETUP = path(ROOTS_DASHBOARD, "setup");
+
 export const PATH_DOCS = {
   root: ROOTS_DASHBOARD,
   general: {

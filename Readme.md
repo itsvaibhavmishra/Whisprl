@@ -212,6 +212,7 @@ $ npm run build
 │   │   │   ├── keyController.js
 │   │   │   ├── messageActionController.js
 │   │   │   ├── messageController.js
+│   │   │   ├── onboardingController.js
 │   │   │   ├── passkeyController.js
 │   │   │   ├── safetyController.js
 │   │   │   ├── socialController.js
@@ -246,6 +247,7 @@ $ npm run build
 │   │   │   ├── index.js
 │   │   │   ├── keyRouter.js
 │   │   │   ├── messageRouter.js
+│   │   │   ├── onboardingRouter.js
 │   │   │   ├── passkeyRouter.js
 │   │   │   ├── statusRouter.js
 │   │   │   ├── userRouter.js
@@ -263,6 +265,7 @@ $ npm run build
 │   │   │   ├── mailer.js
 │   │   │   ├── messageActionService.js
 │   │   │   ├── messageService.js
+│   │   │   ├── onboardingService.js
 │   │   │   ├── passkeyService.js
 │   │   │   ├── reportService.js
 │   │   │   ├── requestCooldownService.js
@@ -454,6 +457,7 @@ $ npm run build
 │   │   │   ├── docs/
 │   │   │   │   ├── TnC.js
 │   │   │   ├── 404.js
+│   │   │   ├── Setup.js
 │   │   ├── redux/
 │   │   │   ├── slices/
 │   │   │   │   ├── actions/
@@ -466,6 +470,7 @@ $ npm run build
 │   │   │   │   │   ├── encryptionActions.js
 │   │   │   │   │   ├── groupActions.js
 │   │   │   │   │   ├── messageActions.js
+│   │   │   │   │   ├── onboardingActions.js
 │   │   │   │   │   ├── passkeyActions.js
 │   │   │   │   │   ├── socketActions.js
 │   │   │   │   │   ├── statusActions.js
@@ -591,6 +596,7 @@ $ npm run build
 │   │   │   │   ├── contactsRoute.js
 │   │   │   ├── encryption/
 │   │   │   │   ├── EncryptionGate.js
+│   │   │   │   ├── RecoveryKeyBox.js
 │   │   │   │   ├── RecoveryKeyDialog.js
 │   │   │   │   ├── UnlockDialog.js
 │   │   │   ├── profile/
@@ -614,6 +620,15 @@ $ npm run build
 │   │   │   │   ├── SuggestionsSetting.js
 │   │   │   │   ├── UsernameSetting.js
 │   │   │   │   ├── WallpaperSetting.js
+│   │   │   ├── setup/
+│   │   │   │   ├── BirthdayStep.js
+│   │   │   │   ├── PasskeyStep.js
+│   │   │   │   ├── ProfileStep.js
+│   │   │   │   ├── ProtectMessagesStep.js
+│   │   │   │   ├── SetupFrame.js
+│   │   │   │   ├── SetupPaused.js
+│   │   │   │   ├── SetupSteps.js
+│   │   │   │   ├── UsernameStep.js
 │   │   │   ├── status/
 │   │   │   │   ├── AudienceDialog.js
 │   │   │   │   ├── DeleteUpdateDialog.js
@@ -641,6 +656,13 @@ $ npm run build
 │   │   │   │   ├── HeroConversation.js
 │   │   │   │   ├── MernStack.js
 │   │   │   │   ├── styles.js
+│   │   │   ├── whats-new/
+│   │   │   │   ├── ReleaseBanner.js
+│   │   │   │   ├── ReleaseHighlights.js
+│   │   │   │   ├── releases.json
+│   │   │   │   ├── whatsNew.js
+│   │   │   │   ├── whatsNew.test.js
+│   │   │   │   ├── WhatsNewDialog.js
 │   │   ├── theme/
 │   │   │   ├── overrides/
 │   │   │   │   ├── Accordion.js
@@ -746,6 +768,7 @@ $ npm run build
 │   │   │   ├── messageSummary.test.js
 │   │   │   ├── notifications.js
 │   │   │   ├── notify.js
+│   │   │   ├── onboarding.js
 │   │   │   ├── passkeys.js
 │   │   │   ├── reactions.js
 │   │   │   ├── relationship.js

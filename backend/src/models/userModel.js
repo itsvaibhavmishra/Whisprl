@@ -51,6 +51,8 @@ const coverStyleSchema = mongoose.Schema(
   { _id: false }
 );
 
+const skippedStepSchema = mongoose.Schema({ version: { type: Number, required: true }, at: { type: Date, required: true } }, { _id: false });
+
 const birthdaySchema = mongoose.Schema(
   {
     day: { type: Number, required: true },
@@ -66,6 +68,7 @@ const userSchema = mongoose.Schema(
     lastName: { type: String, required: [true, "Last Name is required"] },
     username: { type: String, unique: true, sparse: true },
     usernameChangedAt: { type: Date },
+    usernameConfirmedAt: { type: Date },
     avatar: { type: String },
     cover: { type: String, default: "" },
     // the doodle drawn when there is no cover photo, or once it is removed
@@ -110,9 +113,16 @@ const userSchema = mongoose.Schema(
 
     quickReactions: { type: [String], default: undefined },
 
+    // set only when an account is made, so every account from before setup existed counts as returning
+    isNewAccount: { type: Boolean, default: false },
+    agePausedUntil: { type: Date },
+    skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
+    whatsNewSeen: { type: String },
+
     // End-to-end encryption: every public key the account has had, newest last
     publicKeys: [publicKeySchema],
     keyBackup: { type: keyBackupSchema, select: false },
+    recoveryKeySavedAt: { type: Date },
   },
   {
     timestamps: true,
