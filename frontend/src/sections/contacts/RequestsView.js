@@ -7,6 +7,7 @@ import Pane, { PaneEmpty, PaneSection, READING_WIDTH } from "@/components/Pane";
 import RelationshipActions from "@/components/profile/RelationshipActions";
 import useHasSettled from "@/hooks/useHasSettled";
 import { GetRequests } from "@/redux/slices/actions/contactActions";
+import { selectWaitingRequests } from "@/redux/slices/contactSlice";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import { FIND_PATH, contactPathOf } from "@/sections/contacts/contactsRoute";
 import { ageOf } from "@/utils/statuses";
@@ -70,7 +71,7 @@ const RequestGroup = ({ label, requests, isMine }) => (
 );
 
 const RequestsView = ({ onBack }) => {
-  const incoming = useSelector((state) => state.contact.incoming);
+  const incoming = useSelector(selectWaitingRequests);
   const outgoing = useSelector((state) => state.contact.outgoing);
   const hasRequests = useHasSettled(GetRequests);
   const isEmpty = !incoming.length && !outgoing.length;

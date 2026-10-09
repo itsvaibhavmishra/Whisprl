@@ -4,6 +4,7 @@ import {
   GetMyProfile,
   GetOnlineFriends,
   SearchFriends,
+  UpdateBirthdaySetting,
   UpdateProfile,
   UpdateQuickReactions,
   UpdateSuggestionSetting,
@@ -136,6 +137,15 @@ const slice = createSlice({
       })
       .addCase(UpdateSuggestionSetting.rejected, (state, action) => {
         state.user.suggestToFriendsOfFriends = !action.meta.arg;
+      })
+      .addCase(UpdateBirthdaySetting.pending, (state, action) => {
+        state.user.showBirthdayToFriends = action.meta.arg;
+      })
+      .addCase(UpdateBirthdaySetting.fulfilled, (state, action) => {
+        state.user.showBirthdayToFriends = action.payload.showBirthdayToFriends;
+      })
+      .addCase(UpdateBirthdaySetting.rejected, (state, action) => {
+        state.user.showBirthdayToFriends = !action.meta.arg;
       })
       .addCase(GetMyProfile.pending, (state, action) => {
         state.latestProfileRead = action.meta.requestId;

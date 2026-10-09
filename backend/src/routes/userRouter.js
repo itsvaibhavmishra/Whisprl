@@ -10,6 +10,7 @@ import {
   getMyProfile,
   getUserData,
   searchUsers,
+  updateBirthdaySetting,
   updatePassword,
   updateProfile,
   updateQuickReactions,
@@ -50,6 +51,9 @@ userRouter.route("/quick-reactions").put(protect, writeLimit(), updateQuickReact
 
 // Whether friends of friends see this person in their suggestions
 userRouter.route("/suggestions").put(protect, writeLimit(), updateSuggestionSetting);
+
+// Whether friends see this person's birthday
+userRouter.route("/birthday-visibility").put(protect, writeLimit(), updateBirthdaySetting);
 
 // Own Profile Route
 userRouter.route("/me").get(protect, readLimit(), getMyProfile);

@@ -4,17 +4,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import useHasSettled from "@/hooks/useHasSettled";
+import { LIST_WIDTH } from "@/components/Pane";
 import { PAGE_HEIGHT_WITH_TAB_BAR } from "@/layouts/dashboard/NavRail";
 import { GetRequests } from "@/redux/slices/actions/contactActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
+import { selectWaitingRequests } from "@/redux/slices/contactSlice";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import ContactsList from "@/sections/contacts/ContactsList";
 import { FIND_PATH, REQUESTS_PATH, useContactsAddress } from "@/sections/contacts/contactsRoute";
 import FindPeople from "@/sections/contacts/FindPeople";
 import PersonPane from "@/sections/contacts/PersonPane";
 import RequestsView from "@/sections/contacts/RequestsView";
-
-const LIST_WIDTH = { md: 340, lg: 380 };
 
 const PaneAt = ({ isRequests, isFinding, handle, onBack }) => {
   if (handle) return <PersonPane key={handle} handle={handle} onBack={onBack} />;
@@ -30,7 +30,7 @@ const Contacts = () => {
   const isWide = useMediaQuery((theme) => theme.breakpoints.up("md"));
   const address = useContactsAddress();
   const hasRequests = useHasSettled(GetRequests);
-  const isWaiting = useSelector((state) => state.contact.incoming.length > 0);
+  const isWaiting = useSelector((state) => selectWaitingRequests(state).length > 0);
   const isBare = !address.isRequests && !address.isFinding && !address.handle;
   const isPaneShown = isWide || !isBare;
   const back = isWide ? undefined : () => navigate(PATH_DASHBOARD.general.contacts);

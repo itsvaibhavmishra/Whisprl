@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Badge, Box, ButtonBase, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AnimatePresence, m } from "framer-motion";
@@ -8,7 +7,7 @@ import { useSelector } from "react-redux";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import useSettings from "@/hooks/useSettings";
-import ProfileMenu from "@/layouts/dashboard/ProfileMenu";
+import { selectWaitingRequests } from "@/redux/slices/contactSlice";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { isMuted } from "@/utils/chats";
@@ -32,7 +31,7 @@ const useBadgeCounts = () => {
   const unreadChats = useSelector(
     (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
   );
-  const waitingRequests = useSelector((state) => state.contact.incoming.length);
+  const waitingRequests = useSelector((state) => selectWaitingRequests(state).length);
   return { [chat]: unreadChats, [contacts]: waitingRequests };
 };
 
@@ -136,7 +135,6 @@ const SideRail = () => {
   const stayIfHere = (to) => (to === pathname ? (event) => event.preventDefault() : undefined);
   const badges = useBadgeCounts();
   const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
-  const [profileAnchor, setProfileAnchor] = useState(null);
 
   return (
     <Stack
@@ -177,22 +175,9 @@ const SideRail = () => {
 
       <Stack spacing={1.5} alignItems="center">
         <ThemeToggle />
-        <RailItem
-          label="Profile and settings"
-          isActive={isAtYou(pathname)}
-          onClick={(event) => setProfileAnchor(event.currentTarget)}
-          aria-haspopup="menu"
-          aria-expanded={Boolean(profileAnchor)}
-        >
+        <RailItem component={Link} to={settings} label="Profile and settings" isActive={isAtYou(pathname)}>
           {getAvatar(avatar, `${firstName} ${lastName}`, 36)}
         </RailItem>
-        <ProfileMenu
-          anchorEl={profileAnchor}
-          onClose={() => setProfileAnchor(null)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          transformOrigin={{ vertical: "bottom", horizontal: "left" }}
-          slotProps={{ paper: { sx: { ml: 1.5, minWidth: 180 } } }}
-        />
       </Stack>
     </Stack>
   );
@@ -226,7 +211,6 @@ const TabBar = () => {
   const { pathname } = useLocation();
   const badges = useBadgeCounts();
   const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
-  const [profileAnchor, setProfileAnchor] = useState(null);
 
   return (
     <Stack
@@ -256,23 +240,9 @@ const TabBar = () => {
           </TabItem>
         );
       })}
-      <TabItem
-        label="You"
-        isActive={isAtYou(pathname)}
-        onClick={(event) => setProfileAnchor(event.currentTarget)}
-        aria-haspopup="menu"
-        aria-expanded={Boolean(profileAnchor)}
-      >
+      <TabItem component={Link} to={settings} label="You" isActive={isAtYou(pathname)}>
         {getAvatar(avatar, `${firstName} ${lastName}`, 24)}
       </TabItem>
-      <ProfileMenu
-        anchorEl={profileAnchor}
-        hasThemeSwitch
-        onClose={() => setProfileAnchor(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
-        slotProps={{ paper: { sx: { mb: 1, minWidth: 180 } } }}
-      />
     </Stack>
   );
 };

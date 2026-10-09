@@ -9,17 +9,18 @@ import {
   searchEveryone,
   searchForUsers,
   setQuickReactions,
+  setShowBirthdayToFriends,
 } from "#src/services/userService.js";
 import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionService.js";
 import { setSuggestToFriendsOfFriends } from "#src/services/suggestionService.js";
 import { changeUsername, checkUsername } from "#src/services/usernameService.js";
-import { assertText, assertValidName } from "#src/utils/accountRules.js";
+import { assertText, assertValidName, birthdayFrom } from "#src/utils/accountRules.js";
 import { assertCoverStyle } from "#src/utils/coverStyles.js";
 
 // -------------------------- Update Profile --------------------------
 export const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, activityStatus = "", coverPattern, coverPalette } = req.body;
+    const { firstName, lastName, activityStatus = "", coverPattern, coverPalette, birthday } = req.body;
     const user = req.user;
 
     if (!firstName || !lastName) {
@@ -30,10 +31,11 @@ export const updateProfile = async (req, res, next) => {
     assertText(activityStatus);
 
     if (!validator.isLength(activityStatus, { max: 50 })) {
-      throw createHttpError.BadRequest("Keep your status under 50 characters");
+      throw createHttpError.BadRequest("Keep your bio under 50 characters");
     }
 
-    const fields = { firstName, lastName, activityStatus };
+    // a birthday can be changed but never removed, so an empty one leaves it as it was
+    const fields = { firstName, lastName, activityStatus, ...(birthday && { birthday: birthdayFrom(birthday) }) };
     if (coverPattern || coverPalette) {
       assertCoverStyle(coverPattern, coverPalette);
       fields.coverStyle = { pattern: coverPattern, palette: coverPalette };
@@ -53,6 +55,7 @@ export const updateProfile = async (req, res, next) => {
         cover: user.cover,
         coverStyle: user.coverStyle,
         activityStatus: user.activityStatus,
+        birthday: user.birthday ?? null,
       },
     });
   } catch (error) {
@@ -106,6 +109,16 @@ export const updateSuggestionSetting = async (req, res, next) => {
   try {
     const suggestToFriendsOfFriends = await setSuggestToFriendsOfFriends(req.user, req.body.suggestToFriendsOfFriends);
     return res.status(200).json({ status: "success", suggestToFriendsOfFriends });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Birthday --------------------------
+export const updateBirthdaySetting = async (req, res, next) => {
+  try {
+    const showBirthdayToFriends = await setShowBirthdayToFriends(req.user, req.body.showBirthdayToFriends);
+    return res.status(200).json({ status: "success", showBirthdayToFriends });
   } catch (error) {
     next(error);
   }

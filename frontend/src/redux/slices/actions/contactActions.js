@@ -1,3 +1,5 @@
+import { createAction } from "@reduxjs/toolkit";
+
 import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
 import { GetConversations, GetMessages } from "@/redux/slices/actions/chatActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
@@ -71,11 +73,41 @@ export const CancelRequest = createApiThunk("friends/cancel-request", async (rec
 });
 
 // ------------- Accept/Reject Request Thunk -------------
-export const AcceptRejectRequest = createApiThunk("friends/accept-reject-request", async ({ sender_id, type }) => {
+const DECLINE_GRACE_MS = 5000;
+const heldDeclines = new Map();
+
+export const declineHeld = createAction("friends/decline-held");
+export const declineReleased = createAction("friends/decline-released");
+
+const releaseDecline = (personId) => (dispatch) => {
+  clearTimeout(heldDeclines.get(personId));
+  heldDeclines.delete(personId);
+  dispatch(declineReleased(personId));
+};
+
+// an accept wins over a decline still waiting out its Undo, so the two never both reach the server
+export const AcceptRejectRequest = createApiThunk("friends/accept-reject-request", async ({ sender_id, type }, { dispatch }) => {
+  if (type === "accept") dispatch(releaseDecline(sender_id));
   const { data } = await axios.post("/friends/accept-reject-request", { sender_id, action_type: type });
-  notifyResult(data);
+  if (type === "accept") notifyResult(data);
   return data;
 });
+
+// a decline waits out its Undo before it reaches the server, so Undo only has to cancel it
+export const DeclineRequest = (person) => (dispatch) => {
+  dispatch(declineHeld(person._id));
+  const send = () => {
+    heldDeclines.delete(person._id);
+    dispatch(AcceptRejectRequest({ sender_id: person._id, type: "reject" })).finally(() => dispatch(declineReleased(person._id)));
+  };
+  heldDeclines.set(person._id, setTimeout(send, DECLINE_GRACE_MS));
+  notify({
+    severity: "info",
+    message: `Declined ${person.firstName}'s request`,
+    duration: DECLINE_GRACE_MS,
+    action: { label: "Undo", onClick: () => dispatch(releaseDecline(person._id)) },
+  });
+};
 
 const nameOf = (person) => `${person.firstName} ${person.lastName}`;
 

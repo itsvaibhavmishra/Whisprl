@@ -6,6 +6,7 @@ import { BellSlash, Camera, Check, Checks, FileText, Microphone, Star, User, Use
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+import BirthdayCake from "@/components/BirthdayCake";
 import useSettings from "@/hooks/useSettings";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import TypingDots from "@/components/TypingDots";
@@ -153,6 +154,7 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
           <Stack direction="row" alignItems="center" spacing={0.75}>
             <Typography noWrap sx={{ flex: 1, fontSize: 15, fontWeight: unread ? 800 : 700, letterSpacing: "-0.01em" }}>
               {name}
+              {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
             </Typography>
             {activityAt && (
               <Typography

@@ -73,10 +73,17 @@ const Photo = ({ person, look, isOnline, statuses, children }) => {
   );
 };
 
-// the status reads as a message the person is sending, so its tail points back at their photo
-const StatusBubble = ({ status }) => (
-  <Box sx={{ ...bubbleShape(false), alignSelf: "end", justifySelf: "start", mt: 1.5, maxWidth: "min(100%, 44ch)", bgcolor: "background.paper", overflowWrap: "anywhere" }}>
-    {status}
+// a sheet and the canvas are already a step up, so a bubble on either goes one lighter again to stand out
+const RAISED_SURFACES = ["background.paper", "chat.canvas"];
+const bubbleOn = (surface) => {
+  if (typeof surface !== "string") return Object.fromEntries(Object.entries(surface).map(([breakpoint, value]) => [breakpoint, bubbleOn(value)]));
+  return RAISED_SURFACES.includes(surface) ? "chat.raised" : "background.paper";
+};
+
+// the bio reads as a message the person is sending, so its tail points back at their photo
+const BioBubble = ({ bio, surface }) => (
+  <Box sx={{ ...bubbleShape(false), alignSelf: "end", justifySelf: "start", mt: 1.5, maxWidth: "min(100%, 44ch)", bgcolor: bubbleOn(surface), overflowWrap: "anywhere" }}>
+    {bio}
   </Box>
 );
 
@@ -115,7 +122,7 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
           <AvatarChoices name={fullName} ownerId={person._id} hasStatus={statuses.length > 0} other={photoView} sx={{ position: "absolute", inset: RING }} />
           {photoAction && <Box sx={{ position: "absolute", right: 0, bottom: 4 }}>{photoAction}</Box>}
         </Photo>
-        {person.activityStatus && <StatusBubble status={person.activityStatus} />}
+        {person.activityStatus && <BioBubble bio={person.activityStatus} surface={look.surface} />}
       </Box>
 
       <Box sx={{ px: `${look.gutter}px`, mt: 2 }}>

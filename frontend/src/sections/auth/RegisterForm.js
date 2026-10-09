@@ -10,12 +10,12 @@ import { LoadingButton } from "@mui/lab";
 import { useDispatch } from "react-redux";
 import { RegisterUser } from "@/redux/slices/actions/authActions";
 
-import { nameRule, newPasswordRule } from "@/utils/formRules";
+import { isOldEnough, nameRule, newPasswordRule, signUpBirthdayRule } from "@/utils/formRules";
 import { PATH_AUTH } from "@/routes/paths";
-import FormProvider, { PasswordChecklist, RHFPasswordField, RHFTextField } from "@/components/hook-form";
+import FormProvider, { PasswordChecklist, RHFBirthdayPicker, RHFPasswordField, RHFTextField } from "@/components/hook-form";
 import useIsLoading from "@/hooks/useIsLoading";
 
-const RegisterForm = () => {
+const RegisterForm = ({ onTooYoung }) => {
   const isLoading = useIsLoading(RegisterUser);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -28,6 +28,8 @@ const RegisterForm = () => {
 
     email: Yup.string().required("Email Required").email("Invalid Email"),
 
+    birthday: signUpBirthdayRule,
+
     password: newPasswordRule,
   });
 
@@ -35,6 +37,7 @@ const RegisterForm = () => {
     firstName: "",
     lastName: "",
     email: "",
+    birthday: "",
     password: "",
   };
 
@@ -47,6 +50,7 @@ const RegisterForm = () => {
   const { handleSubmit } = methods;
 
   const onSubmit = async (data) => {
+    if (!isOldEnough(data.birthday)) return onTooYoung();
     const result = await dispatch(RegisterUser({ ...data, recaptchaRef }));
     if (RegisterUser.fulfilled.match(result)) navigate(PATH_AUTH.general.verify);
   };
@@ -64,6 +68,11 @@ const RegisterForm = () => {
           <RHFTextField name="lastName" label="Last name" />
         </Stack>
         <RHFTextField name="email" label="Email address" />
+        <RHFBirthdayPicker
+          name="birthday"
+          label="Birthday"
+          helperText="Friends see the day and month, never the year, and you can hide it."
+        />
         <RHFPasswordField name="password" label="Password" autoComplete="new-password" />
         <PasswordChecklist name="password" />
 

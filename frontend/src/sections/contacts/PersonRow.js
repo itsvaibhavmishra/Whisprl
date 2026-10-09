@@ -3,6 +3,7 @@ import { alpha } from "@mui/material/styles";
 import { m } from "framer-motion";
 import { Link } from "react-router-dom";
 
+import BirthdayCake from "@/components/BirthdayCake";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import AvatarChoices from "@/sections/chat/status/AvatarChoices";
 import useLiveStatuses from "@/sections/chat/status/useLiveStatuses";
@@ -71,6 +72,7 @@ const PersonRow = ({ person, isSelected = false, isOnline = false, detail, actio
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography noWrap sx={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>
             {name}
+            <BirthdayCake personId={person._id} />
             {isOnline && (
               <Box component="span" sx={SPOKEN_ONLY}>
                 , online

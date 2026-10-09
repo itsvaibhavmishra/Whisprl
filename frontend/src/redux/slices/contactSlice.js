@@ -1,7 +1,9 @@
-import { createSlice, isAnyOf } from "@reduxjs/toolkit";
+import { createSelector, createSlice, isAnyOf } from "@reduxjs/toolkit";
 import {
   AcceptRejectRequest,
   CancelRequest,
+  declineHeld,
+  declineReleased,
   FindEveryone,
   FindProfile,
   GetRequests,
@@ -28,6 +30,9 @@ const initialState = {
   profiles: {},
 
   suggestions: [],
+
+  // requests declined a moment ago, hidden while their Undo is still on screen
+  declining: [],
 };
 
 const slice = createSlice({
@@ -66,6 +71,12 @@ const slice = createSlice({
         const earlier = page > 0 && state.everyone.keyword === keyword ? state.everyone.people : [];
         state.everyone = { keyword, people: [...earlier, ...action.payload.users], total: action.payload.usersFound, pages: page + 1 };
       })
+      .addCase(declineHeld, (state, action) => {
+        state.declining.push(action.payload);
+      })
+      .addCase(declineReleased, (state, action) => {
+        state.declining = state.declining.filter((personId) => personId !== action.payload);
+      })
       .addCase(GetSuggestions.fulfilled, (state, action) => {
         state.suggestions = action.payload.suggestions;
       })
@@ -79,5 +90,9 @@ const slice = createSlice({
 });
 
 export const { clearSearchUsers } = slice.actions;
+
+export const selectWaitingRequests = createSelector([(state) => state.contact.incoming, (state) => state.contact.declining], (incoming, declining) =>
+  incoming.filter((request) => !declining.includes(request.person._id))
+);
 
 export default slice.reducer;

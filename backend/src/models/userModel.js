@@ -51,6 +51,15 @@ const coverStyleSchema = mongoose.Schema(
   { _id: false }
 );
 
+const birthdaySchema = mongoose.Schema(
+  {
+    day: { type: Number, required: true },
+    month: { type: Number, required: true },
+    year: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
@@ -70,6 +79,9 @@ const userSchema = mongoose.Schema(
       validate: [validator.isEmail, "Invalid Email"],
     },
     activityStatus: { type: String, default: "" },
+    // friends see the day and month, and the year only proves someone is old enough for Whisprl
+    birthday: { type: birthdaySchema },
+    showBirthdayToFriends: { type: Boolean, default: true },
     onlineStatus: {
       type: String,
       default: "offline",

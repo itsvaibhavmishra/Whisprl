@@ -10,7 +10,7 @@ import { saveMessage, validateCipher } from "#src/services/messageService.js";
 import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requestCooldownService.js";
 import { forgetSuggestionsBetween } from "#src/services/suggestionService.js";
 
-const FRIEND_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt onlineStatus publicKeys.keyId";
+const FRIEND_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
 // every key they ever had, so a note still opens after its sender moves to a new one
 const REQUESTER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
 
@@ -172,7 +172,13 @@ export const unfriend = async (user, friend_id) => {
   ]);
 };
 
-export const listFriends = async (user) => presenceShownTo(user, await UserModel.find({ _id: { $in: user.friends } }).select(FRIEND_FIELDS).lean());
+const withBirthdayIfShown = ({ showBirthdayToFriends, birthday, ...friend }) =>
+  birthday && showBirthdayToFriends !== false ? { ...friend, birthday } : friend;
+
+export const listFriends = async (user) => {
+  const friends = await UserModel.find({ _id: { $in: user.friends } }).select(FRIEND_FIELDS).lean();
+  return presenceShownTo(user, friends.map(withBirthdayIfShown));
+};
 
 export const listOnlineFriends = (user) =>
   UserModel.find({ _id: { $in: user.friends, $nin: user.blocked }, blocked: { $ne: user._id }, onlineStatus: "online" }).select(

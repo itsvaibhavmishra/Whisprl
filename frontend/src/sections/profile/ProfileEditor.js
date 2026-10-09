@@ -6,21 +6,24 @@ import { Box, Button, Paper, Slide, Stack, Typography } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
-import FormProvider, { RHFTextField } from "@/components/hook-form";
+import FormProvider, { RHFBirthdayPicker, RHFTextField } from "@/components/hook-form";
 import ProfileIdentity from "@/components/profile/ProfileIdentity";
 import { UpdateProfile } from "@/redux/slices/actions/userActions";
 import AccountSummary from "@/sections/profile/AccountSummary";
 import ImageMenu from "@/components/ImageMenu";
 import CoverPicker from "@/sections/profile/CoverPicker";
+import UsernameField from "@/sections/profile/UsernameField";
+import { dateInputOf } from "@/utils/birthdays";
 import { coverStyleOf } from "@/utils/covers";
-import { nameRule } from "@/utils/formRules";
+import { nameRule, profileBirthdayRule } from "@/utils/formRules";
 
 const STATUS_LIMIT = 50;
 
 const ProfileSchema = Yup.object({
   firstName: nameRule("First name"),
   lastName: nameRule("Last name"),
-  activityStatus: Yup.string().trim().max(STATUS_LIMIT, `Keep your status under ${STATUS_LIMIT} characters`),
+  activityStatus: Yup.string().trim().max(STATUS_LIMIT, `Keep your bio under ${STATUS_LIMIT} characters`),
+  birthday: profileBirthdayRule,
   avatar: Yup.string(),
   cover: Yup.string(),
 });
@@ -31,6 +34,7 @@ const toFormValues = (user) => {
     firstName: user.firstName || "",
     lastName: user.lastName || "",
     activityStatus: user.activityStatus || "",
+    birthday: dateInputOf(user.birthday),
     avatar: user.avatar || "",
     cover: user.cover || "",
     coverPattern: pattern,
@@ -87,6 +91,7 @@ const ProfileEditor = () => {
   const methods = useForm({
     mode: "onChange",
     resolver: yupResolver(ProfileSchema),
+    context: { hasBirthday: Boolean(user.birthday) },
     defaultValues: toFormValues(user),
   });
   const {
@@ -130,22 +135,21 @@ const ProfileEditor = () => {
           mt: { xs: 5, md: 7 },
           px: { xs: 2, md: 4 },
           display: "grid",
-          gridTemplateColumns: { md: "minmax(0, 7fr) minmax(0, 5fr)" },
-          columnGap: 8,
           rowGap: 6,
-          alignItems: "start",
         }}
       >
         <Box component="section" aria-labelledby="details-title">
-          <SectionTitle id="details-title">Name and status</SectionTitle>
+          <SectionTitle id="details-title">About you</SectionTitle>
           <Stack spacing={2.5}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="flex-start">
               <RHFTextField name="firstName" label="First name" autoComplete="given-name" />
               <RHFTextField name="lastName" label="Last name" autoComplete="family-name" />
             </Stack>
+            <UsernameField />
+            <RHFBirthdayPicker name="birthday" label="Birthday" helperText="Friends see the day and month, never the year. You can hide it in Settings." />
             <RHFTextField
               name="activityStatus"
-              label="Status"
+              label="Bio"
               multiline
               minRows={2}
               helperText={

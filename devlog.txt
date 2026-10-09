@@ -40,10 +40,15 @@
     - Find people in Contacts: search everyone on Whisprl by name or @username in one list, closest matches first, friends with Message and everyone else with Add friend, loading more as you scroll; see people you may know from the friends you share or a group you're both in, each with Add friend or Hide; and share your own card with a QR code and a link
     - A search in your friends list that finds no friend offers Search everyone, which carries your words over to Find people
     - Choose whether friends of your friends can find you in their suggestions, in Settings under Contacts; it starts on, and people in your groups can always find you there
+    - Sign up asks for your birthday, and your profile lets you add or change it; friends see the day and month, never the year, with a 🎂 beside your name on the day
+    - Hide your birthday from friends in Settings under Contacts; it starts shown
+    - Birthdays this week in Contacts, with a way to wish a friend on the day
+    - Undo a declined request for a few seconds before it is sent
+    - Change your username from your profile, as well as from Settings
 
   - Improvements:
-    - Log out from the menu behind your photo on the side rail, below Settings
-    - The bar at the bottom of a phone matches the side rail: Chats, Status, Contacts, and your photo opening your profile, settings, light or dark mode and Log out
+    - Your photo on the side rail opens Settings, with Log out at the bottom of its list
+    - The bar at the bottom of a phone matches the side rail: Chats, Status, Contacts, and your photo opening Settings, where a phone also has the light and dark switch
     - Contacts shows how many friend requests are waiting, the moment one arrives
     - Your email stays private: nobody else on Whisprl can see it or find you by it, and search goes by name or username
     - Mentioning someone in a group inserts their @username, and suggestions match usernames as well as names
@@ -51,7 +56,7 @@
     - Friend requests update live for both people: a new request, an accept, a cancel or a removed friend shows at once without a reload
     - After a request is declined, you can ask the same person again after 24 hours
     - The sender of a request cannot tell whether it was read until it is accepted
-    - Your status is optional, and the old default line is gone from every profile
+    - The line beside your photo is now called your bio; it is optional, and the old default line is gone from every profile
     - Chat details show the person's cover and the same profile header
     - A new 404 page with the mascot and a way back to your chats
     - Lists, profiles and request cards line up on one edge, on a computer and a phone
@@ -61,6 +66,8 @@
     - Friends of your friends see the friends you share on your profile, unless you turn suggestions off
     - Someone who declined your request, or whose friendship ended, is never suggested to you again
     - Contacts waits for your friends and requests before saying none are waiting, so a friend's profile never offers Add friend while it loads
+    - Settings is split into Appearance, Chats, Account, Security, Privacy and About Whisprl, with your profile above them and edited right there, each at its own address, beside the list on a computer and a screen of its own on a phone
+    - Sign up never hints at the age Whisprl needs, and a refused sign up stays refused on that browser for a day rather than inviting another try
 
   - Fixed:
     - Signing in with Google works again
@@ -72,9 +79,12 @@
     - Accounts made before encryption can now set it up
     - Soft buttons and request notes show clearly in light mode, and a friend's initial no longer turns the accent colour
     - Saving your profile straight after opening it no longer snaps the form back to what it said before
+    - A bio stands out on a profile sheet instead of blending into it
+    - Your profile counts the same friends as Contacts, leaving out accounts that no longer exist
 
   - Developers:
     - One new dependency, qrcode.react, draws the QR code on your card; it brings no dependencies of its own
+    - The birthday field uses the MUI date picker, @mui/x-date-pickers with dayjs as its date library
 
   - Internal:
     - The old cat doodle cover images are gone, about 950 KB lighter

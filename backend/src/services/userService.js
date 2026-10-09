@@ -100,18 +100,24 @@ const canSeeMutualFriends = async (viewer, person) => {
 export const getPublicProfile = async (viewer, { userId, username }) => {
   const filter = username ? { username: normalizeUsername(username) } : mongoose.isValidObjectId(userId) && { _id: userId };
   if (!filter) throw createHttpError.BadRequest("Query required");
-  const person = await UserModel.findOne(filter).select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends`).lean();
+  const person = await UserModel.findOne(filter).select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month`).lean();
   if (!person) throw createHttpError.NotFound("User does not exist");
 
-  const { friends, suggestToFriendsOfFriends, ...profile } = person;
+  const { friends, suggestToFriendsOfFriends, showBirthdayToFriends, birthday, ...rest } = person;
+  // a birthday is for friends unless its owner hides it, and only its day and month ever leave the server
+  const isFriend = viewer.friends.some((friend_id) => friend_id.equals(person._id));
+  const showsBirthday = viewer._id.equals(person._id) || (isFriend && showBirthdayToFriends !== false);
+  const profile = showsBirthday && birthday ? { ...rest, birthday } : rest;
   if (!(await canSeeMutualFriends(viewer, person))) return profile;
   return { ...profile, mutualFriends: await mutualFriendsOf(viewer, person._id, friends) };
 };
 
 export const getOwnProfile = async (user) => {
   const friendIds = user.friends.filter((friendId) => !friendId.equals(user._id));
-  const [friendPreviews, conversationCount, messageCount] = await Promise.all([
+  // counted from the accounts themselves, as the friends list is, so a friend whose account is gone is not counted
+  const [friendPreviews, friendCount, conversationCount, messageCount] = await Promise.all([
     UserModel.find({ _id: { $in: friendIds } }).select("firstName lastName avatar").limit(5),
+    UserModel.countDocuments({ _id: { $in: friendIds } }),
     ConversationModel.countDocuments({ users: user._id }),
     MessageModel.countDocuments({ sender: user._id }),
   ]);
@@ -127,9 +133,10 @@ export const getOwnProfile = async (user) => {
     coverStyle: user.coverStyle,
     email: user.email,
     activityStatus: user.activityStatus,
+    birthday: user.birthday,
     createdAt: user.createdAt,
     socialsConnected: user.socialsConnected,
-    friendCount: friendIds.length,
+    friendCount,
     friendPreviews,
     conversationCount,
     messageCount,
@@ -253,4 +260,10 @@ export const setQuickReactions = async (user, reactions) => {
   user.quickReactions = reactions;
   await user.save();
   return reactions;
+};
+
+export const setShowBirthdayToFriends = async (user, isShown) => {
+  if (typeof isShown !== "boolean") throw createHttpError.BadRequest("Choose on or off");
+  await UserModel.updateOne({ _id: user._id }, { showBirthdayToFriends: isShown });
+  return isShown;
 };

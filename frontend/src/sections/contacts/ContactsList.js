@@ -6,14 +6,18 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import { PaneEmpty } from "@/components/Pane";
+import { SOFT } from "@/components/profile/RelationshipActions";
 import SearchPill from "@/components/SearchPill";
 import Wordmark from "@/components/Wordmark";
 import useHasSettled from "@/hooks/useHasSettled";
 import useInfiniteScroll from "@/hooks/useInfiniteScroll";
+import useOpenChat from "@/hooks/useOpenChat";
 import { GetRequests } from "@/redux/slices/actions/contactActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
+import { selectWaitingRequests } from "@/redux/slices/contactSlice";
 import { FIND_PATH, REQUESTS_PATH, isAddressOf, useContactsAddress } from "@/sections/contacts/contactsRoute";
 import PersonRow, { PersonSkeletons } from "@/sections/contacts/PersonRow";
+import { birthdaysThisWeek, isBirthdayToday, whenLabel } from "@/utils/birthdays";
 import { isOnline } from "@/utils/chats";
 import { SPOKEN_ONLY } from "@/utils/spokenOnly";
 
@@ -44,7 +48,7 @@ const SectionLabel = ({ label, count }) => (
 );
 
 const RequestsRow = ({ isSelected, isWide }) => {
-  const incoming = useSelector((state) => state.contact.incoming);
+  const incoming = useSelector(selectWaitingRequests);
   const outgoing = useSelector((state) => state.contact.outgoing);
   const hasRequests = useHasSettled(GetRequests);
   const waiting = incoming.length;
@@ -96,6 +100,32 @@ const RequestsRow = ({ isSelected, isWide }) => {
   );
 };
 
+const WishButton = ({ person }) => {
+  const openChat = useOpenChat(person._id);
+  return (
+    <Button size="small" onClick={openChat} sx={{ ...SOFT, borderRadius: 99 }}>
+      Wish them
+    </Button>
+  );
+};
+
+const BirthdaysThisWeek = ({ people, onlineFriends }) => (
+  <>
+    <SectionLabel label="Birthdays this week" count={people.length} />
+    <Box component="ul" sx={{ m: 0, p: 0 }}>
+      {people.map((person) => (
+        <PersonRow
+          key={person._id}
+          person={person}
+          isOnline={isOnline(person, onlineFriends)}
+          detail={whenLabel(person.birthday)}
+          action={isBirthdayToday(person.birthday) ? <WishButton person={person} /> : undefined}
+        />
+      ))}
+    </Box>
+  </>
+);
+
 // the list finds friends only, so a search that misses carries its words over to Find people, which looks through everyone
 const NoFriendMatches = ({ query, onLeave }) => (
   <Stack alignItems="center" spacing={2} sx={{ px: 3, py: 5, textAlign: "center" }}>
@@ -117,6 +147,7 @@ const ContactsList = ({ isWide }) => {
   // everyone is their own friend on the server, so the list leaves you out
   const people = friends.filter((friend) => friend._id !== meId).sort(byName);
   const shownFriends = needle ? people.filter(matches(needle)) : people;
+  const birthdays = needle ? [] : birthdaysThisWeek(people);
   const [rowCount, setRowCount] = useState(ROWS_PER_PAGE);
   const hasMoreRows = rowCount < shownFriends.length;
   const endMarker = useInfiniteScroll(() => setRowCount((count) => count + ROWS_PER_PAGE), { isActive: hasMoreRows, length: rowCount });
@@ -186,6 +217,7 @@ const ContactsList = ({ isWide }) => {
 
       <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
         {!needle && <RequestsRow isSelected={isRequests} isWide={isWide} />}
+        {birthdays.length > 0 && <BirthdaysThisWeek people={birthdays} onlineFriends={onlineFriends} />}
         {friendsSection()}
         {hasFriends && needle && !shownFriends.length && <NoFriendMatches query={query.trim()} onLeave={() => setQuery("")} />}
       </Box>

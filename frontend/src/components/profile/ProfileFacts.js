@@ -2,6 +2,7 @@ import { Avatar, AvatarGroup, Box, Skeleton, Stack, Typography } from "@mui/mate
 
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { avatarLookOf } from "@/utils/avatars";
+import { birthdayLabel, isBirthdayToday } from "@/utils/birthdays";
 
 const joinedOn = (date) => new Date(date).toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
@@ -24,13 +25,14 @@ const Fact = ({ label, children }) => (
 );
 
 const ProfileFacts = ({ person }) => {
-  const { createdAt, mutualFriends } = person;
+  const { createdAt, birthday, mutualFriends } = person;
 
   // the section holds its place until the full profile arrives, so nothing below it moves when it does
   return (
     <DetailsSection title="About">
       <Box component="dl" sx={{ m: 0 }}>
         <Fact label="On Whisprl since">{createdAt ? joinedOn(createdAt) : <Skeleton width={120} sx={{ borderRadius: 1 }} />}</Fact>
+        {birthday && <Fact label="Birthday">{isBirthdayToday(birthday) ? "Today 🎂" : birthdayLabel(birthday)}</Fact>}
         {mutualFriends?.count > 0 && (
           <Fact label="Mutual friends">
             <Stack direction="row" spacing={1.25} alignItems="center">

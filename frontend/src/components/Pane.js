@@ -30,6 +30,8 @@ export const READING_WIDTH = 760;
 
 export const PANE_INSET = { px: { xs: 2, md: 4 }, pt: { xs: 1.5, md: 4 } };
 
+export const LIST_WIDTH = { md: 340, lg: 380 };
+
 // every pane beside a list shares one column, inset and heading, so switching between them moves nothing
 const Pane = ({ title, subtitle, onBack, action, width = 1040, children }) => (
   <Box sx={{ height: "100%", overflowY: "auto", bgcolor: { xs: "chat.list", md: "chat.canvas" } }}>

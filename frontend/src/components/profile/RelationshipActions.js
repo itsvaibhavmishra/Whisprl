@@ -9,7 +9,7 @@ import RequestComposer from "@/components/profile/RequestComposer";
 import RequestNote from "@/components/profile/RequestNote";
 import useIsLoading from "@/hooks/useIsLoading";
 import useOpenChat from "@/hooks/useOpenChat";
-import { AcceptRejectRequest, CancelRequest } from "@/redux/slices/actions/contactActions";
+import { AcceptRejectRequest, CancelRequest, DeclineRequest } from "@/redux/slices/actions/contactActions";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { shareProfile } from "@/sections/contacts/contactsRoute";
 import { waitLabel } from "@/utils/relationship";
@@ -40,7 +40,6 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
   const { firstName } = person;
   const { request } = relationship;
 
-  const answer = (type) => dispatch(AcceptRejectRequest({ sender_id: person._id, type }));
 
   switch (relationship.state) {
     case "self":
@@ -67,10 +66,10 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
           <RequestNote request={request} isMine={false} />
           {request.note && <Helper>{firstName} can't see that you've read this until you accept.</Helper>}
           <Stack direction="row" spacing={1}>
-            <Button variant="contained" disabled={isAnswering} onClick={() => answer("accept")}>
+            <Button variant="contained" disabled={isAnswering} onClick={() => dispatch(AcceptRejectRequest({ sender_id: person._id, type: "accept" }))}>
               Accept
             </Button>
-            <Button disabled={isAnswering} onClick={() => answer("reject")} sx={SOFT}>
+            <Button disabled={isAnswering} onClick={() => dispatch(DeclineRequest(person))} sx={SOFT}>
               Decline
             </Button>
           </Stack>

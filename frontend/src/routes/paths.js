@@ -9,7 +9,7 @@ export const PATH_DASHBOARD = {
   general: {
     chat: path(ROOTS_DASHBOARD, "chat"),
     status: path(ROOTS_DASHBOARD, "status"),
-    profile: path(ROOTS_DASHBOARD, "profile"),
+    profile: path(ROOTS_DASHBOARD, "settings/profile"),
     contacts: path(ROOTS_DASHBOARD, "contacts"),
     settings: path(ROOTS_DASHBOARD, "settings"),
   },

@@ -357,6 +357,7 @@ $ npm run build
 │   │   │   │   ├── FormProvider.js
 │   │   │   │   ├── index.js
 │   │   │   │   ├── PasswordChecklist.js
+│   │   │   │   ├── RHFBirthdayPicker.js
 │   │   │   │   ├── RHFOtp.js
 │   │   │   │   ├── RHFPasswordField.js
 │   │   │   │   ├── RHFTextField.js
@@ -391,6 +392,7 @@ $ npm run build
 │   │   │   │   ├── ThemeRtlLayout.js
 │   │   │   ├── AppearanceMenu.js
 │   │   │   ├── AppearancePickers.js
+│   │   │   ├── BirthdayCake.js
 │   │   │   ├── ConfirmDialog.js
 │   │   │   ├── ControlRow.js
 │   │   │   ├── EmojiPicker.js
@@ -408,6 +410,7 @@ $ npm run build
 │   │   │   ├── StatusArcs.js
 │   │   │   ├── StyledBadge.js
 │   │   │   ├── TypingDots.js
+│   │   │   ├── UsernameDialog.js
 │   │   │   ├── Wordmark.js
 │   │   ├── contexts/
 │   │   │   ├── SettingsContext.js
@@ -431,10 +434,8 @@ $ npm run build
 │   │   │   │   ├── BrandPanel.js
 │   │   │   │   ├── index.js
 │   │   │   ├── dashboard/
-│   │   │   │   ├── DashboardPage.js
 │   │   │   │   ├── index.js
 │   │   │   │   ├── NavRail.js
-│   │   │   │   ├── ProfileMenu.js
 │   │   │   ├── docs/
 │   │   │   │   ├── index.js
 │   │   ├── pages/
@@ -448,7 +449,6 @@ $ npm run build
 │   │   │   ├── dashboard/
 │   │   │   │   ├── Chat.js
 │   │   │   │   ├── Contacts.js
-│   │   │   │   ├── Profile.js
 │   │   │   │   ├── Settings.js
 │   │   │   │   ├── Status.js
 │   │   │   ├── docs/
@@ -493,6 +493,7 @@ $ npm run build
 │   │   │   │   ├── LoginForm.js
 │   │   │   │   ├── RegisterForm.js
 │   │   │   │   ├── ResetPasswordForm.js
+│   │   │   │   ├── SignUpPaused.js
 │   │   │   │   ├── VerifyForm.js
 │   │   │   ├── chat/
 │   │   │   │   ├── attachments/
@@ -596,14 +597,19 @@ $ npm run build
 │   │   │   │   ├── AccountSummary.js
 │   │   │   │   ├── CoverPicker.js
 │   │   │   │   ├── ProfileEditor.js
+│   │   │   │   ├── UsernameField.js
 │   │   │   ├── settings/
+│   │   │   │   ├── BirthdaySetting.js
 │   │   │   │   ├── BlockedPeopleSetting.js
 │   │   │   │   ├── ChangePasswordDialog.js
 │   │   │   │   ├── ChatPreview.js
 │   │   │   │   ├── PasskeySetting.js
 │   │   │   │   ├── QuickReactionsSetting.js
 │   │   │   │   ├── RecoveryKeySetting.js
+│   │   │   │   ├── SettingsList.js
+│   │   │   │   ├── SettingsPane.js
 │   │   │   │   ├── SettingsSection.js
+│   │   │   │   ├── settingsRoute.js
 │   │   │   │   ├── StatusPrivacySetting.js
 │   │   │   │   ├── SuggestionsSetting.js
 │   │   │   │   ├── UsernameSetting.js
@@ -713,6 +719,8 @@ $ npm run build
 │   │   │   ├── attachments.js
 │   │   │   ├── avatars.js
 │   │   │   ├── axios.js
+│   │   │   ├── birthdays.js
+│   │   │   ├── birthdays.test.js
 │   │   │   ├── chats.js
 │   │   │   ├── chats.test.js
 │   │   │   ├── colorPresets.js
@@ -744,6 +752,8 @@ $ npm run build
 │   │   │   ├── relationship.test.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── session.js
+│   │   │   ├── signUpPause.js
+│   │   │   ├── signUpPause.test.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
 │   │   │   ├── sounds.js

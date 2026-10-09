@@ -47,10 +47,10 @@ export default function Router() {
         { path: "chat/*", element: <ChatPage /> },
         { path: "app", element: <Navigate to={DEFAULT_PATH} replace /> },
         { path: "status", element: <StatusPage /> },
-        { path: "profile", element: <ProfilePage /> },
+        { path: "profile", element: <Navigate to={PATH_DASHBOARD.general.profile} replace /> },
         { path: "contacts/*", element: <ContactsPage /> },
         { path: "contact", element: <Navigate to={PATH_DASHBOARD.general.contacts} replace /> },
-        { path: "settings", element: <Settings /> },
+        { path: "settings/*", element: <Settings /> },
 
         { path: "404", element: <Page404 /> },
         { path: "*", element: <Navigate to="/404" replace /> },
@@ -62,7 +62,6 @@ export default function Router() {
 // app pages
 const ChatPage = Loadable(lazy(() => import("@/pages/dashboard/Chat")));
 const StatusPage = Loadable(lazy(() => import("@/pages/dashboard/Status")));
-const ProfilePage = Loadable(lazy(() => import("@/pages/dashboard/Profile")));
 const ContactsPage = Loadable(lazy(() => import("@/pages/dashboard/Contacts")));
 const Settings = Loadable(lazy(() => import("@/pages/dashboard/Settings")));
 
