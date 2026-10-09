@@ -87,6 +87,10 @@ const userSchema = mongoose.Schema(
     blocked: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     statusHiddenFrom: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
 
+    suggestToFriendsOfFriends: { type: Boolean, default: true },
+    // hidden by hand, or ended with a decline or an unfriend, so they are never suggested again
+    dismissedSuggestions: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+
     socialsConnected: {
       type: [String],
       enum: ["google", "github", "linkedin"],

@@ -24,7 +24,7 @@ export const getStatuses = async (req, res, next) => {
 
 export const getDiscover = async (req, res, next) => {
   try {
-    res.status(200).json({ status: "success", statuses: await discoverStatuses(req.user) });
+    res.status(200).json({ status: "success", statuses: await discoverStatuses(req.user, req.query.owners) });
   } catch (error) {
     next(error);
   }

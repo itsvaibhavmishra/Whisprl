@@ -17,11 +17,14 @@ const STATUS_GONE = "This status is no longer available";
 const CHOOSE_AUDIENCE = "Choose who can see this status";
 const ONLY_MEDIA = "Only a photo or a video can be shared with everyone";
 const DISCOVER_LIMIT = 100;
+const MAX_OWNERS = 20;
 const MAX_ALT = 2000;
 const MAX_MENTIONS = 20;
 const PUBLIC_TYPES = ["image/jpeg", "image/gif", "video/mp4", "video/webm"];
 const PREVIEW = /^data:image\/jpeg;base64,[\w+/=]+$/;
 const MAX_PREVIEW = 64 * 1024;
+
+const ownersFrom = (text) => (typeof text === "string" ? text.split(",").filter((id) => mongoose.isValidObjectId(id)).slice(0, MAX_OWNERS) : null);
 
 const parseJson = (json, problem) => {
   try {
@@ -137,9 +140,11 @@ export const listStatuses = async (user) => {
   return statuses.map((status) => toClientStatus(status, user._id));
 };
 
-// the newest from people who are not friends, since a friend's updates for everyone are in the friends list already
-export const discoverStatuses = async (user) => {
-  const live = { isPublic: true, expiresAt: { $gt: new Date() }, owner: { $nin: [user._id, ...user.friends] }, excluded: { $ne: user._id } };
+// the newest from people who are not friends, or only those of the people named, since a friend's updates for everyone are in the friends list already
+export const discoverStatuses = async (user, ownersText) => {
+  const owners = ownersFrom(ownersText);
+  const notFriends = { $nin: [user._id, ...user.friends] };
+  const live = { isPublic: true, expiresAt: { $gt: new Date() }, owner: owners ? { ...notFriends, $in: owners } : notFriends, excluded: { $ne: user._id } };
   const newest = await StatusModel.find(live).sort({ createdAt: -1 }).limit(DISCOVER_LIMIT).populate("owner", KEYED_FIELDS);
   const blocked = await blockedEitherWay(user, newest.map((status) => status.owner._id));
   const shown = newest.filter((status) => !blocked.has(String(status.owner._id))).reverse();

@@ -2,7 +2,7 @@ import { Box, ListItemButton, ListItemText } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
 const ControlRow = ({ icon: Icon, label, detail, isDanger, ...button }) => (
-  <ListItemButton {...button} sx={{ gap: 1.5, px: 1, borderRadius: 3, color: isDanger ? "error.main" : "text.primary" }}>
+  <ListItemButton {...button} sx={{ gap: 1.5, px: 1.5, borderRadius: 3, color: isDanger ? "error.main" : "text.primary" }}>
     <Box
       sx={{
         width: 36,

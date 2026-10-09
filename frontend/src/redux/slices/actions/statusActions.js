@@ -41,6 +41,13 @@ export const GetDiscover = createApiThunk("status/discover", async (_, { getStat
   readable((await axios.get("/status/discover")).data.statuses, getState().user.user._id)
 );
 
+// the ones a search turned up, so their rings show and play wherever those people appear
+export const GetPublicStatusesOf = createApiThunk(
+  "status/public-of",
+  async (ownerIds, { getState }) => readable((await axios.get("/status/discover", { params: { owners: ownerIds.join(",") } })).data.statuses, getState().user.user._id),
+  { notifyErrors: false }
+);
+
 export const ReceiveStatus = (status) => async (dispatch, getState) => {
   const [opened] = await readable([status], getState().user.user._id);
   if (opened) dispatch(statusAdded(opened));

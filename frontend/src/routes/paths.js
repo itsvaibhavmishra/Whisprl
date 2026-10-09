@@ -10,7 +10,7 @@ export const PATH_DASHBOARD = {
     chat: path(ROOTS_DASHBOARD, "chat"),
     status: path(ROOTS_DASHBOARD, "status"),
     profile: path(ROOTS_DASHBOARD, "profile"),
-    contact: path(ROOTS_DASHBOARD, "contact"),
+    contacts: path(ROOTS_DASHBOARD, "contacts"),
     settings: path(ROOTS_DASHBOARD, "settings"),
   },
 };

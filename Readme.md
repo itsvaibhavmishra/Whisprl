@@ -269,6 +269,7 @@ $ npm run build
 │   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
 │   │   │   ├── statusService.js
+│   │   │   ├── suggestionService.js
 │   │   │   ├── userService.js
 │   │   │   ├── usernameService.js
 │   │   ├── templates/
@@ -327,13 +328,6 @@ $ npm run build
 │   │   │   │   │   ├── Whisprl.webp
 │   │   │   │   │   ├── WhisprlAvatar.webp
 │   │   │   │   │   ├── WhisprlMark.webp
-│   │   │   ├── illustrations/
-│   │   │   │   ├── animations/
-│   │   │   │   │   ├── Cat404.json
-│   │   │   │   │   ├── ChillingVibes.json
-│   │   │   │   │   ├── HangingBuddy.json
-│   │   │   │   │   ├── NoResultsFound.json
-│   │   │   │   │   ├── SearchNotFound.json
 │   │   ├── components/
 │   │   │   ├── animate/
 │   │   │   │   ├── variants/
@@ -390,11 +384,6 @@ $ npm run build
 │   │   │   │   ├── RequestComposer.js
 │   │   │   │   ├── RequestNote.js
 │   │   │   │   ├── SafetyRows.js
-│   │   │   ├── search/
-│   │   │   │   ├── index.js
-│   │   │   │   ├── Search.js
-│   │   │   │   ├── SearchIconWrapper.js
-│   │   │   │   ├── StyledInputBase.js
 │   │   │   ├── theme-settings/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── ThemeColorPresets.js
@@ -408,10 +397,13 @@ $ npm run build
 │   │   │   ├── FriendPicker.js
 │   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
+│   │   │   ├── MascotHalo.js
 │   │   │   ├── NoData.js
+│   │   │   ├── Pane.js
 │   │   │   ├── ProfileCover.js
 │   │   │   ├── ReportDialog.js
 │   │   │   ├── ScrollToTop.js
+│   │   │   ├── SearchPill.js
 │   │   │   ├── SitePage.js
 │   │   │   ├── StatusArcs.js
 │   │   │   ├── StyledBadge.js
@@ -419,17 +411,18 @@ $ npm run build
 │   │   │   ├── Wordmark.js
 │   │   ├── contexts/
 │   │   │   ├── SettingsContext.js
-│   │   ├── data/
-│   │   │   ├── index.js
 │   │   ├── hooks/
 │   │   │   ├── useFileUrl.js
 │   │   │   ├── useFittedSize.js
+│   │   │   ├── useHasSettled.js
 │   │   │   ├── useImageBitmap.js
+│   │   │   ├── useInfiniteScroll.js
 │   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
 │   │   │   ├── useMessageTime.js
 │   │   │   ├── useObjectUrl.js
+│   │   │   ├── useOpenChat.js
 │   │   │   ├── useRelationship.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
@@ -454,7 +447,7 @@ $ npm run build
 │   │   │   │   ├── WelcomePage.js
 │   │   │   ├── dashboard/
 │   │   │   │   ├── Chat.js
-│   │   │   │   ├── Contact.js
+│   │   │   │   ├── Contacts.js
 │   │   │   │   ├── Profile.js
 │   │   │   │   ├── Settings.js
 │   │   │   │   ├── Status.js
@@ -587,17 +580,14 @@ $ npm run build
 │   │   │   │   ├── EmptyChat.js
 │   │   │   │   ├── chatRoute.js
 │   │   │   ├── contacts/
-│   │   │   │   ├── AllChatElement.js
-│   │   │   │   ├── ChatSearchResults.js
-│   │   │   │   ├── ContactList.js
-│   │   │   │   ├── FriendRequests.js
-│   │   │   │   ├── FriendsMenu.js
-│   │   │   │   ├── OnlineChatElement.js
-│   │   │   │   ├── OnlineFriendsElement.js
-│   │   │   │   ├── SearchUsers.js
-│   │   │   │   ├── SentRequests.js
-│   │   │   │   ├── UserCard.js
-│   │   │   │   ├── UsersSearchResults.js
+│   │   │   │   ├── ContactsList.js
+│   │   │   │   ├── EveryoneResults.js
+│   │   │   │   ├── FindPeople.js
+│   │   │   │   ├── PersonPane.js
+│   │   │   │   ├── PersonRow.js
+│   │   │   │   ├── ProfilePass.js
+│   │   │   │   ├── RequestsView.js
+│   │   │   │   ├── contactsRoute.js
 │   │   │   ├── encryption/
 │   │   │   │   ├── EncryptionGate.js
 │   │   │   │   ├── RecoveryKeyDialog.js
@@ -615,6 +605,7 @@ $ npm run build
 │   │   │   │   ├── RecoveryKeySetting.js
 │   │   │   │   ├── SettingsSection.js
 │   │   │   │   ├── StatusPrivacySetting.js
+│   │   │   │   ├── SuggestionsSetting.js
 │   │   │   │   ├── UsernameSetting.js
 │   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
@@ -630,7 +621,6 @@ $ npm run build
 │   │   │   │   ├── StatusHeader.js
 │   │   │   │   ├── StatusList.js
 │   │   │   │   ├── StatusMedia.js
-│   │   │   │   ├── StatusPane.js
 │   │   │   │   ├── StatusSlide.js
 │   │   │   │   ├── StatusViewer.js
 │   │   │   │   ├── YourUpdates.js

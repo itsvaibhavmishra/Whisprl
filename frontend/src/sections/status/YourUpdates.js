@@ -3,13 +3,13 @@ import { Box, Button, ButtonBase, IconButton, ListItemIcon, Menu, MenuItem, Stac
 import { DotsThree, Eye, PaperPlaneTilt, Play, Plus, Trash } from "phosphor-react";
 import { useSelector } from "react-redux";
 
+import Pane, { PaneEmpty } from "@/components/Pane";
 import DeleteUpdateDialog from "@/sections/status/DeleteUpdateDialog";
 import EveryonePill from "@/sections/status/EveryonePill";
 import NewUpdateMenu, { NewUpdateButton } from "@/sections/status/NewUpdateMenu";
 import { seenByLabel } from "@/sections/status/SeenBy";
 import ShareStatusDialog from "@/sections/status/ShareStatusDialog";
 import { rowSx } from "@/sections/status/StatusList";
-import StatusPane, { PaneEmpty } from "@/sections/status/StatusPane";
 import { ageOf, backgroundOf, reactionsLine, reactionsOf, topReactions } from "@/utils/statuses";
 
 const Thumbnail = ({ content }) => (
@@ -76,7 +76,7 @@ const YourUpdates = ({ statuses, onWrite, onChooseMedia, onPlay, onBack }) => {
   };
 
   return (
-    <StatusPane
+    <Pane
       title="Your updates"
       subtitle="Each update disappears 24 hours after you share it"
       onBack={onBack}
@@ -115,7 +115,7 @@ const YourUpdates = ({ statuses, onWrite, onChooseMedia, onPlay, onBack }) => {
       </Menu>
       {dialog?.kind === "share" && <ShareStatusDialog status={dialog.status} onClose={() => setDialog(null)} />}
       {dialog?.kind === "delete" && <DeleteUpdateDialog status={dialog.status} onClose={() => setDialog(null)} />}
-    </StatusPane>
+    </Pane>
   );
 };
 

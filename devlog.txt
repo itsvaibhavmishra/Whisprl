@@ -34,6 +34,12 @@
     - One profile everywhere: from contacts, search, a shared contact or a status it opens the same view, with Message, Accept or Decline beside their note, Add friend with a note, or Cancel request
     - Profiles show the friends you share, to friends and to people who asked you, and the groups you are both in
     - Report someone you have no chat with, straight from their profile
+    - A new Contacts page: Requests above your friends from A to Z, with a search for your friends, and more friends showing as you scroll; requests and profiles open beside the list on a computer and as screens of their own on a phone
+    - Every profile has its own address, /contacts/@username, and Share profile copies it or opens your phone's share sheet
+    - Someone's update shared with everyone shows on their photo when you find them in Find people
+    - Find people in Contacts: search everyone on Whisprl by name or @username in one list, closest matches first, friends with Message and everyone else with Add friend, loading more as you scroll; see people you may know from the friends you share or a group you're both in, each with Add friend or Hide; and share your own card with a QR code and a link
+    - A search in your friends list that finds no friend offers Search everyone, which carries your words over to Find people
+    - Choose whether friends of your friends can find you in their suggestions, in Settings under Contacts; it starts on, and people in your groups can always find you there
 
   - Improvements:
     - Log out from the menu behind your photo on the side rail, below Settings
@@ -47,6 +53,12 @@
     - The sender of a request cannot tell whether it was read until it is accepted
     - Your status is optional, and the old default line is gone from every profile
     - Chat details show the person's cover and the same profile header
+    - A new 404 page with the mascot and a way back to your chats
+    - Lists, profiles and request cards line up on one edge, on a computer and a phone
+    - Contacts opens on Requests when someone is waiting, and on Find people when no one is
+    - Friends of your friends see the friends you share on your profile, unless you turn suggestions off
+    - Someone who declined your request, or whose friendship ended, is never suggested to you again
+    - Contacts waits for your friends and requests before saying none are waiting, so a friend's profile never offers Add friend while it loads
 
   - Fixed:
     - Signing in with Google works again
@@ -56,9 +68,13 @@
     - Searching for people no longer shows whether someone who is not your friend is online
     - Someone who is no longer your friend can no longer see you typing in your old chat
     - Accounts made before encryption can now set it up
+    - Soft buttons and request notes show clearly in light mode, and a friend's initial no longer turns the accent colour
+    - Saving your profile straight after opening it no longer snaps the form back to what it said before
 
   - Developers:
+    - One new dependency, qrcode.react, draws the QR code on your card; it brings no dependencies of its own
 
   - Internal:
     - The old cat doodle cover images are gone, about 950 KB lighter
     - The old profile drawer and its five cat animations are gone
+    - Lottie is gone, with react-lottie and the last five animations

@@ -74,3 +74,8 @@ export const UpdateQuickReactions = createApiThunk(
   "user/quick-reactions",
   async (reactions) => (await axios.put("/user/quick-reactions", { reactions })).data
 );
+
+export const UpdateSuggestionSetting = createApiThunk(
+  "user/suggestions",
+  async (suggestToFriendsOfFriends) => (await axios.put("/user/suggestions", { suggestToFriendsOfFriends })).data
+);

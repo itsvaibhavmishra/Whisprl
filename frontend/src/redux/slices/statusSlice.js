@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import { BlockUser } from "@/redux/slices/actions/chatSettingsActions";
-import { GetDiscover, GetHiddenFrom, GetStatuses, SetHiddenFrom } from "@/redux/slices/actions/statusActions";
+import { GetDiscover, GetHiddenFrom, GetPublicStatusesOf, GetStatuses, SetHiddenFrom } from "@/redux/slices/actions/statusActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
@@ -54,6 +54,10 @@ const slice = createSlice({
       })
       .addCase(GetDiscover.fulfilled, (state, action) => {
         state.discover = action.payload;
+      })
+      .addCase(GetPublicStatusesOf.fulfilled, (state, action) => {
+        const known = new Set(state.discover.map((status) => status._id));
+        state.discover.push(...action.payload.filter((status) => !known.has(status._id)));
       })
       .addCase(GetHiddenFrom.fulfilled, (state, action) => {
         state.hiddenFrom = action.payload;

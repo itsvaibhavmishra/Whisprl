@@ -1,11 +1,22 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { AcceptRejectRequest, CancelRequest, GetRequests, GetUserData, SearchForUsers } from "@/redux/slices/actions/contactActions";
+import { createSlice, isAnyOf } from "@reduxjs/toolkit";
+import {
+  AcceptRejectRequest,
+  CancelRequest,
+  FindEveryone,
+  FindProfile,
+  GetRequests,
+  GetSuggestions,
+  GetUserData,
+  HideSuggestion,
+  SearchForUsers,
+} from "@/redux/slices/actions/contactActions";
 
 const initialState = {
   searchedUsersList: [],
   searchedUsersCount: null,
 
-  showFriendsMenu: false,
+  // the words these answer, so a search still being typed never shows the last one's results as its own
+  everyone: { keyword: null, people: [], total: 0, pages: 0 },
 
   // notes stay sealed here and are opened only where they are shown
   incoming: [],
@@ -15,17 +26,14 @@ const initialState = {
 
   // each person's full profile once fetched, so opening it again shows at once while it refreshes
   profiles: {},
+
+  suggestions: [],
 };
 
 const slice = createSlice({
   name: "contact",
   initialState,
   reducers: {
-    // toggle friends menu
-    setShowFriendsMenu(state) {
-      state.showFriendsMenu = !state.showFriendsMenu;
-    },
-
     clearSearchUsers: (state) => {
       state.searchedUsersList = [];
       state.searchedUsersCount = null;
@@ -33,9 +41,6 @@ const slice = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(GetUserData.fulfilled, (state, action) => {
-        state.profiles[action.meta.arg] = action.payload.userData;
-      })
       // a burst of changes starts overlapping fetches, and only the newest may land
       .addCase(GetRequests.pending, (state, action) => {
         state.latestRequestsFetch = action.meta.requestId;
@@ -55,10 +60,24 @@ const slice = createSlice({
       })
       .addCase(CancelRequest.fulfilled, (state, action) => {
         state.outgoing = state.outgoing.filter((request) => request.person._id !== action.payload.receiver_id);
+      })
+      .addCase(FindEveryone.fulfilled, (state, action) => {
+        const { keyword, page = 0 } = action.meta.arg;
+        const earlier = page > 0 && state.everyone.keyword === keyword ? state.everyone.people : [];
+        state.everyone = { keyword, people: [...earlier, ...action.payload.users], total: action.payload.usersFound, pages: page + 1 };
+      })
+      .addCase(GetSuggestions.fulfilled, (state, action) => {
+        state.suggestions = action.payload.suggestions;
+      })
+      .addCase(HideSuggestion.pending, (state, action) => {
+        state.suggestions = state.suggestions.filter((person) => person._id !== action.meta.arg);
+      })
+      .addMatcher(isAnyOf(GetUserData.fulfilled, FindProfile.fulfilled), (state, action) => {
+        state.profiles[action.payload.userData._id] = action.payload.userData;
       });
   },
 });
 
-export const { setShowFriendsMenu, clearSearchUsers } = slice.actions;
+export const { clearSearchUsers } = slice.actions;
 
 export default slice.reducer;

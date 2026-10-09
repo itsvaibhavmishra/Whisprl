@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 
 import { bubbleShape } from "@/sections/welcome/HeroConversation";
 import { openNote } from "@/utils/crypto/noteCipher";
 import { SPOKEN_ONLY } from "@/utils/spokenOnly";
+
+// a chat bubble is white on the grey chat canvas, but a note can sit on any surface, so it takes a tint of the text
+const ON_ANY_SURFACE = { background: (theme) => alpha(theme.palette.text.primary, 0.06), boxShadow: "none" };
 
 const Quiet = ({ children }) => <Typography sx={{ fontSize: 13, fontWeight: 500, color: "text.secondary" }}>{children}</Typography>;
 
@@ -33,7 +37,7 @@ const RequestNote = ({ request, isMine }) => {
   return (
     <Box
       component="p"
-      sx={{ ...bubbleShape(isMine), m: 0, alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: "min(100%, 52ch)", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
+      sx={{ ...bubbleShape(isMine), ...(!isMine && ON_ANY_SURFACE), m: 0, alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: "min(100%, 52ch)", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
     >
       <Box component="span" sx={SPOKEN_ONLY}>
         {isMine ? "Your message: " : `Message from ${request.person.firstName}: `}

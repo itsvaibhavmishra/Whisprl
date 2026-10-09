@@ -15,12 +15,12 @@ import { isMuted } from "@/utils/chats";
 import getAvatar from "@/utils/avatars";
 import { NIGHT_INK } from "@/utils/colorPresets";
 
-const { chat, status, contact, settings, profile } = PATH_DASHBOARD.general;
+const { chat, status, contacts, settings, profile } = PATH_DASHBOARD.general;
 // settings sits behind your photo, so the rail and the bar keep only the places you move between
 const DESTINATIONS = [
   { path: chat, label: "Chats", Icon: ChatCircleDots, badgeWord: "unread" },
   { path: status, label: "Status", Icon: CircleDashed },
-  { path: contact, label: "Contacts", Icon: AddressBook, badgeWord: "waiting" },
+  { path: contacts, label: "Contacts", Icon: AddressBook, badgeWord: "waiting" },
 ];
 const RAIL_WIDTH = 76;
 const TAB_BAR_HEIGHT = 65;
@@ -33,7 +33,7 @@ const useBadgeCounts = () => {
     (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
   );
   const waitingRequests = useSelector((state) => state.contact.incoming.length);
-  return { [chat]: unreadChats, [contact]: waitingRequests };
+  return { [chat]: unreadChats, [contacts]: waitingRequests };
 };
 
 const isAt = (pathname, path) => Boolean(matchPath({ path, end: false }, pathname));

@@ -88,19 +88,22 @@ const mutualFriendsOf = async (viewer, person_id, theirFriends) => {
   return { count: shared.length, people };
 };
 
-// shared friends show to a friend or to someone being asked, never to a stranger looking someone up
+// shared friends show to a friend, to someone being asked, and to friends of friends unless the person turned suggestions off
 const canSeeMutualFriends = async (viewer, person) => {
   if (viewer._id.equals(person._id)) return false;
+  if (person.suggestToFriendsOfFriends !== false) return true;
   if (viewer.friends.some((friend_id) => friend_id.equals(person._id))) return true;
   return Boolean(await FriendRequestModel.exists({ sender: person._id, recipient: viewer._id }));
 };
 
-export const getPublicProfile = async (viewer, user_id) => {
-  if (!mongoose.isValidObjectId(user_id)) throw createHttpError.BadRequest("Query required");
-  const person = await UserModel.findById(user_id).select(`${PUBLIC_PROFILE_FIELDS} friends`).lean();
+// a profile link names its person by username, everywhere else by id
+export const getPublicProfile = async (viewer, { userId, username }) => {
+  const filter = username ? { username: normalizeUsername(username) } : mongoose.isValidObjectId(userId) && { _id: userId };
+  if (!filter) throw createHttpError.BadRequest("Query required");
+  const person = await UserModel.findOne(filter).select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends`).lean();
   if (!person) throw createHttpError.NotFound("User does not exist");
 
-  const { friends, ...profile } = person;
+  const { friends, suggestToFriendsOfFriends, ...profile } = person;
   if (!(await canSeeMutualFriends(viewer, person))) return profile;
   return { ...profile, mutualFriends: await mutualFriendsOf(viewer, person._id, friends) };
 };
@@ -148,12 +151,14 @@ export const changePassword = async (user_id, currentPassword, newPassword) => {
 };
 
 const SEARCH_PAGE_SIZE = 10;
+// a scrolling list asks for more at a time, so it fetches less often
+const PEOPLE_PAGE_SIZE = 20;
 
-const skipFor = (page) => Math.max(0, Number.parseInt(page, 10) || 0) * SEARCH_PAGE_SIZE;
+const skipFor = (page, size = SEARCH_PAGE_SIZE) => Math.max(0, Number.parseInt(page, 10) || 0) * size;
 
 const SEARCH_FIELDS = "firstName lastName username avatar activityStatus onlineStatus";
 // presence is for friends, so strangers are found without it
-const STRANGER_FIELDS = "firstName lastName username avatar activityStatus";
+const STRANGER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus";
 
 // never by email, so nobody can find out whether an address has an account
 const nameOrUsernameFilter = (keyword) => {
@@ -174,6 +179,43 @@ export const searchForUsers = async (keyword, page, user) => {
 
   const [users, totalCount] = await Promise.all([
     UserModel.find(filter).select(STRANGER_FIELDS).skip(skipFor(page)).limit(SEARCH_PAGE_SIZE).lean(),
+    UserModel.countDocuments(filter),
+  ]);
+  return { users, totalCount };
+};
+
+const PERSON_PROJECTION = Object.fromEntries(STRANGER_FIELDS.split(" ").map((field) => [field, 1]));
+
+// the closest matches first whoever they are: the exact username, then names and usernames that start with the words, then last names that do, then the rest
+const closenessTo = (keyword) => {
+  const startsWith = new RegExp(`^${escapeRegex(keyword)}`, "i");
+  const username = normalizeUsername(keyword);
+  return {
+    $switch: {
+      branches: [
+        { case: { $eq: ["$username", username] }, then: 0 },
+        { case: { $regexMatch: { input: { $concat: ["$firstName", " ", "$lastName"] }, regex: startsWith } }, then: 1 },
+        { case: { $regexMatch: { input: { $ifNull: ["$username", ""] }, regex: new RegExp(`^${escapeRegex(username)}`) } }, then: 1 },
+        { case: { $regexMatch: { input: "$lastName", regex: startsWith } }, then: 2 },
+      ],
+      default: 3,
+    },
+  };
+};
+
+// friends and everyone else in one list, with no presence, since a friend's shows from the friends list already
+export const searchEveryone = async (user, keyword, page) => {
+  const filter = { ...nameOrUsernameFilter(keyword), _id: { $ne: user._id }, verified: true };
+
+  const [users, totalCount] = await Promise.all([
+    UserModel.aggregate([
+      { $match: filter },
+      { $addFields: { closeness: closenessTo(keyword) } },
+      { $sort: { closeness: 1, firstName: 1, lastName: 1, _id: 1 } },
+      { $skip: skipFor(page, PEOPLE_PAGE_SIZE) },
+      { $limit: PEOPLE_PAGE_SIZE },
+      { $project: PERSON_PROJECTION },
+    ]),
     UserModel.countDocuments(filter),
   ]);
   return { users, totalCount };

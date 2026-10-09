@@ -6,12 +6,14 @@ import { protect } from "#src/middlewares/authMiddleware.js";
 import { readLimit, searchLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   checkUsernameAvailable,
+  findPeople,
   getMyProfile,
   getUserData,
   searchUsers,
   updatePassword,
   updateProfile,
   updateQuickReactions,
+  updateSuggestionSetting,
   updateUsername,
 } from "#src/controllers/userController.js";
 import { block, getBlocked, report, unblock } from "#src/controllers/safetyController.js";
@@ -46,11 +48,17 @@ userRouter.route("/report").post(protect, writeLimit(), report);
 // Quick Reactions Route
 userRouter.route("/quick-reactions").put(protect, writeLimit(), updateQuickReactions);
 
+// Whether friends of friends see this person in their suggestions
+userRouter.route("/suggestions").put(protect, writeLimit(), updateSuggestionSetting);
+
 // Own Profile Route
 userRouter.route("/me").get(protect, readLimit(), getMyProfile);
 
 // Search Users Route
 userRouter.route("/search").get(trimRequest.all, protect, searchLimit(), searchUsers);
+
+// Everyone, friends included, closest matches first
+userRouter.route("/people").get(trimRequest.all, protect, searchLimit(), findPeople);
 
 // Get User Data Route
 userRouter.route("/getUserData").get(trimRequest.all, protect, readLimit(), getUserData);

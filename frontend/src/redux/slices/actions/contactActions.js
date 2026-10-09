@@ -20,6 +20,24 @@ export const RemoveFriend = createApiThunk("friends/remove-friend", async (frien
   return data;
 });
 
+// ------------- Find Profile Thunk -------------
+export const FindProfile = createApiThunk(
+  "user/findProfile",
+  async (username) => (await axios.get("/user/getUserData", { params: { username } })).data,
+  { notifyErrors: false }
+);
+
+// ------------- Find Everyone Thunk -------------
+export const FindEveryone = createApiThunk(
+  "user/people",
+  async ({ keyword, page = 0 }) => (await axios.get("/user/people", { params: { search: keyword, page } })).data
+);
+
+// ------------- Suggestions Thunks -------------
+export const GetSuggestions = createApiThunk("friends/suggestions", async () => (await axios.get("/friends/suggestions")).data, { notifyErrors: false });
+
+export const HideSuggestion = createApiThunk("friends/hide-suggestion", async (userId) => (await axios.delete(`/friends/suggestions/${userId}`)).data);
+
 // ------------- Get Requests Thunk -------------
 export const GetRequests = createApiThunk("friends/requests", async () => (await axios.get("/friends/requests")).data);
 

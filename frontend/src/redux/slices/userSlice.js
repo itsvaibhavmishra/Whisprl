@@ -6,15 +6,13 @@ import {
   SearchFriends,
   UpdateProfile,
   UpdateQuickReactions,
+  UpdateSuggestionSetting,
   UpdateUsername,
 } from "@/redux/slices/actions/userActions";
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 import { BlockUser, GetBlocked, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 
-// initial state for contacts menu
 const initialState = {
-  showFriendsMenu: false,
-
   user: {
     _id: "",
     firstName: "",
@@ -25,6 +23,7 @@ const initialState = {
     activityStatus: "",
   },
   accountSummary: null,
+  latestProfileRead: null,
   passkeys: [],
   blockedPeople: [],
 
@@ -39,10 +38,6 @@ const slice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    setShowFriendsMenu(state, action) {
-      state.showFriendsMenu = !state.showFriendsMenu;
-    },
-
     // update user information
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
@@ -108,6 +103,9 @@ const slice = createSlice({
   },
   extraReducers(builder) {
     builder
+      .addCase(UpdateProfile.pending, (state) => {
+        state.latestProfileRead = null;
+      })
       .addCase(UpdateProfile.fulfilled, (state, action) => {
         state.user = { ...state.user, ...action.payload.user };
       })
@@ -130,10 +128,24 @@ const slice = createSlice({
       .addCase(UpdateQuickReactions.fulfilled, (state, action) => {
         state.user.quickReactions = action.payload.quickReactions;
       })
+      .addCase(UpdateSuggestionSetting.pending, (state, action) => {
+        state.user.suggestToFriendsOfFriends = action.meta.arg;
+      })
+      .addCase(UpdateSuggestionSetting.fulfilled, (state, action) => {
+        state.user.suggestToFriendsOfFriends = action.payload.suggestToFriendsOfFriends;
+      })
+      .addCase(UpdateSuggestionSetting.rejected, (state, action) => {
+        state.user.suggestToFriendsOfFriends = !action.meta.arg;
+      })
+      .addCase(GetMyProfile.pending, (state, action) => {
+        state.latestProfileRead = action.meta.requestId;
+      })
       .addCase(GetMyProfile.fulfilled, (state, action) => {
         const { firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
-        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus };
         state.accountSummary = summary;
+        // a save that landed while this was loading is newer than what it brought back
+        if (action.meta.requestId !== state.latestProfileRead) return;
+        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus };
       })
       .addCase(SearchFriends.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;
@@ -155,6 +167,6 @@ const slice = createSlice({
   },
 });
 
-export const { setShowFriendsMenu, updateUser, updateOnlineUsers, removeFriend, clearSearch, logout } = slice.actions;
+export const { updateUser, updateOnlineUsers, removeFriend, clearSearch, logout } = slice.actions;
 
 export default slice.reducer;

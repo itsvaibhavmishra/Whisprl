@@ -6,10 +6,12 @@ import {
   getOwnProfile,
   getPublicProfile,
   saveProfile,
+  searchEveryone,
   searchForUsers,
   setQuickReactions,
 } from "#src/services/userService.js";
 import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionService.js";
+import { setSuggestToFriendsOfFriends } from "#src/services/suggestionService.js";
 import { changeUsername, checkUsername } from "#src/services/usernameService.js";
 import { assertText, assertValidName } from "#src/utils/accountRules.js";
 import { assertCoverStyle } from "#src/utils/coverStyles.js";
@@ -99,6 +101,16 @@ export const updateQuickReactions = async (req, res, next) => {
   }
 };
 
+// -------------------------- Suggestions --------------------------
+export const updateSuggestionSetting = async (req, res, next) => {
+  try {
+    const suggestToFriendsOfFriends = await setSuggestToFriendsOfFriends(req.user, req.body.suggestToFriendsOfFriends);
+    return res.status(200).json({ status: "success", suggestToFriendsOfFriends });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // -------------------------- Change Password --------------------------
 export const updatePassword = async (req, res, next) => {
   try {
@@ -136,10 +148,25 @@ export const searchUsers = async (req, res, next) => {
   }
 };
 
+// -------------------------- Find People --------------------------
+export const findPeople = async (req, res, next) => {
+  try {
+    const keyword = req.query.search;
+    if (!keyword) throw createHttpError.BadRequest("Query required");
+    assertText(keyword);
+
+    const { users, totalCount } = await searchEveryone(req.user, keyword, req.query.page);
+
+    res.status(200).json({ status: "success", usersFound: totalCount, users });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // -------------------------- Get User Data --------------------------
 export const getUserData = async (req, res, next) => {
   try {
-    const userData = await getPublicProfile(req.user, req.query.userId);
+    const userData = await getPublicProfile(req.user, req.query);
 
     res.status(200).json({ status: "success", userData });
   } catch (error) {

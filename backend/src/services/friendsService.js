@@ -8,10 +8,11 @@ import { expiryFor } from "#src/services/disappearingService.js";
 import { currentKeyIdOf } from "#src/services/keyService.js";
 import { saveMessage, validateCipher } from "#src/services/messageService.js";
 import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requestCooldownService.js";
+import { forgetSuggestionsBetween } from "#src/services/suggestionService.js";
 
-const FRIEND_FIELDS = "firstName lastName username avatar activityStatus onlineStatus publicKeys.keyId";
+const FRIEND_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus onlineStatus publicKeys.keyId";
 // every key they ever had, so a note still opens after its sender moves to a new one
-const REQUESTER_FIELDS = "firstName lastName username avatar activityStatus createdAt publicKeys";
+const REQUESTER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
 
 const MAX_OPEN_REQUESTS = 30;
 // room for 200 characters once sealed, the limit the browser counts down to
@@ -42,7 +43,7 @@ const assertReceiverHasKey = (receiver) => {
   }
 };
 
-// a block reads as a decline while its cooldown runs, so the cooldown is checked first
+// the checks run together, and a block reads as a decline while its cooldown runs, so the cooldown's refusal wins
 const requestableReceiver = async (sender, receiver_id) => {
   assertUserId(receiver_id, "receiver_id");
   assertNotSelf(sender._id, receiver_id);
@@ -50,13 +51,14 @@ const requestableReceiver = async (sender, receiver_id) => {
   const receiver = await UserModel.findOne({ _id: receiver_id, verified: true });
   if (!receiver) throw createHttpError.NotFound("User does not exist");
   if (isFriendOf(sender, receiver._id)) throw createHttpError.BadRequest("You are already friends");
-  await assertNoCooldown(sender._id, receiver);
-  if (await blockerBetween(sender._id, receiver._id)) throw createHttpError.Forbidden("You can't send this person a request");
 
-  const [alreadySent, alreadyReceived] = await Promise.all([
+  const [, blocker, alreadySent, alreadyReceived] = await Promise.all([
+    assertNoCooldown(sender._id, receiver),
+    blockerBetween(sender._id, receiver._id),
     FriendRequestModel.exists({ sender: sender._id, recipient: receiver._id }),
     FriendRequestModel.exists({ sender: receiver._id, recipient: sender._id }),
   ]);
+  if (blocker) throw createHttpError.Forbidden("You can't send this person a request");
   if (alreadySent) throw createHttpError.BadRequest("Friend request already sent");
   if (alreadyReceived) throw theyAskedFirst();
 
@@ -80,8 +82,8 @@ const checkedNote = async (sender, receiver, { conversationId, cipher } = {}) =>
   if (typeof cipher?.data === "string" && cipher.data.length > MAX_NOTE_LENGTH) throw createHttpError.BadRequest("Keep the note under 200 characters");
   validateCipher(cipher, { isGroup: false, users: [sender, receiver] }, sender._id);
 
-  const existing = await directConversationIdOf(sender._id, receiver._id);
-  const isTheirChat = existing ? existing.equals(conversationId) : await isUnusedId(conversationId);
+  const [existing, isUnused] = await Promise.all([directConversationIdOf(sender._id, receiver._id), isUnusedId(conversationId)]);
+  const isTheirChat = existing ? existing.equals(conversationId) : isUnused;
   if (!isTheirChat) throw createHttpError(409, "Reload Whisprl and try again", { code: "note_target_changed" });
 
   return { conversationId, note: cipher };
@@ -89,10 +91,10 @@ const checkedNote = async (sender, receiver, { conversationId, cipher } = {}) =>
 
 export const sendFriendRequest = async (sender, receiver_id, note) => {
   const receiver = await requestableReceiver(sender, receiver_id);
-  if ((await FriendRequestModel.countDocuments({ sender: sender._id })) >= MAX_OPEN_REQUESTS) {
+  const [openCount, sealed] = await Promise.all([FriendRequestModel.countDocuments({ sender: sender._id }), note ? checkedNote(sender, receiver, note) : {}]);
+  if (openCount >= MAX_OPEN_REQUESTS) {
     throw createHttpError(429, `You have ${MAX_OPEN_REQUESTS} requests waiting. Cancel some to send more`, { code: "too_many_open_requests" });
   }
-  const sealed = note ? await checkedNote(sender, receiver, note) : {};
 
   try {
     await FriendRequestModel.create({ sender: sender._id, recipient: receiver._id, pair: pairOf(sender._id, receiver._id), ...sealed });
@@ -147,7 +149,7 @@ export const answerFriendRequest = async (receiver, sender_id, action) => {
   if (!request) throw createHttpError.NotFound("That request is no longer waiting");
 
   if (action === "reject") {
-    await startCooldown(sender_id, receiver._id);
+    await Promise.all([startCooldown(sender_id, receiver._id), forgetSuggestionsBetween(sender_id, receiver._id)]);
     return null;
   }
 
@@ -166,6 +168,7 @@ export const unfriend = async (user, friend_id) => {
   await Promise.all([
     UserModel.updateOne({ _id: user._id }, { $pull: { friends: friend_id } }),
     UserModel.updateOne({ _id: friend_id }, { $pull: { friends: user._id } }),
+    forgetSuggestionsBetween(user._id, friend_id),
   ]);
 };
 

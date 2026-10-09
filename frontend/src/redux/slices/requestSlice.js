@@ -8,25 +8,31 @@ const subjectOf = (arg) => (typeof arg === "string" || typeof arg === "number" ?
 
 const slice = createSlice({
   name: "requests",
-  initialState: {},
+  initialState: { inFlight: {}, settled: {} },
   reducers: {},
   extraReducers(builder) {
     builder
       .addMatcher(isPending, (state, action) => {
-        state[typeOf(action)] = { ...state[typeOf(action)], [action.meta.requestId]: subjectOf(action.meta.arg) };
+        const type = typeOf(action);
+        state.inFlight[type] = { ...state.inFlight[type], [action.meta.requestId]: subjectOf(action.meta.arg) };
       })
       .addMatcher(isAnyOf(isFulfilled, isRejected), (state, action) => {
-        const inFlight = state[typeOf(action)];
+        const type = typeOf(action);
+        state.settled[type] = true;
+        const inFlight = state.inFlight[type];
         if (!inFlight) return;
         delete inFlight[action.meta.requestId];
-        if (!Object.keys(inFlight).length) delete state[typeOf(action)];
+        if (!Object.keys(inFlight).length) delete state.inFlight[type];
       });
   },
 });
 
 export const selectIsLoading = (state, thunk, subject) => {
-  const inFlight = Object.values(state.requests[thunk.typePrefix] ?? {});
+  const inFlight = Object.values(state.requests.inFlight[thunk.typePrefix] ?? {});
   return subject === undefined ? inFlight.length > 0 : inFlight.includes(subject);
 };
+
+// a list that has never arrived is unknown, not empty
+export const selectHasSettled = (state, thunk) => Boolean(state.requests.settled[thunk.typePrefix]);
 
 export default slice.reducer;

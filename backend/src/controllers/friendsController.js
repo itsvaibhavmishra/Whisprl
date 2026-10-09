@@ -11,6 +11,7 @@ import {
   unfriend,
 } from "#src/services/friendsService.js";
 import { presenceAudienceOf } from "#src/services/blockService.js";
+import { dismissSuggestion, suggestionsFor } from "#src/services/suggestionService.js";
 import { searchFriendsOf } from "#src/services/userService.js";
 import { assertText } from "#src/utils/accountRules.js";
 
@@ -133,6 +134,24 @@ export const searchFriends = async (req, res, next) => {
 export const getRequests = async (req, res, next) => {
   try {
     res.status(200).json({ status: "success", ...(await listRequests(req.user._id)) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ----------------------- Suggestions -----------------------
+export const getSuggestions = async (req, res, next) => {
+  try {
+    res.status(200).json({ status: "success", suggestions: await suggestionsFor(req.user) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const hideSuggestion = async (req, res, next) => {
+  try {
+    await dismissSuggestion(req.user, req.params.user_id);
+    res.status(200).json({ status: "success", user_id: req.params.user_id });
   } catch (error) {
     next(error);
   }

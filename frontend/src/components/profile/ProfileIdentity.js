@@ -91,8 +91,9 @@ const IdentitySkeleton = ({ look }) => (
   </Box>
 );
 
-const ProfileIdentity = ({ person, size = "sheet", isOnline = false, coverAction, photoAction }) => {
-  const look = useSizeOf(size);
+const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, coverAction, photoAction }) => {
+  const sized = useSizeOf(size);
+  const look = surface ? { ...sized, surface } : sized;
   const statuses = useLiveStatuses(person._id);
   const [isViewingPhoto, setIsViewingPhoto] = useState(false);
 

@@ -54,12 +54,12 @@ const AccountSummary = () => {
                 </Avatar>
               ))}
             </AvatarGroup>
-            <Link component={RouterLink} to={PATH_DASHBOARD.general.contact} underline="hover" color="inherit">
+            <Link component={RouterLink} to={PATH_DASHBOARD.general.contacts} underline="hover" color="inherit">
               {plural(friendCount, "friend")}
             </Link>
           </Stack>
         ) : (
-          <Link component={RouterLink} to={PATH_DASHBOARD.general.contact} underline="hover">
+          <Link component={RouterLink} to={PATH_DASHBOARD.general.contacts} underline="hover">
             Find people to chat with
           </Link>
         )}

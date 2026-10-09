@@ -25,7 +25,7 @@ const CommonGroups = ({ personId }) => {
         <ButtonBase
           key={group._id}
           onClick={() => navigate(chatPath(group._id))}
-          sx={{ width: "100%", gap: 1.5, px: 1, py: 1, borderRadius: 3, justifyContent: "flex-start", textAlign: "left", "&:hover": { bgcolor: "action.hover" } }}
+          sx={{ width: "100%", gap: 1.5, px: 1.5, py: 1, borderRadius: 3, justifyContent: "flex-start", textAlign: "left", "&:hover": { bgcolor: "action.hover" } }}
         >
           <ChatAvatar src={group.picture} name={group.name} size={40} />
           <Box sx={{ minWidth: 0 }}>

@@ -17,6 +17,7 @@ import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import UsernameSetting from "@/sections/settings/UsernameSetting";
 import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
 import StatusPrivacySetting from "@/sections/settings/StatusPrivacySetting";
+import SuggestionsSetting from "@/sections/settings/SuggestionsSetting";
 import WallpaperSetting from "@/sections/settings/WallpaperSetting";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
 import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
@@ -160,6 +161,10 @@ const Settings = () => {
 
           <SettingsSection title="Status">
             <StatusPrivacySetting />
+          </SettingsSection>
+
+          <SettingsSection title="Contacts">
+            <SuggestionsSetting />
           </SettingsSection>
 
           <SettingsSection title="About Whisprl">

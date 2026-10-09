@@ -29,6 +29,7 @@ export const toSessionUser = (user) => ({
   activityStatus: user.activityStatus,
   onlineStatus: user.onlineStatus,
   quickReactions: user.quickReactions,
+  suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,
   blocked: user.blocked,
 });
 
