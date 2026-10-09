@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Stack, Switch } from "@mui/material";
+import { Button, Stack, Switch, Typography } from "@mui/material";
 import { ArrowUpRight } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
@@ -23,6 +23,9 @@ import StatusPrivacySetting from "@/sections/settings/StatusPrivacySetting";
 import SuggestionsSetting from "@/sections/settings/SuggestionsSetting";
 import UsernameSetting from "@/sections/settings/UsernameSetting";
 import WallpaperSetting from "@/sections/settings/WallpaperSetting";
+import ReleaseBanner from "@/sections/whats-new/ReleaseBanner";
+import ReleaseHighlights from "@/sections/whats-new/ReleaseHighlights";
+import { RELEASES, releaseNote, releaseTitle } from "@/sections/whats-new/whatsNew";
 import getAvatar from "@/utils/avatars";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
 import { previewSound } from "@/utils/sounds";
@@ -153,6 +156,24 @@ const PrivacySettings = () => (
   </Stack>
 );
 
+const BANNER_PATTERNS = ["whispers", "cats", "sky"];
+
+const WhatsNewSettings = () =>
+  RELEASES.length ? (
+    <Stack spacing={5}>
+      {RELEASES.map((release, index) => (
+        <Stack key={release.version} component="section" aria-label={releaseTitle(release)} spacing={2}>
+          <ReleaseBanner title={releaseTitle(release)} subtitle={releaseNote(release)} pattern={BANNER_PATTERNS[index % BANNER_PATTERNS.length]} />
+          <ReleaseHighlights highlights={release.highlights} isWide />
+        </Stack>
+      ))}
+    </Stack>
+  ) : (
+    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+      The highlights of each release show here once it is out.
+    </Typography>
+  );
+
 const AboutSettings = () => (
   <SettingsSection>
     <SettingLink component={RouterLink} to={PATH_DOCS.general.tnc} label="Terms and conditions" description="What you agree to when you use Whisprl." />
@@ -168,6 +189,7 @@ const CONTENT = {
   security: SecuritySettings,
   chats: ChatSettings,
   privacy: PrivacySettings,
+  "whats-new": WhatsNewSettings,
   about: AboutSettings,
 };
 

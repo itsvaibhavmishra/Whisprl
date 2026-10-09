@@ -1,0 +1,25 @@
+{
+  "upcoming": [
+    {
+      "emoji": "📇",
+      "title": "A new Contacts page",
+      "text": "Requests sit above your friends, Find people searches everyone on Whisprl, and a QR code shares your profile."
+    },
+    {
+      "emoji": "✉️",
+      "title": "Requests with a note",
+      "text": "Say who you are when you add someone. The note is end-to-end encrypted and opens your chat once they accept."
+    },
+    {
+      "emoji": "🎂",
+      "title": "Birthdays",
+      "text": "Friends see the day and month, never the year, with Birthdays this week in Contacts. Hide yours in Settings any time."
+    },
+    {
+      "emoji": "⚙️",
+      "title": "Settings in sections",
+      "text": "Your profile, appearance, chats, privacy and security each have a page of their own, on a computer and a phone."
+    }
+  ],
+  "releases": []
+}

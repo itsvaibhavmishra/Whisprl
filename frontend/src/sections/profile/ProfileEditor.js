@@ -15,14 +15,12 @@ import CoverPicker from "@/sections/profile/CoverPicker";
 import UsernameField from "@/sections/profile/UsernameField";
 import { dateInputOf } from "@/utils/birthdays";
 import { coverStyleOf } from "@/utils/covers";
-import { nameRule, profileBirthdayRule } from "@/utils/formRules";
-
-const STATUS_LIMIT = 50;
+import { BIO_LIMIT, bioRule, nameRule, profileBirthdayRule } from "@/utils/formRules";
 
 const ProfileSchema = Yup.object({
   firstName: nameRule("First name"),
   lastName: nameRule("Last name"),
-  activityStatus: Yup.string().trim().max(STATUS_LIMIT, `Keep your bio under ${STATUS_LIMIT} characters`),
+  activityStatus: bioRule,
   birthday: profileBirthdayRule,
   avatar: Yup.string(),
   cover: Yup.string(),
@@ -156,7 +154,7 @@ const ProfileEditor = () => {
                 <Box component="span" sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
                   <span>Optional, shown in the bubble beside your photo.</span>
                   <span>
-                    {live.activityStatus.length}/{STATUS_LIMIT}
+                    {live.activityStatus.length}/{BIO_LIMIT}
                   </span>
                 </Box>
               }

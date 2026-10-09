@@ -1,23 +1,24 @@
 import { useState } from "react";
 import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack, Typography } from "@mui/material";
 import { Check, Copy, DownloadSimple } from "phosphor-react";
+import { useDispatch } from "react-redux";
 
-const downloadAsFile = (recoveryKey) => {
-  const text = `Whisprl recovery key\n\n${recoveryKey}\n\nUse it to open your messages on a new browser. Keep it private.\n`;
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
-  link.download = "whisprl-recovery-key.txt";
-  link.click();
-  URL.revokeObjectURL(link.href);
-};
+import { ConfirmRecoveryKeySaved } from "@/redux/slices/actions/onboardingActions";
+import RecoveryKeyBox, { downloadRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
 
 const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDone }) => {
+  const dispatch = useDispatch();
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const copy = async () => {
     await navigator.clipboard.writeText(recoveryKey);
     setCopied(true);
+  };
+
+  const done = () => {
+    dispatch(ConfirmRecoveryKeySaved());
+    onDone();
   };
 
   return (
@@ -38,30 +39,15 @@ const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDo
           opens them. Whisprl cannot see it or recover it for you.
         </Typography>
 
-        <Box
-          sx={{
-            mt: 3,
-            py: 2,
-            px: 1.5,
-            borderRadius: 2,
-            bgcolor: "action.hover",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-            fontSize: { xs: 17, sm: 19 },
-            fontWeight: 600,
-            letterSpacing: "0.06em",
-            textAlign: "center",
-            userSelect: "all",
-            overflowWrap: "anywhere",
-          }}
-        >
-          {recoveryKey}
+        <Box sx={{ mt: 3 }}>
+          <RecoveryKeyBox recoveryKey={recoveryKey} />
         </Box>
 
         <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
           <Button color="inherit" startIcon={copied ? <Check /> : <Copy />} onClick={copy}>
             {copied ? "Copied" : "Copy"}
           </Button>
-          <Button color="inherit" startIcon={<DownloadSimple />} onClick={() => downloadAsFile(recoveryKey)}>
+          <Button color="inherit" startIcon={<DownloadSimple />} onClick={() => downloadRecoveryKey(recoveryKey)}>
             Download
           </Button>
         </Stack>
@@ -73,7 +59,7 @@ const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDo
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button variant="contained" disabled={!saved} onClick={onDone}>
+        <Button variant="contained" disabled={!saved} onClick={done}>
           Done
         </Button>
       </DialogActions>

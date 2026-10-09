@@ -39,6 +39,7 @@ export default function Router() {
         { path: "tnc", element: <TnCPage /> },
       ],
     },
+    { path: "/setup", element: <SetupPage /> },
     {
       path: "/",
       element: <DashboardLayout />,
@@ -63,6 +64,7 @@ export default function Router() {
 const ChatPage = Loadable(lazy(() => import("@/pages/dashboard/Chat")));
 const StatusPage = Loadable(lazy(() => import("@/pages/dashboard/Status")));
 const ContactsPage = Loadable(lazy(() => import("@/pages/dashboard/Contacts")));
+const SetupPage = Loadable(lazy(() => import("@/pages/Setup")));
 const Settings = Loadable(lazy(() => import("@/pages/dashboard/Settings")));
 
 // auth pages

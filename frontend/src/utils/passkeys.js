@@ -42,19 +42,21 @@ export const createPasskey = async (options) => {
         challenge: fromBase64Url(options.challenge),
         user: { ...options.user, id: fromBase64Url(options.user.id) },
         excludeCredentials: credentialIdsOf(options.excludeCredentials),
-        extensions: { ...options.extensions, prf: {} },
+        extensions: { ...options.extensions, prf: { eval: { first: prfSalt() } } },
       },
     })
     .catch((error) => Promise.reject(asReadable(error)));
 
   const { response } = credential;
+  const { prf } = credential.getClientExtensionResults();
   return {
     response: asJson(credential, {
       clientDataJSON: toBase64Url(response.clientDataJSON),
       attestationObject: toBase64Url(response.attestationObject),
       transports: response.getTransports?.() ?? [],
     }),
-    canUnlock: Boolean(credential.getClientExtensionResults().prf?.enabled),
+    canUnlock: Boolean(prf?.enabled || prf?.results),
+    prfSecret: prf?.results?.first ?? null,
   };
 };
 

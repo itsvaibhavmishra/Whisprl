@@ -14,7 +14,7 @@ import {
 import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionService.js";
 import { setSuggestToFriendsOfFriends } from "#src/services/suggestionService.js";
 import { changeUsername, checkUsername } from "#src/services/usernameService.js";
-import { assertText, assertValidName, birthdayFrom } from "#src/utils/accountRules.js";
+import { assertText, assertValidName, oldEnoughBirthdayFrom } from "#src/utils/accountRules.js";
 import { assertCoverStyle } from "#src/utils/coverStyles.js";
 
 // -------------------------- Update Profile --------------------------
@@ -35,7 +35,7 @@ export const updateProfile = async (req, res, next) => {
     }
 
     // a birthday can be changed but never removed, so an empty one leaves it as it was
-    const fields = { firstName, lastName, activityStatus, ...(birthday && { birthday: birthdayFrom(birthday) }) };
+    const fields = { firstName, lastName, activityStatus, ...(birthday && { birthday: oldEnoughBirthdayFrom(birthday) }) };
     if (coverPattern || coverPalette) {
       assertCoverStyle(coverPattern, coverPalette);
       fields.coverStyle = { pattern: coverPattern, palette: coverPalette };

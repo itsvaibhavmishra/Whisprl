@@ -45,6 +45,8 @@
     - Birthdays this week in Contacts, with a way to wish a friend on the day
     - Undo a declined request for a few seconds before it is sent
     - Change your username from your profile, as well as from Settings
+    - A setup screen after logging in asks for anything your account is missing before you carry on: a birthday for accounts that never gave one, along with who sees it and whether friends of friends can find you, your username to keep or change, a recovery key you download or copy before going on, with three good places to keep it, a recommended passkey you can skip, with help for a computer, an iPhone or an Android phone, and for a new account a photo and a bio; you can always log out from it
+    - What's new pops up over your chats once per release with its highlights, for anyone who was already here, and Settings keeps them all
 
   - Improvements:
     - Your photo on the side rail opens Settings, with Log out at the bottom of its list
@@ -67,6 +69,7 @@
     - Someone who declined your request, or whose friendship ended, is never suggested to you again
     - Contacts waits for your friends and requests before saying none are waiting, so a friend's profile never offers Add friend while it loads
     - Settings is split into Appearance, Chats, Account, Security, Privacy and About Whisprl, with your profile above them and edited right there, each at its own address, beside the list on a computer and a screen of its own on a phone
+    - Adding a passkey that unlocks your messages asks for it once rather than twice, where the browser supports it
     - Sign up never hints at the age Whisprl needs, and a refused sign up stays refused on that browser for a day rather than inviting another try
 
   - Fixed:
@@ -83,6 +86,7 @@
     - Your profile counts the same friends as Contacts, leaving out accounts that no longer exist
 
   - Developers:
+    - What's new highlights are written in releases.json as work lands, and release prep stamps them with the version; release-ready fails while any are left unstamped
     - One new dependency, qrcode.react, draws the QR code on your card; it brings no dependencies of its own
     - The birthday field uses the MUI date picker, @mui/x-date-pickers with dayjs as its date library
 

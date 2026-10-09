@@ -50,6 +50,7 @@ abort() {
 trap abort ERR
 
 python3 scripts/changelog.py release "$VERSION" "$REPO"
+python3 scripts/whatsnew.py release "$VERSION"
 
 # Bumping the version is the one step every stack spells differently, so it lives in the
 # profile's own hook rather than as a branch in here.
@@ -61,7 +62,7 @@ echo "  version: $CURRENT -> $VERSION"
 printf '\nrunning the gate...\n\n'
 scripts/check.sh
 
-git add CHANGELOG.md devlog.txt frontend/package.json frontend/package-lock.json backend/package.json backend/package-lock.json
+git add CHANGELOG.md devlog.txt frontend/src/sections/whats-new/releases.json frontend/package.json frontend/package-lock.json backend/package.json backend/package-lock.json
 commit_signed "chore: 🧹 release $VERSION"
 git push --set-upstream origin "$BRANCH"
 
