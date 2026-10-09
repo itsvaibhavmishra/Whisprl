@@ -66,6 +66,11 @@ jobs:
             FAILED=1
           fi
 
+          if ! python3 scripts/whatsnew.py check; then
+            echo "::error::What's new still has upcoming highlights, so release prep did not stamp them with this version."
+            FAILED=1
+          fi
+
           if gh release view "v${VERSION}" >/dev/null 2>&1; then
             echo "::error::v${VERSION} has already been released. Pick a higher version."
             FAILED=1

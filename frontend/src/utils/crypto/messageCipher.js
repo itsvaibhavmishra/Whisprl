@@ -106,8 +106,8 @@ export const encryptReaction = (emoji, message, conversation, userId, isForAlbum
 
 const readableOf = (message, plaintext) => {
   if (!message.attachment) {
-    const { text, mentions, contact } = decodePayload(plaintext);
-    return { message: text, mentions, contact };
+    const { text, mentions, contact, statusQuote } = decodePayload(plaintext);
+    return { message: text, mentions, contact, statusQuote };
   }
   const { caption, file } = JSON.parse(plaintext);
   return { message: caption ?? "", file };
@@ -131,6 +131,9 @@ const readReactions = async (sealed = [], conversation, bind) => {
 };
 
 export const decryptAlbumReactions = (album, conversation) => readReactions(album.reactions, conversation, reactionBinding(album, true));
+
+export const decryptReaction = ({ cipher, user, message, batchId }, conversation) =>
+  openMessage({ cipher, sender: user }, conversation, reactionBinding(message, Boolean(batchId))).catch(() => null);
 
 export const decryptMessage = async (message, conversation) => {
   if (!message?.cipher && !message?.replyTo && !message?.reactions?.length) return message;

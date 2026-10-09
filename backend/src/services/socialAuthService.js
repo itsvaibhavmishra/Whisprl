@@ -4,6 +4,7 @@ import qs from "querystring";
 
 import { UserModel } from "#src/models/index.js";
 import { normalizeEmail } from "#src/utils/accountRules.js";
+import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import { availableUsername } from "#src/services/usernameService.js";
 
 const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn" };
@@ -92,12 +93,14 @@ export const signInWithProvider = async (provider, credential) => {
   // nobody proved they own an unverified account's password, so the provider's proof replaces it
   if (!user.verified) {
     user.verified = true;
+    user.isNewAccount = true;
     user.password = undefined;
     user.verification = undefined;
   }
   user.socialsConnected.addToSet(provider);
   if (!user.avatar) user.avatar = profile.picture;
   user.username ??= await availableUsername(user.firstName, user.lastName);
+  user.coverStyle ??= randomCoverStyle();
   await user.save();
 
   return user;

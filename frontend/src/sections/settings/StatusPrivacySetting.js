@@ -55,7 +55,7 @@ const HiddenFromDialog = ({ onClose }) => {
       <DialogTitle id="hidden-from-title">Hide my status from</DialogTitle>
       <DialogContent>
         <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-          The people you tick won't see the updates you share from now on.
+          The people you tick are left out of each update you share, unless you choose otherwise when sharing it.
         </Typography>
         {!friends.length && (
           <Typography variant="body2" sx={{ py: 2 }}>

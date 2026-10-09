@@ -9,12 +9,15 @@ const blobUrlToFile = async (blobUrl, fileName) => {
 // ------------- Update Profile Thunk -------------
 export const UpdateProfile = createApiThunk(
   "user/update-profile",
-  async ({ firstName, lastName, activityStatus, ...images }, { getState }) => {
+  async ({ firstName, lastName, activityStatus, birthday, coverPattern, coverPalette, ...images }, { getState }) => {
     const saved = getState().user.user;
     const formData = new FormData();
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
     formData.append("activityStatus", activityStatus);
+    formData.append("birthday", birthday);
+    formData.append("coverPattern", coverPattern);
+    formData.append("coverPalette", coverPalette);
     for (const [kind, removeField] of [["avatar", "removeAvatar"], ["cover", "removeCover"]]) {
       if (images[kind].startsWith("blob:")) {
         formData.append(kind, await blobUrlToFile(images[kind], `${kind}.jpg`));
@@ -71,4 +74,14 @@ export const UpdateUsername = createApiThunk(
 export const UpdateQuickReactions = createApiThunk(
   "user/quick-reactions",
   async (reactions) => (await axios.put("/user/quick-reactions", { reactions })).data
+);
+
+export const UpdateSuggestionSetting = createApiThunk(
+  "user/suggestions",
+  async (suggestToFriendsOfFriends) => (await axios.put("/user/suggestions", { suggestToFriendsOfFriends })).data
+);
+
+export const UpdateBirthdaySetting = createApiThunk(
+  "user/birthday-visibility",
+  async (showBirthdayToFriends) => (await axios.put("/user/birthday-visibility", { showBirthdayToFriends })).data
 );

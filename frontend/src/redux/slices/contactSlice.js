@@ -1,42 +1,44 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSelector, createSlice, isAnyOf } from "@reduxjs/toolkit";
 import {
   AcceptRejectRequest,
-  GetFriendRequests,
-  GetSentRequests,
+  CancelRequest,
+  declineHeld,
+  declineReleased,
+  FindEveryone,
+  FindProfile,
+  GetRequests,
+  GetSuggestions,
   GetUserData,
+  HideSuggestion,
   SearchForUsers,
-  SendRequest,
-  UnsendRequest,
 } from "@/redux/slices/actions/contactActions";
 
 const initialState = {
   searchedUsersList: [],
   searchedUsersCount: null,
 
-  showFriendsMenu: false,
+  // the words these answer, so a search still being typed never shows the last one's results as its own
+  everyone: { keyword: null, people: [], total: 0, pages: 0 },
 
-  sentRequests: [],
+  // notes stay sealed here and are opened only where they are shown
+  incoming: [],
+  outgoing: [],
+  cooldowns: [],
+  latestRequestsFetch: null,
 
-  friendRequests: [],
+  // each person's full profile once fetched, so opening it again shows at once while it refreshes
+  profiles: {},
 
-  userData: {},
-};
+  suggestions: [],
 
-const markSent = (state, receiverId, isSent) => {
-  const request = state.sentRequests.find((sent) => sent.receiverId === receiverId);
-  if (request) request.isSent = isSent;
-  else state.sentRequests.push({ receiverId, isSent });
+  // requests declined a moment ago, hidden while their Undo is still on screen
+  declining: [],
 };
 
 const slice = createSlice({
   name: "contact",
   initialState,
   reducers: {
-    // toggle friends menu
-    setShowFriendsMenu(state) {
-      state.showFriendsMenu = !state.showFriendsMenu;
-    },
-
     clearSearchUsers: (state) => {
       state.searchedUsersList = [];
       state.searchedUsersCount = null;
@@ -44,35 +46,53 @@ const slice = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(GetUserData.fulfilled, (state, action) => {
-        state.userData = action.payload.userData;
+      // a burst of changes starts overlapping fetches, and only the newest may land
+      .addCase(GetRequests.pending, (state, action) => {
+        state.latestRequestsFetch = action.meta.requestId;
       })
-      .addCase(GetFriendRequests.fulfilled, (state, action) => {
-        state.friendRequests = action.payload.friendRequests;
+      .addCase(GetRequests.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.latestRequestsFetch) return;
+        const { incoming, outgoing, cooldowns } = action.payload;
+        Object.assign(state, { incoming, outgoing, cooldowns });
       })
       .addCase(SearchForUsers.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;
         state.searchedUsersList = found ? action.payload.users : null;
         state.searchedUsersCount = found ? action.payload.usersFound : null;
-        state.sentRequests = [];
-      })
-      .addCase(SendRequest.fulfilled, (state, action) => {
-        markSent(state, action.payload.receiver._id, true);
-      })
-      .addCase(UnsendRequest.fulfilled, (state, action) => {
-        markSent(state, action.payload.receiver_id, false);
       })
       .addCase(AcceptRejectRequest.fulfilled, (state, action) => {
-        state.friendRequests = state.friendRequests.filter(
-          (request) => request?.sender?._id !== action.payload.sender_id
-        );
+        state.incoming = state.incoming.filter((request) => request.person._id !== action.payload.sender_id);
       })
-      .addCase(GetSentRequests.fulfilled, (state, action) => {
-        state.sentRequests = action.payload.sentRequests;
+      .addCase(CancelRequest.fulfilled, (state, action) => {
+        state.outgoing = state.outgoing.filter((request) => request.person._id !== action.payload.receiver_id);
+      })
+      .addCase(FindEveryone.fulfilled, (state, action) => {
+        const { keyword, page = 0 } = action.meta.arg;
+        const earlier = page > 0 && state.everyone.keyword === keyword ? state.everyone.people : [];
+        state.everyone = { keyword, people: [...earlier, ...action.payload.users], total: action.payload.usersFound, pages: page + 1 };
+      })
+      .addCase(declineHeld, (state, action) => {
+        state.declining.push(action.payload);
+      })
+      .addCase(declineReleased, (state, action) => {
+        state.declining = state.declining.filter((personId) => personId !== action.payload);
+      })
+      .addCase(GetSuggestions.fulfilled, (state, action) => {
+        state.suggestions = action.payload.suggestions;
+      })
+      .addCase(HideSuggestion.pending, (state, action) => {
+        state.suggestions = state.suggestions.filter((person) => person._id !== action.meta.arg);
+      })
+      .addMatcher(isAnyOf(GetUserData.fulfilled, FindProfile.fulfilled), (state, action) => {
+        state.profiles[action.payload.userData._id] = action.payload.userData;
       });
   },
 });
 
-export const { setShowFriendsMenu, clearSearchUsers } = slice.actions;
+export const { clearSearchUsers } = slice.actions;
+
+export const selectWaitingRequests = createSelector([(state) => state.contact.incoming, (state) => state.contact.declining], (incoming, declining) =>
+  incoming.filter((request) => !declining.includes(request.person._id))
+);
 
 export default slice.reducer;

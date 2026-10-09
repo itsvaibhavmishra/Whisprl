@@ -52,6 +52,10 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
   whatever rc already holds before the PR can merge.
 - **Every PR into `rc` adds a line to `devlog.txt`**, under the heading that matches who
   the change is for. The PR template has the checkbox and the file explains the headings.
+- **A PR with something worth a highlight also adds it to What's new**, in the `upcoming` list of
+  `frontend/src/sections/whats-new/releases.json`: an emoji, a short title and one plain line. It
+  is optional, since most changes are not highlights. A development build shows `upcoming` as a
+  preview, so it can be read before it ships.
 - **Merging `rc` into `production` is the release.** That PR needs no devlog line, because the
   devlog has already moved into `CHANGELOG.md` by then.
 
@@ -74,14 +78,15 @@ scripts/release.sh           # asks, offering the next patch
 ```
 
 That refuses a dirty tree, cuts `release/0.2.0` from `origin/rc`, moves the devlog into a
-dated `CHANGELOG.md` section, bumps the version, runs the gate, commits, pushes, and opens
+dated `CHANGELOG.md` section, stamps What's new's upcoming highlights with the version and date
+(`scripts/whatsnew.py`), bumps the version, runs the gate, commits, pushes, and opens
 **both** pull requests: the prepare one into `rc`, and the release one from `rc` into
 `production`. If the gate fails it deletes the branch and pushes nothing, leaving the tree as it
 found it.
 
 Merge the prepare PR, then the release PR. Nothing else is needed: `release-ready.yml` blocks
 the second merge unless the version went up, the changelog has a dated section for it, the
-devlog is empty and the tag is free.
+devlog is empty, What's new has nothing left in `upcoming`, and the tag is free.
 
 ```sh
 scripts/skip-release.sh

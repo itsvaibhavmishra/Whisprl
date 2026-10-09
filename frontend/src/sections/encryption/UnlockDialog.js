@@ -65,9 +65,11 @@ const UnlockForm = ({ onLater, onLostKey }) => {
         </Button>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button color="inherit" onClick={onLater}>
-          Not now
-        </Button>
+        {onLater && (
+          <Button color="inherit" onClick={onLater}>
+            Not now
+          </Button>
+        )}
         <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
           Unlock
         </LoadingButton>

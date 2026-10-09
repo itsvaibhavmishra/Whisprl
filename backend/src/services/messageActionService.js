@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 import { AlbumModel, MessageModel } from "#src/models/index.js";
 import { dropEmptyAlbums } from "#src/services/albumService.js";
-import { findMemberConversation, memberRooms, populateMembers } from "#src/services/conversationService.js";
+import { findMemberConversation, forgetReaction, memberRooms, noteReaction, populateMembers } from "#src/services/conversationService.js";
 import {
   deleteFilesNoLongerUsed,
   findSendableConversation,
@@ -58,6 +58,7 @@ export const deleteForEveryone = async (message_id, user_id) => {
   });
   await message.save();
   await dropEmptyAlbums([message]);
+  const preview = await forgetReaction(conversation._id, { "latestReaction.message": message._id });
 
   const wasPinned = conversation.pins.some((pin) => pin.message.equals(message._id));
   if (wasPinned) {
@@ -65,7 +66,7 @@ export const deleteForEveryone = async (message_id, user_id) => {
     await conversation.save();
   }
   await deleteFilesNoLongerUsed(fileUrls);
-  return { ...(await answer(message, conversation)), isGone: false, wasPinned };
+  return { ...(await answer(message, conversation)), isGone: false, wasPinned, preview };
 };
 
 export const hideForMe = async (message_id, user_id) => {
@@ -85,7 +86,10 @@ export const setReaction = async (message_id, user_id, cipher) => {
   await MessageModel.updateOne({ _id: message._id }, { $pull: { reactions: { user: user_id } } });
   if (cipher) await MessageModel.updateOne({ _id: message._id }, { $push: { reactions: { user: user_id, cipher } } });
 
-  return answer(await MessageModel.findById(message._id), conversation);
+  const preview = cipher
+    ? await noteReaction(conversation._id, { message: message._id, user: user_id, cipher })
+    : await forgetReaction(conversation._id, { "latestReaction.message": message._id, "latestReaction.user": user_id, "latestReaction.batchId": null });
+  return { ...(await answer(await MessageModel.findById(message._id), conversation)), preview };
 };
 
 // any photo still standing addresses its group, whose record is made by the first reaction to it
@@ -99,7 +103,10 @@ export const setAlbumReaction = async (message_id, user_id, cipher) => {
   if (cipher) await AlbumModel.updateOne(album, { $push: { reactions: { user: user_id, cipher } } }, { upsert: true });
 
   const saved = await AlbumModel.findOne(album).select("reactions").lean();
-  return { conversation, album: { ...album, reactions: saved?.reactions ?? [] } };
+  const preview = cipher
+    ? await noteReaction(conversation._id, { message: photo._id, user: user_id, cipher, batchId: photo.batchId })
+    : await forgetReaction(conversation._id, { "latestReaction.user": user_id, "latestReaction.batchId": photo.batchId });
+  return { conversation, album: { ...album, reactions: saved?.reactions ?? [] }, preview };
 };
 
 // sent to the members there at the time, less anyone who has since deleted it for themselves

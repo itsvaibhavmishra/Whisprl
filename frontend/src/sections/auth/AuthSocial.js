@@ -21,7 +21,7 @@ const AuthSocial = () => {
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
-      dispatch(GoogleLogin(tokenResponse));
+      dispatch(GoogleLogin(tokenResponse.access_token));
     },
     onError: (error) => {
       showSnackbar("google");

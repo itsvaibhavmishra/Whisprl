@@ -25,12 +25,12 @@ const LoginForm = () => {
   const recaptchaRef = useRef(null);
 
   const LoginSchema = Yup.object().shape({
-    email: Yup.string().required("Email Required").email("Invalid Email"),
+    identifier: Yup.string().trim().required("Enter your email or username"),
     password: Yup.string().required("Password required"),
   });
 
   const defaultValues = {
-    email: "",
+    identifier: "",
     password: "",
   };
 
@@ -50,7 +50,7 @@ const LoginForm = () => {
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2}>
-        <RHFTextField name="email" label="Email address" />
+        <RHFTextField name="identifier" label="Email or username" autoComplete="username" />
         <RHFPasswordField name="password" label="Password" autoComplete="current-password" />
       </Stack>
       <Stack alignItems="flex-end" sx={{ mt: 1.5 }}>

@@ -9,8 +9,8 @@ export const PATH_DASHBOARD = {
   general: {
     chat: path(ROOTS_DASHBOARD, "chat"),
     status: path(ROOTS_DASHBOARD, "status"),
-    profile: path(ROOTS_DASHBOARD, "profile"),
-    contact: path(ROOTS_DASHBOARD, "contact"),
+    profile: path(ROOTS_DASHBOARD, "settings/profile"),
+    contacts: path(ROOTS_DASHBOARD, "contacts"),
     settings: path(ROOTS_DASHBOARD, "settings"),
   },
 };
@@ -24,6 +24,8 @@ export const PATH_AUTH = {
     verify: path(ROOTS_DASHBOARD, "auth/verify"),
   },
 };
+
+export const PATH_SETUP = path(ROOTS_DASHBOARD, "setup");
 
 export const PATH_DOCS = {
   root: ROOTS_DASHBOARD,

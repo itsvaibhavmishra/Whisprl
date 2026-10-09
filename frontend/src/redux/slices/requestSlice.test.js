@@ -1,6 +1,6 @@
 import { configureStore, createAsyncThunk } from "@reduxjs/toolkit";
 
-import requestReducer, { selectIsLoading } from "@/redux/slices/requestSlice";
+import requestReducer, { selectHasSettled, selectIsLoading } from "@/redux/slices/requestSlice";
 
 const waitable = () => {
   let finish;
@@ -37,5 +37,20 @@ test("each request has its own loader, and one card's request does not load anot
   gates.bob.finish();
   await toBob;
   expect(isLoading(SendRequest)).toBe(false);
-  expect(store.getState().requests).toEqual({});
+  expect(store.getState().requests.inFlight).toEqual({});
+});
+
+test("a request has settled once it has finished at least once, and stays settled while it refetches", async () => {
+  const store = configureStore({ reducer: { requests: requestReducer }, middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }) });
+  const hasSettled = () => selectHasSettled(store.getState(), SearchFriends);
+
+  const first = waitable();
+  const searching = store.dispatch(SearchFriends(first));
+  expect(hasSettled()).toBe(false);
+  first.finish();
+  await searching;
+  expect(hasSettled()).toBe(true);
+
+  store.dispatch(SearchFriends(waitable()));
+  expect(hasSettled()).toBe(true);
 });

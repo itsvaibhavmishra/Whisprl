@@ -6,6 +6,7 @@ import { BellSlash, Camera, Check, Checks, FileText, Microphone, Star, User, Use
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+import BirthdayCake from "@/components/BirthdayCake";
 import useSettings from "@/hooks/useSettings";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import TypingDots from "@/components/TypingDots";
@@ -14,8 +15,9 @@ import AvatarChoices from "@/sections/chat/status/AvatarChoices";
 import useLiveStatuses from "@/sections/chat/status/useLiveStatuses";
 import { badgeOf, identityOf, isMuted, isOnline as isPersonOnline } from "@/utils/chats";
 import formatTime from "@/utils/formatTime";
-import { describeEvent, typingLabel, typingNamesIn } from "@/utils/groups";
-import { summaryOf } from "@/utils/messageSummary";
+import { describeEvent, memberOf, typingLabel, typingNamesIn } from "@/utils/groups";
+import { quoteSummaryOf, summaryOf } from "@/utils/messageSummary";
+import { SPOKEN_ONLY } from "@/utils/spokenOnly";
 
 const ROW_SLIDE = { type: "spring", stiffness: 520, damping: 42 };
 const REORDER = { duration: 0.28, ease: [0.33, 1, 0.68, 1] };
@@ -28,7 +30,6 @@ const previewIconOf = (message) => {
   return PREVIEW_ICONS[message.file?.kind] ?? null;
 };
 
-const SPOKEN_ONLY = { position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0 0 0 0)" };
 
 const Receipt = ({ message }) => {
   if (message.seenAt) return <Checks size={16} weight="bold" role="img" aria-label="Seen" />;
@@ -58,7 +59,7 @@ const RowAvatarChoices = ({ conversationId, name, peerId, hasStatus, isGroup }) 
         position: "absolute",
         zIndex: 1,
         top: "50%",
-        left: (theme) => theme.spacing(1.25),
+        left: (theme) => theme.spacing(1),
         width: AVATAR_SIZE,
         height: AVATAR_SIZE,
         transform: "translateY(-50%)",
@@ -77,6 +78,9 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
 
   const { name, avatar, peer } = identityOf(conversation, meId);
   const latest = conversation.latestMessage;
+  const reaction = conversation.latestReaction;
+  const isReactionLatest = Boolean(reaction) && (!latest || new Date(reaction.at) > new Date(latest.createdAt));
+  const activityAt = isReactionLatest ? reaction.at : latest?.createdAt;
   const unread = conversation.unread ?? 0;
   const isQuiet = isMuted(conversation);
   const isOnline = Boolean(peer && peer._id !== meId && isPersonOnline(peer, onlineFriends));
@@ -90,10 +94,16 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
     return message.sender?._id === meId ? "You: " : `${message.sender?.firstName}: `;
   };
 
-  // what is happening now outranks what was said last: typing, then an unsent draft, then the latest message
+  const reactionLine = ({ user, emoji, message, isForAlbum }) => {
+    const reactor = user === meId ? "You" : memberOf(conversation, user)?.firstName ?? "Someone";
+    return `${reactor} reacted ${emoji} to “${isForAlbum ? "Photos" : quoteSummaryOf(message, meId)}”`;
+  };
+
+  // what is happening now outranks what was said last: typing, then an unsent draft, then the newest reaction or message
   const preview = () => {
     if (typists.length) return { text: typingLabel(typists, conversation.isGroup), isLive: true };
     if (draft && !isActive) return { label: "Draft:", text: draft };
+    if (isReactionLatest) return { text: reactionLine(reaction) };
     if (!latest) return { text: "" };
     if (latest.event) return { text: describeEvent(latest, conversation, meId) };
     return { text: `${authorOf(latest)}${summaryOf(latest)}`, icon: previewIconOf(latest) };
@@ -131,7 +141,7 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
           position: "relative",
           width: "100%",
           gap: 1.5,
-          px: 1.25,
+          px: 1,
           py: 1,
           borderRadius: 3,
           justifyContent: "flex-start",
@@ -144,11 +154,12 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
           <Stack direction="row" alignItems="center" spacing={0.75}>
             <Typography noWrap sx={{ flex: 1, fontSize: 15, fontWeight: unread ? 800 : 700, letterSpacing: "-0.01em" }}>
               {name}
+              {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
             </Typography>
-            {latest && (
+            {activityAt && (
               <Typography
                 component="time"
-                dateTime={latest.createdAt}
+                dateTime={activityAt}
                 sx={{
                   fontSize: 12,
                   fontWeight: unread ? 800 : 500,
@@ -157,12 +168,12 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
                   color: unread && !isQuiet ? "primary.main" : "text.secondary",
                 }}
               >
-                {formatTime(latest.createdAt, use24Hour)}
+                {formatTime(activityAt, use24Hour)}
               </Typography>
             )}
           </Stack>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25, color: "text.secondary" }}>
-            {hasReceipt && !isLive && !label && (
+            {hasReceipt && !isLive && !label && !isReactionLatest && (
               <Box component="span" sx={{ display: "grid", color: latest.seenAt ? "primary.main" : "text.disabled" }}>
                 <Receipt message={latest} />
               </Box>

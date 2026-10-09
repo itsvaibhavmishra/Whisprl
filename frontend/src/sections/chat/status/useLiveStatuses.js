@@ -7,9 +7,9 @@ import { isLive } from "@/utils/statuses";
 const NONE = [];
 
 // grouped once per change to the statuses, so each avatar on screen picks its own out without scanning them all
-const selectStatusesByOwner = createSelector([(state) => state.status.statuses], (statuses) => {
+const selectStatusesByOwner = createSelector([(state) => state.status.statuses, (state) => state.status.discover], (statuses, discover) => {
   const byOwner = {};
-  statuses.forEach((status) => {
+  [...statuses, ...discover].forEach((status) => {
     const owned = byOwner[status.owner._id] ?? [];
     owned.push(status);
     byOwner[status.owner._id] = owned;

@@ -28,11 +28,13 @@ const RowText = ({ label, description }) => (
 export const SettingsSection = ({ title, children }) => {
   const titleId = useId();
   return (
-    <Box component="section" aria-labelledby={titleId}>
-      <Typography id={titleId} component="h2" sx={{ m: 0, fontSize: 18, fontWeight: 700 }}>
-        {title}
-      </Typography>
-      <Box sx={{ mt: 1, borderTop: 1, borderColor: "divider" }}>{children}</Box>
+    <Box component="section" aria-labelledby={title ? titleId : undefined}>
+      {title && (
+        <Typography id={titleId} component="h3" sx={{ m: 0, mb: 1, fontSize: 16, fontWeight: 700 }}>
+          {title}
+        </Typography>
+      )}
+      <Box sx={{ borderTop: 1, borderColor: "divider" }}>{children}</Box>
     </Box>
   );
 };

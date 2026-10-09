@@ -1,5 +1,19 @@
 import mongoose from "mongoose";
 
+import { cipherSchema } from "#src/models/messageModel.js";
+
+// a group's own reaction carries its batchId, since it belongs to the group rather than the photo it was made on
+const latestReactionSchema = mongoose.Schema(
+  {
+    message: { type: mongoose.Schema.ObjectId, ref: "Message", required: true },
+    user: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
+    cipher: { type: cipherSchema, required: true },
+    batchId: { type: String },
+    at: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
 const conversationSchema = mongoose.Schema(
   {
     name: { type: String, required: [true, "Name is required"], trim: true },
@@ -11,6 +25,7 @@ const conversationSchema = mongoose.Schema(
     users: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
 
     latestMessage: { type: mongoose.Schema.ObjectId, ref: "Message" },
+    latestReaction: { type: latestReactionSchema },
 
     owner: { type: mongoose.Schema.ObjectId, ref: "User" },
     admins: [{ type: mongoose.Schema.ObjectId, ref: "User" }],

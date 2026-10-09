@@ -3,7 +3,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "
 import { useDispatch, useSelector } from "react-redux";
 
 import { ShareContacts } from "@/redux/slices/actions/messageActions";
-import FriendPicker from "@/sections/chat/group/FriendPicker";
+import FriendPicker from "@/components/FriendPicker";
 
 const ShareContactDialog = ({ open, onClose }) => {
   const dispatch = useDispatch();

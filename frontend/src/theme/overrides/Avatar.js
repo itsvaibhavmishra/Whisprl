@@ -9,15 +9,16 @@ export default function Avatar(theme) {
       },
     },
     MuiAvatarGroup: {
+      // styled through its own slot, since without a "+N" the first avatar in the markup is a real person
+      defaultProps: {
+        slotProps: {
+          surplus: { sx: { fontSize: 14, color: theme.palette.primary.main, backgroundColor: theme.palette.primary.lighter } },
+        },
+      },
       styleOverrides: {
         avatar: {
           fontSize: 16,
           fontWeight: theme.typography.fontWeightMedium,
-          '&:first-of-type': {
-            fontSize: 14,
-            color: theme.palette.primary.main,
-            backgroundColor: theme.palette.primary.lighter,
-          },
         },
       },
     },

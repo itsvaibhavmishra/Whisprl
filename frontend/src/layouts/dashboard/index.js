@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Box, Stack } from "@mui/material";
 import { MotionConfig } from "framer-motion";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector, useStore } from "react-redux";
 
 import { MotionLazyContainer } from "@/components/animate";
@@ -10,22 +10,26 @@ import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 import { DeliverWaitingMessages, GetConversations } from "@/redux/slices/actions/chatActions";
 import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
 import { ConnectSocket } from "@/redux/slices/actions/socketActions";
-import { GetStatuses } from "@/redux/slices/actions/statusActions";
+import { GetDiscover, GetStatuses } from "@/redux/slices/actions/statusActions";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
+import { PATH_SETUP } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import EncryptionGate from "@/sections/encryption/EncryptionGate";
 import { setChatOpener } from "@/utils/notifications";
+import { needsSetup } from "@/utils/onboarding";
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoggedIn } = useSelector((state) => state.auth);
   const userId = useSelector((state) => state.user.user._id);
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
+  const isSetUp = useSelector((state) => !needsSetup(state.user.user.onboarding));
   const store = useStore();
 
   useEffect(() => {
-    if (!isLoggedIn || !userId) return;
+    if (!isLoggedIn || !userId || !isSetUp) return;
 
     dispatch(ConnectSocket());
     // previews can only be decrypted once this browser's key is loaded
@@ -34,12 +38,14 @@ const DashboardLayout = () => {
       dispatch(DeliverWaitingMessages());
     });
     dispatch(GetOnlineFriends());
-  }, [dispatch, isLoggedIn, userId]);
+  }, [dispatch, isLoggedIn, userId, isSetUp]);
 
   // read from the store as it is now: a login may still be checking its keys, or the Status page may already be loading them
   useEffect(() => {
     const state = store.getState();
-    if (state.encryption.status === "ready" && !selectIsLoading(state, GetStatuses)) dispatch(GetStatuses());
+    if (state.encryption.status !== "ready") return;
+    if (!selectIsLoading(state, GetStatuses)) dispatch(GetStatuses());
+    if (!selectIsLoading(state, GetDiscover)) dispatch(GetDiscover());
   }, [dispatch, store, isEncryptionReady]);
 
   useEffect(() => {
@@ -52,6 +58,9 @@ const DashboardLayout = () => {
   if (!isLoggedIn || !userId) {
     return <Navigate to={"/auth/welcome"} />;
   }
+
+  // setup sends you on to where you were going, so a link opened mid-setup still lands
+  if (!isSetUp) return <Navigate to={PATH_SETUP} replace state={{ from: location }} />;
 
   return (
     <MotionLazyContainer>

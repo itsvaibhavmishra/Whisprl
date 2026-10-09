@@ -38,7 +38,7 @@ export const LoginUser = createApiThunk("auth/login", async ({ recaptchaRef, ...
 
   if (data.user) return signedIn(dispatch, data);
 
-  dispatch(updateOtpEmail({ otpEmail: values.email }));
+  dispatch(updateOtpEmail({ otpEmail: values.identifier }));
   return { user: null };
 });
 

@@ -1,19 +1,14 @@
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
-import { alpha, keyframes } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import { AddressBook, CircleDashed, LockSimple, UsersThree } from "phosphor-react";
 import { Link } from "react-router-dom";
 
-import Mascot from "@/assets/icons/logo/Whisprl.webp";
+import MascotHalo from "@/components/MascotHalo";
 import Wordmark from "@/components/Wordmark";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import ChatCanvas from "@/sections/chat/ChatCanvas";
 import { MAX_GROUP_SIZE } from "@/utils/groups";
 import { gradientOf } from "@/utils/gradients";
-
-const float = keyframes`
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-`;
 
 const ActionTile = ({ icon: Icon, label, detail, background, ...button }) => (
   <ButtonBase
@@ -57,23 +52,7 @@ const EmptyChat = ({ onNewGroup }) => (
           theme.palette.mode === "dark" ? `radial-gradient(closest-side, ${theme.palette.chat.canvas} 55%, ${alpha(theme.palette.chat.canvas, 0)})` : "none",
       }}
     >
-      <Box
-        sx={{
-          width: 176,
-          height: 176,
-          borderRadius: "50%",
-          display: "grid",
-          placeItems: "center",
-          background: (theme) => `radial-gradient(circle at 50% 55%, ${alpha(theme.palette.primary.glow, 0.45)}, ${alpha(theme.palette.primary.glow, 0)} 68%)`,
-        }}
-      >
-        <Box
-          component="img"
-          src={Mascot}
-          alt=""
-          sx={{ width: 150, height: "auto", animation: `${float} 5s ease-in-out infinite`, "@media (prefers-reduced-motion: reduce)": { animation: "none" } }}
-        />
-      </Box>
+      <MascotHalo />
       <Typography component="h2" sx={{ mt: 1 }}>
         <Wordmark name="Whisprl" fontSize={{ xs: "2.75rem", md: "3.5rem" }} />
       </Typography>
@@ -83,7 +62,7 @@ const EmptyChat = ({ onNewGroup }) => (
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 4, width: "100%" }}>
         <ActionTile icon={UsersThree} label="Start a group" detail={`Up to ${MAX_GROUP_SIZE} people`} background={gradientOf(["#7444E0", "#C2399E"])} onClick={onNewGroup} />
-        <ActionTile icon={AddressBook} label="Find friends" detail="By name or username" background={gradientOf(["#0979C2", "#3E5BDB"])} component={Link} to={PATH_DASHBOARD.general.contact} />
+        <ActionTile icon={AddressBook} label="Find friends" detail="By name or username" background={gradientOf(["#0979C2", "#3E5BDB"])} component={Link} to={PATH_DASHBOARD.general.contacts} />
         <ActionTile icon={CircleDashed} label="Share a status" detail="Gone in 24 hours" background={gradientOf(["#0B7F75", "#1F8FA8"])} component={Link} to={PATH_DASHBOARD.general.status} />
       </Stack>
 

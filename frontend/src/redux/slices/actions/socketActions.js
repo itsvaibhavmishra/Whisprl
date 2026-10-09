@@ -7,9 +7,10 @@ import {
   RemovedMessage,
   ReceiveAlbumUpdate,
   ReceiveMessageUpdate,
+  ReceiveReactionPreview,
+  ReceiveReceipt,
 } from "@/redux/slices/actions/chatActions";
 import {
-  applyReceipt,
   chatCleared,
   disappearingChanged,
   preferencesChanged,
@@ -18,9 +19,11 @@ import {
   updateTypingConvo,
 } from "@/redux/slices/chatSlice";
 import { updateOnlineUsers } from "@/redux/slices/userSlice";
-import { statusRemoved, viewerAdded } from "@/redux/slices/statusSlice";
+import { GetFriends } from "@/redux/slices/actions/userActions";
+import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
+import { FriendsChanged, GetRequests, RequestsChanged } from "@/redux/slices/actions/contactActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
-import { ReceiveStatus } from "@/redux/slices/actions/statusActions";
+import { ReceiveStatus, ReceiveStatusReaction } from "@/redux/slices/actions/statusActions";
 import { notify } from "@/utils/notify";
 import { dropAccessToken } from "@/utils/session";
 import { socket } from "@/utils/socket";
@@ -36,7 +39,8 @@ const serverEvents = () => ({
   message_received: ReceiveMessage,
   message_updated: ReceiveMessageUpdate,
   album_updated: ReceiveAlbumUpdate,
-  receipts: applyReceipt,
+  receipts: ReceiveReceipt,
+  reaction_preview: ReceiveReactionPreview,
   online_friends: updateOnlineUsers,
   start_typing: updateTypingConvo,
   stop_typing: updateTypingConvo,
@@ -46,7 +50,10 @@ const serverEvents = () => ({
   disappearing_changed: disappearingChanged,
   status_posted: ReceiveStatus,
   status_removed: statusRemoved,
-  status_viewed: viewerAdded,
+  status_viewed: viewSaved,
+  status_reacted: ReceiveStatusReaction,
+  friend_requests_changed: RequestsChanged,
+  friends_changed: FriendsChanged,
 });
 
 const listen = (dispatch, getState) => {
@@ -66,9 +73,14 @@ const listen = (dispatch, getState) => {
   socket.on("connect", () => {
     handshakeRetries = 0;
     dispatch(setConnection("connected"));
-    if (hasConnected) dispatch(CatchUp());
+    // a request answered while this tab was away sent its event to nobody, so friends are fetched again too
+    if (hasConnected) {
+      dispatch(CatchUp());
+      dispatch(GetFriends());
+    }
     hasConnected = true;
     dispatch(FlushOutbox());
+    dispatch(GetRequests());
   });
 
   // socket.io retries a dropped connection by itself, but not one the server refused or closed, so this retries with a renewed token

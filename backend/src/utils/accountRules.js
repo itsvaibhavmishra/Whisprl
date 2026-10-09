@@ -27,6 +27,35 @@ export const assertStrongPassword = (password) => {
 
 export const normalizeEmail = (email) => String(email ?? "").trim().toLowerCase();
 
+const MIN_AGE = 13;
+const EARLIEST_YEAR = 1900;
+
+const ageOn = (today, { day, month, year }) => {
+  const hasHadBirthday = today.getUTCMonth() + 1 > month || (today.getUTCMonth() + 1 === month && today.getUTCDate() >= day);
+  return today.getUTCFullYear() - year - (hasHadBirthday ? 0 : 1);
+};
+
+// a birthday comes as YYYY-MM-DD, and an empty one means none was given, the same rule at sign up and on the profile
+export const birthdayFrom = (value) => {
+  if (value === undefined || value === "") return null;
+  assertText(value);
+  const [year, month, day] = (/^(\d{4})-(\d{2})-(\d{2})$/.exec(value) ?? []).slice(1).map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (!year || date.getUTCDate() !== day || date.getUTCMonth() !== month - 1 || year < EARLIEST_YEAR) {
+    throw createHttpError.BadRequest("That date doesn't exist");
+  }
+  if (date > new Date()) throw createHttpError.BadRequest("A birthday can't be in the future");
+  return { day, month, year };
+};
+
+export const isOldEnough = (birthday) => ageOn(new Date(), birthday) >= MIN_AGE;
+
+export const oldEnoughBirthdayFrom = (value) => {
+  const birthday = birthdayFrom(value);
+  if (birthday && !isOldEnough(birthday)) throw createHttpError.BadRequest(`You must be at least ${MIN_AGE} to use Whisprl`);
+  return birthday;
+};
+
 const USERNAME = /^(?=.{3,20}$)[a-z0-9]+(?:[._][a-z0-9]+)*$/;
 const RESERVED_USERNAMES = new Set(["admin", "administrator", "help", "moderator", "official", "root", "support", "system", "whisprl"]);
 

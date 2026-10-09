@@ -1,25 +1,55 @@
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
-import { postingProgress, statusAdded, statusRemoved, statusSeen } from "@/redux/slices/statusSlice";
-import { ATTACHMENT_TYPES, MAX_ATTACHMENT_SIZE, pickFiles, prepareImage, wholePercents } from "@/utils/attachments";
+import { DirectConversationWith, SendTextMessage } from "@/redux/slices/actions/chatActions";
+import { postingProgress, reactionChosen, statusAdded, statusRemoved, statusSeen, viewSaved } from "@/redux/slices/statusSlice";
+import { ATTACHMENT_TYPES, MAX_ATTACHMENT_SIZE, pickFiles, prepareImage, thumbnailOf, wholePercents } from "@/utils/attachments";
 import axios from "@/utils/axios";
 import { sealFile } from "@/utils/crypto/fileCipher";
-import { encryptStatus, openStatus } from "@/utils/crypto/statusCipher";
+import { encryptStatus, encryptStatusReaction, openStatus, openStatusReaction } from "@/utils/crypto/statusCipher";
 import { errorMessageOf, notify } from "@/utils/notify";
+import { altOf, isGif, mentionsOf, renderPhoto, videoOverlayOf } from "@/utils/media-editor/render";
+import { quoteOfStatus } from "@/utils/statuses";
 import { COMPRESS_SHARE, VideoRefusal, compressVideo, probeVideo } from "@/utils/video";
 
 let postingController = null;
 
-const withContent = async (status) => ({ ...status, content: await openStatus(status) });
+// a reaction this browser cannot open shows as none, rather than hiding the view it came with
+const openedReaction = (reaction, status, reactor) => (reaction ? openStatusReaction(reaction, status, reactor).catch(() => null) : null);
+
+const withReactions = async (status, meId) => {
+  if (status.views) {
+    const views = await Promise.all(status.views.map(async (view) => ({ ...view, reaction: await openedReaction(view.reaction, status, view.user) })));
+    return { ...status, views };
+  }
+  const { ownReaction, ...others } = status;
+  return { ...others, myReaction: await openedReaction(ownReaction, status, { _id: meId }) };
+};
+
+const withContent = async (status, meId) => ({ ...(await withReactions(status, meId)), content: status.isPublic ? status.content : await openStatus(status) });
 
 // a status this browser cannot open is left out rather than shown empty
-const readable = async (statuses) =>
-  (await Promise.allSettled(statuses.map(withContent))).filter((result) => result.status === "fulfilled").map((result) => result.value);
+const readable = async (statuses, meId) =>
+  (await Promise.allSettled(statuses.map((status) => withContent(status, meId))))
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
 
 // ------------- Statuses -------------
-export const GetStatuses = createApiThunk("status/list", async () => readable((await axios.get("/status")).data.statuses));
+export const GetStatuses = createApiThunk("status/list", async (_, { getState }) =>
+  readable((await axios.get("/status")).data.statuses, getState().user.user._id)
+);
 
-export const ReceiveStatus = (status) => async (dispatch) => {
-  const [opened] = await readable([status]);
+export const GetDiscover = createApiThunk("status/discover", async (_, { getState }) =>
+  readable((await axios.get("/status/discover")).data.statuses, getState().user.user._id)
+);
+
+// the ones a search turned up, so their rings show and play wherever those people appear
+export const GetPublicStatusesOf = createApiThunk(
+  "status/public-of",
+  async (ownerIds, { getState }) => readable((await axios.get("/status/discover", { params: { owners: ownerIds.join(",") } })).data.statuses, getState().user.user._id),
+  { notifyErrors: false }
+);
+
+export const ReceiveStatus = (status) => async (dispatch, getState) => {
+  const [opened] = await readable([status], getState().user.user._id);
   if (opened) dispatch(statusAdded(opened));
 };
 
@@ -45,17 +75,20 @@ export const ChooseStatusMedia = () => async () => {
 };
 
 // ------------- Post -------------
-const compressedIfVideo = async (draft, signal, report) => {
-  if (draft.kind !== "video") return draft;
+const drawnStoryOf = async (draft, signal, report) => {
+  if (isGif(draft)) return draft;
+  if (draft.kind !== "video") return { ...draft, kind: "image", ...(await renderPhoto({ file: draft.file, edits: draft.edits, isStory: true })) };
   const onProgress = (fraction) => report(fraction * COMPRESS_SHARE);
-  const shrunk = await compressVideo(draft.file, { duration: draft.duration, onProgress, signal });
-  return { ...draft, file: shrunk.file, width: shrunk.width ?? draft.width, height: shrunk.height ?? draft.height };
+  const shrunk = await compressVideo(draft.file, { duration: draft.duration, onProgress, signal, overlay: videoOverlayOf(draft.edits) });
+  return { ...draft, file: shrunk.file, width: shrunk.width ?? draft.width, height: shrunk.height ?? draft.height, preview: shrunk.preview ?? draft.preview };
 };
 
-const contentOf = ({ kind, text, background, caption, file, width, height, duration, preview }, sealed) => {
-  if (kind === "text") return { kind, text, background };
-  return { kind, caption, file: { key: sealed.key, iv: sealed.iv, mimeType: file.type, width, height, duration, preview } };
-};
+const contentOf = ({ kind, edits, file, width, height, duration, preview }, sealed) => ({
+  kind,
+  alt: altOf(edits),
+  mentions: mentionsOf(edits, { width, height }),
+  file: { ...(sealed && { key: sealed.key, iv: sealed.iv }), mimeType: file.type, width, height, duration, preview },
+});
 
 export const PostStatus = (draft) => async (dispatch, getState) => {
   const controller = new AbortController();
@@ -65,19 +98,30 @@ export const PostStatus = (draft) => async (dispatch, getState) => {
   report(0);
 
   try {
-    const ready = await compressedIfVideo(draft, signal, report);
-    const sealed = ready.file && (await sealFile(await ready.file.arrayBuffer()));
-    const content = contentOf(ready, sealed);
-    const { sealedFor } = (await axios.get("/status/sealed-for", { signal })).data;
+    const isForEveryone = Boolean(draft.audience?.everyone);
+    const ready = await drawnStoryOf(draft, signal, report);
+    const sealed = isForEveryone ? null : await sealFile(await ready.file.arrayBuffer());
+    // large enough for its card and a reply's quote, unlike the blur a chat photo carries
+    const preview = ready.kind === "video" ? ready.preview : await thumbnailOf(ready.file);
+    const content = contentOf({ ...ready, preview }, sealed);
+    // the friends who will see it, whom anything not for everyone is sealed for and a mention may be told about
+    const { sealedFor } = (await axios.post("/status/sealed-for", { audience: draft.audience }, { signal })).data;
 
     const form = new FormData();
-    form.append("cipher", JSON.stringify(await encryptStatus(content, sealedFor, getState().user.user._id)));
-    if (sealed) form.append("file", new Blob([sealed.data]));
+    if (draft.audience) form.append("audience", JSON.stringify(draft.audience));
+    if (isForEveryone) {
+      form.append("content", JSON.stringify(content));
+      form.append("file", ready.file);
+    } else {
+      form.append("cipher", JSON.stringify(await encryptStatus(content, sealedFor, getState().user.user._id)));
+      form.append("file", new Blob([sealed.data]));
+    }
 
     const uploadFrom = ready.kind === "video" ? COMPRESS_SHARE : 0;
     const onUploadProgress = ({ loaded, total }) => total && report(uploadFrom + (loaded / total) * (100 - uploadFrom));
     const { data } = await axios.post("/status", form, { signal, onUploadProgress });
     dispatch(statusAdded({ ...data.posted, content }));
+    dispatch(TellMentioned({ ...data.posted, content }, sealedFor));
   } catch (error) {
     if (!signal.aborted) notify({ severity: "error", message: error instanceof VideoRefusal ? error.message : errorMessageOf(error) });
   } finally {
@@ -92,6 +136,40 @@ export const MarkStatusViewed = (statusId) => (dispatch) => {
   dispatch(statusSeen(statusId));
   axios.post(`/status/${statusId}/view`).catch(() => {});
 };
+
+// ------------- Reactions -------------
+export const ReactToStatus = createApiThunk("status/react", async ({ status, emoji }, { dispatch, getState }) => {
+  const cipher = await encryptStatusReaction(emoji, status, getState().user.user._id);
+  await axios.post(`/status/${status._id}/react`, { cipher });
+  dispatch(reactionChosen({ statusId: status._id, emoji }));
+});
+
+export const ReceiveStatusReaction = ({ status_id, view }) => async (dispatch, getState) => {
+  const status = getState().status.statuses.find((each) => each._id === status_id);
+  if (status) dispatch(viewSaved({ status_id, view: { ...view, reaction: await openedReaction(view.reaction, status, view.user) } }));
+};
+
+// ------------- Replies And Mentions -------------
+const SendAboutStatus = createApiThunk("status/send-about", async ({ to, status, about, text = "" }, { dispatch }) => {
+  const conversation = await dispatch(DirectConversationWith(to));
+  dispatch(SendTextMessage({ conversationId: conversation._id, text, statusQuote: quoteOfStatus(status, about) }));
+});
+
+export const ReplyToStatus = ({ status, text }) => SendAboutStatus({ to: status.owner._id, status, about: "reply", text });
+
+export const ShareStatus = ({ status, friendIds, text }) => (dispatch) => friendIds.forEach((to) => dispatch(SendAboutStatus({ to, status, about: "share", text })));
+
+// only someone the update was sealed for hears about a mention, since the notice carries its preview
+const TellMentioned = (status, sealedFor) => (dispatch) => {
+  const canSee = new Set(sealedFor.map((person) => person._id));
+  const mentioned = new Set((status.content.mentions ?? []).map((mention) => mention.userId));
+  [...mentioned].filter((to) => canSee.has(to)).forEach((to) => dispatch(SendAboutStatus({ to, status, about: "mention" })));
+};
+
+// ------------- Report -------------
+export const ReportStatus = createApiThunk("status/report", async ({ statusId, reason, note }) => {
+  await axios.post(`/status/${statusId}/report`, { reason, note });
+});
 
 // ------------- Delete -------------
 export const DeleteStatus = createApiThunk("status/delete", async (statusId, { dispatch }) => {

@@ -1,6 +1,6 @@
 // using React Hook Form
 
-import { TextField, useTheme } from "@mui/material";
+import { TextField } from "@mui/material";
 import PropTypes from "prop-types";
 import { useFormContext, Controller } from "react-hook-form";
 
@@ -13,7 +13,6 @@ RHFTextField.propTypes = {
 
 export default function RHFTextField({ name, helperText, ...other }) {
   const { control } = useFormContext();
-  const theme = useTheme();
 
   return (
     <Controller
@@ -29,24 +28,6 @@ export default function RHFTextField({ name, helperText, ...other }) {
               ? ""
               : field.value
           }
-          InputProps={{
-            sx: {
-              "& textarea": {
-                scrollbarColor: `${theme.palette.primary.main} transparent`,
-                scrollbarWidth: "thin",
-                "&::-webkit-scrollbar": {
-                  width: "5px",
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: theme.palette.primary.main,
-                  borderRadius: "10px",
-                },
-                "&::-webkit-scrollbar-track": {
-                  backgroundColor: "transparent",
-                },
-              },
-            },
-          }}
           error={!!error}
           helperText={error ? error.message : helperText}
           {...other}

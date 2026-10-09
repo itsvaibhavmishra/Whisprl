@@ -3,51 +3,6 @@ import TimeAgo from "react-timeago";
 
 import { formatClock } from "@/utils/formatMessageTime";
 
-export const getSimpleData = (inputDate) => {
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  // Parse the input date string
-  const date = new Date(inputDate);
-
-  // Extract day, month, and year components
-  const day = date.getDate();
-  const monthIndex = date.getMonth();
-  const year = date.getFullYear();
-
-  // Function to get the ordinal suffix for the day
-  function getOrdinalSuffix(day) {
-    if (day > 3 && day < 21) return "th";
-    switch (day % 10) {
-      case 1:
-        return "st";
-      case 2:
-        return "nd";
-      case 3:
-        return "rd";
-      default:
-        return "th";
-    }
-  }
-
-  // Format the date
-  const formattedDate =
-    day + getOrdinalSuffix(day) + " " + months[monthIndex] + ", " + year;
-  return formattedDate;
-};
-
 const formatTime = (time, use24Hour) => {
   // Custom formatter for TimeAgo
   const customFormatter = (value, unit, suffix) => {

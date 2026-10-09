@@ -5,6 +5,7 @@ import {
   addFiles,
   clearFiles,
   clearUploadFailed,
+  fileEdited,
   markUploadFailed,
   queueMessage,
   removeFile,
@@ -24,10 +25,12 @@ import {
   holdAttachment,
   isCurrentTransfer,
   keepSealedCopy,
+  originalFileOf,
   pickFiles,
   prepareImage,
   releaseAttachment,
   replaceHeldFile,
+  replaceWithEdited,
   sealedCopyOf,
   sentMessageIdOf,
   startTransfer,
@@ -35,6 +38,7 @@ import {
 } from "@/utils/attachments";
 import axios from "@/utils/axios";
 import { sealFile } from "@/utils/crypto/fileCipher";
+import { hasEdits, renderPhoto, videoOverlayOf } from "@/utils/media-editor/render";
 import { notify, notifyError } from "@/utils/notify";
 import { COMPRESS_SHARE, VideoRefusal, compressVideo, probeVideo } from "@/utils/video";
 import { completeVoiceFile } from "@/utils/voice";
@@ -53,6 +57,8 @@ const typeLabelOf = (kind, file) => {
 };
 
 const groupOf = (chosenFile) => (chosenFile.kind === "doc" ? "doc" : "media");
+
+const PICKED_DETAILS = ["fileName", "mimeType", "size", "typeLabel", "preview"];
 
 const signatureOf = (file) => `${file.name}:${file.size}:${file.lastModified}`;
 
@@ -125,6 +131,27 @@ export const ChooseAttachments = (kind) => async (dispatch, getState) => {
   });
 };
 
+// ------------- Edit A Chosen Photo Or Video -------------
+// a photo is redrawn at once so every preview shows the edit; a video is drawn on while it compresses
+export const EditAttachment = (id, edits) => async (dispatch, getState) => {
+  const chosen = getState().chat.files.find((file) => file.id === id);
+  if (chosen?.kind !== "image") return dispatch(fileEdited({ id, edits }));
+  // kept from the first edit, so taking every edit back off returns the photo exactly as it was picked
+  const asPicked = chosen.asPicked ?? Object.fromEntries(PICKED_DETAILS.map((key) => [key, chosen[key]]));
+  if (!hasEdits(edits)) {
+    replaceHeldFile(id, originalFileOf(id));
+    return dispatch(fileEdited({ id, edits: undefined, ...asPicked }));
+  }
+  try {
+    const edited = await renderPhoto({ file: originalFileOf(id), edits });
+    replaceWithEdited(id, edited.file);
+    const { name, type, size } = edited.file;
+    dispatch(fileEdited({ id, edits, asPicked, fileName: name, mimeType: type, size, preview: edited.preview, typeLabel: typeLabelOf("image", edited.file) }));
+  } catch {
+    notify({ severity: "error", message: "This photo could not be edited" });
+  }
+};
+
 // ------------- Discard Chosen Attachments -------------
 export const RemoveAttachment = (id) => (dispatch) => {
   releaseAttachment(id);
@@ -168,9 +195,14 @@ export const PrepareQueued = (clientId) => async (dispatch, getState) => {
     let { file } = entry;
     if (file.kind === "video") {
       const report = progressReporter(dispatch, clientId, 0, COMPRESS_SHARE);
-      const shrunk = await compressVideo(attachmentFile(clientId), { duration: file.duration, onProgress: report, signal: controller.signal });
+      const overlay = videoOverlayOf(entry.edits);
+      const shrunk = await compressVideo(attachmentFile(clientId), { duration: file.duration, onProgress: report, signal: controller.signal, overlay });
       replaceHeldFile(clientId, shrunk.file);
+      // the held video now carries its drawing, so sending it again must not draw it a second time
+      dispatch(updateQueuedMessage({ clientId, edits: undefined }));
       file = { ...file, name: shrunk.file.name, mimeType: shrunk.file.type, size: shrunk.file.size, width: shrunk.width ?? file.width, height: shrunk.height ?? file.height };
+      // a view-once video goes without a poster, so the drawn one only replaces a poster already there
+      if (file.preview && shrunk.preview) file.preview = shrunk.preview;
     }
     if (file.kind === "voice") {
       const complete = await completeVoiceFile(attachmentFile(clientId));
@@ -216,6 +248,8 @@ export const SendAttachments = (caption, isViewOnce = false) => async (dispatch,
         file: isViewOnce ? { ...detailsOf(attachment), preview: undefined } : detailsOf(attachment),
         batch: { batchId, batchIndex: index, batchTotal: files.length },
         ...(isViewOnce && { viewOnce: true }),
+        // kept beside the file rather than in it, since the file's details are what the message carries
+        ...(attachment.kind === "video" && { edits: attachment.edits }),
       })
     )
   );

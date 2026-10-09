@@ -14,6 +14,7 @@
      into CHANGELOG.md by then. -->
 
 - [ ] `devlog.txt` updated, or this is an rc into production pull request
+- [ ] Anything worth a highlight is in What's new's `upcoming` list, or nothing here is
 
 ### Release
 
