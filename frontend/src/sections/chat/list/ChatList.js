@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Box, Button, ButtonBase, IconButton, InputBase, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, ButtonBase, IconButton, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Archive, ArrowLeft, CaretRight, MagnifyingGlass, UsersThree, X } from "phosphor-react";
+import { Archive, ArrowLeft, CaretRight, UsersThree } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import WhisprlAvatar from "@/assets/icons/logo/WhisprlAvatar.webp";
+import RequestButton from "@/components/profile/RequestButton";
+import SearchPill from "@/components/SearchPill";
 import Wordmark from "@/components/Wordmark";
 import useIsLoading from "@/hooks/useIsLoading";
 import { CreateOpenConversation, GetConversations } from "@/redux/slices/actions/chatActions";
-import { SearchForUsers, SendRequest } from "@/redux/slices/actions/contactActions";
+import { SearchForUsers } from "@/redux/slices/actions/contactActions";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
 import { clearSearchUsers } from "@/redux/slices/contactSlice";
 import { clearSearch } from "@/redux/slices/userSlice";
@@ -33,7 +35,7 @@ const matchesSearch = (conversation, meId, needle) => {
 };
 
 const SectionLabel = ({ children }) => (
-  <Typography component="h2" sx={{ px: 1.5, pt: 2.5, pb: 0.75, fontSize: 13, fontWeight: 700, color: "text.secondary" }}>
+  <Typography component="h2" sx={{ px: 1, pt: 2.5, pb: 0.75, fontSize: 13, fontWeight: 700, color: "text.secondary" }}>
     {children}
   </Typography>
 );
@@ -62,7 +64,7 @@ const FriendRow = ({ person, isMe }) => {
     <Box component="li" sx={{ listStyle: "none" }}>
       <ButtonBase
         onClick={() => dispatch(CreateOpenConversation(person._id))}
-        sx={{ width: "100%", gap: 1.5, px: 1.25, py: 1, borderRadius: 3, justifyContent: "flex-start", textAlign: "left", "&:hover": { bgcolor: "action.hover" } }}
+        sx={{ width: "100%", gap: 1.5, px: 1, py: 1, borderRadius: 3, justifyContent: "flex-start", textAlign: "left", "&:hover": { bgcolor: "action.hover" } }}
       >
         <PersonSummary
           person={person}
@@ -74,20 +76,12 @@ const FriendRow = ({ person, isMe }) => {
   );
 };
 
-const StrangerRow = ({ person }) => {
-  const dispatch = useDispatch();
-  const sentRequests = useSelector((state) => state.contact.sentRequests);
-  const isRequestSent = sentRequests.find((sent) => sent.receiverId === person._id)?.isSent ?? person.requestSent;
-
-  return (
-    <Box component="li" sx={{ listStyle: "none", display: "flex", alignItems: "center", gap: 1.5, px: 1.25, py: 1 }}>
-      <PersonSummary person={person} name={`${person.firstName} ${person.lastName}`} detail={atUsername(person)} />
-      <Button size="small" variant={isRequestSent ? "text" : "contained"} disabled={isRequestSent} onClick={() => dispatch(SendRequest(person._id))} sx={{ borderRadius: 99, flexShrink: 0 }}>
-        {isRequestSent ? "Request sent" : "Add friend"}
-      </Button>
-    </Box>
-  );
-};
+const StrangerRow = ({ person }) => (
+  <Box component="li" sx={{ listStyle: "none", display: "flex", alignItems: "center", gap: 1.5, px: 1, py: 1 }}>
+    <PersonSummary person={person} name={`${person.firstName} ${person.lastName}`} detail={atUsername(person)} />
+    <RequestButton person={person} size="small" sx={{ borderRadius: 99, flexShrink: 0 }} />
+  </Box>
+);
 
 const ChatList = ({ onNewGroup }) => {
   const dispatch = useDispatch();
@@ -175,36 +169,7 @@ const ChatList = ({ onNewGroup }) => {
           </Tooltip>
         </Stack>
 
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={1}
-          sx={{
-            height: 42,
-            px: 1.5,
-            borderRadius: 99,
-            bgcolor: "chat.field",
-            color: "text.secondary",
-            border: 1.5,
-            borderColor: "transparent",
-            transition: "border-color 160ms ease, background-color 160ms ease",
-            "&:focus-within": { borderColor: "primary.main", bgcolor: "chat.list" },
-          }}
-        >
-          <MagnifyingGlass size={18} weight="bold" />
-          <InputBase
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search chats and people"
-            inputProps={{ "aria-label": "Search chats and people" }}
-            sx={{ flex: 1, fontSize: 14, fontWeight: 500, color: "text.primary" }}
-          />
-          {query && (
-            <IconButton size="small" aria-label="Clear search" onClick={() => setQuery("")} sx={{ mr: -0.75 }}>
-              <X size={14} weight="bold" />
-            </IconButton>
-          )}
-        </Stack>
+        <SearchPill value={query} onChange={setQuery} label="Search chats and people" />
 
         {!isShowingArchived && (
           <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" role="group" aria-label="Show">
@@ -249,7 +214,7 @@ const ChatList = ({ onNewGroup }) => {
 
       <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
         {isLoading && !conversations.length ? (
-          <Stack spacing={0.5} sx={{ px: 1.25, pt: 1 }}>
+          <Stack spacing={0.5} sx={{ px: 1, pt: 1 }}>
             {[...Array(7).keys()].map((index) => (
               <Stack key={index} direction="row" spacing={1.5} alignItems="center" sx={{ py: 1 }}>
                 <Skeleton variant="circular" width={50} height={50} />
@@ -265,7 +230,7 @@ const ChatList = ({ onNewGroup }) => {
             {!isShowingArchived && !needle && archivedCount > 0 && (
               <ButtonBase
                 onClick={() => setIsShowingArchived(true)}
-                sx={{ width: "100%", gap: 1.5, px: 1.25, py: 1, borderRadius: 3, justifyContent: "flex-start", "&:hover": { bgcolor: "action.hover" } }}
+                sx={{ width: "100%", gap: 1.5, px: 1, py: 1, borderRadius: 3, justifyContent: "flex-start", "&:hover": { bgcolor: "action.hover" } }}
               >
                 <Box sx={{ width: 50, height: 50, borderRadius: "50%", display: "grid", placeItems: "center", color: "text.secondary", bgcolor: "chat.field" }}>
                   <Archive size={22} />

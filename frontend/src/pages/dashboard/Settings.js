@@ -1,193 +1,35 @@
-import { useState } from "react";
-import { Box, Button, Stack, Switch, Typography } from "@mui/material";
-import { ArrowUpRight, SignOut } from "phosphor-react";
-import { useDispatch, useSelector } from "react-redux";
-import { Link as RouterLink } from "react-router-dom";
+import { Box, useMediaQuery } from "@mui/material";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 
-import { SOURCE_URL } from "@/config";
-import DashboardPage from "@/layouts/dashboard/DashboardPage";
-import { LogoutUser } from "@/redux/slices/actions/authActions";
-import { PATH_DASHBOARD, PATH_DOCS } from "@/routes/paths";
-import { AccentPicker, ThemeModePicker } from "@/components/AppearancePickers";
-import ChangePasswordDialog from "@/sections/settings/ChangePasswordDialog";
-import PasskeySetting from "@/sections/settings/PasskeySetting";
-import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
-import ChatPreview from "@/sections/settings/ChatPreview";
-import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
-import UsernameSetting from "@/sections/settings/UsernameSetting";
-import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
-import StatusPrivacySetting from "@/sections/settings/StatusPrivacySetting";
-import WallpaperSetting from "@/sections/settings/WallpaperSetting";
-import { askForNotifications, notificationPermission } from "@/utils/notifications";
-import { SettingLink, SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
-import getAvatar from "@/utils/avatars";
-import useSettings from "@/hooks/useSettings";
-import { previewSound } from "@/utils/sounds";
+import { LIST_WIDTH } from "@/components/Pane";
+import { PAGE_HEIGHT_WITH_TAB_BAR } from "@/layouts/dashboard/NavRail";
+import SettingsList from "@/sections/settings/SettingsList";
+import SettingsPane from "@/sections/settings/SettingsPane";
+import { CATEGORIES, PROFILE, SETTINGS_ROOT, settingsPathOf } from "@/sections/settings/settingsRoute";
 
-const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRight };
-
-const Appearance = () => (
-  <Box
-    component="section"
-    aria-labelledby="appearance-title"
-    sx={{
-      display: "grid",
-      gridTemplateColumns: { md: "minmax(0, 6fr) minmax(0, 5fr)" },
-      columnGap: 8,
-      rowGap: 5,
-      alignItems: "center",
-    }}
-  >
-    <Stack spacing={4} sx={{ order: { md: 2 } }}>
-      <Box>
-        <Typography id="appearance-title" component="h2" sx={{ m: 0, fontSize: 18, fontWeight: 700 }}>
-          Appearance
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 0.5, color: "text.secondary" }}>
-          Changes apply straight away and are saved on this device.
-        </Typography>
-      </Box>
-      <ThemeModePicker />
-      <AccentPicker />
-    </Stack>
-    <ChatPreview />
-  </Box>
-);
-
-const SoundSetting = () => {
-  const { sounds, onToggleSounds } = useSettings();
-
-  const toggle = (event) => {
-    onToggleSounds();
-    if (event.target.checked) previewSound();
-  };
-
-  return (
-    <SettingRow label="Message sounds" description="A sound when you send a message, and when one arrives.">
-      <Switch checked={sounds} onChange={toggle} inputProps={{ "aria-label": "Message sounds" }} />
-    </SettingRow>
-  );
-};
-
-const ClockSetting = () => {
-  const { use24Hour, onToggle24Hour } = useSettings();
-  return (
-    <SettingRow label="24-hour time" description="Show times like 15:05 instead of 3:05 PM.">
-      <Switch checked={Boolean(use24Hour)} onChange={onToggle24Hour} inputProps={{ "aria-label": "24-hour time" }} />
-    </SettingRow>
-  );
-};
-
-const NotificationSetting = () => {
-  const { notifications, onSetNotifications } = useSettings();
-  const [permission, setPermission] = useState(notificationPermission);
-  if (permission === "unsupported") return null;
-
-  const toggle = async () => {
-    if (notifications) return onSetNotifications(false);
-    const answer = await askForNotifications();
-    setPermission(answer);
-    if (answer === "granted") onSetNotifications(true);
-  };
-
-  const description =
-    permission === "denied"
-      ? "Your browser is blocking notifications from Whisprl. Allow them in this site's settings, then switch this on."
-      : "A notification for each new message while Whisprl is in the background. Muted chats stay quiet.";
-
-  return (
-    <SettingRow label="Notifications" description={description}>
-      <Switch checked={notifications && permission === "granted"} onChange={toggle} inputProps={{ "aria-label": "Notifications" }} />
-    </SettingRow>
-  );
-};
-
+// on a computer the categories sit beside the one that is open; on a phone each is a screen of its own
 const Settings = () => {
-  const dispatch = useDispatch();
-  const { email, firstName, lastName, avatar } = useSelector((state) => state.user.user);
-  const [changingPassword, setChangingPassword] = useState(false);
+  const navigate = useNavigate();
+  const isWide = useMediaQuery((theme) => theme.breakpoints.up("md"));
+  const { "*": slug = "" } = useParams();
+  const category = [PROFILE, ...CATEGORIES].find((candidate) => candidate.slug === slug);
+
+  if (slug && !category) return <Navigate to={SETTINGS_ROOT} replace />;
+  if (isWide && !category) return <Navigate to={settingsPathOf(PROFILE)} replace />;
 
   return (
-    <DashboardPage title="Settings" description="Make Whisprl look the way you like, and look after your account." maxWidth={1040}>
-      <Appearance />
-
-      <Box sx={{ mt: { xs: 7, md: 10 } }}>
-        <WallpaperSetting />
-      </Box>
-
-      <Box
-        sx={{
-          mt: { xs: 7, md: 10 },
-          display: "grid",
-          gridTemplateColumns: { md: "minmax(0, 7fr) minmax(0, 5fr)" },
-          columnGap: 8,
-          rowGap: 6,
-          alignItems: "start",
-        }}
-      >
-        <Stack spacing={6}>
-          <SettingsSection title="Account">
-            <SettingLink
-              component={RouterLink}
-              to={PATH_DASHBOARD.general.profile}
-              leading={getAvatar(avatar, firstName, 48)}
-              label={`${firstName} ${lastName}`}
-              description="Edit your photo, cover, name and status."
-            />
-            <UsernameSetting />
-            <SettingRow label="Email" description={email} />
-          </SettingsSection>
-
-          <SettingsSection title="Security">
-            <SettingRow label="Password" description="The password you log in with.">
-              <Button variant="outlined" color="inherit" onClick={() => setChangingPassword(true)}>
-                Change password
-              </Button>
-            </SettingRow>
-            <PasskeySetting />
-            <RecoveryKeySetting />
-          </SettingsSection>
-        </Stack>
-
-        <Stack spacing={6}>
-          <SettingsSection title="Chats">
-            <QuickReactionsSetting />
-            <SoundSetting />
-            <NotificationSetting />
-            <ClockSetting />
-            <BlockedPeopleSetting />
-          </SettingsSection>
-
-          <SettingsSection title="Status">
-            <StatusPrivacySetting />
-          </SettingsSection>
-
-          <SettingsSection title="About Whisprl">
-            <SettingLink
-              component={RouterLink}
-              to={PATH_DOCS.general.tnc}
-              label="Terms and conditions"
-              description="What you agree to when you use Whisprl."
-            />
-            <SettingLink {...externalLink} href={SOURCE_URL} label="Source code" description="Whisprl is open source on GitHub." />
-            <SettingLink
-              {...externalLink}
-              href={`${SOURCE_URL}/issues/new`}
-              label="Report a problem"
-              description="Opens a new issue on GitHub."
-            />
-          </SettingsSection>
-
-          <Box>
-            <Button color="error" variant="outlined" startIcon={<SignOut />} onClick={() => dispatch(LogoutUser())}>
-              Log out
-            </Button>
-          </Box>
-        </Stack>
-      </Box>
-
-      {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
-    </DashboardPage>
+    <Box sx={{ display: "flex", flexGrow: 1, minWidth: 0, height: { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100dvh" }, bgcolor: "chat.list" }}>
+      {(isWide || !category) && (
+        <Box sx={{ width: { xs: "100%", ...LIST_WIDTH }, flexShrink: 0, borderRight: (theme) => ({ xs: "none", md: `1px solid ${theme.palette.divider}` }) }}>
+          <SettingsList current={slug} isWide={isWide} />
+        </Box>
+      )}
+      {category && (
+        <Box component="main" sx={{ flex: 1, minWidth: 0, bgcolor: { md: "chat.canvas" } }}>
+          <SettingsPane category={category} onBack={isWide ? undefined : () => navigate(SETTINGS_ROOT)} />
+        </Box>
+      )}
+    </Box>
   );
 };
 

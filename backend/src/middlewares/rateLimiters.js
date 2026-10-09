@@ -39,4 +39,6 @@ export const socialLimit = () => limit(15, 20, byIp);
 export const uploadLimit = () => limit(15, 60, byUser);
 export const searchLimit = () => limit(1, 30, byUser);
 export const writeLimit = () => limit(15, 150, byUser);
+// a day's worth of new friend requests, on top of the cap on requests still waiting
+export const requestLimit = () => limit(24 * 60, 20, byUser);
 export const readLimit = () => limit(1, 120, byUser);

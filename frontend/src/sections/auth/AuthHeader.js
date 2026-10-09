@@ -18,14 +18,14 @@ const AuthHeader = ({ title, children }) => (
   </Box>
 );
 
-export const BackToLogin = () => (
+export const BackToLogin = ({ sx }) => (
   <Link
     component={RouterLink}
     to={PATH_AUTH.general.login}
     color="text.secondary"
     variant="body2"
     underline="hover"
-    sx={{ mt: 4, display: "inline-flex", alignItems: "center", gap: 0.5 }}
+    sx={{ mt: 4, display: "inline-flex", alignItems: "center", gap: 0.5, ...sx }}
   >
     <CaretLeft size={16} />
     Back to log in

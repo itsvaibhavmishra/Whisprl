@@ -53,6 +53,9 @@ const withLatestSender = (conversations) =>
 const membersOf = (sender_id, receiver_id) =>
   String(sender_id) === String(receiver_id) ? [sender_id] : [sender_id, receiver_id];
 
+export const directConversationIdOf = async (one_id, other_id) =>
+  (await ConversationModel.findOne({ ...DIRECT, users: { $all: [one_id, other_id], $size: 2 } }).select("_id").lean())?._id ?? null;
+
 // a note to yourself has one member, so the match is on the exact set rather than on containing both
 const findDirectConversation = async (members) => {
   const conversation = await ConversationModel.findOne({ ...DIRECT, users: { $all: members, $size: members.length } })

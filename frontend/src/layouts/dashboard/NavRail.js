@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Badge, Box, ButtonBase, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AnimatePresence, m } from "framer-motion";
@@ -8,19 +7,19 @@ import { useSelector } from "react-redux";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import useSettings from "@/hooks/useSettings";
-import ProfileMenu from "@/layouts/dashboard/ProfileMenu";
+import { selectWaitingRequests } from "@/redux/slices/contactSlice";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { isMuted } from "@/utils/chats";
 import getAvatar from "@/utils/avatars";
 import { NIGHT_INK } from "@/utils/colorPresets";
 
-const { chat, status, contact, settings, profile } = PATH_DASHBOARD.general;
+const { chat, status, contacts, settings, profile } = PATH_DASHBOARD.general;
 // settings sits behind your photo, so the rail and the bar keep only the places you move between
 const DESTINATIONS = [
   { path: chat, label: "Chats", Icon: ChatCircleDots, badgeWord: "unread" },
   { path: status, label: "Status", Icon: CircleDashed },
-  { path: contact, label: "Contacts", Icon: AddressBook, badgeWord: "waiting" },
+  { path: contacts, label: "Contacts", Icon: AddressBook, badgeWord: "waiting" },
 ];
 const RAIL_WIDTH = 76;
 const TAB_BAR_HEIGHT = 65;
@@ -32,8 +31,8 @@ const useBadgeCounts = () => {
   const unreadChats = useSelector(
     (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
   );
-  const friendRequests = useSelector((state) => state.contact.friendRequests.length);
-  return { [chat]: unreadChats, [contact]: friendRequests };
+  const waitingRequests = useSelector((state) => selectWaitingRequests(state).length);
+  return { [chat]: unreadChats, [contacts]: waitingRequests };
 };
 
 const isAt = (pathname, path) => Boolean(matchPath({ path, end: false }, pathname));
@@ -136,7 +135,6 @@ const SideRail = () => {
   const stayIfHere = (to) => (to === pathname ? (event) => event.preventDefault() : undefined);
   const badges = useBadgeCounts();
   const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
-  const [profileAnchor, setProfileAnchor] = useState(null);
 
   return (
     <Stack
@@ -177,22 +175,9 @@ const SideRail = () => {
 
       <Stack spacing={1.5} alignItems="center">
         <ThemeToggle />
-        <RailItem
-          label="Profile and settings"
-          isActive={isAtYou(pathname)}
-          onClick={(event) => setProfileAnchor(event.currentTarget)}
-          aria-haspopup="menu"
-          aria-expanded={Boolean(profileAnchor)}
-        >
+        <RailItem component={Link} to={settings} label="Profile and settings" isActive={isAtYou(pathname)}>
           {getAvatar(avatar, `${firstName} ${lastName}`, 36)}
         </RailItem>
-        <ProfileMenu
-          anchorEl={profileAnchor}
-          onClose={() => setProfileAnchor(null)}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          transformOrigin={{ vertical: "bottom", horizontal: "left" }}
-          slotProps={{ paper: { sx: { ml: 1.5, minWidth: 180 } } }}
-        />
       </Stack>
     </Stack>
   );
@@ -226,7 +211,6 @@ const TabBar = () => {
   const { pathname } = useLocation();
   const badges = useBadgeCounts();
   const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
-  const [profileAnchor, setProfileAnchor] = useState(null);
 
   return (
     <Stack
@@ -256,23 +240,9 @@ const TabBar = () => {
           </TabItem>
         );
       })}
-      <TabItem
-        label="You"
-        isActive={isAtYou(pathname)}
-        onClick={(event) => setProfileAnchor(event.currentTarget)}
-        aria-haspopup="menu"
-        aria-expanded={Boolean(profileAnchor)}
-      >
+      <TabItem component={Link} to={settings} label="You" isActive={isAtYou(pathname)}>
         {getAvatar(avatar, `${firstName} ${lastName}`, 24)}
       </TabItem>
-      <ProfileMenu
-        anchorEl={profileAnchor}
-        hasThemeSwitch
-        onClose={() => setProfileAnchor(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
-        slotProps={{ paper: { sx: { mb: 1, minWidth: 180 } } }}
-      />
     </Stack>
   );
 };

@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcrypt";
 
+import { COVER_PALETTES, COVER_PATTERNS } from "#src/utils/coverStyles.js";
+
 const PASSWORD_COST = 12;
 
 const publicKeySchema = mongoose.Schema(
@@ -41,6 +43,23 @@ const passwordResetSchema = mongoose.Schema(
   { _id: false }
 );
 
+const coverStyleSchema = mongoose.Schema(
+  {
+    pattern: { type: String, enum: COVER_PATTERNS, required: true },
+    palette: { type: String, enum: COVER_PALETTES, required: true },
+  },
+  { _id: false }
+);
+
+const birthdaySchema = mongoose.Schema(
+  {
+    day: { type: Number, required: true },
+    month: { type: Number, required: true },
+    year: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
@@ -49,6 +68,8 @@ const userSchema = mongoose.Schema(
     usernameChangedAt: { type: Date },
     avatar: { type: String },
     cover: { type: String, default: "" },
+    // the doodle drawn when there is no cover photo, or once it is removed
+    coverStyle: { type: coverStyleSchema },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -57,10 +78,10 @@ const userSchema = mongoose.Schema(
       lowercase: true,
       validate: [validator.isEmail, "Invalid Email"],
     },
-    activityStatus: {
-      type: String,
-      default: "Hey There! I ❤️ Using Whisprl 😸",
-    },
+    activityStatus: { type: String, default: "" },
+    // friends see the day and month, and the year only proves someone is old enough for Whisprl
+    birthday: { type: birthdaySchema },
+    showBirthdayToFriends: { type: Boolean, default: true },
     onlineStatus: {
       type: String,
       default: "offline",
@@ -77,6 +98,10 @@ const userSchema = mongoose.Schema(
     friends: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     blocked: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     statusHiddenFrom: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+
+    suggestToFriendsOfFriends: { type: Boolean, default: true },
+    // hidden by hand, or ended with a decline or an unfriend, so they are never suggested again
+    dismissedSuggestions: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
 
     socialsConnected: {
       type: [String],

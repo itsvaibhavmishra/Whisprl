@@ -6,34 +6,41 @@ import { Box, Button, Paper, Slide, Stack, Typography } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
-import FormProvider, { RHFTextField } from "@/components/hook-form";
-import ProfileHero from "@/components/ProfileHero";
+import FormProvider, { RHFBirthdayPicker, RHFTextField } from "@/components/hook-form";
+import ProfileIdentity from "@/components/profile/ProfileIdentity";
 import { UpdateProfile } from "@/redux/slices/actions/userActions";
 import AccountSummary from "@/sections/profile/AccountSummary";
 import ImageMenu from "@/components/ImageMenu";
-import { nameRule } from "@/utils/formRules";
+import CoverPicker from "@/sections/profile/CoverPicker";
+import UsernameField from "@/sections/profile/UsernameField";
+import { dateInputOf } from "@/utils/birthdays";
+import { coverStyleOf } from "@/utils/covers";
+import { nameRule, profileBirthdayRule } from "@/utils/formRules";
 
 const STATUS_LIMIT = 50;
 
 const ProfileSchema = Yup.object({
   firstName: nameRule("First name"),
   lastName: nameRule("Last name"),
-  activityStatus: Yup.string()
-    .trim()
-    .required("Status required")
-    .min(3, "Status must be at least 3 characters long")
-    .max(STATUS_LIMIT, `Status cannot be more than ${STATUS_LIMIT} characters`),
+  activityStatus: Yup.string().trim().max(STATUS_LIMIT, `Keep your bio under ${STATUS_LIMIT} characters`),
+  birthday: profileBirthdayRule,
   avatar: Yup.string(),
   cover: Yup.string(),
 });
 
-const toFormValues = ({ firstName, lastName, activityStatus, avatar, cover }) => ({
-  firstName: firstName || "",
-  lastName: lastName || "",
-  activityStatus: activityStatus || "",
-  avatar: avatar || "",
-  cover: cover || "",
-});
+const toFormValues = (user) => {
+  const { pattern, palette } = coverStyleOf(user);
+  return {
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    activityStatus: user.activityStatus || "",
+    birthday: dateInputOf(user.birthday),
+    avatar: user.avatar || "",
+    cover: user.cover || "",
+    coverPattern: pattern,
+    coverPalette: palette,
+  };
+};
 
 const SectionTitle = ({ id, children }) => (
   <Typography id={id} component="h2" sx={{ m: 0, mb: 2.5, fontSize: 18, fontWeight: 700 }}>
@@ -84,6 +91,7 @@ const ProfileEditor = () => {
   const methods = useForm({
     mode: "onChange",
     resolver: yupResolver(ProfileSchema),
+    context: { hasBirthday: Boolean(user.birthday) },
     defaultValues: toFormValues(user),
   });
   const {
@@ -100,6 +108,11 @@ const ProfileEditor = () => {
   }, [user, isDirty, reset]);
 
   const changeImage = (field) => (url) => setValue(field, url, { shouldDirty: true });
+  const changeCoverStyle = ({ pattern, palette }) => {
+    setValue("coverPattern", pattern, { shouldDirty: true });
+    setValue("coverPalette", palette, { shouldDirty: true });
+  };
+  const liveCoverStyle = { pattern: live.coverPattern, palette: live.coverPalette };
 
   const onSubmit = async (values) => {
     const result = await dispatch(UpdateProfile(values));
@@ -110,9 +123,10 @@ const ProfileEditor = () => {
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <ProfileHero
-        profile={{ ...live, username: user.username }}
-        coverAction={<ImageMenu kind="cover" hasImage={!!live.cover} onChange={changeImage("cover")} />}
+      <ProfileIdentity
+        size="page"
+        person={{ ...live, _id: user._id, username: user.username, coverStyle: liveCoverStyle }}
+        coverAction={<CoverPicker coverStyle={liveCoverStyle} photo={live.cover} onStyleChange={changeCoverStyle} onPhotoChange={changeImage("cover")} />}
         photoAction={<ImageMenu kind="photo" hasImage={!!live.avatar} onChange={changeImage("avatar")} />}
       />
 
@@ -121,27 +135,26 @@ const ProfileEditor = () => {
           mt: { xs: 5, md: 7 },
           px: { xs: 2, md: 4 },
           display: "grid",
-          gridTemplateColumns: { md: "minmax(0, 7fr) minmax(0, 5fr)" },
-          columnGap: 8,
           rowGap: 6,
-          alignItems: "start",
         }}
       >
         <Box component="section" aria-labelledby="details-title">
-          <SectionTitle id="details-title">Name and status</SectionTitle>
+          <SectionTitle id="details-title">About you</SectionTitle>
           <Stack spacing={2.5}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="flex-start">
               <RHFTextField name="firstName" label="First name" autoComplete="given-name" />
               <RHFTextField name="lastName" label="Last name" autoComplete="family-name" />
             </Stack>
+            <UsernameField />
+            <RHFBirthdayPicker name="birthday" label="Birthday" helperText="Friends see the day and month, never the year. You can hide it in Settings." />
             <RHFTextField
               name="activityStatus"
-              label="Status"
+              label="Bio"
               multiline
               minRows={2}
               helperText={
                 <Box component="span" sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                  <span>Shown in the bubble beside your photo.</span>
+                  <span>Optional, shown in the bubble beside your photo.</span>
                   <span>
                     {live.activityStatus.length}/{STATUS_LIMIT}
                   </span>

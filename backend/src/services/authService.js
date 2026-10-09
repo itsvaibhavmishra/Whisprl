@@ -4,8 +4,9 @@ import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
 import { isDisposableEmail } from "#src/utils/checkDispose.js";
-import { assertStrongPassword, assertValidName, normalizeEmail, normalizeUsername } from "#src/utils/accountRules.js";
+import { assertStrongPassword, assertValidName, birthdayFrom, normalizeEmail, normalizeUsername } from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
+import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import otpMail from "#src/templates/mail/otp.js";
 import resetMail from "#src/templates/mail/reset.js";
 import { formatRemainingTime, transporter } from "#src/services/mailer.js";
@@ -28,6 +29,9 @@ export const toSessionUser = (user) => ({
   activityStatus: user.activityStatus,
   onlineStatus: user.onlineStatus,
   quickReactions: user.quickReactions,
+  birthday: user.birthday ?? null,
+  showBirthdayToFriends: user.showBirthdayToFriends,
+  suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,
   blocked: user.blocked,
 });
 
@@ -84,15 +88,16 @@ export const loginWithPassword = async (identifier, password) => {
   return user;
 };
 
-export const registerUser = async ({ firstName, lastName, email, password }) => {
-  if (!firstName || !lastName || !email || !password) {
-    throw createHttpError.BadRequest("Required fields: firstName, lastName, email & password");
+export const registerUser = async ({ firstName, lastName, email, password, birthday }) => {
+  if (!firstName || !lastName || !email || !password || !birthday) {
+    throw createHttpError.BadRequest("Required fields: firstName, lastName, email, password & birthday");
   }
 
   const address = normalizeEmail(email);
   assertValidName(firstName, lastName);
   if (!validator.isEmail(address)) throw createHttpError.BadRequest("Invalid email");
   assertStrongPassword(password);
+  const born = birthdayFrom(birthday);
   if (await isDisposableEmail(address)) throw createHttpError.BadRequest("Disposable emails are not allowed");
 
   const existing = await UserModel.findOne({ email: address }).select("+verification");
@@ -101,8 +106,9 @@ export const registerUser = async ({ firstName, lastName, email, password }) => 
   assertCooledDown(existing?.verification?.sentAt, "code");
 
   const user = existing ?? new UserModel({ email: address });
-  user.set({ firstName, lastName, password });
+  user.set({ firstName, lastName, password, birthday: born });
   user.username ??= await availableUsername(firstName, lastName);
+  user.coverStyle ??= randomCoverStyle();
   await user.save();
 
   return user;

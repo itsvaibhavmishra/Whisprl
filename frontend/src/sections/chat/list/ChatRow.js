@@ -6,6 +6,7 @@ import { BellSlash, Camera, Check, Checks, FileText, Microphone, Star, User, Use
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+import BirthdayCake from "@/components/BirthdayCake";
 import useSettings from "@/hooks/useSettings";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import TypingDots from "@/components/TypingDots";
@@ -58,7 +59,7 @@ const RowAvatarChoices = ({ conversationId, name, peerId, hasStatus, isGroup }) 
         position: "absolute",
         zIndex: 1,
         top: "50%",
-        left: (theme) => theme.spacing(1.25),
+        left: (theme) => theme.spacing(1),
         width: AVATAR_SIZE,
         height: AVATAR_SIZE,
         transform: "translateY(-50%)",
@@ -140,7 +141,7 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
           position: "relative",
           width: "100%",
           gap: 1.5,
-          px: 1.25,
+          px: 1,
           py: 1,
           borderRadius: 3,
           justifyContent: "flex-start",
@@ -153,6 +154,7 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
           <Stack direction="row" alignItems="center" spacing={0.75}>
             <Typography noWrap sx={{ flex: 1, fontSize: 15, fontWeight: unread ? 800 : 700, letterSpacing: "-0.01em" }}>
               {name}
+              {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
             </Typography>
             {activityAt && (
               <Typography

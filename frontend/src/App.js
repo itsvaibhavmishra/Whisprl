@@ -11,6 +11,8 @@ import ScrollToTop from "@/components/ScrollToTop";
 import ReactGA from "react-ga4";
 import useSettings from "@/hooks/useSettings";
 import { useMediaQuery, useTheme } from "@mui/material";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 if (process.env.REACT_APP_GA_ID !== "") {
   ReactGA.initialize(process.env.REACT_APP_GA_ID);
@@ -24,20 +26,22 @@ function App() {
   return (
     <>
       <ThemeProvider>
-        <ThemeSettings>
-          {/* Toast */}
-          <Toaster
-            position={isSmallScreen ? "top-center" : "top-right"}
-            theme={themeMode}
-            dir={themeDirection}
-            visibleToasts={5}
-            richColors
-            closeButton
-            duration={5000}
-          />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <ThemeSettings>
+            {/* Toast */}
+            <Toaster
+              position={isSmallScreen ? "top-center" : "top-right"}
+              theme={themeMode}
+              dir={themeDirection}
+              visibleToasts={5}
+              richColors
+              closeButton
+              duration={5000}
+            />
 
-          <Router />
-        </ThemeSettings>
+            <Router />
+          </ThemeSettings>
+        </LocalizationProvider>
       </ThemeProvider>
 
       <HelmetHandler />

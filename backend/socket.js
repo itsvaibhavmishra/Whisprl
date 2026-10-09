@@ -4,6 +4,7 @@ import { socketMiddleware } from "#src/middlewares/socketMiddleware.js";
 import { emitFriendStatus } from "#src/controllers/friendsController.js";
 import { joinConvo } from "#src/controllers/conversationController.js";
 import { socketMarkDelivered, socketMarkSeen, socketSendMessage } from "#src/controllers/messageController.js";
+import { canMessageIn } from "#src/services/messageService.js";
 import { setOnlineStatus } from "#src/services/userService.js";
 import { withinBudget } from "#src/middlewares/socketRateLimit.js";
 
@@ -66,8 +67,10 @@ export const initializeSocket = (server) => {
     };
 
     // ---------------Typing Message Hanling---------------
-    const relayTyping = (event, typing) => (conversation_id) =>
-      socket.to(conversation_id).emit(event, { typing, conversation_id, user_id });
+    // ex-friends and blocked people stay in an old chat's room, so typing goes only where a message could
+    const relayTyping = (event, typing) => async (conversation_id) => {
+      if (await canMessageIn(conversation_id, user_id)) socket.to(conversation_id).emit(event, { typing, conversation_id, user_id });
+    };
 
     socket.on("start_typing", withinBudget(60, inConversation(relayTyping("start_typing", true))));
     socket.on("stop_typing", withinBudget(60, inConversation(relayTyping("stop_typing", false))));

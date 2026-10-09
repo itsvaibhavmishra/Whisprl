@@ -1,8 +1,8 @@
 import { Box, ButtonBase, Skeleton, Stack, Typography } from "@mui/material";
 import { Play } from "phosphor-react";
 
+import { PaneEmpty } from "@/components/Pane";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
-import { PaneEmpty } from "@/sections/status/StatusPane";
 import { ageOf } from "@/utils/statuses";
 
 // previews are small thumbnails, so tiles stay near their size instead of stretching to fill the row

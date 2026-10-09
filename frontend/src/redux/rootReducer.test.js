@@ -74,5 +74,5 @@ test("a request in flight when the page closed does not leave a button loading f
   expect(auth).toEqual({ isLoggedIn: false, otpEmail: "a@example.com" });
   expect(user).not.toHaveProperty("isLoading");
   expect(contact).not.toHaveProperty("isSearchLoading");
-  expect(requests).toEqual({});
+  expect(requests).toEqual({ inFlight: {}, settled: {} });
 });

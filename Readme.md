@@ -234,6 +234,7 @@ $ npm run build
 │   │   │   ├── passkeyChallengeModel.js
 │   │   │   ├── passkeyModel.js
 │   │   │   ├── reportModel.js
+│   │   │   ├── requestCooldownModel.js
 │   │   │   ├── sessionModel.js
 │   │   │   ├── statusModel.js
 │   │   │   ├── userModel.js
@@ -264,9 +265,11 @@ $ npm run build
 │   │   │   ├── messageService.js
 │   │   │   ├── passkeyService.js
 │   │   │   ├── reportService.js
+│   │   │   ├── requestCooldownService.js
 │   │   │   ├── sessionService.js
 │   │   │   ├── socialAuthService.js
 │   │   │   ├── statusService.js
+│   │   │   ├── suggestionService.js
 │   │   │   ├── userService.js
 │   │   │   ├── usernameService.js
 │   │   ├── templates/
@@ -276,6 +279,7 @@ $ npm run build
 │   │   ├── utils/
 │   │   │   ├── accountRules.js
 │   │   │   ├── checkDispose.js
+│   │   │   ├── coverStyles.js
 │   │   │   ├── escapeRegex.js
 │   │   │   ├── sha256.js
 │   ├── .env copy
@@ -313,29 +317,17 @@ $ npm run build
 │   ├── src/
 │   │   ├── assets/
 │   │   │   ├── backgrounds/
-│   │   │   │   ├── catDoodle.png
-│   │   │   │   ├── catDoodle.webp
-│   │   │   │   ├── catDoodle2.png
-│   │   │   │   ├── catDoodle3.png
 │   │   │   │   ├── chatDoodles.svg
+│   │   │   ├── covers/
+│   │   │   │   ├── cats.svg
+│   │   │   │   ├── sky.svg
+│   │   │   │   ├── whispers.svg
 │   │   │   ├── icons/
 │   │   │   │   ├── logo/
 │   │   │   │   │   ├── Whisprl.png
 │   │   │   │   │   ├── Whisprl.webp
 │   │   │   │   │   ├── WhisprlAvatar.webp
 │   │   │   │   │   ├── WhisprlMark.webp
-│   │   │   ├── illustrations/
-│   │   │   │   ├── animations/
-│   │   │   │   │   ├── Cat404.json
-│   │   │   │   │   ├── CatAnimation1.json
-│   │   │   │   │   ├── CatAnimation2.json
-│   │   │   │   │   ├── CatAnimation3.json
-│   │   │   │   │   ├── CatAnimation4.json
-│   │   │   │   │   ├── CatAnimation5.json
-│   │   │   │   │   ├── ChillingVibes.json
-│   │   │   │   │   ├── HangingBuddy.json
-│   │   │   │   │   ├── NoResultsFound.json
-│   │   │   │   │   ├── SearchNotFound.json
 │   │   ├── components/
 │   │   │   ├── animate/
 │   │   │   │   ├── variants/
@@ -365,6 +357,7 @@ $ npm run build
 │   │   │   │   ├── FormProvider.js
 │   │   │   │   ├── index.js
 │   │   │   │   ├── PasswordChecklist.js
+│   │   │   │   ├── RHFBirthdayPicker.js
 │   │   │   │   ├── RHFOtp.js
 │   │   │   │   ├── RHFPasswordField.js
 │   │   │   │   ├── RHFTextField.js
@@ -381,11 +374,17 @@ $ npm run build
 │   │   │   │   ├── ToolControls.js
 │   │   │   │   ├── ToolSheet.js
 │   │   │   │   ├── useStageGestures.js
-│   │   │   ├── search/
-│   │   │   │   ├── index.js
-│   │   │   │   ├── Search.js
-│   │   │   │   ├── SearchIconWrapper.js
-│   │   │   │   ├── StyledInputBase.js
+│   │   │   ├── profile/
+│   │   │   │   ├── CommonGroups.js
+│   │   │   │   ├── ProfileFacts.js
+│   │   │   │   ├── ProfileIdentity.js
+│   │   │   │   ├── ProfileSheet.js
+│   │   │   │   ├── ProfileView.js
+│   │   │   │   ├── RelationshipActions.js
+│   │   │   │   ├── RequestButton.js
+│   │   │   │   ├── RequestComposer.js
+│   │   │   │   ├── RequestNote.js
+│   │   │   │   ├── SafetyRows.js
 │   │   │   ├── theme-settings/
 │   │   │   │   ├── index.js
 │   │   │   │   ├── ThemeColorPresets.js
@@ -393,32 +392,41 @@ $ npm run build
 │   │   │   │   ├── ThemeRtlLayout.js
 │   │   │   ├── AppearanceMenu.js
 │   │   │   ├── AppearancePickers.js
+│   │   │   ├── BirthdayCake.js
+│   │   │   ├── ConfirmDialog.js
+│   │   │   ├── ControlRow.js
 │   │   │   ├── EmojiPicker.js
 │   │   │   ├── FriendPicker.js
 │   │   │   ├── ImageMenu.js
 │   │   │   ├── LoadingScreen.js
+│   │   │   ├── MascotHalo.js
 │   │   │   ├── NoData.js
-│   │   │   ├── ProfileHero.js
+│   │   │   ├── Pane.js
+│   │   │   ├── ProfileCover.js
 │   │   │   ├── ReportDialog.js
 │   │   │   ├── ScrollToTop.js
+│   │   │   ├── SearchPill.js
 │   │   │   ├── SitePage.js
 │   │   │   ├── StatusArcs.js
 │   │   │   ├── StyledBadge.js
 │   │   │   ├── TypingDots.js
+│   │   │   ├── UsernameDialog.js
 │   │   │   ├── Wordmark.js
 │   │   ├── contexts/
 │   │   │   ├── SettingsContext.js
-│   │   ├── data/
-│   │   │   ├── index.js
 │   │   ├── hooks/
 │   │   │   ├── useFileUrl.js
 │   │   │   ├── useFittedSize.js
+│   │   │   ├── useHasSettled.js
 │   │   │   ├── useImageBitmap.js
+│   │   │   ├── useInfiniteScroll.js
 │   │   │   ├── useIsLoading.js
 │   │   │   ├── useLocales.js
 │   │   │   ├── useLocalStorage.js
 │   │   │   ├── useMessageTime.js
 │   │   │   ├── useObjectUrl.js
+│   │   │   ├── useOpenChat.js
+│   │   │   ├── useRelationship.js
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useSettings.js
 │   │   ├── layouts/
@@ -426,10 +434,8 @@ $ npm run build
 │   │   │   │   ├── BrandPanel.js
 │   │   │   │   ├── index.js
 │   │   │   ├── dashboard/
-│   │   │   │   ├── DashboardPage.js
 │   │   │   │   ├── index.js
 │   │   │   │   ├── NavRail.js
-│   │   │   │   ├── ProfileMenu.js
 │   │   │   ├── docs/
 │   │   │   │   ├── index.js
 │   │   ├── pages/
@@ -442,8 +448,7 @@ $ npm run build
 │   │   │   │   ├── WelcomePage.js
 │   │   │   ├── dashboard/
 │   │   │   │   ├── Chat.js
-│   │   │   │   ├── Contact.js
-│   │   │   │   ├── Profile.js
+│   │   │   │   ├── Contacts.js
 │   │   │   │   ├── Settings.js
 │   │   │   │   ├── Status.js
 │   │   │   ├── docs/
@@ -488,6 +493,7 @@ $ npm run build
 │   │   │   │   ├── LoginForm.js
 │   │   │   │   ├── RegisterForm.js
 │   │   │   │   ├── ResetPasswordForm.js
+│   │   │   │   ├── SignUpPaused.js
 │   │   │   │   ├── VerifyForm.js
 │   │   │   ├── chat/
 │   │   │   │   ├── attachments/
@@ -575,37 +581,37 @@ $ npm run build
 │   │   │   │   ├── EmptyChat.js
 │   │   │   │   ├── chatRoute.js
 │   │   │   ├── contacts/
-│   │   │   │   ├── AllChatElement.js
-│   │   │   │   ├── ChatSearchResults.js
-│   │   │   │   ├── ContactList.js
-│   │   │   │   ├── FriendRequests.js
-│   │   │   │   ├── FriendsMenu.js
-│   │   │   │   ├── OnlineChatElement.js
-│   │   │   │   ├── OnlineFriendsElement.js
-│   │   │   │   ├── SearchUsers.js
-│   │   │   │   ├── SentRequests.js
-│   │   │   │   ├── UserCard.js
-│   │   │   │   ├── UsersSearchResults.js
+│   │   │   │   ├── ContactsList.js
+│   │   │   │   ├── EveryoneResults.js
+│   │   │   │   ├── FindPeople.js
+│   │   │   │   ├── PersonPane.js
+│   │   │   │   ├── PersonRow.js
+│   │   │   │   ├── ProfilePass.js
+│   │   │   │   ├── RequestsView.js
+│   │   │   │   ├── contactsRoute.js
 │   │   │   ├── encryption/
 │   │   │   │   ├── EncryptionGate.js
 │   │   │   │   ├── RecoveryKeyDialog.js
 │   │   │   │   ├── UnlockDialog.js
-│   │   │   ├── friend-drawer/
-│   │   │   │   ├── RemoveFriendDialog.js
-│   │   │   │   ├── UserDrawerMain.js
-│   │   │   │   ├── UserProfileDrawer.js
 │   │   │   ├── profile/
 │   │   │   │   ├── AccountSummary.js
+│   │   │   │   ├── CoverPicker.js
 │   │   │   │   ├── ProfileEditor.js
+│   │   │   │   ├── UsernameField.js
 │   │   │   ├── settings/
+│   │   │   │   ├── BirthdaySetting.js
 │   │   │   │   ├── BlockedPeopleSetting.js
 │   │   │   │   ├── ChangePasswordDialog.js
 │   │   │   │   ├── ChatPreview.js
 │   │   │   │   ├── PasskeySetting.js
 │   │   │   │   ├── QuickReactionsSetting.js
 │   │   │   │   ├── RecoveryKeySetting.js
+│   │   │   │   ├── SettingsList.js
+│   │   │   │   ├── SettingsPane.js
 │   │   │   │   ├── SettingsSection.js
+│   │   │   │   ├── settingsRoute.js
 │   │   │   │   ├── StatusPrivacySetting.js
+│   │   │   │   ├── SuggestionsSetting.js
 │   │   │   │   ├── UsernameSetting.js
 │   │   │   │   ├── WallpaperSetting.js
 │   │   │   ├── status/
@@ -621,7 +627,6 @@ $ npm run build
 │   │   │   │   ├── StatusHeader.js
 │   │   │   │   ├── StatusList.js
 │   │   │   │   ├── StatusMedia.js
-│   │   │   │   ├── StatusPane.js
 │   │   │   │   ├── StatusSlide.js
 │   │   │   │   ├── StatusViewer.js
 │   │   │   │   ├── YourUpdates.js
@@ -697,6 +702,8 @@ $ npm run build
 │   │   │   │   ├── keyWrap.js
 │   │   │   │   ├── messageCipher.js
 │   │   │   │   ├── messageCipher.test.js
+│   │   │   │   ├── noteCipher.js
+│   │   │   │   ├── noteCipher.test.js
 │   │   │   │   ├── recoveryKey.js
 │   │   │   │   ├── sessionKeys.js
 │   │   │   │   ├── sessionKeys.test.js
@@ -712,9 +719,12 @@ $ npm run build
 │   │   │   ├── attachments.js
 │   │   │   ├── avatars.js
 │   │   │   ├── axios.js
+│   │   │   ├── birthdays.js
+│   │   │   ├── birthdays.test.js
 │   │   │   ├── chats.js
 │   │   │   ├── chats.test.js
 │   │   │   ├── colorPresets.js
+│   │   │   ├── covers.js
 │   │   │   ├── formatMessageTime.js
 │   │   │   ├── formatMessageTime.test.js
 │   │   │   ├── formatTime.js
@@ -738,8 +748,12 @@ $ npm run build
 │   │   │   ├── notify.js
 │   │   │   ├── passkeys.js
 │   │   │   ├── reactions.js
+│   │   │   ├── relationship.js
+│   │   │   ├── relationship.test.js
 │   │   │   ├── scrollToBottom.js
 │   │   │   ├── session.js
+│   │   │   ├── signUpPause.js
+│   │   │   ├── signUpPause.test.js
 │   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
 │   │   │   ├── sounds.js

@@ -3,13 +3,13 @@ import { Box, useMediaQuery } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
+import Pane from "@/components/Pane";
 import useIsLoading from "@/hooks/useIsLoading";
 import { PAGE_HEIGHT_WITH_TAB_BAR } from "@/layouts/dashboard/NavRail";
 import { ChooseStatusMedia, GetDiscover, GetStatuses } from "@/redux/slices/actions/statusActions";
 import DiscoverGrid from "@/sections/status/DiscoverGrid";
 import StatusComposer from "@/sections/status/StatusComposer";
 import StatusList from "@/sections/status/StatusList";
-import StatusPane from "@/sections/status/StatusPane";
 import StatusViewer from "@/sections/status/StatusViewer";
 import YourUpdates from "@/sections/status/YourUpdates";
 import { groupByOwner, isLive } from "@/utils/statuses";
@@ -107,9 +107,9 @@ const Status = () => {
               onBack={isWide ? undefined : leave}
             />
           ) : (
-            <StatusPane title="Discover" subtitle="Updates shared with everyone, from people beyond your friends" onBack={isWide ? undefined : leave}>
+            <Pane title="Discover" subtitle="Updates shared with everyone, from people beyond your friends" onBack={isWide ? undefined : leave}>
               <DiscoverGrid groups={discovered} isLoading={!isEncryptionReady || isFetchingDiscover} onOpen={(ownerId) => play(ownerId)} />
-            </StatusPane>
+            </Pane>
           )}
         </Box>
       )}

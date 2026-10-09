@@ -3,6 +3,7 @@ import { useRoutes, Navigate } from "react-router-dom";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import { DEFAULT_AUTH, DEFAULT_DOCS, DEFAULT_PATH } from "@/config";
+import { PATH_DASHBOARD } from "@/routes/paths";
 import DashboardLayout from "@/layouts/dashboard";
 import AuthLayout from "@/layouts/auth";
 import DocsLayout from "@/layouts/docs";
@@ -46,9 +47,10 @@ export default function Router() {
         { path: "chat/*", element: <ChatPage /> },
         { path: "app", element: <Navigate to={DEFAULT_PATH} replace /> },
         { path: "status", element: <StatusPage /> },
-        { path: "profile", element: <ProfilePage /> },
-        { path: "contact", element: <ContactPage /> },
-        { path: "settings", element: <Settings /> },
+        { path: "profile", element: <Navigate to={PATH_DASHBOARD.general.profile} replace /> },
+        { path: "contacts/*", element: <ContactsPage /> },
+        { path: "contact", element: <Navigate to={PATH_DASHBOARD.general.contacts} replace /> },
+        { path: "settings/*", element: <Settings /> },
 
         { path: "404", element: <Page404 /> },
         { path: "*", element: <Navigate to="/404" replace /> },
@@ -60,8 +62,7 @@ export default function Router() {
 // app pages
 const ChatPage = Loadable(lazy(() => import("@/pages/dashboard/Chat")));
 const StatusPage = Loadable(lazy(() => import("@/pages/dashboard/Status")));
-const ProfilePage = Loadable(lazy(() => import("@/pages/dashboard/Profile")));
-const ContactPage = Loadable(lazy(() => import("@/pages/dashboard/Contact")));
+const ContactsPage = Loadable(lazy(() => import("@/pages/dashboard/Contacts")));
 const Settings = Loadable(lazy(() => import("@/pages/dashboard/Settings")));
 
 // auth pages

@@ -20,7 +20,7 @@ import ImageMenu from "@/components/ImageMenu";
 import { LeaveGroup, UpdateGroup } from "@/redux/slices/actions/groupActions";
 import AddMembersDialog from "@/sections/chat/group/AddMembersDialog";
 import GroupMemberRow from "@/sections/chat/group/GroupMemberRow";
-import { ControlRow } from "@/sections/chat/details/ChatControls";
+import ControlRow from "@/components/ControlRow";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import HaloAvatar from "@/sections/chat/details/HaloAvatar";
 import useIsLoading from "@/hooks/useIsLoading";
