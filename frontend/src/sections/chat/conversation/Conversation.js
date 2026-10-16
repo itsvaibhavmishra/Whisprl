@@ -1,19 +1,28 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, ButtonBase, GlobalStyles, Stack, Typography } from "@mui/material";
+import { AnimatePresence } from "framer-motion";
+import { CaretUp } from "phosphor-react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
 import { UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
+import { UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
 import { selectActiveOutbox } from "@/redux/slices/chatSlice";
 import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
+import { selectGameSession } from "@/redux/slices/gameSlice";
 import ChatCanvas from "@/sections/chat/ChatCanvas";
 import FileUploadCont from "@/sections/chat/attachments/FileUploadCont";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
 import ChatSearchBar from "@/sections/chat/conversation/ChatSearchBar";
+import ChatSheetGrip from "@/sections/chat/conversation/ChatSheetGrip";
 import Composer, { COLUMN_WIDTH, COMPOSER_GUTTER } from "@/sections/chat/conversation/Composer";
 import ConversationHeader from "@/sections/chat/conversation/ConversationHeader";
 import ConversationMain from "@/sections/chat/conversation/ConversationMain";
 import PinnedBar from "@/sections/chat/conversation/PinnedBar";
+import GamePanel, { CHAT_MIN_WIDTH } from "@/sections/chat/game/GamePanel";
+import GamePill from "@/sections/chat/game/GamePill";
+import SeatSwitchDialog from "@/sections/chat/game/SeatSwitchDialog";
+import useGameSounds from "@/sections/chat/game/useGameSounds";
 import { peerOf } from "@/utils/chats";
 
 const ComposerNotice = ({ children, action }) => (
@@ -28,6 +37,77 @@ const ComposerNotice = ({ children, action }) => (
     </Stack>
   </Box>
 );
+
+const PEEK_HEIGHT = 100;
+const SHEET_HEIGHT = "62vh";
+const SHEET_EASE = "340ms cubic-bezier(0.32, 0.72, 0, 1)";
+
+// registered so the browser can animate them, which is what moves the sheet's edge rather than its layout
+const EDGE_PROPERTIES = {
+  "@property --chat-top": { syntax: "'<length-percentage>'", inherits: "true", initialValue: "0px" },
+  "@property --chat-fade": { syntax: "'<length>'", inherits: "true", initialValue: "0px" },
+  "@property --chat-round": { syntax: "'<length>'", inherits: "true", initialValue: "0px" },
+};
+
+const EDGE_OF = {
+  strip: { top: `calc(100% - ${PEEK_HEIGHT}px)`, fade: "45px", round: "0px" },
+  sheet: { top: `calc(100% - ${SHEET_HEIGHT})`, fade: "0px", round: "20px" },
+  full: { top: "0px", fade: "0px", round: "0px" },
+};
+
+// on a phone the chat always lies over whatever is behind it, so the only thing a game changes is how much shows
+const chatColumnOf = (isOverGame) => ({
+  position: { xs: "absolute", lg: "relative" },
+  inset: { xs: 0, lg: "auto" },
+  zIndex: 3,
+  display: "flex",
+  flexDirection: "column",
+  minHeight: 0,
+  minWidth: { lg: CHAT_MIN_WIDTH },
+  flex: { lg: 1 },
+  // it covers the whole game, so only what it draws takes taps and the rest reach the board
+  ...(isOverGame && { pointerEvents: { xs: "none", lg: "auto" }, "& > *": { pointerEvents: "auto" } }),
+});
+
+// the list stays full height and scrolled to its newest message, so moving the edge only shows more or less of it
+const messagesOf = (layer, dragY) => {
+  const edge = EDGE_OF[layer];
+  return {
+    position: "relative",
+    display: "flex",
+    // a column, so the list stretches across rather than being sized by its widest message
+    flexDirection: "column",
+    minHeight: 0,
+    flex: 1,
+    "--chat-top": { xs: edge.top, lg: "0px" },
+    "--chat-fade": { xs: edge.fade, lg: "0px" },
+    "--chat-round": { xs: edge.round, lg: "0px" },
+    clipPath: { xs: "inset(var(--chat-top) 0 0 0 round var(--chat-round) var(--chat-round) 0 0)", lg: "none" },
+    maskImage: { xs: "linear-gradient(to bottom, transparent var(--chat-top), #000 calc(var(--chat-top) + var(--chat-fade)))", lg: "none" },
+    opacity: { xs: layer === "strip" ? 0.88 : 1, lg: 1 },
+    bgcolor: { xs: layer === "sheet" ? "rgba(14, 20, 32, 0.86)" : "transparent", lg: "transparent" },
+    backdropFilter: { xs: layer === "sheet" ? "blur(14px)" : "blur(0px)", lg: "none" },
+    transform: dragY ? `translateY(${dragY}px)` : "none",
+    // a strip this short has no room for the space the full list keeps for the typing bubble
+    "& [data-typing-slot]": { display: { xs: layer === "strip" ? "none" : "block", lg: "block" } },
+    transition: [
+      `--chat-top ${SHEET_EASE}`,
+      `--chat-fade ${SHEET_EASE}`,
+      `--chat-round ${SHEET_EASE}`,
+      "background-color 240ms ease",
+      "backdrop-filter 240ms ease",
+      "opacity 240ms ease",
+      dragY ? "transform 0ms" : "transform 240ms ease",
+    ].join(", "),
+  };
+};
+
+// hidden rather than unmounted so it can fade, and invisible so a screen reader or Tab never lands on it
+const shownWhen = (isShown) => ({
+  opacity: isShown ? 1 : 0,
+  visibility: isShown ? "visible" : "hidden",
+  transition: isShown ? "opacity 200ms ease" : "opacity 200ms ease, visibility 0s linear 200ms",
+});
 
 const lockedReasonFor = (keyStatus) => {
   if (keyStatus === "checking") return "Getting encryption ready…";
@@ -46,6 +126,11 @@ const Conversation = () => {
   const { _id: meId, blocked = [] } = useSelector((state) => state.user.user);
   const friends = useSelector((state) => state.user.friends);
   const [isSearching, setIsSearching] = useState(false);
+  const gameSession = useSelector(selectGameSession);
+  const isGameHidden = useSelector((state) => state.game.collapsed);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [sheetDrag, setSheetDrag] = useState(0);
+  useGameSounds(gameSession, meId);
 
   const conversationId = activeConversation._id;
   const peer = activeConversation.isGroup ? null : peerOf(activeConversation, meId);
@@ -59,6 +144,11 @@ const Conversation = () => {
 
   useEffect(() => {
     dispatch(GetMessages(conversationId));
+  }, [dispatch, conversationId]);
+
+  useEffect(() => {
+    dispatch(WatchGame(conversationId));
+    return () => dispatch(UnwatchGame());
   }, [dispatch, conversationId]);
 
   // the outbox only grows when a message is sent from here, so its growth counts sends
@@ -123,19 +213,77 @@ const Conversation = () => {
     );
   };
 
+  const closeChat = () => {
+    setSheetDrag(0);
+    setIsChatOpen(false);
+  };
+
+  const isGameShown = Boolean(gameSession) && !isGameHidden;
+  const layer = isGameShown ? (isChatOpen ? "sheet" : "strip") : "full";
+
+  const chat = () =>
+    files.length ? (
+      <FileUploadCont />
+    ) : (
+      <>
+        <Box sx={messagesOf(layer, sheetDrag)}>
+          {isGameShown && (
+            <Box sx={{ position: "absolute", top: "var(--chat-top)", left: 0, right: 0, zIndex: 1, display: { lg: "none" }, ...shownWhen(layer === "sheet") }}>
+              <ChatSheetGrip onClose={closeChat} onDrag={setSheetDrag} />
+            </Box>
+          )}
+          <ConversationMain />
+        </Box>
+        <Box sx={{ position: "relative" }}>
+          {isGameShown && (
+            // outside the list, since the strip's fade would swallow it
+            <ButtonBase
+              aria-label="Open the chat"
+              onClick={() => setIsChatOpen(true)}
+              sx={{
+                position: "absolute",
+                bottom: `calc(100% + ${PEEK_HEIGHT}px)`,
+                left: "50%",
+                transform: "translateX(-50%)",
+                display: { xs: "flex", lg: "none" },
+                px: 3,
+                py: 0.5,
+                color: "common.white",
+                ...shownWhen(layer === "strip"),
+              }}
+            >
+              <CaretUp size={18} weight="bold" />
+            </ButtonBase>
+          )}
+          {composer()}
+        </Box>
+      </>
+    );
+
   return (
     <ChatCanvas conversationId={conversationId} step={sends} sx={{ height: "100%", minWidth: 0, display: "flex", flexDirection: "column" }}>
       <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
       {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
       {!isSearching && <PinnedBar />}
-      {files.length ? (
-        <FileUploadCont />
-      ) : (
-        <>
-          <ConversationMain />
-          {composer()}
-        </>
-      )}
+      <GlobalStyles styles={EDGE_PROPERTIES} />
+      <Box sx={{ position: "relative", flex: 1, minHeight: 0, display: "flex", flexDirection: { xs: "column", lg: "row-reverse" } }}>
+        {/* over the chat rather than above it, so hiding the game moves nothing the reader is looking at */}
+        <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 4, display: "flex", justifyContent: "center", pointerEvents: "none", "& > *": { pointerEvents: "auto" } }}>
+          <AnimatePresence>{gameSession && isGameHidden && <GamePill key="pill" session={gameSession} meId={meId} />}</AnimatePresence>
+        </Box>
+        <AnimatePresence initial={false}>
+          {isGameShown && <GamePanel key={gameSession.game} conversation={activeConversation} session={gameSession} />}
+        </AnimatePresence>
+        {isGameShown && isChatOpen && (
+          <Box
+            aria-hidden
+            onClick={closeChat}
+            sx={{ position: "absolute", inset: 0, zIndex: 2, display: { lg: "none" }, bgcolor: "rgba(6, 10, 18, 0.45)" }}
+          />
+        )}
+        <Box sx={chatColumnOf(isGameShown)}>{chat()}</Box>
+      </Box>
+      <SeatSwitchDialog />
     </ChatCanvas>
   );
 };

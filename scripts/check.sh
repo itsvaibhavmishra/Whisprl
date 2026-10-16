@@ -19,6 +19,9 @@ printf '\n== backend: load every route, controller, service and model ==\n\n'
     node --input-type=module -e "await import('./app.js'); await import('./socket.js'); console.log('all modules load'); process.exit(0)"
 )
 
+printf '\n== backend: tests ==\n\n'
+(cd backend && npm test)
+
 printf '\n== frontend: tests ==\n\n'
 (cd frontend && npm test -- --watchAll=false --passWithNoTests)
 

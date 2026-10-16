@@ -1,6 +1,6 @@
 import { PORTFOLIO_URL, SOURCE_URL } from "@/config";
 
-export const LAST_UPDATED = "7 October 2026";
+export const LAST_UPDATED = "16 October 2026";
 
 const CONTACT = { label: "vaibhaw.vercel.app", href: PORTFOLIO_URL };
 
@@ -65,6 +65,7 @@ export const SECTIONS = [
           "your friends list and conversations, and your messages, files and the statuses you share with friends, encrypted so only the people they are for can open them",
           "who has viewed each status, shown only to the person who posted it",
           "whether you are online, so your friends can see it",
+          "the games you play in a chat: who sits where, every move and how it ends. The server referees each game so nobody can cheat, which means games are not end-to-end encrypted, though the chat beside them still is",
           "which sign-in methods you have connected, and the public half of any passkey you add and of the key each browser you log in on keeps, which can only check a sign-in, never make one",
         ],
       },

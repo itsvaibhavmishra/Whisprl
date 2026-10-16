@@ -8,6 +8,7 @@ import {
   chatReducer,
   contactReducer,
   encryptionReducer,
+  gameReducer,
   requestReducer,
   statusReducer,
   userReducer,
@@ -46,6 +47,7 @@ const rootReducer = combineReducers({
   requests: requestReducer,
   status: statusReducer,
   admin: adminReducer,
+  game: gameReducer,
 });
 
 export { rootPersistConfig, rootReducer };

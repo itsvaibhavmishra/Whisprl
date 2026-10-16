@@ -3,6 +3,7 @@ import { Server } from "socket.io"; // socket io
 import { socketMiddleware } from "#src/middlewares/socketMiddleware.js";
 import { emitFriendStatus } from "#src/controllers/friendsController.js";
 import { joinConvo } from "#src/controllers/conversationController.js";
+import { leaveGameOnDisconnect, socketActInGame, socketUnwatchGame, socketWatchGame } from "#src/controllers/gameController.js";
 import { socketMarkDelivered, socketMarkSeen, socketSendMessage } from "#src/controllers/messageController.js";
 import { canMessageIn } from "#src/services/messageService.js";
 import { setOnlineStatus } from "#src/services/userService.js";
@@ -34,14 +35,26 @@ export const initializeSocket = (server) => {
     // ---------------Updating socket and user---------------
     const user = socket.user;
     const user_id = socket.user._id.toString();
+    socket.data.userId = user_id;
 
     // join user with socket
     socket.join(user_id);
     const joinedConversations = joinConvo(socket, user_id);
 
+    // ---------------Games---------------
+    // watching in order, or a quick switch between chats could leave this socket counted in the wrong one
+    let watching = Promise.resolve();
+    const inWatchOrder = (work) => {
+      watching = watching.then(work);
+    };
+    socket.on("game_watch", withinBudget(20, (conversation_id, acknowledge) => inWatchOrder(() => socketWatchGame(io, socket, conversation_id, acknowledge))));
+    socket.on("game_unwatch", withinBudget(20, (acknowledge) => inWatchOrder(() => socketUnwatchGame(socket, acknowledge))));
+    socket.on("game_act", withinBudget(30, (payload, acknowledge) => socketActInGame(io, socket, payload, acknowledge)));
+
     // ---------------User Disconnects---------------
     // closing one tab must not show someone offline while another tab is still open
     socket.on("disconnect", async () => {
+      inWatchOrder(() => leaveGameOnDisconnect(socket));
       if ((await io.in(user_id).fetchSockets()).length) return;
 
       setOnlineStatus(user_id, "offline").catch(() => {});

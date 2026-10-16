@@ -14,12 +14,16 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Play Tic-tac-toe in any chat: take a seat, press Ready, and play beside the conversation. A bot covers a missed turn or a seat someone leaves, each chat keeps a leaderboard, and on a wide screen the game can be resized. In a group the owner and admins choose the game, and can lift people out of seats, lock them, or save one for someone
+    - No one to play with? Play the bot instead from a game's start screen. Games against the bot are practice and stay off the leaderboard
 
   - Improvements:
 
   - Fixed:
 
   - Developers:
+    - Backend tests run with Node's built-in test runner, and the gate runs them
+    - Adding a game is written up in docs/games.md: the order of work, what a game provides, where its files and artwork go, and how a board is measured
 
   - Internal:
     - The README is written for people who use Whisprl, with screenshots of the app in docs/screenshots
