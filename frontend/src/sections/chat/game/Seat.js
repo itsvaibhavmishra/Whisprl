@@ -44,7 +44,7 @@ const SeatMenu = ({ seat, meId, onLift, onLock, onInvite }) => {
       </IconButton>
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
         {canLift && <MenuItem onClick={choose(onLift)}>Lift out</MenuItem>}
-        {!seat.user && <MenuItem onClick={choose(onInvite)}>Save for someone</MenuItem>}
+        {!seat.user && !seat.bot && <MenuItem onClick={choose(onInvite)}>Save for someone</MenuItem>}
         <MenuItem onClick={choose(() => onLock(!seat.locked))}>{seat.locked ? "Unlock" : "Lock"}</MenuItem>
       </Menu>
     </>
@@ -59,13 +59,13 @@ const MENU_ON_HOVER = {
   },
 };
 
-const Seat = ({ seat, conversation, meId, theme, size, mark, isDim = false, isTurn = false, note, onTake, onLeave, manage }) => {
+const Seat = ({ seat, conversation, meId, theme, size, mark, onTake, onLeave, manage }) => {
   const member = seat.user && !seat.bot ? memberOf(conversation, seat.user) : null;
   const isMine = seat.user === meId;
   const onClick = isMine ? onLeave : !seat.user && onTake;
 
   return (
-    <Box sx={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75, width: size + 24, opacity: isDim ? 0.45 : 1, ...MENU_ON_HOVER }}>
+    <Box sx={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75, width: size + 24, ...MENU_ON_HOVER }}>
       <ButtonBase
         disabled={!onClick}
         onClick={onClick || undefined}
@@ -78,10 +78,9 @@ const Seat = ({ seat, conversation, meId, theme, size, mark, isDim = false, isTu
           placeItems: "center",
           overflow: "hidden",
           color: theme.ink,
-          bgcolor: theme.raised,
-          border: `2px ${seat.user ? "solid" : "dashed"} ${alpha(theme.ink, isMine ? 0.9 : 0.35)}`,
-          boxShadow: isTurn ? `0 0 0 4px ${mark?.color ?? theme.ink}` : "none",
-          transition: "transform 160ms ease, box-shadow 200ms ease",
+          bgcolor: theme.card,
+          border: `2px ${seat.user || seat.bot ? "solid" : "dashed"} ${alpha(theme.ink, isMine ? 0.9 : 0.35)}`,
+          transition: "transform 160ms ease",
           "&:hover:not(:disabled)": { transform: "scale(1.06)" },
         }}
       >
@@ -92,13 +91,10 @@ const Seat = ({ seat, conversation, meId, theme, size, mark, isDim = false, isTu
           <Check size={12} weight="bold" />
         </Box>
       )}
-      {mark && (
-        <Typography sx={{ position: "absolute", top: -4, left: 0, fontSize: 13, fontWeight: 800, color: mark.color }}>{mark.label}</Typography>
-      )}
       <Typography noWrap sx={{ maxWidth: "100%", fontSize: 12, fontWeight: 700, color: alpha(theme.ink, 0.85) }}>
         {labelOf(seat, conversation, meId)}
       </Typography>
-      {note && <Typography sx={{ fontSize: 11, color: alpha(theme.ink, 0.6), mt: -0.5 }}>{note}</Typography>}
+      {mark && <Box sx={{ width: 26, height: 26, opacity: seat.user || seat.bot ? 1 : 0.45 }}>{mark}</Box>}
       {manage && <SeatMenu seat={seat} meId={meId} {...manage} />}
     </Box>
   );

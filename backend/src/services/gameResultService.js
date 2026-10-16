@@ -1,9 +1,11 @@
 import { GameResultModel } from "#src/models/index.js";
 import { findMemberConversation } from "#src/services/conversationService.js";
+import { isChosenBot } from "#src/services/games/seats.js";
 
 // called with the session before and after a change, so only the change that ends a game is kept
 export const recordResult = (before, after) => {
-  if (before?.status !== "playing" || !after?.result) return null;
+  // a game against a bot is practice, so it never reaches the leaderboard
+  if (before?.status !== "playing" || !after?.result || before.seats.some(isChosenBot)) return null;
   return GameResultModel.create({
     conversation: after.conversation,
     game: after.game,

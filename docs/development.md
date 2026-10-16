@@ -269,6 +269,8 @@ Whisprl/
 │                            theme, contexts, hooks, utils
 ├── docs/
 │   ├── development.md
+│   ├── games.md             adding a game: rules, artwork, the checks
+│   ├── screenshots/
 │   ├── ideas/               local only, excluded
 │   └── decisions/           local only, excluded
 ├── scripts/                 check, release, skip-release, rulesets, changelog

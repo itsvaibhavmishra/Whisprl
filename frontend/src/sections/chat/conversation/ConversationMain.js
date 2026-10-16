@@ -343,7 +343,7 @@ const ConversationMain = () => {
           ))}
 
           {/* the typing bubble has a slot of its own, so it comes and goes without moving the messages */}
-          <Box sx={{ minHeight: TYPING_BUBBLE_HEIGHT }}>
+          <Box data-typing-slot sx={{ minHeight: TYPING_BUBBLE_HEIGHT }}>
             {typists.length > 0 && !hasNewerMessages && <TypingBubble names={typists} isGroup={isGroup} />}
           </Box>
           <Box ref={bottomRef} sx={{ display: "flex", justifyContent: "center", minHeight: "1px" }}>

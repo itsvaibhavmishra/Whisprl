@@ -4,9 +4,6 @@ import {
   CircularProgress,
   Dialog,
   DialogTitle,
-  List,
-  ListItemButton,
-  ListItemText,
   Stack,
   Tab,
   Table,
@@ -22,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import useIsLoading from "@/hooks/useIsLoading";
 import { ActInGame, GetLeaderboard } from "@/redux/slices/actions/gameActions";
 import { selectGameSession } from "@/redux/slices/gameSlice";
+import GameCard from "@/sections/chat/game/GameCard";
 import { GAMES, GAME_IDS } from "@/sections/chat/game/catalog";
 import getAvatar from "@/utils/avatars";
 import { canManage, firstNameIn, memberOf } from "@/utils/groups";
@@ -45,20 +43,12 @@ const GameList = ({ conversation, onClose }) => {
   };
 
   return (
-    <>
-      {blocker && <Typography sx={{ px: 3, pt: 1.5, fontSize: 13, color: "text.secondary" }}>{blocker}</Typography>}
-      <List sx={{ py: 1 }}>
-        {GAME_IDS.map((id) => {
-          const { name, summary, theme } = GAMES[id];
-          return (
-            <ListItemButton key={id} disabled={Boolean(blocker)} onClick={() => open(id)} sx={{ px: 3, gap: 2 }}>
-              <Box aria-hidden sx={{ width: 44, height: 44, borderRadius: 3, flexShrink: 0, bgcolor: theme.surface, boxShadow: `inset 0 0 0 2px ${theme.marks[0]}` }} />
-              <ListItemText primary={name} secondary={summary} primaryTypographyProps={{ fontWeight: 700 }} />
-            </ListItemButton>
-          );
-        })}
-      </List>
-    </>
+    <Stack spacing={2} sx={{ px: 3, pt: 2, pb: 3 }}>
+      {blocker && <Typography sx={{ fontSize: 13, color: "text.secondary" }}>{blocker}</Typography>}
+      {GAME_IDS.map((id) => (
+        <GameCard key={id} game={GAMES[id]} isDisabled={Boolean(blocker)} onClick={() => open(id)} />
+      ))}
+    </Stack>
   );
 };
 

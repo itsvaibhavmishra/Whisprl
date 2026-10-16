@@ -19,6 +19,12 @@ const seatAt = (seats, index) => {
 
 export const emptySeats = (count) => Array.from({ length: count }, () => vacated({}));
 
+// a bot someone chose to play has a seat of its own, unlike one covering for a person who left
+export const isChosenBot = (seat) => Boolean(seat.bot && !seat.user);
+
+// a bot only keeps someone company, so it leaves once the last person has
+const withoutLoneBots = (seats) => (seats.some((seat) => seat.user) ? seats : seats.map((seat) => (isChosenBot(seat) ? vacated(seat) : seat)));
+
 export const seatIndexOf = (seats, userId) => seats.findIndex((seat) => same(seat.user, userId));
 
 // a seat its player left to the bot is still theirs, but they no longer play it
@@ -31,21 +37,33 @@ export const sit = (seats, index, userId) => {
   if (seatIndexOf(seats, userId) !== -1) throw createHttpError.BadRequest("You already have a seat");
   if (seat.user) throw createHttpError.BadRequest("Someone is already sitting there");
   if (seat.locked && !same(seat.invited, userId)) throw createHttpError.BadRequest("That seat is locked");
-  return replaceAt(seats, index, { ...withoutInvite(seat), user: userId, ready: false });
+  // a person always takes the seat over from a bot
+  return replaceAt(seats, index, { locked: Boolean(seat.locked), user: userId, ready: false });
 };
 
-// leaving the room clears someone's seat without it being an error that they had none
-export const vacate = (seats, userId) => seats.map((seat) => (same(seat.user, userId) ? vacated(seat) : seat));
+export const seatBot = (seats, index) => {
+  const seat = seatAt(seats, index);
+  if (seat.user || seat.bot) throw createHttpError.BadRequest("Someone is already sitting there");
+  if (seat.locked) throw createHttpError.BadRequest("That seat is locked");
+  return replaceAt(seats, index, { locked: false, bot: true, ready: true });
+};
+
+export const unseatBot = (seats, index) => {
+  const seat = seatAt(seats, index);
+  if (!isChosenBot(seat)) throw createHttpError.BadRequest("No bot is sitting there");
+  return replaceAt(seats, index, vacated(seat));
+};
 
 export const stand = (seats, userId) => {
-  if (seatIndexOf(seats, userId) === -1) throw createHttpError.BadRequest("You are not sitting");
-  return vacate(seats, userId);
+  const index = seatIndexOf(seats, userId);
+  if (index === -1) throw createHttpError.BadRequest("You are not sitting");
+  return withoutLoneBots(replaceAt(seats, index, vacated(seats[index])));
 };
 
 export const lift = (seats, index) => {
   const seat = seatAt(seats, index);
   if (!seat.user) throw createHttpError.BadRequest("Nobody is sitting there");
-  return { seats: replaceAt(seats, index, vacated(seat)), lifted: seat.user };
+  return { seats: withoutLoneBots(replaceAt(seats, index, vacated(seat))), lifted: seat.user };
 };
 
 export const setReady = (seats, userId, ready) => {
@@ -54,7 +72,8 @@ export const setReady = (seats, userId, ready) => {
   return replaceAt(seats, index, { ...seats[index], ready: Boolean(ready) });
 };
 
-export const unreadyAll = (seats) => seats.map((seat) => ({ ...seat, ready: false }));
+// a chosen bot is always ready, so it never holds a game up
+export const unreadyAll = (seats) => seats.map((seat) => ({ ...seat, ready: isChosenBot(seat) }));
 
 export const setLocked = (seats, index, locked) => {
   const seat = seatAt(seats, index);
@@ -96,16 +115,19 @@ export const comeBack = (seats, userId) => {
 };
 
 export const isEveryoneReady = (seats, minPlayers) => {
-  const seated = seats.filter((seat) => seat.user);
-  return seated.length >= minPlayers && seated.every((seat) => seat.ready);
+  const seated = seats.filter((seat) => seat.user || seat.bot);
+  return seated.length >= minPlayers && seated.some((seat) => seat.user) && seated.every((seat) => seat.ready);
 };
 
 // back in the lobby after a game, whoever left it gives their seat up and nobody is ready yet
 export const backToLobby = (seats) =>
-  seats.map((seat) => {
-    if (seat.bot) return vacated(seat);
-    return seat.user ? { user: seat.user, locked: Boolean(seat.locked), ready: false } : seat;
-  });
+  withoutLoneBots(
+    seats.map((seat) => {
+      if (isChosenBot(seat)) return seat;
+      if (seat.bot) return vacated(seat);
+      return seat.user ? { user: seat.user, locked: Boolean(seat.locked), ready: false } : seat;
+    })
+  );
 
 // a different game keeps everyone seated that it has room for
 export const resized = (seats, count) => {

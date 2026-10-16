@@ -48,13 +48,13 @@ export const initializeSocket = (server) => {
       watching = watching.then(work);
     };
     socket.on("game_watch", withinBudget(20, (conversation_id, acknowledge) => inWatchOrder(() => socketWatchGame(io, socket, conversation_id, acknowledge))));
-    socket.on("game_unwatch", withinBudget(20, (acknowledge) => inWatchOrder(() => socketUnwatchGame(io, socket, acknowledge))));
+    socket.on("game_unwatch", withinBudget(20, (acknowledge) => inWatchOrder(() => socketUnwatchGame(socket, acknowledge))));
     socket.on("game_act", withinBudget(30, (payload, acknowledge) => socketActInGame(io, socket, payload, acknowledge)));
 
     // ---------------User Disconnects---------------
     // closing one tab must not show someone offline while another tab is still open
     socket.on("disconnect", async () => {
-      inWatchOrder(() => leaveGameOnDisconnect(io, socket));
+      inWatchOrder(() => leaveGameOnDisconnect(socket));
       if ((await io.in(user_id).fetchSockets()).length) return;
 
       setOnlineStatus(user_id, "offline").catch(() => {});

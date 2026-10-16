@@ -8,18 +8,20 @@ import {
   emptySeats,
   handToBot,
   invite,
+  isChosenBot,
   isEveryoneReady,
   lift,
   missTurn,
   playedTurn,
   playerIndexOf,
   resized,
+  seatBot,
   setLocked,
   setReady,
   sit,
   stand,
   unreadyAll,
-  vacate,
+  unseatBot,
 } from "#src/services/games/seats.js";
 
 const ARIA = "aria";
@@ -72,11 +74,6 @@ test("standing and lifting free the seat but keep its lock", () => {
   assert.throws(() => lift(seats, 0), /Nobody is sitting/);
 });
 
-test("leaving the room clears a seat without complaint, even if there was none", () => {
-  assert.equal(vacate(seatedAs(ARIA), ARIA)[0].user, undefined);
-  assert.deepEqual(vacate(emptySeats(2), ARIA), emptySeats(2));
-});
-
 test("everyone has to be ready, and there have to be enough of them", () => {
   const seats = seatedAs(ARIA, BIANCA);
   assert.equal(isEveryoneReady(setReady(seats, ARIA, true), 2), false);
@@ -123,4 +120,37 @@ test("a seat left to the bot is still its player's, but they no longer play it",
   const left = handToBot(seatedAs(ARIA, BIANCA), ARIA);
   assert.equal(playerIndexOf(left, ARIA), -1);
   assert.equal(playerIndexOf(left, BIANCA), 1);
+});
+
+test("a chosen bot is always ready, so one person and a bot can start", () => {
+  const seats = seatBot(sit(emptySeats(2), 0, ARIA), 1);
+  assert.equal(isEveryoneReady(seats, 2), false);
+  assert.equal(isEveryoneReady(setReady(seats, ARIA, true), 2), true);
+  assert.equal(unreadyAll(seats)[1].ready, true);
+});
+
+test("a bot left alone when a game ends gives its seat up too", () => {
+  const afterGame = backToLobby(handToBot(seatBot(sit(emptySeats(2), 0, ARIA), 1), ARIA));
+  assert.deepEqual(afterGame, emptySeats(2));
+});
+
+test("bots never play each other with nobody at the table", () => {
+  const seats = seatBot(seatBot(emptySeats(2), 0), 1);
+  assert.equal(isEveryoneReady(seats, 2), false);
+  assert.deepEqual(stand(seatBot(sit(emptySeats(2), 0, ARIA), 1), ARIA), emptySeats(2));
+});
+
+test("a bot needs a free, unlocked seat, and only a bot's seat can be emptied of one", () => {
+  const seats = sit(emptySeats(2), 0, ARIA);
+  assert.throws(() => seatBot(seats, 0), /already sitting there/);
+  assert.throws(() => seatBot(setLocked(seats, 1, true), 1), /locked/);
+  assert.throws(() => unseatBot(seats, 0), /No bot/);
+  assert.deepEqual(unseatBot(seatBot(seats, 1), 1)[1], { ready: false, locked: false });
+});
+
+test("a person takes a bot's seat over, and the bot stays for the next game", () => {
+  const withBot = seatBot(sit(emptySeats(2), 0, ARIA), 1);
+  assert.deepEqual(sit(withBot, 1, BIANCA)[1], { user: BIANCA, ready: false, locked: false });
+  assert.equal(isChosenBot(backToLobby(withBot)[1]), true);
+  assert.equal(isChosenBot(handToBot(withBot, ARIA)[0]), false);
 });

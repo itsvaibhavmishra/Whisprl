@@ -14,13 +14,13 @@ const answered = async (acknowledge, work) => {
 export const socketWatchGame = (io, socket, conversationId, acknowledge) =>
   answered(acknowledge, () => watchGame(io, socket, conversationId));
 
-export const socketUnwatchGame = (io, socket, acknowledge) => answered(acknowledge, () => stopWatching(io, socket));
+export const socketUnwatchGame = (socket, acknowledge) => answered(acknowledge, () => stopWatching(socket));
 
 export const socketActInGame = (io, socket, payload, acknowledge) =>
   answered(acknowledge, () => actInGame(io, socket.data.userId, payload ?? {}));
 
-export const leaveGameOnDisconnect = (io, socket) =>
-  stopWatching(io, socket).catch((error) => console.error(`[games] ${error.message}`));
+export const leaveGameOnDisconnect = (socket) =>
+  stopWatching(socket).catch((error) => console.error(`[games] ${error.message}`));
 
 export const getLeaderboard = async (req, res, next) => {
   try {

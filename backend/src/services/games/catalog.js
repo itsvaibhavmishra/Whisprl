@@ -1,6 +1,6 @@
 import createHttpError from "http-errors";
 
-import ticTacToe from "#src/services/games/ticTacToe.js";
+import ticTacToe from "#src/services/games/tic-tac-toe/index.js";
 
 const GAMES = new Map([ticTacToe].map((game) => [game.id, game]));
 

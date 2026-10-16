@@ -4,13 +4,13 @@ import { useDispatch } from "react-redux";
 import { ActInGame } from "@/redux/slices/actions/gameActions";
 import getAvatar from "@/utils/avatars";
 
-const SaveSeatDialog = ({ conversation, session, seat, meId, onClose }) => {
+const SaveSeatDialog = ({ conversation, session, index, meId, onClose }) => {
   const dispatch = useDispatch();
-  const seated = (seat.kind === "room" ? session.roomSeats : session.seats).map((taken) => taken.user);
+  const seated = session.seats.map((taken) => taken.user);
   const members = conversation.users.filter((member) => member._id !== meId && !seated.includes(member._id));
 
   const save = (userId) => {
-    dispatch(ActInGame({ conversationId: conversation._id, type: "invite", ...seat, userId }));
+    dispatch(ActInGame({ conversationId: conversation._id, type: "invite", index, userId }));
     onClose();
   };
 

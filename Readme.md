@@ -183,7 +183,8 @@ Loads every backend module without a database, runs the backend and frontend tes
 builds the frontend, so it behaves the same on your machine as in CI.
 
 [`docs/development.md`](docs/development.md) covers the branches, the release flow, staff
-roles and how the emails are built.
+roles and how the emails are built. [`docs/games.md`](docs/games.md) covers adding a game,
+from its rules through its artwork to the checks before it ships.
 
 </details>
 
@@ -200,6 +201,7 @@ roles and how the emails are built.
 │   ├── ...
 ├── docs/
 │   ├── development.md
+│   ├── games.md
 ├──frontend/
 │   ├── ...
 ├── scripts/
