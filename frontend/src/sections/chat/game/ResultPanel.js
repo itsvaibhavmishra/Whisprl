@@ -83,7 +83,6 @@ const ResultPanel = ({ conversation, session, game, meId, act, onBack }) => {
         <Typography sx={{ fontSize: 12, fontWeight: 600, color: alpha(theme.ink, 0.65) }}>{PRACTICE_NOTE}</Typography>
       )}
       <Stack direction="row" spacing={1}>
-        <GameButton theme={theme} label="Back" onClick={onBack} isQuiet isFull={!mySeat} />
         {mySeat && (
           <GameButton
             theme={theme}
@@ -94,6 +93,7 @@ const ResultPanel = ({ conversation, session, game, meId, act, onBack }) => {
             isFull
           />
         )}
+        <GameButton theme={theme} label="Back" onClick={onBack} isQuiet isFull={!mySeat} />
       </Stack>
     </Stack>
   );
