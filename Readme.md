@@ -179,8 +179,8 @@ cd frontend && npm install -f && npm start
 scripts/check.sh
 ```
 
-Loads every backend module without a database, runs the frontend tests and builds the
-frontend, so it behaves the same on your machine as in CI.
+Loads every backend module without a database, runs the backend and frontend tests and
+builds the frontend, so it behaves the same on your machine as in CI.
 
 [`docs/development.md`](docs/development.md) covers the branches, the release flow, staff
 roles and how the emails are built.

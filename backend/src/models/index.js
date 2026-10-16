@@ -12,6 +12,8 @@ import StatusModel from "#src/models/statusModel.js";
 import AlbumModel from "#src/models/albumModel.js";
 import AuditEntryModel from "#src/models/auditEntryModel.js";
 import ActivityModel from "#src/models/activityModel.js";
+import GameSessionModel from "#src/models/gameSessionModel.js";
+import GameResultModel from "#src/models/gameResultModel.js";
 
 export {
   UserModel,
@@ -28,4 +30,6 @@ export {
   AlbumModel,
   AuditEntryModel,
   ActivityModel,
+  GameSessionModel,
+  GameResultModel,
 };

@@ -33,7 +33,7 @@ const assertNotBlocked = async (sender_id, receiver_id) => {
 };
 
 // a group's members need not all be friends; a direct chat needs the two people still to be
-const assertCanMessage = async (conversation, user_id) => {
+export const assertCanMessage = async (conversation, user_id) => {
   const receiver_id = !conversation.isGroup && conversation.users.find((member) => !member.equals(user_id));
   if (receiver_id) await Promise.all([validateFriendship(user_id, receiver_id), assertNotBlocked(user_id, receiver_id)]);
 };

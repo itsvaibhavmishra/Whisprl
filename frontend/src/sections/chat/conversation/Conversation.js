@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, ButtonBase, Stack, Typography } from "@mui/material";
+import { AnimatePresence } from "framer-motion";
+import { CaretDown, CaretUp } from "phosphor-react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
 import { UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
+import { UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
 import { selectActiveOutbox } from "@/redux/slices/chatSlice";
 import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
+import { selectGameSession } from "@/redux/slices/gameSlice";
 import ChatCanvas from "@/sections/chat/ChatCanvas";
 import FileUploadCont from "@/sections/chat/attachments/FileUploadCont";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
@@ -14,6 +18,10 @@ import Composer, { COLUMN_WIDTH, COMPOSER_GUTTER } from "@/sections/chat/convers
 import ConversationHeader from "@/sections/chat/conversation/ConversationHeader";
 import ConversationMain from "@/sections/chat/conversation/ConversationMain";
 import PinnedBar from "@/sections/chat/conversation/PinnedBar";
+import GamePanel, { CHAT_MIN_WIDTH } from "@/sections/chat/game/GamePanel";
+import GamePill from "@/sections/chat/game/GamePill";
+import SeatSwitchDialog from "@/sections/chat/game/SeatSwitchDialog";
+import useGameSounds from "@/sections/chat/game/useGameSounds";
 import { peerOf } from "@/utils/chats";
 
 const ComposerNotice = ({ children, action }) => (
@@ -28,6 +36,23 @@ const ComposerNotice = ({ children, action }) => (
     </Stack>
   </Box>
 );
+
+const chatHeightOf = (isBesideGame, isRaised) => {
+  if (!isBesideGame) return "100%";
+  return isRaised ? "70%" : "34%";
+};
+
+// one column with or without a game, so opening or closing one never remounts the chat
+const chatColumnOf = (isBesideGame, isRaised) => ({
+  display: "flex",
+  flexDirection: "column",
+  minHeight: 0,
+  minWidth: { lg: CHAT_MIN_WIDTH },
+  flex: { lg: 1 },
+  flexShrink: { xs: 0 },
+  height: { xs: chatHeightOf(isBesideGame, isRaised), lg: "auto" },
+  transition: "height 340ms cubic-bezier(0.32, 0.72, 0, 1)",
+});
 
 const lockedReasonFor = (keyStatus) => {
   if (keyStatus === "checking") return "Getting encryption ready…";
@@ -46,6 +71,10 @@ const Conversation = () => {
   const { _id: meId, blocked = [] } = useSelector((state) => state.user.user);
   const friends = useSelector((state) => state.user.friends);
   const [isSearching, setIsSearching] = useState(false);
+  const gameSession = useSelector(selectGameSession);
+  const isGameHidden = useSelector((state) => state.game.collapsed);
+  const [isChatRaised, setIsChatRaised] = useState(false);
+  useGameSounds(gameSession, meId);
 
   const conversationId = activeConversation._id;
   const peer = activeConversation.isGroup ? null : peerOf(activeConversation, meId);
@@ -59,6 +88,11 @@ const Conversation = () => {
 
   useEffect(() => {
     dispatch(GetMessages(conversationId));
+  }, [dispatch, conversationId]);
+
+  useEffect(() => {
+    dispatch(WatchGame(conversationId));
+    return () => dispatch(UnwatchGame());
   }, [dispatch, conversationId]);
 
   // the outbox only grows when a message is sent from here, so its growth counts sends
@@ -123,19 +157,42 @@ const Conversation = () => {
     );
   };
 
+  const chat = () =>
+    files.length ? (
+      <FileUploadCont />
+    ) : (
+      <>
+        <ConversationMain />
+        {composer()}
+      </>
+    );
+
+  const isGameShown = Boolean(gameSession) && !isGameHidden;
+
   return (
     <ChatCanvas conversationId={conversationId} step={sends} sx={{ height: "100%", minWidth: 0, display: "flex", flexDirection: "column" }}>
       <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
       {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
       {!isSearching && <PinnedBar />}
-      {files.length ? (
-        <FileUploadCont />
-      ) : (
-        <>
-          <ConversationMain />
-          {composer()}
-        </>
-      )}
+      <AnimatePresence>{gameSession && isGameHidden && <GamePill key="pill" session={gameSession} meId={meId} />}</AnimatePresence>
+      <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: { xs: "column", lg: "row-reverse" } }}>
+        <AnimatePresence initial={false}>
+          {isGameShown && <GamePanel key={gameSession.game} conversation={activeConversation} session={gameSession} />}
+        </AnimatePresence>
+        <Box sx={chatColumnOf(isGameShown, isChatRaised)}>
+          {isGameShown && (
+            <ButtonBase
+              aria-label={isChatRaised ? "Lower the chat" : "Raise the chat"}
+              onClick={() => setIsChatRaised((raised) => !raised)}
+              sx={{ display: { lg: "none" }, py: 0.25, color: "text.secondary", borderBottom: 1, borderColor: "divider" }}
+            >
+              {isChatRaised ? <CaretDown size={18} weight="bold" /> : <CaretUp size={18} weight="bold" />}
+            </ButtonBase>
+          )}
+          {chat()}
+        </Box>
+      </Box>
+      <SeatSwitchDialog />
     </ChatCanvas>
   );
 };

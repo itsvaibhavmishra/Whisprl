@@ -14,12 +14,14 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Play Tic-tac-toe in any chat: take a seat, press Ready, and play beside the conversation. A bot covers a missed turn or a seat someone leaves, each chat keeps a leaderboard, and on a wide screen the game can be resized. Groups get room seats that show who is here, and owners and admins can lift people out, lock seats and save them for someone
 
   - Improvements:
 
   - Fixed:
 
   - Developers:
+    - Backend tests run with Node's built-in test runner, and the gate runs them
 
   - Internal:
     - The README is written for people who use Whisprl, with screenshots of the app in docs/screenshots

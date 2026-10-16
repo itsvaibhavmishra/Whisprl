@@ -10,6 +10,7 @@ import { ChooseAttachments } from "@/redux/slices/actions/attachmentActions";
 import { SendTextMessage } from "@/redux/slices/actions/chatActions";
 import { EditMessage } from "@/redux/slices/actions/messageActions";
 import { setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
+import { gameCollapsed, selectGameSession } from "@/redux/slices/gameSlice";
 import AttachMenu from "@/sections/chat/conversation/AttachMenu";
 import { MESSAGE_COLUMN_WIDTH } from "@/sections/chat/conversation/ConversationMain";
 import MentionSuggestions from "@/sections/chat/conversation/MentionSuggestions";
@@ -18,6 +19,7 @@ import ShareContactDialog from "@/sections/chat/conversation/ShareContactDialog"
 import VoiceRecorder from "@/sections/chat/conversation/VoiceRecorder";
 import { useDraft } from "@/sections/chat/conversation/useDraft";
 import { useTyping } from "@/sections/chat/conversation/useTyping";
+import GamesDialog from "@/sections/chat/game/GamesDialog";
 import MediaTile from "@/sections/chat/messages/MediaTile";
 import getAvatar from "@/utils/avatars";
 import { quickEmojiOf } from "@/utils/emoji";
@@ -132,6 +134,8 @@ const Composer = () => {
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [emojiAnchor, setEmojiAnchor] = useState(null);
   const [isSharingContact, setIsSharingContact] = useState(false);
+  const [isPickingGame, setIsPickingGame] = useState(false);
+  const gameSession = useSelector(selectGameSession);
   const inputRef = useRef(null);
   const fieldRef = useRef(null);
   const pendingCaret = useRef(null);
@@ -248,6 +252,9 @@ const Composer = () => {
   const replyAuthor = isReplyToSelf ? "yourself" : replyingTo?.sender?.firstName ?? "message";
   const replyPerson = isReplyToSelf ? user : replyingTo?.sender;
 
+  // a chat has one game at a time, so with one open the menu brings it back into view
+  const chooseGames = () => (gameSession ? dispatch(gameCollapsed(false)) : setIsPickingGame(true));
+
   return (
     <Box component="form" onSubmit={submit} sx={{ ...COMPOSER_GUTTER, pt: 0.5 }}>
       <Stack direction="row" alignItems="flex-end" sx={{ position: "relative", gap: 1, maxWidth: COLUMN_WIDTH, mx: "auto" }}>
@@ -281,6 +288,7 @@ const Composer = () => {
                     onMedia={() => dispatch(ChooseAttachments("media"))}
                     onDocument={() => dispatch(ChooseAttachments("doc"))}
                     onContact={() => setIsSharingContact(true)}
+                    onGames={chooseGames}
                   />
                   <VoiceRecorder buttonSx={TOOL_BUTTON} overlaySx={RECORDING_BAR} onRecordingChange={setIsRecording} />
                 </Stack>
@@ -360,6 +368,7 @@ const Composer = () => {
       </Popover>
 
       {isSharingContact && <ShareContactDialog open onClose={() => setIsSharingContact(false)} />}
+      {isPickingGame && <GamesDialog conversation={conversation} onClose={() => setIsPickingGame(false)} />}
     </Box>
   );
 };
