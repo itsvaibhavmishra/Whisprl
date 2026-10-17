@@ -8,7 +8,7 @@ import { GetLeaderboard } from "@/redux/slices/actions/gameActions";
 import GameButton from "@/sections/chat/game/GameButton";
 import { PRACTICE_NOTE, resultLineOf } from "@/sections/chat/game/gameStatus";
 import { isChosenBot } from "@/sections/chat/game/seats";
-import usePendingReady from "@/sections/chat/game/usePendingReady";
+import usePending from "@/sections/chat/game/usePending";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import { firstNameIn } from "@/utils/groups";
 
@@ -55,7 +55,8 @@ const ResultPanel = ({ conversation, session, game, meId, act, onBack }) => {
   const mySeat = session.seats.find((seat) => seat.user === meId);
   const conversationId = conversation._id;
   const { theme } = game;
-  const [isReady, toggleReady] = usePendingReady(Boolean(mySeat?.ready), (ready) => act({ type: "ready", ready }));
+  const [isReady, setReady] = usePending(Boolean(mySeat?.ready), (ready) => act({ type: "ready", ready }));
+  const toggleReady = () => setReady(!isReady);
 
   useEffect(() => {
     dispatch(GetLeaderboard(conversationId));

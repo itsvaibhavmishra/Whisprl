@@ -27,6 +27,8 @@ const gameSessionSchema = mongoose.Schema(
     // deadlines rather than running timers, so a restart can pick a countdown or a turn back up
     startsAt: { type: Date },
     turnEndsAt: { type: Date },
+    // the settings chosen in the lobby, shaped by the game; a game without any never sets it
+    options: { type: mongoose.Schema.Types.Mixed },
     // shaped by the game being played, and only the game reads it
     state: { type: mongoose.Schema.Types.Mixed },
     // who won the last game, kept in the lobby until the next one starts

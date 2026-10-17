@@ -10,6 +10,8 @@ const initialState = {
   collapsed: false,
   seatSwitch: null,
   leaderboard: null,
+  // the result someone stepped back from, so closing and reopening the panel does not show it again
+  dismissedResult: null,
 };
 
 const slice = createSlice({
@@ -24,6 +26,9 @@ const slice = createSlice({
     },
     gameCollapsed(state, { payload }) {
       state.collapsed = payload;
+    },
+    resultDismissed(state, { payload }) {
+      state.dismissedResult = payload;
     },
     seatSwitchOffered(state, { payload }) {
       state.seatSwitch = payload;
@@ -54,7 +59,7 @@ const slice = createSlice({
   },
 });
 
-export const { gameStateReceived, gameCollapsed, seatSwitchOffered, seatSwitchClosed } = slice.actions;
+export const { gameStateReceived, gameCollapsed, resultDismissed, seatSwitchOffered, seatSwitchClosed } = slice.actions;
 
 export const selectGameSession = (state) => state.game.view?.session ?? null;
 

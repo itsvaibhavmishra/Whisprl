@@ -2,6 +2,9 @@ import { Box } from "@mui/material";
 import { m, useReducedMotion } from "framer-motion";
 
 const DROP = { type: "spring", stiffness: 420, damping: 26 };
+
+// the spring overshoots on the way in, which on opacity reads as a blink, so only the drop springs
+const dropAfter = (delay) => ({ default: { ...DROP, delay }, opacity: { duration: 0.22, delay, ease: "easeOut" } });
 const BETWEEN_WORDS = 0.11;
 const BEFORE_FIRST_WORD = 0.3;
 
@@ -24,7 +27,7 @@ const GameTitle = ({ title, name, isStatic = false, isReady = true, width }) => 
           aria-hidden
           initial={isStill ? false : { y: -44, opacity: 0 }}
           animate={isReady ? { y: 0, opacity: 1 } : { y: -44, opacity: 0 }}
-          transition={isStill ? { duration: 0 } : { ...DROP, delay: BEFORE_FIRST_WORD + index * BETWEEN_WORDS }}
+          transition={isStill ? { duration: 0 } : dropAfter(BEFORE_FIRST_WORD + index * BETWEEN_WORDS)}
           sx={{
             position: "absolute",
             left: `${left * 100}%`,

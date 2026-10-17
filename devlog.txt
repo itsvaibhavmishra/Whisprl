@@ -16,6 +16,8 @@
   - New:
     - Play Tic-tac-toe in any chat: take a seat, press Ready, and play beside the conversation. A bot covers a missed turn or a seat someone leaves, each chat keeps a leaderboard, and on a wide screen the game can be resized. In a group the owner and admins choose the game, and can lift people out of seats, lock them, or save one for someone
     - No one to play with? Play the bot instead from a game's start screen. Games against the bot are practice and stay off the leaderboard
+    - Play Dots and Boxes in any chat: draw the lines between dots to close boxes, on a 3×3, 4×4 or 5×5 board. In a group the owner and admins choose the board and how many play, up to six
+    - Each game has its own background music, which fades in, and a sound menu for its music and effects. Whose turn it is shows a clock counting down, so everyone can see how long is left
 
   - Improvements:
 
@@ -24,6 +26,7 @@
   - Developers:
     - Backend tests run with Node's built-in test runner, and the gate runs them
     - Adding a game is written up in docs/games.md: the order of work, what a game provides, where its files and artwork go, and how a board is measured
+    - A game's artwork is written up in docs/game-art.md, and scripts/artwork.py places each piece where the design put it: landmarks read off a grid, a fit refined against the design's own pixels, an overlay to check it by, and the result as CSS
 
   - Internal:
     - The README is written for people who use Whisprl, with screenshots of the app in docs/screenshots

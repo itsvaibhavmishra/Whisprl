@@ -8,10 +8,19 @@ const winningCellFor = (board, mark) =>
 
 const anyOf = (cells) => (cells.length ? cells[Math.floor(Math.random() * cells.length)] : null);
 
-// an ordinary player: it takes a win and stops one, but never sees a fork coming
-export const botMove = ({ board }, seat) =>
-  winningCellFor(board, seat) ??
-  winningCellFor(board, 1 - seat) ??
-  (board[CENTRE] === null ? CENTRE : null) ??
-  anyOf(CORNERS.filter((cell) => board[cell] === null)) ??
-  anyOf(emptyCellsOf(board));
+// played well this game cannot be won, so the bot looks away, and more often when standing in for someone
+export const DISTRACTED = { opponent: 0.3, standIn: 0.55 };
+
+export const botMove = ({ board }, seat, level = "opponent") => {
+  const free = emptyCellsOf(board);
+  const win = winningCellFor(board, seat);
+  // a free win is always taken, because losing to a bot that walked past one feels cheap
+  if (win !== null) return win;
+  if (Math.random() < DISTRACTED[level]) return anyOf(free);
+  return (
+    winningCellFor(board, 1 - seat) ??
+    (board[CENTRE] === null ? CENTRE : null) ??
+    anyOf(CORNERS.filter((cell) => board[cell] === null)) ??
+    anyOf(free)
+  );
+};

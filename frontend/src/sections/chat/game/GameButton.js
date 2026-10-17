@@ -1,5 +1,5 @@
 import { Button } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { alpha, lighten } from "@mui/material/styles";
 import { GameController } from "phosphor-react";
 
 // the one filled action a screen offers, in the game's own accent
@@ -19,7 +19,14 @@ const GameButton = ({ theme, label, onClick, isDisabled = false, isQuiet = false
       fontWeight: 800,
       ...(isQuiet
         ? { bgcolor: theme.card, color: theme.ink, boxShadow: "0 4px 14px rgba(70, 48, 110, 0.18)", "&:hover": { bgcolor: theme.card } }
-        : { bgcolor: theme.accent, color: "#fff", boxShadow: `0 6px 18px ${alpha(theme.accent, 0.45)}`, "&:hover": { bgcolor: alpha(theme.accent, 0.88) } }),
+        : {
+            bgcolor: theme.accent,
+            // lit from above, the way the buttons in the games' artwork are drawn
+            backgroundImage: `linear-gradient(180deg, ${lighten(theme.accent, 0.14)} 0%, ${theme.accent} 100%)`,
+            color: "#fff",
+            boxShadow: `0 6px 18px ${alpha(theme.accent, 0.45)}`,
+            "&:hover": { bgcolor: theme.accent, backgroundImage: `linear-gradient(180deg, ${lighten(theme.accent, 0.22)} 0%, ${theme.accent} 100%)` },
+          }),
       "&.Mui-disabled": { bgcolor: alpha(theme.ink, 0.12), color: alpha(theme.ink, 0.6), boxShadow: "none" },
     }}
   >

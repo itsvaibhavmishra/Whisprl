@@ -129,6 +129,23 @@ export const backToLobby = (seats) =>
     })
   );
 
+const isTaken = (seat) => Boolean(seat.user || seat.bot);
+
+// the same game with more or fewer seats: new ones go on the end, and empty ones come off it
+export const withSeatCount = (seats, count) => {
+  if (seats.filter(isTaken).length > count) throw createHttpError.BadRequest("More players are seated than that");
+  let surplus = seats.length - count;
+  const kept = [...seats]
+    .reverse()
+    .filter((seat) => {
+      if (isTaken(seat) || surplus <= 0) return true;
+      surplus -= 1;
+      return false;
+    })
+    .reverse();
+  return [...kept, ...emptySeats(count - kept.length)];
+};
+
 // a different game keeps everyone seated that it has room for
 export const resized = (seats, count) => {
   const kept = seats.filter((seat) => seat.user).slice(0, count);

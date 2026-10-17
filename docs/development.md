@@ -269,11 +269,12 @@ Whisprl/
 │                            theme, contexts, hooks, utils
 ├── docs/
 │   ├── development.md
-│   ├── games.md             adding a game: rules, artwork, the checks
+│   ├── game-art.md          a game's artwork: asking, cutting out, placing against the design
+│   ├── games.md             adding a game: rules, contracts, sound, the checks
 │   ├── screenshots/
 │   ├── ideas/               local only, excluded
 │   └── decisions/           local only, excluded
-├── scripts/                 check, release, skip-release, rulesets, changelog
+├── scripts/                 check, release, skip-release, rulesets, changelog, artwork
 ├── .github/                 workflows, rulesets, PR template
 ├── CHANGELOG.md
 ├── devlog.txt

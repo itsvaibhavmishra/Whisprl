@@ -33,12 +33,19 @@ board gets drawn twice.
    decision. These are quick to write while the rules are fresh and they are the only part of a
    game the gate can check, since the gate has no database.
 4. **Wire it to the canvas.** Add it to both catalogs. At this point it is playable, with no art.
-5. **Artwork.** Only now, because the rules may still have changed the board.
-6. **Cut the artwork out and measure it.** See below. This is the step that goes wrong quietly.
-7. **Check placement before building the screens.** Draw the real pieces at the measured
+5. **A design prompt per screen.** Hand over one short prompt for the start screen, one for the
+   game screen and one for the finished screen, to be used one at a time. Each one carries the
+   requirements from step 1, because whoever draws the screen has none of this context. See
+   [game-art.md](game-art.md) for what a prompt has to say.
+6. **Artwork.** Only now, because the rules may still have changed the board. Ask for the pieces
+   the design needs, cut them out and compress them.
+7. **Measure it and place it against the design.** Read places off the design rather than by eye,
+   fit each piece to it, and look at the overlay. This is the step that goes wrong quietly.
+8. **Check placement before building the screens.** Draw the real pieces at the measured
    positions and look at the result. A wrong measurement found here costs minutes. Found after
    the screens are built, it costs a day of nudging numbers.
-8. **Build the three screens**, then check them at every size the panel can be.
+9. **Build the three screens**, then check them at a real phone width and at every size the panel
+   can be.
 
 ## What a game provides
 
@@ -50,12 +57,13 @@ One object, exported from `backend/src/services/games/<game-id>/index.js`:
 |---|---|
 | `id` | the game id, which is also its folder name |
 | `minPlayers`, `maxPlayers` | how many seats, and how few can start |
-| `turnSeconds` | how long a turn lasts before the bot plays it |
-| `setup(previous)` | a fresh state, given the last game's final state so openers can alternate |
+| `turnSeconds` | how long a turn lasts before the bot plays it, shown as a ring draining around the player whose turn it is |
+| `options` | optional: `{ defaults, assert }` for a game with settings, left out by one without |
+| `setup(previous, table)` | a fresh state, given the last game's final state so openers can alternate, and the table: the settings plus `players`, the seat count, and `seating`, who sits where |
 | `turnOf(state)` | which seat is to move |
 | `play(state, seat, move)` | validate and apply, or throw |
 | `outcome(state)` | `null` while the game runs, otherwise `{ winners: [seatIndex] }`, empty for a draw |
-| `botMove(state, seat)` | what this game's bot plays |
+| `botMove(state, seat, level)` | what this game's bot plays, at `"opponent"` for a bot someone chose to face or `"standIn"` for one covering a player who left |
 | `viewFor(state, seat)` | what that seat is allowed to see, including the moves it may make |
 
 `viewFor` is the one to think hardest about. The first games hide nothing, but it is what makes a
@@ -66,6 +74,20 @@ that returns raw state is fine only because it has nothing to hide, and should s
 and a deliberately ordinary bot is the right default: games it finishes for someone who left
 count on the leaderboard unmarked, so a bot that never loses would poison the scores.
 
+**Tune a bot by playing it, not by reasoning about it.** Play it a thousand games against a
+practised player built from the same bot with its slips turned off, and against a casual one, and
+read the win, draw and loss rates. A practised player should win a little over half; someone
+casual should win and lose both. The bot standing in for a player who left is weaker again, since
+nobody chose to face it. Then give each rule's test a fixed roll for whether the bot slips, so the
+tests say what it does when attentive and when not, instead of passing by luck.
+
+**The player count is the seat count, not a setting.** Every table opens with `minPlayers` seats.
+In a group, whoever runs it sets the count up to `maxPlayers` from the start screen, with the
+`seats` action; new seats go on the end, only empty ones are taken away, and a count below the
+players already seated is refused. A game starts once every seat is taken and ready. `assert` is
+handed the settings with the seat count, because a board size and a player count can rule each
+other out.
+
 The same bot can also be chosen as an opponent from the start screen. A chosen bot sits in a seat
 with no person in it, is always ready, gives its seat up to any person who sits there, and
 leaves once nobody is left at the table. A game with a chosen bot in it is practice and is
@@ -73,9 +95,23 @@ never recorded, so a game needs nothing extra to offer it.
 
 ### On the client
 
-One object, exported from `frontend/src/sections/chat/game/games/<game-id>/index.js`: the game's
-name and summary, its fixed theme, the panel widths it wants, its board component and its move
-sound.
+One object, exported from `frontend/src/sections/chat/game/games/<game-id>/index.js`:
+
+| Key | What it is |
+|---|---|
+| `id`, `name`, `summary` | what the games dialog shows |
+| `art` | its image paths, `beyond` for what the scene runs into past its edge, or `anchor: "top"` and the scene's `ratio` when pieces are placed in the scene's coordinates |
+| `preload` | every file the start screen waits for before it animates in |
+| `theme` | `surface`, `card`, `ink`, `accent`, `marks` for each seat's colour, and `shade`, the colour the start screen's wash is mixed from |
+| `title` | its wordmark as words placed by fraction, so each can drop in on its own |
+| `width` | the panel's smallest, preferred and largest width beside the chat |
+| `moveSound`, `music` | the sound a move makes, or a function of the states before and after it, and the track it plays; see Sound |
+| `moveCountOf(state)` | how many moves are on the board, which is how a move is heard |
+| `options` | optional: each setting's `key`, label, choices, `unavailable(value, players)` and a `Preview` component; the defaults come from the server |
+| `colourOf(state, seat)` | optional: a seat's colour when the game deals them, rather than `marks[seat]` |
+| `Mark` | optional: what stands for a seat, drawn the same everywhere it appears |
+| `Board` | lazy: renders a view and sends moves |
+| `Masthead`, `mastheadRatio` | optional and lazy: a start screen drawn into the scene, and its stage's shape |
 
 A game has no light or dark mode. It looks how it was drawn, and the chrome laid over it uses one
 fixed style so it stays readable on any art.
@@ -101,13 +137,17 @@ frontend/src/sections/chat/game/   the canvas: seats, panel, screens, sounds
     └── tic-tac-toe/
         ├── index.js           theme, widths, board, move sound
         ├── Board.js           renders a view, sends intents
-        └── tiles.json         measured positions, see below
+        └── tiles.json         measured positions, see game-art.md
 
 frontend/public/games/tic-tac-toe/
 ├── scene.webp
 ├── board.webp
-└── title-tic.webp, title-tac.webp, title-toe.webp
+├── title-tic.webp, title-tac.webp, title-toe.webp
+└── music.m4a
 ```
+
+A game with art placed in its scene, such as Dots and Boxes, also keeps a `Masthead.js` and the
+`masthead.json` that `scripts/artwork.py` wrote for it.
 
 **Each game owns a folder in all three places**, named after its id, and nothing outside that
 folder changes when a game is added except the two catalogs. If adding a game means editing the
@@ -120,94 +160,21 @@ it. Keep a game's art under a few hundred kilobytes in total.
 
 ## Artwork
 
-### Asking for it
-
-Ask for art on a **plain green background** rather than with transparency. Green keys out cleanly
-and is easier to produce.
-
-The one rule: **nothing in the subject may be the key colour.** A stone title with green moss and
-leaves cannot be keyed, because the leaves key out with the background. Check the subject's
-palette before asking for the art, not after.
-
-Also ask for:
-
-- **The board separately from the scene.** A board baked into the background cannot scale or move
-  on its own, which rules out resizing and any animation of the board.
-- **A clear top and bottom in the scene.** The bar sits at the top and the buttons at the bottom,
-  so art there is hidden.
-- **Pieces that animate separately as separate files.** Anything inside one image is frozen
-  relative to everything else in it.
-- **2x the largest size it will be shown at.** A panel that can be 820 wide needs art at least
-  1640 across.
-
-### Cutting the background out
-
-```sh
-magick in.png -colorspace sRGB -alpha set \
-  -channel A -fx 'mx = max(u.r, u.b); lead = u.g / max(mx, 0.02);
-                  u.g - mx < 0.03 ? 1 : 1 - min(1, max(0, (lead - 1.15) / 0.45))' +channel \
-  -channel G -fx 'min(u.g, max(u.r, u.b))' +channel \
-  out.png
-```
-
-The first expression builds the alpha from how far green outruns red and blue, as a ratio rather
-than a difference, so a green that has been darkened by a shadow still keys out. The second pulls
-the green spill back out of the edges.
-
-Then check it, because a key that looks right on the colour it will sit on can still be wrong:
-
-- **Composite it onto magenta** and look. Any green fringe shows against magenta and hides
-  against lilac.
-- **Check the interior is solid.** `-alpha extract` and read the minimum: a hole punched through
-  the middle of a shape reads as a stray transparent pixel, not as something you would notice.
-- **Expect the baked shadow and any rim glow to disappear.** Both are semi-transparent over the
-  background, so they cannot survive. Add them back in CSS, which is better anyway, because a
-  shadow in CSS can move when the piece does.
-
-Export as WebP at quality 92.
-
-### Slicing one image into pieces
-
-Art that animates in parts, such as a title whose words drop in one at a time, arrives as one
-image with gaps. Find the gaps by reading a column profile of the alpha channel rather than by
-eye, cut each piece to its own bounds, and store each piece's position as a **fraction of the
-whole**, so the pieces hold together at any size.
-
-Then **reassemble the pieces and compare against the original**. `magick compare -metric AE`
-should report zero differing pixels. If it does not, the recorded positions are wrong and
-everything placed with them will be wrong too.
-
-### Measuring a board
-
-Pieces have to land in the middle of their squares at every size, so the board needs measuring
-once, carefully.
-
-**The trap:** a raised square in a 3D render casts a shadow below it. Detecting dark bands finds
-the shadows, not the squares, and every position comes out low by the depth of the shadow. This
-is easy to miss because the error is consistent and the board still looks plausible.
-
-So:
-
-- **Measure the lit faces, not the gaps between them.**
-- **Measure every square separately.** A painted or rendered grid is not perfectly even, and the
-  outer squares in particular are not where a regular grid says they are.
-- **Lay a labelled ruler over the art and read the numbers off it.** Automatic detection is worth
-  trying, but the eye is better at telling a square's face from its bevel, and there are only a
-  handful of squares.
-- **Store the result as `tiles.json`**, as percentages of the board image, one box per square.
-  Percentages, so the data survives the art being re-exported at another size.
-
-Then verify it the only way that counts: **draw the real pieces at the measured positions and
-look at the board.** Not outlines, the actual pieces, because an outline sitting inside a larger
-square looks centred even when it is not.
+Everything about a game's art is in [game-art.md](game-art.md): the design prompt, asking for the
+pieces, cutting them out, measuring a board, and placing pieces where the design put them with
+`scripts/artwork.py`. Read it before asking for any art, because what is asked for decides how
+much of the rest is easy.
 
 ## The three screens
 
 Every game has the same three, and the canvas owns the moves between them. A game supplies the
 art and the board.
 
-- **Start.** The game's title, the seats, and one action. This is where people gather and agree to
-  play.
+- **Start.** The game's title, or its masthead drawn into the scene, then the seats (wrapping
+  to a second row on a phone), the player count for a group's manager, the game's settings if it
+  has any, and one action, with the bot offered beside it. This is where people gather and agree
+  to play. Its controls sit on a wash of the game's `shade` rather than a card, so they read on
+  any art without boxing the scene in.
 - **Game.** The title shrinks into the bar, the players move up into a header with their pieces,
   and the board takes the space.
 - **Result.** The final board stays on screen with the winning line drawn over it, and a panel
@@ -218,21 +185,49 @@ Two things that are easy to get wrong:
 - **Do not replace the board with a card when a game ends.** The board is the result. Keep it and
   put the panel below it.
 - **The result waits for a person, never a timer.** It holds until somebody asks for another game,
-  so whoever looked away still sees what happened.
+  so whoever looked away still sees what happened. Back steps away from that one result, and the
+  store remembers it by when the game ended, so closing and reopening the panel does not bring it
+  back.
 
 **Pieces are drawn, never typed.** A seat showing the letter X next to a carved X on the board
 looks like two different games. Draw the piece once and use that everywhere it appears, at
-whatever size.
+whatever size. A mark that stands for a person, such as Dots and Boxes writing an owner's initial
+in their colour, reads the same letter to everyone, so it uses their real name, never "You".
 
 ## Sound
 
-Sound effects are generated in the browser rather than shipped as files, so a game adds no audio
-to the repo and no new dependency. Each game names its own move sound.
+Sound effects are generated in the browser rather than shipped as files, so effects add no audio
+to the repo and no new dependency. Each game has its own move sound, so two games never sound
+alike: tic-tac-toe chalks a mark, Dots and Boxes draws a pencil line and chimes when a box closes.
+The canvas plays the turn, win, loss and draw cues for every game.
+
+A level nobody has set yet means its default, not silence. `Number(JSON.parse(null))` is `0`, so a
+missing volume read straight from storage mutes everything while the slider shows it full.
 
 Browsers refuse to play anything until the person has interacted with the page, so the first
 sound in a session may be dropped. That is fine and needs no handling.
 
-Game sound follows the app's sound setting and has its own mute button in the game bar.
+Effects and music have separate levels in the sound menu, and the app's own sound setting still
+silences both. Music fades in and out rather than starting at full volume.
+
+### Music
+
+Every game gets its own track, so one game never sounds like another.
+
+**Look for open-source music and hand over links to listen to.** Nobody can judge a track from a
+description, and the person choosing it is not the person searching for it. So the search ends in
+a short list of links that play in a browser, not in a file already committed.
+
+**CC0 or public domain only.** Whisprl is CC0 and both manifests declare it, so a track under any
+other licence, however freely given, would mean a notices file and a README that no longer says
+the repo is CC0. Open the licence on each track's own page and read it: a "royalty free" badge is
+not a licence. Record the title, author and source next to the track where it is declared.
+
+**Watch the weight.** A published track is a few megabytes, far past everything else a game ships.
+Re-encode to mono AAC at a low bitrate, which CC0 allows, and expect a couple of minutes of music
+to land near three quarters of a megabyte even then. AAC rather than Opus, because iOS Safari is
+unreliable with Opus. Music is off by default and the file is fetched only when someone turns it
+on, so nobody who leaves it off ever downloads it.
 
 ## Before it ships
 
@@ -240,6 +235,9 @@ Game sound follows the app's sound setting and has its own mute button in the ga
 - The rules and the bot have tests.
 - The board has been checked at the panel's smallest width, its largest, and at phone size. A
   board sized by width alone overflows a short panel, so size it against both.
+- Art placed in the scene has been checked by overlay against the design, and the start screen fits
+  without scrolling on a 390 by 844 phone under device emulation.
+- The bot has been played against a practised and a casual player, and its rates are reasonable.
 - Nothing in the panel scrolls sideways at any width.
 - Reduced motion is respected.
 - The game is playable with a keyboard and every control has a label.

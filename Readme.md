@@ -184,7 +184,8 @@ builds the frontend, so it behaves the same on your machine as in CI.
 
 [`docs/development.md`](docs/development.md) covers the branches, the release flow, staff
 roles and how the emails are built. [`docs/games.md`](docs/games.md) covers adding a game,
-from its rules through its artwork to the checks before it ships.
+from its rules through to the checks before it ships, and [`docs/game-art.md`](docs/game-art.md)
+covers its artwork: asking for it, cutting it out, and placing it where the design put it.
 
 </details>
 
@@ -201,6 +202,7 @@ from its rules through its artwork to the checks before it ships.
 │   ├── ...
 ├── docs/
 │   ├── development.md
+│   ├── game-art.md
 │   ├── games.md
 ├──frontend/
 │   ├── ...

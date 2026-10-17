@@ -25,7 +25,7 @@ const Level = ({ icon, label, value, onChange }) => (
 );
 
 // music and effects are different kinds of noise, so one switch for both is never the setting someone wants
-const SoundMenu = ({ anchor, onClose }) => {
+const SoundMenu = ({ anchor, track, onClose }) => {
   const [effects, setEffects] = useLocalStorage(EFFECTS_KEY, 1);
   const [music, setMusic] = useLocalStorage(MUSIC_KEY, 0);
   const [preview, setPreview] = useState(null);
@@ -38,9 +38,12 @@ const SoundMenu = ({ anchor, onClose }) => {
 
   const changeMusic = (level) => {
     setMusic(level);
-    if (level > 0) startMusic();
-    if (level > 0) setMusicLevel(level);
-    else stopMusic();
+    if (!level) {
+      stopMusic();
+      return;
+    }
+    startMusic(track, level);
+    setMusicLevel(level);
   };
 
   return (
@@ -62,7 +65,7 @@ const SoundMenu = ({ anchor, onClose }) => {
             setPreview(level);
           }}
         />
-        <Level icon={<MusicNotes size={18} weight="bold" />} label="Music" value={music} onChange={changeMusic} />
+        {track && <Level icon={<MusicNotes size={18} weight="bold" />} label="Music" value={music} onChange={changeMusic} />}
       </Stack>
     </Popover>
   );
