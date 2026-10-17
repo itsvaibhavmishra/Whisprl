@@ -3,7 +3,6 @@ import {
   Box,
   CircularProgress,
   Dialog,
-  DialogTitle,
   Stack,
   Tab,
   Table,
@@ -16,9 +15,11 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
+import SearchPill from "@/components/SearchPill";
 import useIsLoading from "@/hooks/useIsLoading";
 import { ActInGame, GetLeaderboard } from "@/redux/slices/actions/gameActions";
 import { selectGameSession } from "@/redux/slices/gameSlice";
+import ClosableTitle from "@/sections/chat/game/ClosableTitle";
 import GameCard from "@/sections/chat/game/GameCard";
 import { GAMES, GAME_IDS } from "@/sections/chat/game/catalog";
 import getAvatar from "@/utils/avatars";
@@ -31,11 +32,18 @@ const reasonCannotStart = (conversation, session, meId) => {
   return null;
 };
 
+// one game a row on a phone, two on a tablet, four on a desktop
+const COLUMNS = { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" };
+
+const matches = (game, query) => `${game.name} ${game.summary}`.toLowerCase().includes(query.trim().toLowerCase());
+
 const GameList = ({ conversation, onClose }) => {
   const dispatch = useDispatch();
   const session = useSelector(selectGameSession);
   const meId = useSelector((state) => state.user.user._id);
+  const [query, setQuery] = useState("");
   const blocker = reasonCannotStart(conversation, session, meId);
+  const shown = GAME_IDS.filter((id) => matches(GAMES[id], query));
 
   const open = (game) => {
     dispatch(ActInGame({ conversationId: conversation._id, type: "open", game }));
@@ -44,10 +52,17 @@ const GameList = ({ conversation, onClose }) => {
 
   return (
     <Stack spacing={2} sx={{ px: 3, pt: 2, pb: 3 }}>
+      <SearchPill value={query} onChange={setQuery} label="Search games" sx={{ maxWidth: { sm: 360 } }} />
       {blocker && <Typography sx={{ fontSize: 13, color: "text.secondary" }}>{blocker}</Typography>}
-      {GAME_IDS.map((id) => (
-        <GameCard key={id} game={GAMES[id]} isDisabled={Boolean(blocker)} onClick={() => open(id)} />
-      ))}
+      {shown.length ? (
+        <Box sx={{ display: "grid", gridTemplateColumns: COLUMNS, gap: 2 }}>
+          {shown.map((id) => (
+            <GameCard key={id} game={GAMES[id]} isDisabled={Boolean(blocker)} onClick={() => open(id)} />
+          ))}
+        </Box>
+      ) : (
+        <Typography sx={{ py: 5, textAlign: "center", color: "text.secondary" }}>{`No game matches "${query.trim()}"`}</Typography>
+      )}
     </Stack>
   );
 };
@@ -110,7 +125,8 @@ const Leaderboard = ({ conversation }) => {
     return <Typography sx={{ px: 3, py: 4, textAlign: "center", color: "text.secondary" }}>No games finished here yet. Scores show up after the first one.</Typography>;
   }
   return (
-    <Stack spacing={2.5} sx={{ px: 1.5, pt: 1, pb: 2 }}>
+    // a score table reads at a table's width, not at the width four game cards need
+    <Stack spacing={2.5} sx={{ px: 1.5, pt: 1, pb: 2, width: "100%", maxWidth: 560, mx: "auto" }}>
       {played.map((id) => (
         <Box key={id}>
           <Typography sx={{ px: 1.5, pb: 0.5, fontSize: 14, fontWeight: 800 }}>{GAMES[id].name}</Typography>
@@ -125,8 +141,8 @@ const GamesDialog = ({ conversation, tab: initialTab = "games", onClose }) => {
   const [tab, setTab] = useState(initialTab);
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle sx={{ pb: 0 }}>Play a game</DialogTitle>
+    <Dialog open onClose={onClose} fullWidth maxWidth={false} PaperProps={{ sx: { width: { sm: 760, lg: 1180 }, maxWidth: "calc(100% - 32px)", mx: 2 } }}>
+      <ClosableTitle title="Play a game" onClose={onClose} sx={{ pb: 0 }} />
       <Tabs value={tab} onChange={(_, next) => setTab(next)} sx={{ px: 3 }}>
         <Tab value="games" label="Games" />
         <Tab value="leaderboard" label="Leaderboard" />

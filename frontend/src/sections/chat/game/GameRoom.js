@@ -1,7 +1,8 @@
 import { Suspense, useEffect, useState } from "react";
 import { Box, Button, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { m, useReducedMotion } from "framer-motion";
-import { ArrowsInSimple, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
+import { ArrowsInSimple, BookOpen, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -14,6 +15,7 @@ import GamesDialog from "@/sections/chat/game/GamesDialog";
 import GameTitle from "@/sections/chat/game/GameTitle";
 import PlayerBar from "@/sections/chat/game/PlayerBar";
 import ResultPanel from "@/sections/chat/game/ResultPanel";
+import RulesDialog from "@/sections/chat/game/RulesDialog";
 import SaveSeatDialog from "@/sections/chat/game/SaveSeatDialog";
 import SceneSparkle from "@/sections/chat/game/SceneSparkle";
 import Scenery from "@/sections/chat/game/Scenery";
@@ -31,8 +33,8 @@ const CONFIRMATIONS = {
   leave: { title: "Leave the game?", text: "A bot plays your seat for the rest of this game.", action: "Leave" },
 };
 
-// the bar sits over the artwork, so the buttons carry their own backing rather than relying on what is behind them
-const CONTROLS = { flexShrink: 0, px: 0.25, borderRadius: 99, bgcolor: "rgba(255, 255, 255, 0.5)", backdropFilter: "blur(8px)" };
+// the bar sits over the artwork, so the buttons carry their own backing, in the game's card so its ink reads on it
+const controlsOf = (theme) => ({ flexShrink: 0, px: 0.25, borderRadius: 99, bgcolor: alpha(theme.card, 0.6), backdropFilter: "blur(8px)" });
 
 const BarButton = ({ label, onClick, children }) => (
   <Tooltip title={label}>
@@ -65,6 +67,7 @@ const GameRoom = ({ conversation, session }) => {
   const [confirming, setConfirming] = useState(null);
   const [savingSeat, setSavingSeat] = useState(null);
   const [isShowingScores, setIsShowingScores] = useState(false);
+  const [isShowingRules, setIsShowingRules] = useState(false);
   const [soundAnchor, setSoundAnchor] = useState(null);
   const dismissedResult = useSelector((state) => state.game.dismissedResult);
   // kept between screens, so the scene does not change size as a game starts and ends
@@ -118,7 +121,7 @@ const GameRoom = ({ conversation, session }) => {
       }}
     >
       {isAnchored && sceneWidth && <Scenery art={game.art} width={sceneWidth} isNarrower={isSceneNarrower} />}
-      <SceneSparkle />
+      <SceneSparkle fireflies={game.art.fireflies} />
       <Stack
         direction="row"
         alignItems="center"
@@ -133,9 +136,19 @@ const GameRoom = ({ conversation, session }) => {
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0, display: "flex" }}>
-          {screen !== "start" && <GameTitle title={game.title} name={game.name} isStatic width={132} />}
+          {screen !== "start" &&
+            (game.Wordmark ? (
+              <Suspense fallback={null}>
+                <game.Wordmark isStatic width={150} />
+              </Suspense>
+            ) : (
+              <GameTitle title={game.title} name={game.name} isStatic width={132} />
+            ))}
         </Box>
-        <Stack direction="row" alignItems="center" sx={CONTROLS}>
+        <Stack direction="row" alignItems="center" sx={controlsOf(theme)}>
+          <BarButton label="Rules" onClick={() => setIsShowingRules(true)}>
+            <BookOpen size={20} weight="bold" />
+          </BarButton>
           <BarButton label="Leaderboard" onClick={() => setIsShowingScores(true)}>
             <Trophy size={20} weight="bold" />
           </BarButton>
@@ -223,6 +236,7 @@ const GameRoom = ({ conversation, session }) => {
         <ConfirmDialog {...CONFIRMATIONS[confirming]} onConfirm={confirmed[confirming]} onClose={() => setConfirming(null)} />
       )}
       {soundAnchor && <SoundMenu anchor={soundAnchor} track={game.music} onClose={() => setSoundAnchor(null)} />}
+      {isShowingRules && <RulesDialog game={game} turnSeconds={session.turnSeconds} onClose={() => setIsShowingRules(false)} />}
       {isShowingScores && <GamesDialog conversation={conversation} tab="leaderboard" onClose={() => setIsShowingScores(false)} />}
       {savingSeat !== null && (
         <SaveSeatDialog conversation={conversation} session={session} index={savingSeat} meId={meId} onClose={() => setSavingSeat(null)} />

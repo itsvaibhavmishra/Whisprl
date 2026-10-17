@@ -99,19 +99,22 @@ One object, exported from `frontend/src/sections/chat/game/games/<game-id>/index
 
 | Key | What it is |
 |---|---|
-| `id`, `name`, `summary` | what the games dialog shows |
-| `art` | its image paths, `beyond` for what the scene runs into past its edge, or `anchor: "top"` and the scene's `ratio` when pieces are placed in the scene's coordinates |
+| `id`, `name`, `summary` | what the games dialog shows; optionally `cardTitleTop`, where the title sits on its card when centring it would cover something in the art |
+| `rules` | the game's rules as short `{ heading, text }` sections, shown from the Rules button in its bar; the canvas adds the turn timer itself |
+| `art` | its image paths, `beyond` for what the scene runs into past its edge, or `anchor: "top"` and the scene's `ratio` when pieces are placed in the scene's coordinates, and optionally `fireflies`, more of them for a scene that wants them, each with its own `glow` |
 | `preload` | every file the start screen waits for before it animates in |
-| `theme` | `surface`, `card`, `ink`, `accent`, `marks` for each seat's colour, and `shade`, the colour the start screen's wash is mixed from |
+| `theme` | `surface`, `card`, `ink`, `accent`, `marks` for each seat's colour, and `shade`, the colour the start screen's wash is mixed from. A game may be dark: `ink` is read on `card`, never on a fixed light colour |
 | `title` | its wordmark as words placed by fraction, so each can drop in on its own |
 | `width` | the panel's smallest, preferred and largest width beside the chat |
 | `moveSound`, `music` | the sound a move makes, or a function of the states before and after it, and the track it plays; see Sound |
 | `moveCountOf(state)` | how many moves are on the board, which is how a move is heard |
 | `options` | optional: each setting's `key`, label, choices, `unavailable(value, players)` and a `Preview` component; the defaults come from the server |
 | `colourOf(state, seat)` | optional: a seat's colour when the game deals them, rather than `marks[seat]` |
+| `isOut(state, seat)` | optional: whether a seat has been knocked out of a game still running, which greys its card and marks it Out |
 | `Mark` | optional: what stands for a seat, drawn the same everywhere it appears |
 | `Board` | lazy: renders a view and sends moves |
 | `Masthead`, `mastheadRatio` | optional and lazy: a start screen drawn into the scene, and its stage's shape |
+| `Wordmark` | optional and lazy: the title the game's bar shows during play, when the game draws its own rather than using `title` |
 
 A game has no light or dark mode. It looks how it was drawn, and the chrome laid over it uses one
 fixed style so it stays readable on any art.
@@ -188,6 +191,12 @@ Two things that are easy to get wrong:
   so whoever looked away still sees what happened. Back steps away from that one result, and the
   store remembers it by when the game ended, so closing and reopening the panel does not bring it
   back.
+
+**A game that deals colours deals them spread out.** `colours.js` on the server starts at a random
+place in a six-colour palette and steps evenly round it, so two players always get opposite
+colours and three get every other one. Which colours a table gets is still left to chance; only
+neighbours are ruled out. A palette is therefore ordered around the colour wheel, so that a step
+of three lands on its opposite.
 
 **Pieces are drawn, never typed.** A seat showing the letter X next to a carved X on the board
 looks like two different games. Draw the piece once and use that everywhere it appears, at

@@ -6,13 +6,13 @@ import {
   linesIn,
   mostPlayersOn,
   outcome,
-  PALETTE_SIZE,
   play,
   scoresOf,
   setup,
   sidesOfBox,
   viewFor,
 } from "#src/services/games/dots-and-boxes/rules.js";
+import { PALETTE_SIZE } from "#src/services/games/colours.js";
 
 const board = (size, players = 2) => setup(null, { size, players });
 

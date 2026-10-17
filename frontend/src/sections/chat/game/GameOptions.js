@@ -8,6 +8,8 @@ import usePending from "@/sections/chat/game/usePending";
 // a chosen card reads as picked in any game's colours, so the colour that marks it belongs to the canvas
 const PICKED = "#4A7BF7";
 const PAPER = "#FBF4E8";
+// the chosen card is always paper, so its text is always dark, whatever the game's own ink is
+const PAPER_INK = "#2E2440";
 
 const Heading = ({ children }) => (
   <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
@@ -35,11 +37,11 @@ const Choice = ({ option, choice, theme, isChosen, reason, onChoose }) => {
           pt: 1,
           pb: 0.8,
           borderRadius: 3.5,
-          color: isChosen ? theme.ink : ON_SCRIM,
+          color: isChosen ? PAPER_INK : ON_SCRIM,
           bgcolor: isChosen ? PAPER : alpha("#fff", 0.07),
           boxShadow: isChosen ? `0 0 0 2px ${PICKED}, 0 8px 20px rgba(0,0,0,0.28)` : `inset 0 0 0 1px ${alpha("#fff", 0.2)}`,
           transition: "background-color 160ms ease, box-shadow 160ms ease, color 160ms ease",
-          "&.Mui-disabled": { color: isChosen ? theme.ink : alpha("#fff", 0.55) },
+          "&.Mui-disabled": { color: isChosen ? PAPER_INK : alpha("#fff", 0.55) },
           "&:hover:not(.Mui-disabled)": { bgcolor: isChosen ? PAPER : alpha("#fff", 0.13) },
         }}
       >
@@ -55,7 +57,7 @@ const Choice = ({ option, choice, theme, isChosen, reason, onChoose }) => {
         )}
         {option.Preview && <option.Preview value={choice.value} colour={colour} />}
         <Typography sx={{ fontSize: 14, fontWeight: 700, lineHeight: 1.1 }}>{choice.label}</Typography>
-        <Typography sx={{ fontSize: 10.5, fontWeight: 600, lineHeight: 1, color: isChosen ? alpha(theme.ink, 0.62) : "inherit", opacity: isChosen ? 1 : 0.75 }}>
+        <Typography sx={{ fontSize: 10.5, fontWeight: 600, lineHeight: 1, color: isChosen ? alpha(PAPER_INK, 0.62) : "inherit", opacity: isChosen ? 1 : 0.75 }}>
           {choice.note}
         </Typography>
       </ButtonBase>

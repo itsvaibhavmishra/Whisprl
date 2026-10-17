@@ -1,8 +1,8 @@
 import { Fragment } from "react";
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Robot } from "phosphor-react";
 
+import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import TurnRing from "@/sections/chat/game/TurnRing";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
@@ -13,13 +13,13 @@ const HURRY_AT = 5;
 const HURRY = "#E5484D";
 
 const nameOf = (seat, conversation, meId) => {
-  if (seat.bot) return "Whisprl Bot";
+  if (seat.bot) return BOT_NAME;
   if (seat.user === meId) return "You";
   return seat.user ? firstNameIn(conversation, seat.user, meId) : "Empty";
 };
 
 const faceOf = (seat, conversation) => {
-  if (seat.bot || seat.away) return <Robot size={FACE * 0.55} weight="duotone" />;
+  if (seat.bot || seat.away) return <BotFace size={FACE * 0.55} />;
   const member = seat.user && memberOf(conversation, seat.user);
   return member ? getAvatar(member.avatar, member.firstName, FACE) : null;
 };
@@ -34,6 +34,8 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
   // a bot's turn is a short pause rather than the full clock, so its ring starts full and drains over that pause
   const isBotPlaying = Boolean(seat.bot || seat.away);
   const clockColour = !isBotPlaying && secondsLeft !== null && secondsLeft <= HURRY_AT ? HURRY : colour;
+  // a player knocked out keeps their place and loses their colour, because a card that vanished would look like they had left
+  const isOut = Boolean(game.isOut?.(state, index));
 
   return (
     <ButtonBase
@@ -50,7 +52,9 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
         justifyContent: "center",
         bgcolor: theme.card,
         boxShadow: isTurn ? `0 0 0 2px ${colour}, 0 4px 14px rgba(70,48,110,0.2)` : "0 4px 14px rgba(70,48,110,0.14)",
-        transition: "box-shadow 220ms ease",
+        filter: isOut ? "grayscale(1)" : "none",
+        opacity: isOut ? 0.5 : 1,
+        transition: "box-shadow 220ms ease, filter 300ms ease, opacity 300ms ease",
       }}
     >
       <Box sx={{ position: "relative", flexShrink: 0 }}>
@@ -82,6 +86,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
               <game.Mark seat={index} state={state} />
             </Box>
           )}
+          {isOut && <Typography sx={{ fontSize: 12, fontWeight: 800, color: alpha(theme.ink, 0.7) }}>Out</Typography>}
           {secondsLeft !== null && (
             <Typography sx={{ fontSize: 12, fontWeight: 800, color: clockColour, fontVariantNumeric: "tabular-nums" }}>{`${secondsLeft}s`}</Typography>
           )}
