@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { emptied, framesOf } from "@/sections/chat/game/games/chain-reaction/cascade";
 import { playGameSound } from "@/sections/chat/game/gameSounds";
 
-// the whole cascade fits in this however long it runs, because the next player's clock is already going
+// a short cascade plays out in this, but a long one is never faster than the shortest round, so it stays readable
 const CASCADE_MS = 1200;
 const PLACE_MS = 140;
 const LONGEST_ROUND_MS = 260;
+const SHORTEST_ROUND_MS = 120;
 
 // what the board shows while a move plays out: the board itself, and the orbs in flight this round
 const useCascade = (state, isStill) => {
@@ -23,7 +24,7 @@ const useCascade = (state, isStill) => {
     }
 
     const rounds = state.bursts;
-    const roundMs = Math.min(LONGEST_ROUND_MS, (CASCADE_MS - PLACE_MS) / Math.max(rounds.length, 1));
+    const roundMs = Math.max(SHORTEST_ROUND_MS, Math.min(LONGEST_ROUND_MS, (CASCADE_MS - PLACE_MS) / Math.max(rounds.length, 1)));
     const { seat } = state.lastMove;
     setShown({ board: frames[0], flight: null });
     const timers = rounds.map((burst, round) =>
