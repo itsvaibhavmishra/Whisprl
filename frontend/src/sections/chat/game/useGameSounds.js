@@ -17,7 +17,9 @@ const cuesBetween = (before, session, meId) => {
   if (before.status !== "playing") return session.status === "playing" ? ["start"] : [];
 
   const game = GAMES[session.game];
-  const moved = game.moveCountOf(session.state) > game.moveCountOf(before.state) ? [game.moveSound] : [];
+  // a game may sound a move by what it did, as a closed box does
+  const moveCue = typeof game.moveSound === "function" ? game.moveSound(before.state, session.state) : game.moveSound;
+  const moved = game.moveCountOf(session.state) > game.moveCountOf(before.state) ? [moveCue] : [];
   if (session.status !== "playing") return session.result ? [...moved, resultCueOf(session, meId)] : moved;
   const isMyTurnNow = session.turn !== before.turn && session.seats[session.turn]?.user === meId;
   return isMyTurnNow ? [...moved, "yourTurn"] : moved;

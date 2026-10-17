@@ -3,9 +3,7 @@ import { SETTINGS_STORAGE_KEY } from "@/config";
 export const EFFECTS_KEY = "game-effects-volume";
 export const MUSIC_KEY = "game-music-volume";
 
-// a pad held under a game is wearing at the level a move lands at, so the same number means a quieter chord
 const EFFECTS_LEVEL = 0.12;
-const MUSIC_LEVEL = 0.05;
 // a result plays once the move that decided it has landed, rather than over it
 const AFTER_LAST_MOVE = 0.26;
 
@@ -19,8 +17,11 @@ const audio = () => {
 };
 
 const readLevel = (key, fallback) => {
+  const stored = localStorage.getItem(key);
+  // a key nobody has set yet means the default, not silence: Number(JSON.parse(null)) is 0
+  if (stored === null) return fallback;
   try {
-    const saved = Number(JSON.parse(localStorage.getItem(key)));
+    const saved = Number(JSON.parse(stored));
     return Number.isFinite(saved) ? Math.min(1, Math.max(0, saved)) : fallback;
   } catch {
     return fallback;
@@ -92,6 +93,16 @@ const CUES = {
     scratch(2600, 0.07);
     setTimeout(() => scratch(2200, 0.06), 90);
   },
+  // lower and longer than chalk, one stroke of a pencil drawn along a ruler
+  pencil: () => {
+    scratch(1300, 0.16);
+    scratch(700, 0.12);
+  },
+  box: () => {
+    CUES.pencil();
+    note(784, 0.12, 0.16, { type: "triangle" });
+    note(1175, 0.2, 0.26, { type: "triangle" });
+  },
 };
 
 export const playGameSound = (name) => {
@@ -103,51 +114,64 @@ export const playGameSound = (name) => {
   }
 };
 
-// a slow chord that drifts, generated here rather than shipped, so a game still carries no audio file
-const PAD = [196, 294, 392, 587];
 let music = null;
+
+// a track sits under a conversation, so even a slider at the top stays background
+const MUSIC_CEILING = 0.5;
+// music that snaps on at full volume is a jolt, so it is always walked up and down
+const FADE_MS = 1400;
+const FADE_STEP_MS = 50;
+
+const levelled = (level) => Math.min(1, Math.max(0, level)) * MUSIC_CEILING;
+
+const fadeTo = (playing, target, done) => {
+  clearInterval(playing.fade);
+  const from = playing.element.volume;
+  const steps = Math.round(FADE_MS / FADE_STEP_MS);
+  let step = 0;
+  playing.fade = setInterval(() => {
+    step += 1;
+    playing.element.volume = Math.min(1, Math.max(0, from + ((target - from) * step) / steps));
+    if (step < steps) return;
+    clearInterval(playing.fade);
+    playing.fade = null;
+    done?.();
+  }, FADE_STEP_MS);
+};
 
 export const stopMusic = () => {
   if (!music) return;
-  const { ctx, gain, voices } = music;
+  const playing = music;
   music = null;
-  gain.gain.cancelScheduledValues(ctx.currentTime);
-  gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
-  gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
-  voices.forEach((voice) => voice.stop(ctx.currentTime + 0.7));
+  fadeTo(playing, 0, () => {
+    playing.element.pause();
+    // dropping the source lets the browser release the download straight away
+    playing.element.removeAttribute("src");
+    playing.element.load();
+  });
 };
 
 export const setMusicLevel = (level) => {
   if (!music) return;
-  music.gain.gain.linearRampToValueAtTime(MUSIC_LEVEL * level, music.ctx.currentTime + 0.3);
+  // a hand on the slider wants the change now, so it cancels whatever fade was running
+  clearInterval(music.fade);
+  music.fade = null;
+  music.element.volume = levelled(level);
 };
 
-export const startMusic = () => {
-  if (music || !musicVolume()) return;
+// a level just chosen on the slider is passed in, because the slider's own write to storage may not have landed yet
+export const startMusic = (source, chosen) => {
+  const level = isAppSoundOn() ? chosen ?? musicVolume() : 0;
+  if (music || !level || !source) return;
   try {
-    const ctx = audio();
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(MUSIC_LEVEL * musicVolume(), ctx.currentTime + 2.5);
-    gain.connect(ctx.destination);
-
-    const voices = PAD.map((frequency, index) => {
-      const oscillator = ctx.createOscillator();
-      const sway = ctx.createOscillator();
-      const depth = ctx.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
-      // a slow wobble per voice, so the chord breathes instead of sitting still
-      sway.frequency.setValueAtTime(0.05 + index * 0.017, ctx.currentTime);
-      depth.gain.setValueAtTime(1.4, ctx.currentTime);
-      sway.connect(depth).connect(oscillator.frequency);
-      oscillator.connect(gain);
-      oscillator.start();
-      sway.start();
-      return oscillator;
-    });
-    music = { ctx, gain, voices };
+    const element = new Audio(source);
+    element.loop = true;
+    element.volume = 0;
+    // a browser refuses this until the person has tapped something, which is not worth reporting
+    element.play().catch(() => {});
+    music = { element, fade: null };
+    fadeTo(music, levelled(level));
   } catch {
-    // no Web Audio means no music, which is not worth telling anyone about
+    // no audio element means no music, which nobody needs telling about
   }
 };

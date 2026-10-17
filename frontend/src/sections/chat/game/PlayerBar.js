@@ -3,13 +3,17 @@ import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Robot } from "phosphor-react";
 
+import TurnRing from "@/sections/chat/game/TurnRing";
+import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
 import { firstNameIn, memberOf } from "@/utils/groups";
 
 const FACE = 34;
+const HURRY_AT = 5;
+const HURRY = "#E5484D";
 
 const nameOf = (seat, conversation, meId) => {
-  if (seat.bot) return "Bot";
+  if (seat.bot) return "Whisprl Bot";
   if (seat.user === meId) return "You";
   return seat.user ? firstNameIn(conversation, seat.user, meId) : "Empty";
 };
@@ -20,9 +24,16 @@ const faceOf = (seat, conversation) => {
   return member ? getAvatar(member.avatar, member.firstName, FACE) : null;
 };
 
-const PlayerCard = ({ seat, index, conversation, game, meId, isTurn, onLeave }) => {
+const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turnEndsAt, turnSeconds, onLeave }) => {
   const { theme } = game;
   const isMine = seat.user === meId && !seat.bot;
+  // a game deals its own colours, so the canvas asks rather than assuming a seat's place in a list
+  const colour = game.colourOf?.(state, index) ?? theme.marks[index];
+  const clock = isTurn ? turnEndsAt : null;
+  const secondsLeft = useSecondsLeft(clock);
+  // a bot's turn is a short pause rather than the full clock, so its ring starts full and drains over that pause
+  const isBotPlaying = Boolean(seat.bot || seat.away);
+  const clockColour = !isBotPlaying && secondsLeft !== null && secondsLeft <= HURRY_AT ? HURRY : colour;
 
   return (
     <ButtonBase
@@ -38,20 +49,43 @@ const PlayerCard = ({ seat, index, conversation, game, meId, isTurn, onLeave }) 
         borderRadius: 3.5,
         justifyContent: "center",
         bgcolor: theme.card,
-        boxShadow: isTurn ? `0 0 0 2px ${theme.marks[index]}, 0 4px 14px rgba(70,48,110,0.2)` : "0 4px 14px rgba(70,48,110,0.14)",
+        boxShadow: isTurn ? `0 0 0 2px ${colour}, 0 4px 14px rgba(70,48,110,0.2)` : "0 4px 14px rgba(70,48,110,0.14)",
         transition: "box-shadow 220ms ease",
       }}
     >
-      <Box sx={{ width: FACE, height: FACE, borderRadius: "50%", flexShrink: 0, display: "grid", placeItems: "center", overflow: "hidden", color: theme.ink, bgcolor: alpha(theme.ink, 0.1) }}>
-        {faceOf(seat, conversation)}
+      <Box sx={{ position: "relative", flexShrink: 0 }}>
+        <Box
+          sx={{
+            width: FACE,
+            height: FACE,
+            borderRadius: "50%",
+            display: "grid",
+            placeItems: "center",
+            overflow: "hidden",
+            color: theme.ink,
+            bgcolor: alpha(theme.ink, 0.1),
+            boxShadow: clock ? "none" : `0 0 0 2.5px ${colour}`,
+          }}
+        >
+          {faceOf(seat, conversation)}
+        </Box>
+        {clock && <TurnRing key={clock} endsAt={clock} seconds={isBotPlaying ? null : turnSeconds} colour={clockColour} />}
       </Box>
       <Stack sx={{ minWidth: 0, alignItems: "flex-start" }}>
         <Typography noWrap sx={{ maxWidth: "100%", fontSize: 13, fontWeight: 800, color: theme.ink }}>
           {nameOf(seat, conversation, meId)}
         </Typography>
-        <Box sx={{ width: 21, height: 21 }}>
-          <game.Mark seat={index} />
-        </Box>
+        {/* the same height whoever's turn it is, so the board below never shifts as turns pass */}
+        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minHeight: 21 }}>
+          {game.Mark && (
+            <Box sx={{ width: 21, height: 21 }}>
+              <game.Mark seat={index} state={state} />
+            </Box>
+          )}
+          {secondsLeft !== null && (
+            <Typography sx={{ fontSize: 12, fontWeight: 800, color: clockColour, fontVariantNumeric: "tabular-nums" }}>{`${secondsLeft}s`}</Typography>
+          )}
+        </Stack>
       </Stack>
     </ButtonBase>
   );
@@ -70,8 +104,11 @@ const PlayerBar = ({ conversation, session, game, meId, onLeave }) => (
           index={index}
           conversation={conversation}
           game={game}
+          state={session.state}
           meId={meId}
           isTurn={session.status === "playing" && session.turn === index}
+          turnEndsAt={session.turnEndsAt}
+          turnSeconds={session.turnSeconds}
           onLeave={session.status === "playing" ? onLeave : null}
         />
       </Fragment>

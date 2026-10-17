@@ -1,6 +1,5 @@
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { seatSwitchOffered } from "@/redux/slices/gameSlice";
-import { GAMES } from "@/sections/chat/game/catalog";
 import axios from "@/utils/axios";
 import { firstNameIn } from "@/utils/groups";
 import { notify } from "@/utils/notify";
@@ -56,11 +55,13 @@ export const SwitchSeat = createApiThunk("game/switchSeat", async ({ elsewhere, 
 });
 
 // an invite to the chat on screen shows on its seat, so only one to another chat needs a word
-export const ReceiveGameInvite = (invite) => (_, getState) => {
+export const ReceiveGameInvite = (invite) => async (_, getState) => {
   const { chat, game, user } = getState();
   const conversation = chat.conversations.find((listed) => listed._id === invite.conversationId);
   if (game.watching === invite.conversationId || !conversation) return;
   const from = firstNameIn(conversation, invite.from, user.user._id);
+  // asked for here rather than imported, so naming a game in a toast does not put every game in the first bundle
+  const { GAMES } = await import("@/sections/chat/game/catalog");
   notify({ severity: "info", message: `${from} saved you a seat at ${GAMES[invite.game]?.name ?? "a game"} in ${conversation.name}` });
 };
 

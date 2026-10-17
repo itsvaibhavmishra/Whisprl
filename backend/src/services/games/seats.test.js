@@ -15,6 +15,7 @@ import {
   playedTurn,
   playerIndexOf,
   resized,
+  withSeatCount,
   seatBot,
   setLocked,
   setReady,
@@ -96,6 +97,13 @@ test("a different game keeps everyone it has room for, in order", () => {
   const seats = resized(seatedAs(ARIA, BIANCA, ERIN), 2);
   assert.deepEqual(seats.map((seat) => seat.user), [ARIA, BIANCA]);
   assert.equal(resized(seatedAs(ARIA), 4).length, 4);
+});
+
+test("the same game with another seat count keeps everyone where they sit and refuses to unseat anyone", () => {
+  const seats = [{ user: ARIA }, { ready: false }, { bot: true }, { ready: false }];
+  assert.deepEqual(withSeatCount(seats, 3).map((seat) => seat.user ?? seat.bot ?? null), [ARIA, null, true]);
+  assert.equal(withSeatCount(seats, 6).length, 6);
+  assert.throws(() => withSeatCount(seats, 1));
 });
 
 test("two missed turns in a row hand the seat to the bot, and one played in between resets the count", () => {

@@ -17,6 +17,8 @@ const ticTacToe = {
     card: "rgba(255, 255, 255, 0.88)",
     ink: "#3B2E5A",
     accent: "#6B4FF7",
+    // a deep violet, so the start screen's wash darkens the lilac evening rather than muddying it
+    shade: "36, 20, 64",
     marks: ["#6B4FF7", "#F45762"],
   },
   // cut into words so each lands on its own, positioned as fractions of the whole
@@ -27,6 +29,8 @@ const ticTacToe = {
   // the room its panel takes beside the chat on a wide screen, which each person can resize between the bounds
   width: { min: 380, preferred: 560, max: 820 },
   moveSound: "chalk",
+  // Magic Puzzle In-Game 1 by MintoDog, CC0, from opengameart.org
+  music: art.music,
   moveCountOf: (state) => state?.board.filter((mark) => mark !== null).length ?? 0,
   Mark,
   Board: lazy(() => import("@/sections/chat/game/games/tic-tac-toe/Board")),

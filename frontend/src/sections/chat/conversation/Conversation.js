@@ -38,7 +38,11 @@ const ComposerNotice = ({ children, action }) => (
   </Box>
 );
 
-const PEEK_HEIGHT = 100;
+// a glimpse of the newest message, enough to show the chat is there while the game keeps the screen
+const PEEK_HEIGHT = 34;
+// the caret dips this far into the peek's faded top, so only the rest of it stands above the strip
+const CARET_TUCK = 12;
+const CARET_HEIGHT = 26;
 const SHEET_HEIGHT = "62vh";
 const SHEET_EASE = "340ms cubic-bezier(0.32, 0.72, 0, 1)";
 
@@ -50,7 +54,7 @@ const EDGE_PROPERTIES = {
 };
 
 const EDGE_OF = {
-  strip: { top: `calc(100% - ${PEEK_HEIGHT}px)`, fade: "45px", round: "0px" },
+  strip: { top: `calc(100% - ${PEEK_HEIGHT}px)`, fade: "24px", round: "0px" },
   sheet: { top: `calc(100% - ${SHEET_HEIGHT})`, fade: "0px", round: "20px" },
   full: { top: "0px", fade: "0px", round: "0px" },
 };
@@ -130,6 +134,8 @@ const Conversation = () => {
   const isGameHidden = useSelector((state) => state.game.collapsed);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [sheetDrag, setSheetDrag] = useState(0);
+  const composerRef = useRef(null);
+  const [composerHeight, setComposerHeight] = useState(0);
   useGameSounds(gameSession, meId);
 
   const conversationId = activeConversation._id;
@@ -145,6 +151,14 @@ const Conversation = () => {
   useEffect(() => {
     dispatch(GetMessages(conversationId));
   }, [dispatch, conversationId]);
+
+  useEffect(() => {
+    const composer = composerRef.current;
+    if (!composer) return undefined;
+    const observer = new ResizeObserver(([entry]) => setComposerHeight(Math.round(entry.contentRect.height)));
+    observer.observe(composer);
+    return () => observer.disconnect();
+  }, [files.length]);
 
   useEffect(() => {
     dispatch(WatchGame(conversationId));
@@ -234,7 +248,7 @@ const Conversation = () => {
           )}
           <ConversationMain />
         </Box>
-        <Box sx={{ position: "relative" }}>
+        <Box ref={composerRef} sx={{ position: "relative" }}>
           {isGameShown && (
             // outside the list, since the strip's fade would swallow it
             <ButtonBase
@@ -242,7 +256,7 @@ const Conversation = () => {
               onClick={() => setIsChatOpen(true)}
               sx={{
                 position: "absolute",
-                bottom: `calc(100% + ${PEEK_HEIGHT}px)`,
+                bottom: `calc(100% + ${PEEK_HEIGHT - CARET_TUCK}px)`,
                 left: "50%",
                 transform: "translateX(-50%)",
                 display: { xs: "flex", lg: "none" },
@@ -266,7 +280,17 @@ const Conversation = () => {
       {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
       {!isSearching && <PinnedBar />}
       <GlobalStyles styles={EDGE_PROPERTIES} />
-      <Box sx={{ position: "relative", flex: 1, minHeight: 0, display: "flex", flexDirection: { xs: "column", lg: "row-reverse" } }}>
+      <Box
+        sx={{
+          position: "relative",
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: { xs: "column", lg: "row-reverse" },
+          // how much of a phone's foot the chat covers, read by the game so its controls stay clear of the strip
+          "--chat-overlay": `${composerHeight + PEEK_HEIGHT + CARET_HEIGHT - CARET_TUCK}px`,
+        }}
+      >
         {/* over the chat rather than above it, so hiding the game moves nothing the reader is looking at */}
         <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 4, display: "flex", justifyContent: "center", pointerEvents: "none", "& > *": { pointerEvents: "auto" } }}>
           <AnimatePresence>{gameSession && isGameHidden && <GamePill key="pill" session={gameSession} meId={meId} />}</AnimatePresence>

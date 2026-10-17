@@ -2,7 +2,7 @@ import { isChosenBot, isTaken } from "@/sections/chat/game/seats";
 import { peerOf } from "@/utils/chats";
 import { firstNameIn } from "@/utils/groups";
 
-export const PRACTICE_NOTE = "Games against the bot don't count on the leaderboard";
+export const PRACTICE_NOTE = "Bot games don't count on the leaderboard";
 
 const twoPlayerLineOf = (session, conversation, meId) => {
   const peer = peerOf(conversation, meId);
@@ -20,7 +20,7 @@ const twoPlayerLineOf = (session, conversation, meId) => {
 export const lobbyLineOf = (session, conversation, meId) => {
   if (!conversation.isGroup) return twoPlayerLineOf(session, conversation, meId);
   const seated = session.seats.filter(isTaken);
-  if (seated.length < session.minPlayers) return "Waiting for players";
+  if (seated.length < session.seats.length) return "Waiting for players";
   return "Waiting for everyone to be ready";
 };
 

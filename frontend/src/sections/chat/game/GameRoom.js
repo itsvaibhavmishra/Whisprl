@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { ActInGame, AnswerInvite, CloseGame } from "@/redux/slices/actions/gameActions";
-import { gameCollapsed } from "@/redux/slices/gameSlice";
+import { gameCollapsed, resultDismissed } from "@/redux/slices/gameSlice";
 import { GAMES } from "@/sections/chat/game/catalog";
 import { musicVolume, startMusic, stopMusic } from "@/sections/chat/game/gameSounds";
 import GameButton from "@/sections/chat/game/GameButton";
@@ -16,10 +16,12 @@ import PlayerBar from "@/sections/chat/game/PlayerBar";
 import ResultPanel from "@/sections/chat/game/ResultPanel";
 import SaveSeatDialog from "@/sections/chat/game/SaveSeatDialog";
 import SceneSparkle from "@/sections/chat/game/SceneSparkle";
+import Scenery from "@/sections/chat/game/Scenery";
 import SoundMenu from "@/sections/chat/game/SoundMenu";
 import StartScreen from "@/sections/chat/game/StartScreen";
 import StatusPill from "@/sections/chat/game/StatusPill";
 import useArtReady from "@/sections/chat/game/useArtReady";
+import useSceneWidth from "@/sections/chat/game/useSceneWidth";
 import { turnLineOf } from "@/sections/chat/game/gameStatus";
 import { canManage } from "@/utils/groups";
 
@@ -42,10 +44,17 @@ const BarButton = ({ label, onClick, children }) => (
 
 const hasSavedSeat = (session, meId) => session.seats.some((seat) => seat.invited === meId);
 
-const screenOf = (session, isResultHidden) => {
+// a phone is narrower than the artwork, so it is fitted across rather than cropped at the sides
+const sceneOf = (art) => ({
+  backgroundImage: { xs: `url(${art.scene}), ${art.beyond}`, lg: `url(${art.scene})` },
+  backgroundSize: { xs: "100% auto, 100% 100%", lg: "cover" },
+  backgroundPosition: { xs: "center bottom, center top", lg: "center" },
+});
+
+const screenOf = (session, dismissedResult) => {
   if (session.status === "playing") return "playing";
   // the result holds until a new game starts, so whoever looked away still sees how it ended
-  return session.result && !isResultHidden ? "result" : "start";
+  return session.result && session.result.endedAt !== dismissedResult ? "result" : "start";
 };
 
 // the session comes from the panel rather than the store, so a game sliding away keeps showing its last view
@@ -57,24 +66,24 @@ const GameRoom = ({ conversation, session }) => {
   const [savingSeat, setSavingSeat] = useState(null);
   const [isShowingScores, setIsShowingScores] = useState(false);
   const [soundAnchor, setSoundAnchor] = useState(null);
-  const [isResultHidden, setIsResultHidden] = useState(false);
+  const dismissedResult = useSelector((state) => state.game.dismissedResult);
+  // kept between screens, so the scene does not change size as a game starts and ends
+  const [controlsHeight, setControlsHeight] = useState(0);
 
   const game = GAMES[session.game];
   const { theme } = game;
   const isArtReady = useArtReady(game.preload);
+  const isAnchored = game.art.anchor === "top";
+  const [roomRef, sceneWidth, isSceneNarrower] = useSceneWidth(game.art, game.mastheadRatio, controlsHeight);
 
   // music belongs to the open game, so it starts with the panel and stops when it closes
   useEffect(() => {
-    if (musicVolume()) startMusic();
+    if (musicVolume()) startMusic(game.music);
     return stopMusic;
-  }, []);
+  }, [game.music]);
   const conversationId = conversation._id;
-  const screen = screenOf(session, isResultHidden);
+  const screen = screenOf(session, dismissedResult);
   const isPlaying = screen === "playing";
-
-  useEffect(() => {
-    if (isPlaying) setIsResultHidden(false);
-  }, [isPlaying]);
 
   const isManager = conversation.isGroup && canManage(conversation, meId);
   const isSeatSaved = hasSavedSeat(session, meId);
@@ -90,25 +99,39 @@ const GameRoom = ({ conversation, session }) => {
 
   return (
     <Stack
+      ref={roomRef}
       sx={{
         flex: 1,
         minHeight: 0,
         minWidth: 0,
         position: "relative",
+        // the scenery sits behind everything here and above nothing outside
+        isolation: "isolate",
         overflow: "hidden",
         // the artwork runs full screen on a phone and the chat floats over its foot, so only the content is inset
-        pb: { xs: "200px", lg: 0 },
+        pb: { xs: "var(--chat-overlay, 200px)", lg: 0 },
         color: theme.ink,
         bgcolor: theme.surface,
-        // a phone is narrower than the artwork, so it is fitted across rather than cropped at the sides
-        backgroundImage: { xs: `url(${game.art.scene}), ${game.art.sky}`, lg: `url(${game.art.scene})` },
-        backgroundSize: { xs: "100% auto, 100% 100%", lg: "cover" },
-        backgroundPosition: { xs: "center bottom, center top", lg: "center" },
+        ...(!isAnchored && sceneOf(game.art)),
         backgroundRepeat: "no-repeat",
+        "--scene-width": sceneWidth ? `${sceneWidth}px` : "100%",
       }}
     >
+      {isAnchored && sceneWidth && <Scenery art={game.art} width={sceneWidth} isNarrower={isSceneNarrower} />}
       <SceneSparkle />
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ pl: 2, pr: 1, py: 1, flexShrink: 0 }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1}
+        sx={{
+          pl: 2,
+          pr: 1,
+          py: 1,
+          flexShrink: 0,
+          // the start screen has no title in this row, so the bar floats over the art instead of taking a row of its own
+          ...(screen === "start" && { position: "absolute", top: 0, left: 0, right: 0, zIndex: 2 }),
+        }}
+      >
         <Box sx={{ flex: 1, minWidth: 0, display: "flex" }}>
           {screen !== "start" && <GameTitle title={game.title} name={game.name} isStatic width={132} />}
         </Box>
@@ -145,6 +168,7 @@ const GameRoom = ({ conversation, session }) => {
           isArtReady={isArtReady}
           act={act}
           onSaveSeat={setSavingSeat}
+          onControlsHeight={setControlsHeight}
         />
       ) : (
         <>
@@ -164,7 +188,12 @@ const GameRoom = ({ conversation, session }) => {
             sx={{ flex: 1, minHeight: 0, display: "flex" }}
           >
             <Suspense fallback={null}>
-              <game.Board state={session.state} onMove={(move) => act({ type: "move", move })} />
+              <game.Board
+                state={session.state}
+                seats={session.seats}
+                conversation={conversation}
+                onMove={(move) => act({ type: "move", move })}
+              />
             </Suspense>
           </Box>
           {isPlaying && mySeat?.away && (
@@ -173,7 +202,7 @@ const GameRoom = ({ conversation, session }) => {
             </Stack>
           )}
           {screen === "result" && (
-            <ResultPanel conversation={conversation} session={session} game={game} meId={meId} act={act} onBack={() => setIsResultHidden(true)} />
+            <ResultPanel conversation={conversation} session={session} game={game} meId={meId} act={act} onBack={() => dispatch(resultDismissed(session.result.endedAt))} />
           )}
         </>
       )}
@@ -193,7 +222,7 @@ const GameRoom = ({ conversation, session }) => {
       {confirming && (
         <ConfirmDialog {...CONFIRMATIONS[confirming]} onConfirm={confirmed[confirming]} onClose={() => setConfirming(null)} />
       )}
-      {soundAnchor && <SoundMenu anchor={soundAnchor} onClose={() => setSoundAnchor(null)} />}
+      {soundAnchor && <SoundMenu anchor={soundAnchor} track={game.music} onClose={() => setSoundAnchor(null)} />}
       {isShowingScores && <GamesDialog conversation={conversation} tab="leaderboard" onClose={() => setIsShowingScores(false)} />}
       {savingSeat !== null && (
         <SaveSeatDialog conversation={conversation} session={session} index={savingSeat} meId={meId} onClose={() => setSavingSeat(null)} />

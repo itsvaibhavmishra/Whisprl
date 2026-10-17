@@ -16,6 +16,7 @@ import {
   invite,
   invitedIndexOf,
   isBotPlaying,
+  isChosenBot,
   isEveryoneReady,
   lift,
   missTurn,
@@ -30,6 +31,7 @@ import {
   stand,
   unreadyAll,
   unseatBot,
+  withSeatCount,
 } from "#src/services/games/seats.js";
 
 const COUNTDOWN_MS = 5 * 1000;
@@ -38,6 +40,12 @@ const LIFT_COOLDOWN_MS = 30 * 1000;
 const BOT_PAUSE_MS = 900;
 
 const audienceOf = (conversationId) => `game:${conversationId}`;
+
+// a game is set up on its settings plus how many are playing, which is the seat count rather than a setting of its own
+const tableOf = (session) => ({ ...session.options, players: session.seats.length, seating: seatingOf(session.seats) });
+
+// who is sitting where, so a game can tell the table changed without being told who anyone is
+const seatingOf = (seats) => seats.map((seat) => (seat.user ? String(seat.user) : seat.bot ? "bot" : "")).join("|");
 
 // -------------------------- Game rooms --------------------------
 // who is watching cannot outlive a restart, so game rooms live in memory while the session itself is saved
@@ -111,12 +119,15 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
   revision: gameRoom.revision,
   session: session && {
     game: session.game,
-    minPlayers: gameOf(session.game).minPlayers,
     status: session.status,
     startsAt: session.startsAt ?? null,
     turn: session.status === "playing" ? gameOf(session.game).turnOf(session.state) : null,
     turnEndsAt: session.status === "playing" ? session.turnEndsAt : null,
+    turnSeconds: gameOf(session.game).turnSeconds,
     seats: session.seats.map(seatView),
+    // a group's manager can set how many play, within what the game allows
+    players: { min: gameOf(session.game).minPlayers, max: gameOf(session.game).maxPlayers },
+    options: session.options ?? null,
     cooldownUntil: cooldownOf(gameRoom, viewerId),
     state: stateViewFor(session, viewerId),
     result: session.result ?? null,
@@ -136,7 +147,8 @@ const loadSession = (conversationId) => GameSessionModel.findOne({ conversation:
 
 const settled = (session) => {
   if (session.status === "playing") return session;
-  if (!isEveryoneReady(session.seats, gameOf(session.game).minPlayers)) return { ...session, status: "lobby", startsAt: undefined };
+  // every seat taken and ready, so a table set for four waits for four
+  if (!isEveryoneReady(session.seats, session.seats.length)) return { ...session, status: "lobby", startsAt: undefined };
   if (session.status === "countdown") return session;
   return { ...session, status: "countdown", startsAt: new Date(Date.now() + COUNTDOWN_MS) };
 };
@@ -157,7 +169,7 @@ const startGame = (session) =>
     startsAt: undefined,
     result: undefined,
     seats: unreadyAll(session.seats),
-    state: gameOf(session.game).setup(session.state),
+    state: gameOf(session.game).setup(session.state, tableOf(session)),
   });
 
 // a finished game goes back to its lobby with the final board and who won still showing
@@ -170,13 +182,15 @@ const played = (session, index, move) => {
     const { user, bot } = session.seats[winningSeat];
     return { user: user ? String(user) : null, bot: Boolean(bot) };
   });
-  return { ...session, status: "lobby", state, turnEndsAt: undefined, result: { winners }, seats: backToLobby(session.seats) };
+  return { ...session, status: "lobby", state, turnEndsAt: undefined, result: { winners, endedAt: new Date() }, seats: backToLobby(session.seats) };
 };
 
 const playedForAbsent = (session) => {
   const game = gameOf(session.game);
   const index = game.turnOf(session.state);
-  return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index));
+  // a bot someone chose to face tries harder than one covering for a player who walked away
+  const level = isChosenBot(session.seats[index]) ? "opponent" : "standIn";
+  return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
 };
 
 const deadlineOf = (session) => {
@@ -251,14 +265,16 @@ const assertNotSeatedElsewhere = async (conversation, userId) => {
 const open = async ({ conversation, session, userId, details }) => {
   const game = gameOf(details.game);
   assertRunsGames(conversation, userId);
+  const options = game.options?.defaults;
+  // a table opens with the fewest seats its game needs, and a group's manager adds more
   if (conversation.isGroup) {
     if (session) requireLobby(session);
-    return { conversation: conversation._id, game: game.id, status: "lobby", seats: resized(session?.seats ?? [], game.maxPlayers) };
+    return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: resized(session?.seats ?? [], game.minPlayers) };
   }
   if (session) throw createHttpError.BadRequest("There is already a game in this chat");
   await assertNotSeatedElsewhere(conversation, userId);
   // proposing in a chat between two people is taking a seat
-  return { conversation: conversation._id, game: game.id, status: "lobby", seats: sit(emptySeats(game.maxPlayers), 0, userId) };
+  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: sit(emptySeats(game.minPlayers), 0, userId) };
 };
 
 const close = ({ conversation, session, userId }) => {
@@ -305,17 +321,39 @@ const returnToSeat = ({ session, userId }) => {
 
 const markReady = ({ session, userId, details }) => ({ ...requireLobby(session), seats: setReady(session.seats, userId, details.ready) });
 
-// whoever is at the table picks their opponent, and in a group whoever runs its seats can too
-const assertMayChangeBot = (conversation, session, userId) => {
+// whoever is at the table sets it up, and in a group whoever runs its seats can too
+const assertMayChangeTable = (conversation, session, userId) => {
   if (seatIndexOf(session.seats, userId) !== -1) return;
   if (!conversation.isGroup) throw createHttpError.BadRequest("Take a seat first");
   assertManager(conversation, userId);
 };
 
 const changeBot = ({ conversation, session, userId, details }) => {
-  assertMayChangeBot(conversation, requireLobby(session), userId);
+  assertMayChangeTable(conversation, requireLobby(session), userId);
   const seats = details.seated ? seatBot(session.seats, details.index) : unseatBot(session.seats, details.index);
   return { ...session, seats: unreadyAll(seats) };
+};
+
+// a game's own settings, checked against how many are playing, because the two constrain each other
+const changeSettings = ({ conversation, session, userId, details }) => {
+  const game = gameOf(requireLobby(session).game);
+  if (!game.options) throw createHttpError.BadRequest("This game has no settings");
+  assertMayChangeTable(conversation, session, userId);
+  const options = { ...session.options, ...details.options };
+  game.options.assert({ ...options, players: session.seats.length });
+  // the table changed, so everyone agrees to it again
+  return { ...session, options, seats: unreadyAll(session.seats) };
+};
+
+const changeSeats = ({ conversation, session, userId, details }) => {
+  const game = gameOf(requireLobby(session).game);
+  assertGroupManager(conversation, userId);
+  const count = details.count;
+  if (!Number.isInteger(count) || count < game.minPlayers || count > game.maxPlayers) {
+    throw createHttpError.BadRequest(`This game seats between ${game.minPlayers} and ${game.maxPlayers} players`);
+  }
+  game.options?.assert({ ...session.options, players: count });
+  return { ...session, seats: unreadyAll(withSeatCount(session.seats, count)) };
 };
 
 const liftOut = ({ conversation, session, gameRoom, userId, details }) => {
@@ -366,6 +404,8 @@ const ACTIONS = {
   lift: liftOut,
   lock: lockSeat,
   bot: changeBot,
+  settings: changeSettings,
+  seats: changeSeats,
   invite: inviteToSeat,
   answer: answerInvite,
 };

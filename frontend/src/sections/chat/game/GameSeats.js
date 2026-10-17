@@ -12,7 +12,7 @@ const GameSeats = ({ conversation, session, game, meId, isManager, act, onTake, 
     };
 
   return (
-    <Stack direction="row" justifyContent="center" spacing={3} sx={{ flexShrink: 0 }}>
+    <Stack direction="row" justifyContent="center" flexWrap="wrap" useFlexGap columnGap={3} rowGap={1.5} sx={{ flexShrink: 0 }}>
       {session.seats.map((seat, index) => (
         <Seat
           key={index}
@@ -20,8 +20,8 @@ const GameSeats = ({ conversation, session, game, meId, isManager, act, onTake, 
           conversation={conversation}
           meId={meId}
           theme={game.theme}
-          size={62}
-          mark={<game.Mark seat={index} />}
+          size={50}
+          mark={game.Mark ? <game.Mark seat={index} state={session.state} /> : null}
           onTake={onTake && mayTake(seat, meId) ? () => onTake(index) : null}
           onLeave={onLeave}
           manage={managerOf(index)}
