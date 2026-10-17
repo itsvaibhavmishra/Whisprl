@@ -22,7 +22,9 @@ import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
 import { FriendsChanged, GetRequests, RequestsChanged } from "@/redux/slices/actions/contactActions";
+import { ReceiveGameInvite, ReceiveGameNotice, WatchGame } from "@/redux/slices/actions/gameActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
+import { gameStateReceived } from "@/redux/slices/gameSlice";
 import { ReceiveStatus, ReceiveStatusReaction } from "@/redux/slices/actions/statusActions";
 import { notify } from "@/utils/notify";
 import { dropAccessToken } from "@/utils/session";
@@ -54,6 +56,9 @@ const serverEvents = () => ({
   status_reacted: ReceiveStatusReaction,
   friend_requests_changed: RequestsChanged,
   friends_changed: FriendsChanged,
+  game_state: gameStateReceived,
+  game_invited: ReceiveGameInvite,
+  game_notice: ReceiveGameNotice,
 });
 
 const listen = (dispatch, getState) => {
@@ -78,6 +83,9 @@ const listen = (dispatch, getState) => {
       dispatch(CatchUp());
       dispatch(GetFriends());
     }
+    // a watch sent before the first connection can time out unsent, and the server forgets a socket that drops
+    const { watching } = getState().game;
+    if (watching) dispatch(WatchGame(watching));
     hasConnected = true;
     dispatch(FlushOutbox());
     dispatch(GetRequests());

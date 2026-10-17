@@ -1,0 +1,26 @@
+{
+  "wordmark": {
+    "width": 1937,
+    "height": 326
+  },
+  "words": {
+    "tic": {
+      "left": 0.0,
+      "top": 0.0,
+      "width": 0.27517,
+      "height": 1.0
+    },
+    "tac": {
+      "left": 0.32215,
+      "top": 0.0184,
+      "width": 0.30769,
+      "height": 0.9816
+    },
+    "toe": {
+      "left": 0.67166,
+      "top": 0.00307,
+      "width": 0.32834,
+      "height": 0.99693
+    }
+  }
+}

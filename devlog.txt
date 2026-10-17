@@ -22,4 +22,3 @@
   - Developers:
 
   - Internal:
-    - The README is written for people who use Whisprl, with screenshots of the app in docs/screenshots

@@ -18,6 +18,10 @@ scripts/check.sh                             # the gate
 Run the gate before every commit and **gate on its exit code**, not on a read of its output. A
 pipe into `tail` or `grep` reports the exit code of the pipe, so a failed build looks green.
 
+Backend tests use Node's own runner, so they need no extra dependency: `cd backend && npm test`
+runs every `*.test.js`. Keep them to pure functions, like the seating rules in
+`src/services/games/seats.test.js`, since the gate has no database.
+
 ## Staff roles
 
 `OWNER_EMAIL` in `backend/.env` names the one account that owns Whisprl. It is read on every
@@ -265,9 +269,12 @@ Whisprl/
 │                            theme, contexts, hooks, utils
 ├── docs/
 │   ├── development.md
+│   ├── game-art.md          a game's artwork: asking, cutting out, placing against the design
+│   ├── games.md             adding a game: rules, contracts, sound, the checks
+│   ├── screenshots/
 │   ├── ideas/               local only, excluded
 │   └── decisions/           local only, excluded
-├── scripts/                 check, release, skip-release, rulesets, changelog
+├── scripts/                 check, release, skip-release, rulesets, changelog, artwork
 ├── .github/                 workflows, rulesets, PR template
 ├── CHANGELOG.md
 ├── devlog.txt

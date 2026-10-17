@@ -115,6 +115,8 @@ export const useChatScroll = ({
   useEffect(() => {
     const observer = new ResizeObserver(restorePosition);
     if (contentRef.current) observer.observe(contentRef.current);
+    // the container resizes too, when the chat opens over a game or a keyboard rises, and the place is kept the same way
+    if (scrollRef.current) observer.observe(scrollRef.current);
     return () => observer.disconnect();
   }, [restorePosition]);
 

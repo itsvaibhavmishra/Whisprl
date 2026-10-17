@@ -4,7 +4,7 @@ import { File, GameController, Image, Plus, User } from "phosphor-react";
 
 import { gradientOf } from "@/utils/gradients";
 
-const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact }) => {
+const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact, onGames }) => {
   const [anchor, setAnchor] = useState(null);
   const isOpen = Boolean(anchor);
 
@@ -12,7 +12,7 @@ const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact }) => {
     { label: "Photos and videos", icon: Image, background: gradientOf(["#7444E0", "#C2399E"]), onChoose: onMedia },
     { label: "Document", icon: File, background: gradientOf(["#2453D6", "#3E86E8"]), onChoose: onDocument },
     { label: "Contact", icon: User, background: gradientOf(["#0B7F75", "#1F8FA8"]), onChoose: onContact },
-    { label: "Games", icon: GameController, background: gradientOf(["#C2560F", "#D23A4E"]), hint: "Coming soon" },
+    { label: "Games", icon: GameController, background: gradientOf(["#C2560F", "#D23A4E"]), onChoose: onGames },
   ];
 
   const choose = (onChoose) => {
@@ -44,12 +44,12 @@ const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact }) => {
         transformOrigin={{ vertical: "bottom", horizontal: "left" }}
         slotProps={{ paper: { sx: { mt: -1, minWidth: 220 } } }}
       >
-        {choices.map(({ label, icon: Icon, background, onChoose, hint }) => (
+        {choices.map(({ label, icon: Icon, background, onChoose }) => (
           <MenuItem key={label} disabled={!onChoose} onClick={() => choose(onChoose)} sx={{ py: 0.75 }}>
             <Box sx={{ width: 34, height: 34, borderRadius: "50%", display: "grid", placeItems: "center", color: "#fff", background, flexShrink: 0 }}>
               <Icon size={18} weight="fill" />
             </Box>
-            <ListItemText primary={label} secondary={hint} primaryTypographyProps={{ fontWeight: 700, fontSize: 14 }} />
+            <ListItemText primary={label} primaryTypographyProps={{ fontWeight: 700, fontSize: 14 }} />
           </MenuItem>
         ))}
       </Menu>

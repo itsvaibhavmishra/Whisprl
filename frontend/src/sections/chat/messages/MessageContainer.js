@@ -271,6 +271,8 @@ const MessageContainer = ({
           sx={{
             position: "relative",
             minWidth: 0,
+            // the hover tools sit beside this box, so wherever there is hover a narrow column keeps room for them
+            "@media (hover: hover)": { maxWidth: "calc(100% - 96px)" },
             display: "flex",
             flexDirection: "column",
             alignItems: isMine ? "flex-end" : "flex-start",
@@ -295,7 +297,8 @@ const MessageContainer = ({
               alignItems: "stretch",
               width: isFileMsg ? "auto" : "max-content",
               minWidth: 48,
-              maxWidth: { xs: "17em", md: "28em" },
+              // capped by its column too, which is narrower than the screen beside a game
+              maxWidth: { xs: "min(17em, 100%)", md: "min(28em, 100%)" },
               minHeight: isQuoteOnly ? 0 : 38,
               color: textColor,
               ...surfaceOf(),
