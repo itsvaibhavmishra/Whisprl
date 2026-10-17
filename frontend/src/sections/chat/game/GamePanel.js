@@ -87,7 +87,7 @@ const ResizeHandle = ({ width, bounds, onResize }) => {
   );
 };
 
-const GamePanel = ({ conversation, session }) => {
+const GamePanel = ({ conversation, session, onPress }) => {
   const gameId = session.game;
   const theme = useTheme();
   const isWide = useMediaQuery(theme.breakpoints.up("lg"));
@@ -116,6 +116,7 @@ const GamePanel = ({ conversation, session }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -24 }}
         transition={isStill ? STILL : SLIDE}
+        onPointerDown={onPress}
         sx={{ flex: 1, minHeight: 0, display: "flex" }}
       >
         <GameRoom conversation={conversation} session={session} />
