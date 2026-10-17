@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from "react";
 // close enough to the panel's width that a blurred strip beside the scene would only look like a mistake
 const SNAP = 24;
 
-// as wide as the panel, narrowed only so the masthead leaves the controls their room, and never so narrow it ends above the bottom
+// as wide as the panel, narrowed only so a masthead leaves the controls their room, and never so narrow it ends above the bottom
 export const sceneWidthOf = ({ width, height, inset }, controls, art, mastheadRatio) => {
-  const fitted = Math.min(width, (height - inset - controls) * mastheadRatio);
+  const fitted = mastheadRatio ? Math.min(width, (height - inset - controls) * mastheadRatio) : width;
   const sceneWidth = Math.max(fitted, height * art.ratio);
   return width - sceneWidth < SNAP ? Math.max(width, sceneWidth) : sceneWidth;
 };

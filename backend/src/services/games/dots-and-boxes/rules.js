@@ -1,5 +1,7 @@
 import createHttpError from "http-errors";
 
+import { coloursFor } from "#src/services/games/colours.js";
+
 // boxes a side: a quick game, one with room for chains, and one with room for several players
 export const SIZES = [3, 4, 5];
 
@@ -47,24 +49,6 @@ export const assertOptions = ({ size, players }) => {
 };
 
 export const DEFAULTS = { size: STANDARD };
-
-// the client holds the actual colours; the board only decides which of them each seat gets
-export const PALETTE_SIZE = 6;
-
-const shuffledColours = (players) => {
-  const palette = Array.from({ length: PALETTE_SIZE }, (_, index) => index);
-  for (let at = palette.length - 1; at > 0; at -= 1) {
-    const swap = Math.floor(Math.random() * (at + 1));
-    [palette[at], palette[swap]] = [palette[swap], palette[at]];
-  }
-  return palette.slice(0, players);
-};
-
-// a colour belongs to a seat for as long as the same people are sitting in it
-const coloursFor = (previous, players, seating) => {
-  const kept = previous?.seating === seating && previous.colours?.length === players;
-  return kept ? previous.colours : shuffledColours(players);
-};
 
 export const setup = (previous, { size = STANDARD, players = 2, seating = null } = {}) => {
   assertOptions({ size, players });

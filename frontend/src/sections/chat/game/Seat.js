@@ -2,22 +2,23 @@ import { useState } from "react";
 import { Box, ButtonBase, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
-import { Check, DotsThree, LockSimple, Plus, Robot } from "phosphor-react";
+import { Check, DotsThree, LockSimple, Plus } from "phosphor-react";
 
+import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
 import getAvatar from "@/utils/avatars";
 import { isOnline } from "@/utils/chats";
 import { firstNameIn, memberOf } from "@/utils/groups";
 
 const faceOf = (seat, member, size, theme) => {
-  if (seat.bot || seat.away) return <Robot size={size * 0.5} weight="duotone" />;
+  if (seat.bot || seat.away) return <BotFace size={size * 0.5} />;
   if (member) return getAvatar(member.avatar, member.firstName, size);
   if (seat.locked) return <LockSimple size={size * 0.4} weight="bold" />;
   return <Plus size={size * 0.4} weight="bold" color={alpha("#fff", 0.85)} />;
 };
 
 const labelOf = (seat, conversation, meId) => {
-  if (seat.bot) return "Whisprl Bot";
+  if (seat.bot) return BOT_NAME;
   if (seat.away) return `Bot for ${firstNameIn(conversation, seat.user, meId)}`;
   if (seat.user) return firstNameIn(conversation, seat.user, meId);
   if (seat.invited) return seat.invited === meId ? "For you" : `For ${firstNameIn(conversation, seat.invited, meId)}`;

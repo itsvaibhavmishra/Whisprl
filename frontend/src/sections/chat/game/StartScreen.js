@@ -16,11 +16,11 @@ import usePending from "@/sections/chat/game/usePending";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 
 // a wash rather than a card: full width so it has no side edges, and faded at both ends so it has no top or bottom one
-const scrimOf = (shade) => ({
+const scrimOf = (shade, isUnderArt) => ({
   width: "100%",
   flexShrink: 0,
-  // the seats tuck just under the pad's foot, as in the design, rather than starting below the art
-  mt: -5,
+  // under a masthead the seats tuck just under the art's foot, as in the designs; under a title they start below it
+  mt: isUnderArt ? -5 : 0,
   pt: 3.6,
   background: `linear-gradient(180deg, rgba(${shade}, 0) 0%, rgba(${shade}, 0.58) 14%, rgba(${shade}, 0.74) 50%, rgba(${shade}, 0.62) 86%, rgba(${shade}, 0) 100%)`,
 });
@@ -29,6 +29,9 @@ const scrimOf = (shade) => ({
 const CONTROLS = { width: "min(76%, 400px)", mx: "auto", alignItems: "center" };
 
 const ACTIONS = { width: "min(70%, 290px)", alignItems: "stretch" };
+
+// the game's bar floats over the top of the start screen, so a title placed by the screen starts below it
+const BAR_ROOM = 64;
 
 const BotToggle = ({ label, onClick }) => (
   <Button
@@ -113,12 +116,15 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
           </Suspense>
         </Box>
       ) : (
-        // takes whatever height the controls leave, so the title sits centred above them
-        <Box sx={{ flex: "1 1 auto", minHeight: 120, display: "grid", placeItems: "center", px: 2, pt: 1 }}>
-          <GameTitle title={game.title} name={game.name} isReady={isArtReady} width="min(62%, 340px)" />
-        </Box>
+        <>
+          {/* the title and controls stay together in the open ground below the sky, a little higher on a wide panel */}
+          <Box sx={{ flex: { xs: "3 1 0", lg: "1 1 0" }, minHeight: BAR_ROOM }} />
+          <Box sx={{ display: "grid", placeItems: "center", px: 2, pb: 1, flexShrink: 0 }}>
+            <GameTitle title={game.title} name={game.name} isReady={isArtReady} width="min(72%, 380px)" />
+          </Box>
+        </>
       )}
-      <Box ref={controlsRef} sx={scrimOf(theme.shade)}>
+      <Box ref={controlsRef} sx={scrimOf(theme.shade, Boolean(game.Masthead))}>
         <Stack spacing={0.9} sx={CONTROLS}>
           <GameSeats
             conversation={conversation}
@@ -148,6 +154,7 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
           {bot && <PracticeNote />}
         </Stack>
       </Box>
+      {!game.Masthead && <Box sx={{ flex: { xs: "2 1 0", lg: "1 1 0" } }} />}
     </Stack>
   );
 };

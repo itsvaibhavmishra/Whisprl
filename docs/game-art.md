@@ -71,6 +71,22 @@ Then check it, because a key that looks right on the colour it will sit on can s
   background, so they cannot survive. Add them back in CSS, which is better anyway, because a
   shadow in CSS can move when the piece does.
 
+**Lettering that glows is keyed hard and its glow rebuilt.** A neon logo's glow is the letter
+colour blended into the green, so the ordinary key keeps part of it and the despill turns that part
+a murky teal ring round every letter. Key it twice over instead: as above, but also require the
+pixel to be bright, which keeps the letters and their light rim and drops the glow and the green
+showing through the letter holes. Then put the glow back from the letters themselves, blurred and
+saturated underneath, so each letter glows in its own colour:
+
+```sh
+magick logo.png -colorspace sRGB -alpha set \
+  -channel A -fx 'mx = max(u.r, u.b); lead = u.g / max(mx, 0.02); keyed = 1 - min(1, max(0, (lead - 1.02) / 0.12));
+                  bright = max(u.r, max(u.g, u.b)); keyed * min(1, max(0, (bright - 0.66) / 0.14))' +channel \
+  -channel G -fx 'min(u.g, max(u.r, u.b))' +channel letters.png
+magick letters.png \( +clone -channel RGBA -blur 0x18 -modulate 115,170 -channel A -evaluate multiply 1.4 +channel \) \
+  +swap -compose over -composite letters.png -compose over -composite -trim +repage logo.png
+```
+
 Trim each piece to its own bounds, then export as WebP and compress it as far as it goes without
 showing. Compare the same crop at 100% across a few qualities rather than trusting a number: on
 Dots and Boxes, quality 80 could not be told from 92 on hatched lettering or fur, and a flat

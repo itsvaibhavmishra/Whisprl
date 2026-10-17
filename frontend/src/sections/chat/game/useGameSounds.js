@@ -34,7 +34,7 @@ const useGameSounds = (session, meId) => {
   }, [secondsToStart]);
 
   useEffect(() => {
-    cuesBetween(previous.current, session, meId).forEach(playGameSound);
+    cuesBetween(previous.current, session, meId).forEach((cue) => playGameSound(cue));
     previous.current = session;
   }, [session, meId]);
 };

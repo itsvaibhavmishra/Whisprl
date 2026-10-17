@@ -103,12 +103,19 @@ const CUES = {
     note(784, 0.12, 0.16, { type: "triangle" });
     note(1175, 0.2, 0.26, { type: "triangle" });
   },
+  orb: () => note(740, 0, 0.09, { type: "triangle", level: 0.8 }),
+  // a semitone higher each round, so a long cascade climbs as it spreads
+  pop: (round = 0) => {
+    const pitch = 523 * 2 ** (Math.min(round, 18) / 12);
+    note(pitch, 0, 0.07, { type: "sine", level: 0.9 });
+    note(pitch * 2, 0.01, 0.05, { type: "triangle", level: 0.35 });
+  },
 };
 
-export const playGameSound = (name) => {
+export const playGameSound = (name, ...details) => {
   if (!effectsVolume() || !CUES[name]) return;
   try {
-    CUES[name]();
+    CUES[name](...details);
   } catch {
     // a browser without Web Audio simply plays the game in silence
   }

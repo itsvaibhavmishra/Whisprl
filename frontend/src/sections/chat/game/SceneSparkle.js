@@ -30,7 +30,10 @@ const FIREFLIES = [
   { left: 42, top: 55, every: 19, from: 9 },
 ];
 
-const SceneSparkle = () => {
+const WARM = "255, 214, 110";
+
+// every game gets the same few, and a game whose scene wants more of them brings its own
+const SceneSparkle = ({ fireflies = [] }) => {
   const isStill = useReducedMotion();
   if (isStill) return null;
 
@@ -52,7 +55,7 @@ const SceneSparkle = () => {
           }}
         />
       ))}
-      {FIREFLIES.map(({ left, top, every, from }) => (
+      {[...FIREFLIES, ...fireflies].map(({ left, top, every, from, glow = WARM }) => (
         <Box
           key={`firefly-${left}-${top}`}
           sx={{
@@ -62,8 +65,9 @@ const SceneSparkle = () => {
             width: 5,
             height: 5,
             borderRadius: "50%",
-            bgcolor: "#FFE9A3",
-            boxShadow: "0 0 10px 3px rgba(255, 214, 110, 0.85)",
+            // a core paler than its glow, which is what makes it read as a light rather than a dot
+            bgcolor: `color-mix(in srgb, rgb(${glow}) 55%, white)`,
+            boxShadow: `0 0 10px 3px rgba(${glow}, 0.85)`,
             animation: `${drift} ${every}s ease-in-out ${from}s infinite`,
           }}
         />
