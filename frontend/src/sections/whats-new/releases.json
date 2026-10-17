@@ -1,22 +1,27 @@
 {
-  "upcoming": [
-    {
-      "emoji": "🎮",
-      "title": "Games in your chats",
-      "text": "Play Tic-tac-toe, Dots and Boxes or Chain Reaction beside the conversation. Each chat keeps its own leaderboard."
-    },
-    {
-      "emoji": "🤖",
-      "title": "Play the bot",
-      "text": "No one around? Play the bot from a game's start screen. Games against it are practice and stay off the leaderboard."
-    },
-    {
-      "emoji": "👥",
-      "title": "Games in groups",
-      "text": "In a group, the owner and admins choose the game, the board and how many play, up to six."
-    }
-  ],
+  "upcoming": [],
   "releases": [
+    {
+      "version": "2.2.1",
+      "date": "2026-10-17",
+      "highlights": [
+        {
+          "emoji": "🎮",
+          "title": "Games in your chats",
+          "text": "Play Tic-tac-toe, Dots and Boxes or Chain Reaction beside the conversation. Each chat keeps its own leaderboard."
+        },
+        {
+          "emoji": "🤖",
+          "title": "Play the bot",
+          "text": "No one around? Play the bot from a game's start screen. Games against it are practice and stay off the leaderboard."
+        },
+        {
+          "emoji": "👥",
+          "title": "Games in groups",
+          "text": "In a group, the owner and admins choose the game, the board and how many play, up to six."
+        }
+      ]
+    },
     {
       "version": "2.2.0",
       "date": "2026-10-13",
