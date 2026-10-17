@@ -6,6 +6,28 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2026-10-17
+
+### New
+
+- Play Tic-tac-toe in any chat: take a seat, press Ready, and play beside the conversation. A bot covers a missed turn or a seat someone leaves, each chat keeps a leaderboard, and on a wide screen the game can be resized. In a group the owner and admins choose the game, and can lift people out of seats, lock them, or save one for someone
+- No one to play with? Play the bot instead from a game's start screen. Games against the bot are practice and stay off the leaderboard
+- Play Dots and Boxes in any chat: draw the lines between dots to close boxes, on a 3×3, 4×4 or 5×5 board. In a group the owner and admins choose the board and how many play, up to six
+- Each game has its own background music, which fades in, and a sound menu for its music and effects. Whose turn it is shows a clock counting down, so everyone can see how long is left
+- Play Chain Reaction in any chat: add orbs until a cell bursts and takes its neighbours, on a 5×7, 6×9 or 7×11 board, for two to six players. The last player with orbs on the board wins
+- Every game has its rules a tap away, from the book in its bar
+- The games list has a search, and lays its games out four across on a desktop, two on a tablet and one on a phone
+
+### Developers
+
+- Backend tests run with Node's built-in test runner, and the gate runs them
+- Adding a game is written up in docs/games.md: the order of work, what a game provides, where its files and artwork go, and how a board is measured
+- A game's artwork is written up in docs/game-art.md, and scripts/artwork.py places each piece where the design put it: landmarks read off a grid, a fit refined against the design's own pixels, an overlay to check it by, and the result as CSS. It also covers keying a glowing logo off a green screen
+
+### Internal
+
+- The README is written for people who use Whisprl, with screenshots of the app in docs/screenshots
+
 ## [2.2.0] - 2026-10-13
 
 ### New
@@ -297,6 +319,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.2.1]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.2.1
 [2.2.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.2.0
 [2.1.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.1.0
 [2.0.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.0.0
