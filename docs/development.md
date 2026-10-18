@@ -6,6 +6,8 @@
 - To run the app, not to run the gate: `backend/.env` and `frontend/.env`. Each
   package has a `.env copy` listing every key and marking which are required.
 - To release: `gh` (authenticated), `git` and `python3`.
+- For the Android app: Android Studio, for the SDK, an emulator on a Play Store image, and the
+  JDK 21 it bundles.
 
 ## Build and check
 
@@ -21,6 +23,59 @@ pipe into `tail` or `grep` reports the exit code of the pipe, so a failed build 
 Backend tests use Node's own runner, so they need no extra dependency: `cd backend && npm test`
 runs every `*.test.js`. Keep them to pure functions, like the seating rules in
 `src/services/games/seats.test.js`, since the gate has no database.
+
+## The Android app
+
+The app is the web build inside a Capacitor shell, in `frontend/android/`. Every screen is the
+same React code, except the welcome tour (`pages/auth/AppTour.js`) that replaces the landing
+page.
+
+```sh
+cd frontend && npm run build && npx cap sync android    # copy the web build into the Android project
+adb reverse tcp:8200 tcp:8200                           # the app reaches the API as localhost
+cd android && ./gradlew installDebug                    # build and install on the emulator or phone
+```
+
+Gradle needs JDK 21, and Android Studio's works:
+`export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`. The app's origin
+is `https://localhost`, so `APP_ORIGIN` in `backend/.env` allows it beside `FRONT_URL`. Use a
+Play Store emulator image: Block Store and the screen lock prompt come from Play services.
+
+**Keys.** Whenever the app unlocks messages it also keeps the private key in Block Store, through
+`KeyVaultPlugin.java`, and restores it from there when its own storage is empty. With the phone's
+Google Backup on, that copy outlives reinstalling the app, with or without a screen lock. With
+Backup off a reinstall loses it. Clearing the app's data removes it either way, so someone who does
+that signs in and unlocks with their recovery key. A copy leaves the phone for Google's backup only
+end-to-end encrypted, which needs a screen lock, and moving to a new phone relies on that backup.
+Logging out deletes it. The app's own storage is kept out of Android backup by
+`data_extraction_rules.xml`, so Block Store is the only way a key leaves the phone. Making a new
+recovery key asks for the fingerprint, face or screen lock first, and a phone with no screen lock
+goes straight through.
+
+**Recovery key.** The app's web view drops downloads without a word, so in the app the recovery
+key's Download becomes Save to password manager, through Android's Credential Manager. A phone
+with nowhere to save passwords says so, and Copy still works. Passkeys need WebAuthn, which the
+web view does not offer, so the app leaves the passkey step out of setup.
+
+**Notifications.** The app gets pushes through Firebase Cloud Messaging. It needs the Firebase
+project's `google-services.json` in `frontend/android/app/`, which is kept out of git, and the
+backend needs that project's service account JSON, on one line, as `FIREBASE_SERVICE_ACCOUNT`.
+Without the file the app offers no notifications, since asking Firebase for a token would crash
+it, and without the variable the server sends none. A phone's token is kept on its session, so
+logging out stops its pushes. A push names who wrote and never what, since the server cannot read
+messages, and muted chats get none.
+
+**Signing in with Google.** Google refuses its sign-in page inside a web view, so the app asks
+Android for the token instead, through Credential Manager in `GoogleSignInPlugin.java`. That
+returns an ID token rather than the access token the website gets, and `socialAuthService.js`
+tells them apart by shape and verifies the ID token's signature, issuer, expiry and audience with
+`google-auth-library`. Both carry the same audience, the web client id in
+`GOOGLE_AUTH_CLIENT_ID`, so one account works from either.
+
+The app offers Google and email sign-in only. GitHub and LinkedIn are for the website.
+
+`versionName` is read from `frontend/package.json`, so the app carries the web app's version.
+`versionCode` is a plain counter in `frontend/android/app/build.gradle`.
 
 ## Staff roles
 
@@ -263,6 +318,8 @@ Whisprl/
 │   └── src/                 routes, controllers, services, models, middlewares,
 │                            utils, templates/mail
 ├── frontend/                React 18 + MUI app
+│   ├── android/             the Android app's Capacitor shell and its native key vault
+│   ├── capacitor.config.json
 │   ├── config-overrides.js  react-app-rewired overrides, including the @ alias
 │   ├── public/              includes _redirects for SPA routing on Netlify
 │   └── src/                 pages, sections, components, layouts, redux, routes,

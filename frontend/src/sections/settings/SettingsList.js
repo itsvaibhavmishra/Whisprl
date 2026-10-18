@@ -95,7 +95,7 @@ const LogOutRow = () => {
 
 const SettingsList = ({ current, isWide }) => (
   <Stack component="nav" aria-label="Settings" sx={{ height: "100%", bgcolor: "chat.list" }}>
-    <Box sx={{ px: 2, py: 1.25 }}>
+    <Box sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
       <Typography component="h1" sx={{ m: 0, minHeight: 44, display: "flex", alignItems: "center" }}>
         <Wordmark name="Settings" fontSize={30} />
       </Typography>

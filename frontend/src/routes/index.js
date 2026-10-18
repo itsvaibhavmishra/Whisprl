@@ -8,6 +8,7 @@ import DashboardLayout from "@/layouts/dashboard";
 import StaffOnly from "@/layouts/admin/StaffOnly";
 import AuthLayout from "@/layouts/auth";
 import DocsLayout from "@/layouts/docs";
+import { isApp } from "@/utils/platform";
 
 const Loadable = (Component) => (props) => {
   return (
@@ -24,7 +25,7 @@ export default function Router() {
       element: <AuthLayout />,
       children: [
         { element: <Navigate to={DEFAULT_AUTH} replace />, index: true },
-        { path: "welcome", element: <WelcomePage /> },
+        { path: "welcome", element: isApp ? <AppTourPage /> : <WelcomePage /> },
         { path: "login", element: <LoginPage /> },
         { path: "register", element: <RegisterPage /> },
         { path: "verify", element: <VerifyPage /> },
@@ -90,6 +91,7 @@ const Settings = Loadable(lazy(() => import("@/pages/dashboard/Settings")));
 
 // auth pages
 const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));
+const AppTourPage = Loadable(lazy(() => import("@/pages/auth/AppTour")));
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/Login")));
 const RegisterPage = Loadable(lazy(() => import("@/pages/auth/Register")));
 const VerifyPage = Loadable(lazy(() => import("@/pages/auth/Verify")));

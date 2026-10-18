@@ -146,7 +146,7 @@ const ChatList = ({ onNewGroup }) => {
 
   return (
     <Stack component="nav" aria-label="Chats" sx={{ height: "100%", bgcolor: "chat.list" }}>
-      <Stack spacing={1.75} sx={{ px: 2, pt: 1.25, pb: 1.25 }}>
+      <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 44 }}>
           <Stack direction="row" alignItems="center" spacing={0.5}>
             {isShowingArchived && (

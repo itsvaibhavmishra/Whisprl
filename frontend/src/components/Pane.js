@@ -28,7 +28,7 @@ export const PaneSection = ({ label, count, children }) => (
 // a column narrow enough to read across, for panes that hold a list or a profile rather than a grid
 export const READING_WIDTH = 760;
 
-export const PANE_INSET = { px: { xs: 2, md: 4 }, pt: { xs: 1.5, md: 4 } };
+export const PANE_INSET = { px: { xs: 2, md: 4 }, pt: { xs: "calc(12px + env(safe-area-inset-top))", md: "calc(32px + env(safe-area-inset-top))" } };
 
 export const LIST_WIDTH = { md: 340, lg: 380 };
 

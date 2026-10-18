@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
-import { Check, Copy, DownloadSimple } from "phosphor-react";
+import { Check, Copy } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
 import { CreateAccountKey, PrepareEncryption, ReplaceRecoveryKey } from "@/redux/slices/actions/encryptionActions";
 import { ConfirmRecoveryKeySaved } from "@/redux/slices/actions/onboardingActions";
-import RecoveryKeyBox, { downloadRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
+import RecoveryKeyBox, { KEEP_RECOVERY_KEY, keepRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
 import UnlockDialog from "@/sections/encryption/UnlockDialog";
+import { deviceNoun, isApp } from "@/utils/platform";
 
 const WHERE_TO_KEEP_IT = [
   { place: "A password app", how: "as a secure note in iCloud Keychain, Google Password Manager, 1Password or Bitwarden" },
-  { place: "A file", how: "moved out of Downloads to somewhere backed up, like iCloud Drive or Google Drive" },
+  { place: "A file", how: "moved out of Downloads to somewhere backed up, like iCloud Drive or Google Drive", isWebOnly: true },
   { place: "On paper", how: "kept with your important papers, never in shared photos or notes" },
-];
+].filter((keeping) => !(isApp && keeping.isWebOnly));
 
 const KeepingPlaces = () => (
   <Box component="section" aria-labelledby="keeping-places-title">
@@ -35,21 +36,21 @@ const KeepingPlaces = () => (
 );
 
 const BEFORE_THE_KEY = {
-  setup: "Whisprl makes the key that locks your messages, and a recovery key that opens them on a new browser.",
-  ready: "Whisprl makes you a new recovery key that opens your messages on a new browser. Any old one stops working, and your messages stay as they are.",
-  locked: "This browser hasn't opened your messages yet. Unlock them first, then save a new recovery key.",
+  setup: `Whisprl makes the key that locks your messages, and a recovery key that opens them on a new ${deviceNoun}.`,
+  ready: `Whisprl makes you a new recovery key that opens your messages on a new ${deviceNoun}. Any old one stops working, and your messages stay as they are.`,
+  locked: `This ${deviceNoun} hasn't opened your messages yet. Unlock them first, then save a new recovery key.`,
   failed: "Whisprl couldn't check your messages. Try again.",
 };
 
 const SavedKey = ({ recoveryKey }) => {
   const dispatch = useDispatch();
+  const username = useSelector((state) => state.user.user.username);
   const isConfirming = useIsLoading(ConfirmRecoveryKeySaved);
   const [isKept, setIsKept] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  const download = () => {
-    downloadRecoveryKey(recoveryKey);
-    setIsKept(true);
+  const keep = async () => {
+    if (await keepRecoveryKey(recoveryKey, username)) setIsKept(true);
   };
 
   const copy = async () => {
@@ -61,18 +62,24 @@ const SavedKey = ({ recoveryKey }) => {
   return (
     <Stack spacing={2.5}>
       <RecoveryKeyBox recoveryKey={recoveryKey} />
-      <Stack direction="row" spacing={1}>
-        <Button variant="contained" startIcon={<DownloadSimple />} onClick={download} sx={{ flex: 1 }}>
-          Download
+      <Stack direction={isApp ? "column" : "row"} spacing={1}>
+        <Button variant="contained" startIcon={<KEEP_RECOVERY_KEY.Icon />} onClick={keep} sx={{ flex: 1 }}>
+          {KEEP_RECOVERY_KEY.label}
         </Button>
         <Button variant="outlined" color="inherit" startIcon={isCopied ? <Check /> : <Copy />} onClick={copy} sx={{ flex: 1 }}>
           {isCopied ? "Copied" : "Copy"}
         </Button>
       </Stack>
       <Alert severity="warning">
-        If you lose this key, and no passkey unlocks your messages, you can&apos;t open them on a new browser. Whisprl can&apos;t recover it for
-        you.
+        If you lose this key, and no passkey unlocks your messages, you can&apos;t open them on a new {deviceNoun}. Whisprl can&apos;t recover it
+        for you.
       </Alert>
+      {isApp && (
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          This phone also keeps your key, so reinstalling Whisprl won&apos;t lock your messages while your Google backup is on. Your recovery
+          key is for everywhere else.
+        </Typography>
+      )}
       <KeepingPlaces />
       <LoadingButton size="large" variant="contained" fullWidth disabled={!isKept} loading={isConfirming} onClick={() => dispatch(ConfirmRecoveryKeySaved())}>
         Continue

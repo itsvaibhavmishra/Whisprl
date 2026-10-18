@@ -16,9 +16,12 @@
   - New:
 
   - Improvements:
+    - With Whisprl added to a phone's home screen, the chat, status, contacts and settings lists, the sign-in and setup pages, and notices keep clear of the status bar
 
   - Fixed:
 
   - Developers:
+    - The Android app signs in with Google through the phone rather than a web view, and Whisprl verifies the token it returns
+    - Whisprl builds as an Android app from the same frontend with Capacitor, with its own welcome tour, keeps the message key in Block Store so reinstalling the app does not lock messages, saves the recovery key to the phone's password manager, and sends notifications through Firebase. docs/development.md covers building it and running it on an emulator
 
   - Internal:

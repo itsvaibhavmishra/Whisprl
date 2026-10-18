@@ -10,6 +10,7 @@ import createHttpError from "http-errors"; // error handler
 
 // folder/file imports
 import router from "#src/routes/index.js";
+import { allowedOrigins } from "#src/utils/allowedOrigins.js";
 
 // creating express app
 const app = express();
@@ -18,11 +19,7 @@ const app = express();
 app.set("trust proxy", 1);
 
 // cors setup
-app.use(
-  cors({
-    origin: process.env.FRONT_URL || "http://localhost:3000",
-  }),
-);
+app.use(cors({ origin: allowedOrigins }));
 
 // parsing data to json
 app.use(express.json());

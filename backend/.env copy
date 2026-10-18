@@ -8,6 +8,9 @@ OWNER_EMAIL = ""
 
 # Origin - (Required-Change with your frontend url)
 FRONT_URL = "http://localhost:3000"
+# The origins the Android app is served from, allowed beside FRONT_URL, comma separated
+# (can be skipped without the app)
+APP_ORIGIN = "https://localhost"
 
 # Nodemailer Config (Can be skipped | required for otp and reset password)
 MAIL_USER = ''
@@ -33,3 +36,7 @@ LINKEDIN_AUTH_CLIENT_SECRET = ""
 
 # Google reCAPTCHA
 GOOGLE_RECAPTCHA_SECRET = ""
+
+# Push notifications for the Android app (can be skipped, the server then sends none)
+# The Firebase service account's JSON, on one line
+FIREBASE_SERVICE_ACCOUNT = ''

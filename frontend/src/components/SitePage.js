@@ -19,7 +19,7 @@ const SiteHeader = () => (
     direction="row"
     alignItems="center"
     justifyContent="space-between"
-    sx={{ py: { xs: 2, md: 3 } }}
+    sx={{ pt: { xs: "calc(16px + env(safe-area-inset-top))", md: 3 }, pb: { xs: 2, md: 3 } }}
   >
     <Box component={RouterLink} to={PATH_AUTH.general.welcome} sx={{ display: "flex" }}>
       <Box

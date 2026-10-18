@@ -8,6 +8,7 @@ import { AccentPicker, ThemeModePicker } from "@/components/AppearancePickers";
 import Pane, { READING_WIDTH } from "@/components/Pane";
 import { SOURCE_URL } from "@/config";
 import useSettings from "@/hooks/useSettings";
+import { ForgetPushDevice } from "@/redux/slices/actions/pushActions";
 import { GetMyProfile } from "@/redux/slices/actions/userActions";
 import { PATH_DASHBOARD, PATH_DOCS } from "@/routes/paths";
 import ProfileEditor from "@/sections/profile/ProfileEditor";
@@ -28,6 +29,7 @@ import ReleaseHighlights from "@/sections/whats-new/ReleaseHighlights";
 import { RELEASES, releaseNote, releaseTitle } from "@/sections/whats-new/whatsNew";
 import getAvatar from "@/utils/avatars";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
+import { isApp } from "@/utils/platform";
 import { previewSound } from "@/utils/sounds";
 
 const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRight };
@@ -56,22 +58,33 @@ const ClockSetting = () => {
   );
 };
 
+const NOTIFICATIONS_BLOCKED = isApp
+  ? "Notifications are off for Whisprl in your phone's settings. Turn them on there, then switch this on."
+  : "Your browser is blocking notifications from Whisprl. Allow them in this site's settings, then switch this on.";
+
 const NotificationSetting = () => {
+  const dispatch = useDispatch();
   const { notifications, onSetNotifications } = useSettings();
-  const [permission, setPermission] = useState(notificationPermission);
+  const [permission, setPermission] = useState("default");
+
+  useEffect(() => {
+    notificationPermission().then(setPermission);
+  }, []);
+
   if (permission === "unsupported") return null;
 
   const toggle = async () => {
-    if (notifications) return onSetNotifications(false);
+    if (notifications) {
+      if (isApp) dispatch(ForgetPushDevice());
+      return onSetNotifications(false);
+    }
     const answer = await askForNotifications();
     setPermission(answer);
     if (answer === "granted") onSetNotifications(true);
   };
 
   const description =
-    permission === "denied"
-      ? "Your browser is blocking notifications from Whisprl. Allow them in this site's settings, then switch this on."
-      : "A notification for each new message while Whisprl is in the background. Muted chats stay quiet.";
+    permission === "denied" ? NOTIFICATIONS_BLOCKED : "A notification for each new message while Whisprl is in the background. Muted chats stay quiet.";
 
   return (
     <SettingRow label="Notifications" description={description}>

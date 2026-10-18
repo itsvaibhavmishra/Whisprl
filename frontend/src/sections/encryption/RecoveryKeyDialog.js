@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack, Typography } from "@mui/material";
-import { Check, Copy, DownloadSimple } from "phosphor-react";
-import { useDispatch } from "react-redux";
+import { Check, Copy } from "phosphor-react";
+import { useDispatch, useSelector } from "react-redux";
 
 import { ConfirmRecoveryKeySaved } from "@/redux/slices/actions/onboardingActions";
-import RecoveryKeyBox, { downloadRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
+import RecoveryKeyBox, { KEEP_RECOVERY_KEY, keepRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
+import { deviceNoun } from "@/utils/platform";
 
 const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDone }) => {
   const dispatch = useDispatch();
+  const username = useSelector((state) => state.user.user.username);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -35,7 +37,7 @@ const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDo
       </DialogTitle>
       <DialogContent>
         <Typography id="recovery-key-description" variant="body2" sx={{ color: "text.secondary", fontWeight: 400 }}>
-          Your messages are end-to-end encrypted, so only you and your friends can read them. On a new browser, this key
+          Your messages are end-to-end encrypted, so only you and your friends can read them. On a new {deviceNoun}, this key
           opens them. Whisprl cannot see it or recover it for you.
         </Typography>
 
@@ -47,8 +49,8 @@ const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDo
           <Button color="inherit" startIcon={copied ? <Check /> : <Copy />} onClick={copy}>
             {copied ? "Copied" : "Copy"}
           </Button>
-          <Button color="inherit" startIcon={<DownloadSimple />} onClick={() => downloadRecoveryKey(recoveryKey)}>
-            Download
+          <Button color="inherit" startIcon={<KEEP_RECOVERY_KEY.Icon />} onClick={() => keepRecoveryKey(recoveryKey, username)}>
+            {KEEP_RECOVERY_KEY.label}
           </Button>
         </Stack>
 

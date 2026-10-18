@@ -8,11 +8,12 @@ import { socketMarkDelivered, socketMarkSeen, socketSendMessage } from "#src/con
 import { canMessageIn } from "#src/services/messageService.js";
 import { setOnlineStatus } from "#src/services/userService.js";
 import { withinBudget } from "#src/middlewares/socketRateLimit.js";
+import { allowedOrigins } from "#src/utils/allowedOrigins.js";
 
 export const initializeSocket = (server) => {
   // creating socket.io instence
   const io = new Server(server, {
-    cors: { origin: process.env.FRONT_URL, methods: ["GET", "POST"] },
+    cors: { origin: allowedOrigins, methods: ["GET", "POST"] },
     pingInterval: 25000,
     pingTimeout: 20000,
   });

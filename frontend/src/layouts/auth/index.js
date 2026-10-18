@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Grow, IconButton, Stack, Tooltip } from "@mui/material";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowsCounterClockwise } from "phosphor-react";
+import { ArrowLeft, ArrowsCounterClockwise } from "phosphor-react";
 
 import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import AppearanceMenu from "@/components/AppearanceMenu";
@@ -10,6 +10,7 @@ import BrandPanel from "@/layouts/auth/BrandPanel";
 import { StartServer } from "@/redux/slices/actions/authActions";
 import { PATH_AUTH } from "@/routes/paths";
 import useIsLoading from "@/hooks/useIsLoading";
+import { isApp } from "@/utils/platform";
 
 const SLOW_START_AFTER = 10000;
 
@@ -55,11 +56,17 @@ const AuthLayout = () => {
     >
       <BrandPanel />
 
-      <Stack sx={{ px: { xs: 2.5, sm: 4 }, py: { xs: 3, md: 6 } }}>
+      <Stack sx={{ px: { xs: 2.5, sm: 4 }, pt: { xs: "calc(24px + env(safe-area-inset-top))", md: 6 }, pb: { xs: 3, md: 6 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Box component={Link} to={PATH_AUTH.general.welcome} sx={{ display: { xs: "flex", md: "none" } }}>
-            <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
-          </Box>
+          {isApp ? (
+            <IconButton component={Link} to={PATH_AUTH.general.welcome} aria-label="Back" sx={{ ml: -1 }}>
+              <ArrowLeft size={22} />
+            </IconButton>
+          ) : (
+            <Box component={Link} to={PATH_AUTH.general.welcome} sx={{ display: { xs: "flex", md: "none" } }}>
+              <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
+            </Box>
+          )}
           <Box sx={{ ml: "auto" }}>
             <AppearanceMenu />
           </Box>
