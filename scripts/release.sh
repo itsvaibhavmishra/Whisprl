@@ -92,7 +92,7 @@ EOF
 # the prepare pull request lands, then updates itself and release-ready passes.
 upsert_pull_request production rc "Release $VERSION" "$(
     cat <<EOF
-Merging this publishes **$VERSION** as a $KIND release: the tag, the GitHub release, the app's live update and the APK.
+Merging this publishes **$VERSION** as a $KIND release: the tag, the GitHub release, the live update of the app and the APK.
 
 Red until *Prepare release $VERSION* is merged, because until then \`rc\` is still on $CURRENT.
 
