@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ReplaceRecoveryKey } from "@/redux/slices/actions/encryptionActions";
 import RecoveryKeyDialog from "@/sections/encryption/RecoveryKeyDialog";
 import { SettingRow } from "@/sections/settings/SettingsSection";
+import { deviceNoun } from "@/utils/platform";
 
 const ConfirmNewKey = ({ onCancel, onConfirm }) => {
   const [making, setMaking] = useState(false);
@@ -31,7 +32,7 @@ const ConfirmNewKey = ({ onCancel, onConfirm }) => {
       </DialogTitle>
       <DialogContent>
         <Typography id="new-recovery-key-description" variant="body2" sx={{ color: "text.secondary", fontWeight: 400 }}>
-          Your old recovery key stops working. Browsers that are already unlocked stay unlocked.
+          Your old recovery key stops working. Any {deviceNoun} that is already unlocked stays unlocked.
         </Typography>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
@@ -59,7 +60,7 @@ const RecoveryKeySetting = () => {
   };
 
   return (
-    <SettingRow label="Recovery key" description="Opens your encrypted messages on a new browser. Lost it? Make a new one.">
+    <SettingRow label="Recovery key" description={`Opens your encrypted messages on a new ${deviceNoun}. Lost it? Make a new one.`}>
       <Button variant="outlined" color="inherit" disabled={!isReady} onClick={() => setConfirming(true)}>
         Make a new key
       </Button>

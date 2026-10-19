@@ -16,6 +16,7 @@ import {
 } from "#src/services/messageService.js";
 import { findMemberConversation, memberRooms } from "#src/services/conversationService.js";
 import { expiryFor } from "#src/services/disappearingService.js";
+import { pushNewMessage } from "#src/services/pushService.js";
 
 // -------------------------- Attach Encrypted File --------------------------
 export const attachFile = async (req, res, next) => {
@@ -88,7 +89,11 @@ export const socketSendMessage = async (socket, payload, acknowledge) => {
       ...(await linksOf(conversation, user_id, { replyTo, replyToAlbum, forwardOf })),
     });
 
-    if (isNew) socket.to(memberRooms(conversation)).emit("message_received", message);
+    if (isNew) {
+      socket.to(memberRooms(conversation)).emit("message_received", message);
+      // a push that fails must never fail the message it was about
+      pushNewMessage(conversation, socket.user, message).catch(() => {});
+    }
     acknowledge?.({ status: "success", message });
   } catch (error) {
     // a refusal is final, but a fault on the server's side is worth sending again

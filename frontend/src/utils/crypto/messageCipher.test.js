@@ -3,8 +3,10 @@
  */
 import { webcrypto } from "crypto";
 
-import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
-import { decryptAlbumReactions, decryptMessage, encryptMessage, encryptReaction, setDeviceKeys } from "@/utils/crypto/messageCipher";
+import { fromBase64 } from "@/utils/crypto/encoding";
+import { exportPublicKey, generateAccountKeys, importPrivateKey, keyIdOf } from "@/utils/crypto/keys";
+import { decryptAlbumReactions, decryptMessage, encryptMessage, encryptReaction, openMessage, setDeviceKeys } from "@/utils/crypto/messageCipher";
+import vectors from "@/utils/crypto/messageVectors.json";
 import { encodePayload } from "@/utils/messagePayload";
 import { createRecoveryKey, lockPrivateKey, parseRecoveryKey, unlockPrivateKey } from "@/utils/crypto/recoveryKey";
 
@@ -221,4 +223,22 @@ test("a reply carries the quoted message, decrypted alongside it", async () => {
   setDeviceKeys(deviceOf(bob));
   const read = await decryptMessage(reply, conversation);
   expect([read.message, read.replyTo.message]).toEqual(["the reply", "the original"]);
+});
+
+// the Android app decrypts its notifications in Java against these same vectors, so a change to the format fails here first
+test("the shared vectors open, so the Android app and the web stay in step", async () => {
+  const { recipient, sender, messages } = vectors;
+  setDeviceKeys({ keyId: recipient.keyId, privateKey: await importPrivateKey(fromBase64(recipient.pkcs8)) });
+  const members = [
+    { _id: sender.id, publicKeys: [{ keyId: sender.keyId, publicKey: sender.publicKey }] },
+    { _id: recipient.id, publicKeys: [] },
+  ];
+
+  const opened = await Promise.all(
+    messages.map(({ conversationId, keyId, iv, data, sealedIv, sealedData }) => {
+      const cipher = sealedIv ? { iv, data, senderKeyId: sender.keyId, keys: [{ keyId, iv: sealedIv, data: sealedData }] } : { iv, data, keyIds: [sender.keyId, keyId] };
+      return openMessage({ sender: { _id: sender.id }, cipher }, { _id: conversationId, users: members });
+    })
+  );
+  expect(opened).toEqual(messages.map((message) => message.plaintext));
 });

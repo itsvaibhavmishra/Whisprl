@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Box,
+  Button,
   CircularProgress,
   Dialog,
   Stack,
@@ -21,6 +22,8 @@ import { ActInGame, GetLeaderboard } from "@/redux/slices/actions/gameActions";
 import { selectGameSession } from "@/redux/slices/gameSlice";
 import ClosableTitle from "@/sections/chat/game/ClosableTitle";
 import GameCard from "@/sections/chat/game/GameCard";
+import RequestGameCard from "@/sections/chat/game/RequestGameCard";
+import RequestGameDialog from "@/sections/chat/game/RequestGameDialog";
 import { GAMES, GAME_IDS } from "@/sections/chat/game/catalog";
 import getAvatar from "@/utils/avatars";
 import { canManage, firstNameIn, memberOf } from "@/utils/groups";
@@ -42,6 +45,7 @@ const GameList = ({ conversation, onClose }) => {
   const session = useSelector(selectGameSession);
   const meId = useSelector((state) => state.user.user._id);
   const [query, setQuery] = useState("");
+  const [requesting, setRequesting] = useState(null);
   const blocker = reasonCannotStart(conversation, session, meId);
   const shown = GAME_IDS.filter((id) => matches(GAMES[id], query));
 
@@ -59,10 +63,15 @@ const GameList = ({ conversation, onClose }) => {
           {shown.map((id) => (
             <GameCard key={id} game={GAMES[id]} isDisabled={Boolean(blocker)} onClick={() => open(id)} />
           ))}
+          <RequestGameCard onClick={() => setRequesting("")} />
         </Box>
       ) : (
-        <Typography sx={{ py: 5, textAlign: "center", color: "text.secondary" }}>{`No game matches "${query.trim()}"`}</Typography>
+        <Stack alignItems="center" spacing={1.5} sx={{ py: 5, textAlign: "center" }}>
+          <Typography sx={{ color: "text.secondary" }}>{`No game matches "${query.trim()}"`}</Typography>
+          <Button variant="outlined" onClick={() => setRequesting(query.trim())}>{`Request "${query.trim()}"`}</Button>
+        </Stack>
       )}
+      {requesting !== null && <RequestGameDialog initialName={requesting} onClose={() => setRequesting(null)} />}
     </Stack>
   );
 };

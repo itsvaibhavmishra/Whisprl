@@ -1,11 +1,15 @@
 import { SETTINGS_STORAGE_KEY } from "@/config";
 import { summaryOf } from "@/utils/messageSummary";
+import { isApp } from "@/utils/platform";
+import { askForPush, pushPermission } from "@/utils/push";
 
 const APP_ICON = `${process.env.PUBLIC_URL}/icon-192.png`;
 
-export const notificationPermission = () => ("Notification" in window ? Notification.permission : "unsupported");
+const webPermission = () => ("Notification" in window ? Notification.permission : "unsupported");
 
-export const askForNotifications = () => Notification.requestPermission();
+export const notificationPermission = async () => (isApp ? pushPermission() : webPermission());
+
+export const askForNotifications = () => (isApp ? askForPush() : Notification.requestPermission());
 
 const isSwitchedOn = () => {
   try {
@@ -22,9 +26,11 @@ export const setChatOpener = (opener) => {
   openChat = opener;
 };
 
+export const openNotifiedChat = (conversationId) => openChat(conversationId);
+
 // only while Whisprl is in the background, since an open tab already plays a sound
 export const notifyArrival = (message, conversation) => {
-  if (!isSwitchedOn() || notificationPermission() !== "granted" || document.visibilityState === "visible") return;
+  if (!isSwitchedOn() || webPermission() !== "granted" || document.visibilityState === "visible") return;
 
   const { sender } = message;
   const text = summaryOf(message);

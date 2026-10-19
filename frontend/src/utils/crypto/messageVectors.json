@@ -1,0 +1,48 @@
+{
+  "recipient": {
+    "id": "6ad4b3e46063eba40fd5695b",
+    "keyId": "1b802777bbc067a2",
+    "pkcs8": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgDym5+lgEj2h7JuYnbcmrtyQQBjr11XHz8M/birPOn6+hRANCAATDGwm0QsQLleUwkam8Zdq1oYAfNTKLIgDXVgZw2plZOh60vQyRlF7xG9K3x+xHxZBBkBDJkMW+FTJKcpPpVlYh"
+  },
+  "sender": {
+    "id": "6ad4b3e46063eba40fd5695a",
+    "keyId": "27daf98d18e3347e",
+    "publicKey": "BI3onNUj29rh0Y/G2TKcEfNHP4QAy+fejMmok//LcTSpfLhXQaJZuOBPcqptBvM3UZAeUAf0hds+OmRgmu3YL/I="
+  },
+  "messages": [
+    {
+      "kind": "text",
+      "conversationId": "6ad4d1c68f3347e14ac56601",
+      "keyId": "1b802777bbc067a2",
+      "iv": "kKOF15BZTiWdLdxk",
+      "data": "0zO2GPmQok2EMhJk7EwwDi/3HSKYCqYI9mTOTy3D6w==",
+      "plaintext": "meet at 6? 🐱"
+    },
+    {
+      "kind": "text",
+      "conversationId": "6ad4d1c68f3347e14ac56601",
+      "keyId": "1b802777bbc067a2",
+      "iv": "ZgzqBCId+Yo4Z1Mb",
+      "data": "N6FSmOIaCNXvHHPXE05Qugz+7zDQPGjy4F1Da/ME9kGkEy6XTNwSeYXAMVkY86qiXgfpez3g5RPmv0LUm33p6MPY2NXpjd7z2UHTd8umYuo=",
+      "plaintext": "\u0001{\"text\":\"\",\"contact\":{\"firstName\":\"Sarah\",\"lastName\":\"Miller\"}}"
+    },
+    {
+      "kind": "file",
+      "conversationId": "6ad4d1c68f3347e14ac56601",
+      "keyId": "1b802777bbc067a2",
+      "iv": "wnwJavi6Yhf0wBwN",
+      "data": "uVkIUj16vBruR8GZ5vDXAfGBBeWYiQ/HF69kiTBhGZxLAAghJhL5f+UaviER9xFxGQ3sUfrF7ggDOoBKmJaRSEc2JBe9PDlrlIRbqqVzrMl4uIty8g==",
+      "plaintext": "{\"caption\":\"look at this\",\"file\":{\"kind\":\"image\",\"name\":\"beach.jpg\"}}"
+    },
+    {
+      "kind": "text",
+      "conversationId": "6ad4d1c68f3347e14ac56602",
+      "keyId": "1b802777bbc067a2",
+      "iv": "PhLrrcOPY2L5e9j6",
+      "data": "qDrbSABv0bvcub31XXYreIJnryHCYOvkcP0iZ9vOejwD8SH1HPubocl0D5ytXWKe5a94UA==",
+      "sealedIv": "KKWnpK+lcpH+nnqo",
+      "sealedData": "UbR58V4L/QR2pWTRIYg9/CUKjiHoq/RyREgk3qVJToKlc0uBSMrkSL6qIyMOEyYO",
+      "plaintext": "who's in for chain reaction tonight?"
+    }
+  ]
+}

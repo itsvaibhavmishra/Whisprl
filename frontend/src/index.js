@@ -12,7 +12,11 @@ import SettingsProvider from "@/contexts/SettingsContext";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "@/redux/store";
 
+import { startErrorReports } from "@/utils/errorReports";
 import { injectStore } from "@/utils/session";
+
+// before anything renders, so a failure while starting is reported too
+startErrorReports();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 

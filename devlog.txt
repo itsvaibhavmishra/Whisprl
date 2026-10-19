@@ -14,11 +14,35 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Ask for a game from the games list: a classic, something new or an idea of your own, with links and details
+    - Staff see game requests ranked by how many people asked, counted together however each person spelled the game, with a search that forgives typos
+    - Android notifications show the message itself, opened on the phone so the server still never reads it
+    - Links to Whisprl open the Android app when it is installed, and the website when it is not
+    - Delete your account from Settings, confirmed with a code sent to your email. It is hidden at once, and logging back in within 14 days brings it back
+    - A privacy policy, a page on deleting your account and Whisprl's child safety standards, linked from the footer, Settings and sign-up
 
   - Improvements:
+    - What's new shows the latest three releases, with a button for older ones
+    - The terms and other documents show Open Whisprl instead of Log in and Create account when you are already signed in
+    - With Whisprl added to a phone's home screen, the chat, status, contacts and settings lists, the sign-in and setup pages, and notices keep clear of the status bar
+    - A new account's recovery key appears as soon as setup reaches it, without a button to press first
 
   - Fixed:
+    - Names, group names and anything else typed with &, < or > show as typed, instead of as &amp; or &lt;
+    - A reported message containing &, < or > is verified as really sent, instead of failing the check
+    - Back no longer gets stuck after opening a sign-in page while signed in, or the app while signed out
+    - A crash while drawing a page shows a screen with a reload button instead of a blank page
+    - A tab left open across a release reloads itself once to fetch the new version, instead of failing to open the next page
+    - Profiles in the Android app no longer draw a strip of their cover over the name and photo
 
   - Developers:
+    - Emails escape names and reasons themselves, in the HTML only, replacing a server-wide sanitizer that rewrote every request
+    - Errors on the website, in the Android app (Java crashes included) and on the server are reported to Sentry in production, without messages, screen contents or request bodies, with source maps uploaded at build so each report points at our own code
+    - Each release carries a signed live update, so installed Android apps get new web code on their next launch without a new APK, and roll themselves back if it fails to start
+    - Each release also carries a signed APK built from the same code, and is published only once both are built, so the latest release always has the newest update and app to download
+    - A release pull request is labelled release: web or release: app, picked by scripts/release.sh from versionCode and checked against it, and a pull request with no label publishes nothing, replacing the skip release label
+    - Release builds take the production Firebase config from app/src/release/, and fail without it, or with another project's, rather than quietly using the wrong one
+    - The Android app signs in with Google through the phone rather than a web view, and Whisprl verifies the token it returns
+    - Whisprl builds as an Android app from the same frontend with Capacitor, with its own welcome tour, keeps the message key in Block Store so reinstalling the app does not lock messages, saves the recovery key to the phone's password manager, and sends notifications through Firebase. docs/development.md covers building it and running it on an emulator
 
   - Internal:

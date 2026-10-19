@@ -40,6 +40,18 @@ export const DismissReport = createApiThunk("admin/dismiss", async ({ reportId, 
   return data;
 });
 
+// ------------- Game Request Thunks -------------
+export const GetGameRequests = createApiThunk(
+  "admin/gameRequests",
+  async ({ status, kind, search, page }) => (await axios.get("/admin/game-requests", { params: { status, kind, search, page } })).data
+);
+
+export const CloseGameRequests = createApiThunk("admin/closeGameRequests", async ({ key, outcome }) => {
+  const { data } = await axios.put(`/admin/game-requests/${encodeURIComponent(key)}/close`, { outcome });
+  notify({ severity: "success", message: outcome === "added" ? "Marked as added" : "Dismissed" });
+  return data;
+});
+
 // ------------- Team Thunks -------------
 export const GetTeam = createApiThunk("admin/team", async () => (await axios.get("/admin/team")).data);
 

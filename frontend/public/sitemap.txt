@@ -2,3 +2,6 @@ https://whisprl.netlify.app/auth/welcome
 https://whisprl.netlify.app/auth/register
 https://whisprl.netlify.app/auth/login
 https://whisprl.netlify.app/docs/tnc
+https://whisprl.netlify.app/docs/privacy
+https://whisprl.netlify.app/docs/delete-account
+https://whisprl.netlify.app/docs/child-safety

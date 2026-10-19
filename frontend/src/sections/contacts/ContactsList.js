@@ -188,7 +188,7 @@ const ContactsList = ({ isWide }) => {
 
   return (
     <Stack component="nav" aria-label="Contacts" sx={{ height: "100%", bgcolor: "chat.list" }}>
-      <Stack spacing={1.75} sx={{ px: 2, pt: 1.25, pb: 1.25 }}>
+      <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 44 }}>
           <Typography component="h1" sx={{ m: 0 }}>
             <Wordmark name="Contacts" fontSize={30} />

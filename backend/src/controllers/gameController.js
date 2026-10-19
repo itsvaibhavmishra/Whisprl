@@ -1,3 +1,4 @@
+import { requestGame } from "#src/services/gameRequestService.js";
 import { leaderboardOf } from "#src/services/gameResultService.js";
 import { actInGame, stopWatching, watchGame } from "#src/services/gameService.js";
 
@@ -25,6 +26,15 @@ export const leaveGameOnDisconnect = (socket) =>
 export const getLeaderboard = async (req, res, next) => {
   try {
     res.status(200).json({ status: "success", leaderboard: await leaderboardOf(req.user._id, req.params.conversation_id) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendGameRequest = async (req, res, next) => {
+  try {
+    await requestGame(req.user._id, req.body);
+    res.status(201).json({ status: "success" });
   } catch (error) {
     next(error);
   }

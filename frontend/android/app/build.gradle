@@ -1,0 +1,85 @@
+apply plugin: 'com.android.application'
+
+// signed with the real key once keystore.properties is there, and the debug key until then, which a phone installs and Play refuses
+def keystoreFile = rootProject.file("keystore.properties")
+def keystore = new Properties()
+if (keystoreFile.exists()) keystoreFile.withInputStream { stream -> keystore.load(stream) }
+
+android {
+    namespace = "com.vaibhaw.whisprl"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.vaibhaw.whisprl"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        // the app carries the same version as the web app it wraps
+        versionName new groovy.json.JsonSlurper().parse(file("../../package.json")).version
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            storeFile keystoreFile.exists() ? rootProject.file(keystore["storeFile"]) : file("${System.properties['user.home']}/.android/debug.keystore")
+            storePassword keystoreFile.exists() ? keystore["storePassword"] : "android"
+            keyAlias keystoreFile.exists() ? keystore["keyAlias"] : "androiddebugkey"
+            keyPassword keystoreFile.exists() ? keystore["keyPassword"] : "android"
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation "androidx.biometric:biometric:1.1.0"
+    implementation "androidx.credentials:credentials:1.5.0"
+    implementation "androidx.credentials:credentials-play-services-auth:1.5.0"
+    implementation "com.google.android.libraries.identity.googleid:googleid:1.2.1"
+    implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"
+    implementation "com.google.android.gms:play-services-auth-blockstore:16.4.0"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.json:json:20260814"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+// a debug build reads app/google-services.json and a release build src/release/google-services.json, so one machine builds both
+def servicesFiles = ['google-services.json', 'src/release/google-services.json']
+if (servicesFiles.any { file(it).exists() }) {
+    apply plugin: 'com.google.gms.google-services'
+} else {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+// a release on any other Firebase project registers phones the production backend cannot reach, so their pushes never arrive
+tasks.matching { it.name == 'processReleaseGoogleServices' }.configureEach {
+    doFirst {
+        def releaseServices = file('src/release/google-services.json')
+        if (!releaseServices.exists() || new groovy.json.JsonSlurper().parse(releaseServices).project_info.project_id != 'whisprl-prod') {
+            throw new GradleException("A release needs the whisprl-prod google-services.json in frontend/android/app/src/release/.")
+        }
+    }
+}

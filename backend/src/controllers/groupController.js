@@ -1,24 +1,9 @@
-import { memberRooms } from "#src/services/conversationService.js";
-import { addMembers, createGroup, removeMember, setAdmin, updateGroupDetails } from "#src/services/groupService.js";
-
-// everyone still in the group, and anyone who just left it, hears about the change; newcomers join its room first
-const announce = (io, { group, groupId, events, departed }) => {
-  const room = String(groupId);
-  const members = group ? memberRooms(group) : [];
-  const leavers = departed.map(String);
-
-  if (members.length) io.in(members).socketsJoin(room);
-  if (leavers.length) io.in(leavers).socketsLeave(room);
-
-  const recipients = [...members, ...leavers];
-  if (recipients.length) io.to(recipients).emit("group_updated", group?.toJSON() ?? { _id: groupId, users: [] });
-  events.forEach((event) => io.to(members).emit("message_received", event));
-};
+import { addMembers, announceGroupChange, createGroup, removeMember, setAdmin, updateGroupDetails } from "#src/services/groupService.js";
 
 const handle = (change) => async (req, res, next) => {
   try {
     const result = await change(req);
-    announce(req.app.get("io"), result);
+    announceGroupChange(req.app.get("io"), result);
     res.status(200).json({ status: "success", group: result.group });
   } catch (error) {
     next(error);

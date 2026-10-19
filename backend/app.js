@@ -3,13 +3,14 @@ import express from "express";
 // security packages
 import cors from "cors";
 import helmet from "helmet";
-import { xss } from "express-xss-sanitizer";
 import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import createHttpError from "http-errors"; // error handler
 
 // folder/file imports
 import router from "#src/routes/index.js";
+import { allowedOrigins } from "#src/utils/allowedOrigins.js";
+import { reportError } from "#src/utils/errorReports.js";
 
 // creating express app
 const app = express();
@@ -18,11 +19,7 @@ const app = express();
 app.set("trust proxy", 1);
 
 // cors setup
-app.use(
-  cors({
-    origin: process.env.FRONT_URL || "http://localhost:3000",
-  }),
-);
+app.use(cors({ origin: allowedOrigins }));
 
 // parsing data to json
 app.use(express.json());
@@ -30,7 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // security middlewares, rate limits sit on each route
 app.use(helmet()); // general security
-app.use(xss()); // xss protection
 app.use(mongoSanitize()); // sanitization for mongodb
 app.use(compression()); // gzip compression
 
@@ -67,7 +63,10 @@ const messageOf = (error, status) => {
 // error handling
 app.use((error, req, res, next) => {
   const status = statusOf(error);
-  if (status >= 500) console.error(error);
+  if (status >= 500) {
+    console.error(error);
+    reportError(error, req.user?._id);
+  }
 
   res.status(status).send({
     error: {

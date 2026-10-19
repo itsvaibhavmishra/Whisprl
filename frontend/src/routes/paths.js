@@ -32,6 +32,7 @@ export const PATH_ADMIN = {
   overview: path(ROOTS_DASHBOARD, "admin/overview"),
   people: path(ROOTS_DASHBOARD, "admin/people"),
   reports: path(ROOTS_DASHBOARD, "admin/reports"),
+  requests: path(ROOTS_DASHBOARD, "admin/requests"),
   audit: path(ROOTS_DASHBOARD, "admin/audit"),
   team: path(ROOTS_DASHBOARD, "admin/team"),
 };
@@ -40,5 +41,8 @@ export const PATH_DOCS = {
   root: ROOTS_DASHBOARD,
   general: {
     tnc: path(ROOTS_DASHBOARD, "docs/tnc"),
+    privacy: path(ROOTS_DASHBOARD, "docs/privacy"),
+    deleteAccount: path(ROOTS_DASHBOARD, "docs/delete-account"),
+    childSafety: path(ROOTS_DASHBOARD, "docs/child-safety"),
   },
 };

@@ -24,7 +24,20 @@ const PAGES = {
     title: "Terms and conditions | Whisprl",
     description: "The terms and conditions for using Whisprl, the real-time MERN chat app.",
   },
+  "/docs/privacy": {
+    title: "Privacy policy | Whisprl",
+    description: "What Whisprl stores, why, who else handles it, how long it is kept and how to have it deleted.",
+  },
+  "/docs/delete-account": {
+    title: "Delete your account | Whisprl",
+    description: "How to delete your Whisprl account from the website or the Android app, and what is deleted and kept.",
+  },
+  "/docs/child-safety": {
+    title: "Child safety standards | Whisprl",
+    description: "Whisprl's standards against child sexual abuse and exploitation, how to report it, and who to contact.",
+  },
   "/chat": { title: "Chats | Whisprl", description: WELCOME.description },
+  "/admin/requests": { title: "Game requests | Whisprl", description: WELCOME.description },
 };
 
 // Steps inside a flow, which a search result should never land someone in the middle of.

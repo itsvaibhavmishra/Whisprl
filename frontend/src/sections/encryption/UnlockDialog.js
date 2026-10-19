@@ -9,6 +9,7 @@ import FormProvider, { RHFTextField } from "@/components/hook-form";
 import useIsLoading from "@/hooks/useIsLoading";
 import { UnlockWithPasskey, UnlockWithRecoveryKey } from "@/redux/slices/actions/encryptionActions";
 import { canUsePasskeys } from "@/utils/passkeys";
+import { deviceNoun } from "@/utils/platform";
 
 const UnlockForm = ({ onLater, onLostKey }) => {
   const dispatch = useDispatch();
@@ -34,8 +35,8 @@ const UnlockForm = ({ onLater, onLostKey }) => {
       </DialogTitle>
       <DialogContent>
         <Typography id="unlock-description" variant="body2" sx={{ color: "text.secondary", fontWeight: 400, mb: 3 }}>
-          This browser has not opened your encrypted messages before. Use a passkey that unlocks them, or the recovery
-          key you saved when Whisprl turned on encryption.
+          This {deviceNoun} has not opened your encrypted messages before. Use {canUsePasskeys() && "a passkey that unlocks them, or "}the
+          recovery key you saved when Whisprl turned on encryption.
         </Typography>
         {canUsePasskeys() && (
           <>
@@ -95,7 +96,7 @@ const StartFresh = ({ onBack, onStartFresh }) => {
       <DialogContent>
         <Typography id="unlock-description" variant="body2" sx={{ color: "text.secondary", fontWeight: 400 }}>
           Whisprl will make you a new key and a new recovery key. Encrypted messages sent before now can no longer be
-          opened on any of your browsers. Your friends keep their copies.
+          opened on any {deviceNoun} of yours. Your friends keep their copies.
         </Typography>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>

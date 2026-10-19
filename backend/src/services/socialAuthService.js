@@ -1,4 +1,5 @@
 import axios from "axios";
+import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 import qs from "querystring";
 
@@ -12,8 +13,25 @@ const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn
 const notVerified = (provider) =>
   createHttpError.Unauthorized(`Verify your email with ${PROVIDER_NAMES[provider]} first, then try again`);
 
+const googleClient = new OAuth2Client();
+
+// the Android app signs in through Google itself and gets an ID token, where the website gets an access token
+const isIdToken = (credential) => credential.split(".").length === 3;
+
+// checks Google's signature, the expiry and that Whisprl is the audience, all without trusting the caller
+const fetchGoogleIdTokenProfile = async (idToken) => {
+  const ticket = await googleClient
+    .verifyIdToken({ idToken, audience: process.env.GOOGLE_AUTH_CLIENT_ID })
+    .catch(() => null);
+  const payload = ticket?.getPayload();
+  if (!payload) throw createHttpError.Unauthorized("Unable to sign in using Google");
+  if (!payload.email_verified) throw notVerified("google");
+
+  return { email: payload.email, name: payload.name, picture: payload.picture };
+};
+
 // the token has to be one Google issued to Whisprl, or any site the person signed in to could reuse it here
-const fetchGoogleProfile = async (accessToken) => {
+const fetchGoogleAccessTokenProfile = async (accessToken) => {
   const { data: tokenInfo } = await axios.get("https://oauth2.googleapis.com/tokeninfo", {
     params: { access_token: accessToken },
   });
@@ -28,6 +46,9 @@ const fetchGoogleProfile = async (accessToken) => {
 
   return { email: data.email, name: data.name, picture: data.picture };
 };
+
+const fetchGoogleProfile = (credential) =>
+  isIdToken(credential) ? fetchGoogleIdTokenProfile(credential) : fetchGoogleAccessTokenProfile(credential);
 
 const fetchGithubProfile = async (code) => {
   const { data: token } = await axios.post(

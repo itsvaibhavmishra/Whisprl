@@ -30,8 +30,14 @@ export const button = (href, label) => `
   </tr>
 </table>`;
 
+// names and reasons are typed by people, so they go into the HTML as text and never as markup
+export const escapeHtml = (text) =>
+  String(text ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+
 export const paragraph = (content) => `
 <p class="text" style="margin:0 0 16px;font-family:${FONTS};font-size:16px;line-height:1.65;color:#1E2A3D;">${content}</p>`;
+
+export const greeting = (name) => paragraph(`Hey ${escapeHtml(name)},`);
 
 export const lead = (content) => `
 <p class="text" style="margin:0 0 18px;font-family:${FONTS};font-size:21px;font-weight:800;line-height:1.35;letter-spacing:-0.02em;color:#0F1A2B;">${content}</p>`;

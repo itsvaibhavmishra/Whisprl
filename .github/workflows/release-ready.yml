@@ -1,15 +1,10 @@
-# Merging into production publishes, so a release that was going to fail should fail while it is
-# still a pull request somebody can fix, rather than as a red run against production.
-#
-# The `skip release` label turns all of this off, because that label means the merge is not a
-# release and none of these questions apply to it.
+# the release label says what merging publishes, so it is checked against the version and versionCode while it can still be fixed
 name: release-ready
 
 on:
   pull_request:
     branches: [production]
-    # labeled and unlabeled matter: adding `skip release` has to re-run this, or the pull
-    # request keeps a red check it can never clear.
+    # labeled and unlabeled re-run this when the label changes, or the check stays red after the fix
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
@@ -26,23 +21,52 @@ jobs:
       - name: Check the release is ready to cut
         env:
           GH_TOKEN: ${{ github.token }}
-          SKIPPED: ${{ contains(github.event.pull_request.labels.*.name, 'skip release') }}
+          WEB: "${{ contains(github.event.pull_request.labels.*.name, 'release: web') }}"
+          APP: "${{ contains(github.event.pull_request.labels.*.name, 'release: app') }}"
         shell: bash
         run: |
-          if [[ "${SKIPPED}" == "true" ]]; then
-            echo "::notice::skip release is on this pull request, so it is not a release"
-            exit 0
-          fi
-
-          VERSION=$(node -p "require('./frontend/package.json').version")
+          source scripts/version.sh
+          VERSION=$(read_version)
           BASE=$(git show "origin/${GITHUB_BASE_REF}:frontend/package.json" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
-          echo "production is on ${BASE}, this pull request is on ${VERSION}"
+          NATIVE=$(read_native_version)
+          BASE_NATIVE=$(read_native_version "origin/${GITHUB_BASE_REF}")
+          echo "production is on ${BASE} with versionCode ${BASE_NATIVE}, this pull request is on ${VERSION} with versionCode ${NATIVE}"
+
+          if [[ "${WEB}" == "true" && "${APP}" == "true" ]]; then
+            echo "::error::release: web and release: app are both on this pull request. Keep release: app if versionCode went up, release: web if it did not."
+            exit 1
+          fi
 
           FAILED=0
 
+          if [[ "${WEB}" != "true" && "${APP}" != "true" ]]; then
+            if [[ "${VERSION}" != "${BASE}" ]]; then
+              echo "::error::the version moves from ${BASE} to ${VERSION}, which only a release does. Label it release: web or release: app, as scripts/release.sh does."
+              FAILED=1
+            fi
+            if [[ "${NATIVE}" != "${BASE_NATIVE}" ]]; then
+              echo "::error::versionCode moves from ${BASE_NATIVE} to ${NATIVE}, so the native app changed and only an app release can ship it. Cut one with scripts/release.sh."
+              FAILED=1
+            fi
+            if [[ "${FAILED}" == "0" ]]; then
+              echo "not a release, so merging publishes nothing"
+            fi
+            exit "${FAILED}"
+          fi
+
           # Equal means somebody forgot, lower means a bad merge. Neither can be published.
           if ! printf '%s\n%s\n' "${BASE}" "${VERSION}" | sort -C -V || [[ "${VERSION}" == "${BASE}" ]]; then
-            echo "::error::the version is ${VERSION}, which is not above ${BASE}. Bump frontend/package.json frontend/package-lock.json backend/package.json backend/package-lock.json, or add the skip release label."
+            echo "::error::the version is ${VERSION}, which is not above ${BASE}. Cut the release with scripts/release.sh, or remove the release label if this is not one."
+            FAILED=1
+          fi
+
+          if [[ "${APP}" == "true" && "${NATIVE}" -le "${BASE_NATIVE}" ]]; then
+            echo "::error::release: app needs versionCode in frontend/android/app/build.gradle above ${BASE_NATIVE}, and it is ${NATIVE}. Raise it, or use release: web if the native app did not change."
+            FAILED=1
+          fi
+
+          if [[ "${WEB}" == "true" && "${NATIVE}" != "${BASE_NATIVE}" ]]; then
+            echo "::error::versionCode moves from ${BASE_NATIVE} to ${NATIVE}, so the native app changed and this is release: app."
             FAILED=1
           fi
 

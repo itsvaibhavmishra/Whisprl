@@ -1,4 +1,5 @@
 import { listAuditEntries } from "#src/services/auditService.js";
+import { closeGameRequests, listGameRequests } from "#src/services/gameRequestService.js";
 import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/services/moderationService.js";
 import { dismissReport, listReports } from "#src/services/reportQueueService.js";
 import { assertConfirmed, confirmationOptions } from "#src/services/passkeyService.js";
@@ -49,6 +50,25 @@ export const suspend = withPasskey((req, details) => suspendPerson(req.app.get("
 export const ban = withPasskey((req, details) => banPerson(req.app.get("io"), req.user, req.params.user_id, details));
 
 export const restore = withPasskey((req, details) => restorePerson(req.user, req.params.user_id, details));
+
+// -------------------------- Game requests --------------------------
+export const getGameRequests = async (req, res, next) => {
+  try {
+    const { status, kind, search, page } = req.query;
+    return res.status(200).json({ status: "success", ...(await listGameRequests({ status, kind, search, page })) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const closeGameRequest = async (req, res, next) => {
+  try {
+    await closeGameRequests(req.user, req.params.name_key, req.body.outcome);
+    return res.status(200).json({ status: "success" });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // -------------------------- Reports --------------------------
 export const getReports = async (req, res, next) => {

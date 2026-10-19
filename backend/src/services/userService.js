@@ -183,7 +183,7 @@ const nameOrUsernameFilter = (keyword) => {
 };
 
 export const searchForUsers = async (keyword, page, user) => {
-  const filter = { ...nameOrUsernameFilter(keyword), _id: { $nin: user.friends }, verified: true };
+  const filter = { ...nameOrUsernameFilter(keyword), _id: { $nin: user.friends }, verified: true, deletion: { $exists: false } };
 
   const [users, totalCount] = await Promise.all([
     UserModel.find(filter).select(STRANGER_FIELDS).skip(skipFor(page)).limit(SEARCH_PAGE_SIZE).lean(),
@@ -213,7 +213,7 @@ const closenessTo = (keyword) => {
 
 // friends and everyone else in one list, with no presence, since a friend's shows from the friends list already
 export const searchEveryone = async (user, keyword, page) => {
-  const filter = { ...nameOrUsernameFilter(keyword), _id: { $ne: user._id }, verified: true };
+  const filter = { ...nameOrUsernameFilter(keyword), _id: { $ne: user._id }, verified: true, deletion: { $exists: false } };
 
   const [users, totalCount] = await Promise.all([
     UserModel.aggregate([

@@ -21,7 +21,7 @@
 <!-- Only meaningful on an rc into production pull request, because merging into production is what
      publishes. -->
 
-- [ ] Not a release, so this pull request carries the `skip release` label
+- [ ] Labelled `release: web` or `release: app` if merging publishes a version, and unlabelled if it does not
 
 ### Checklist
 

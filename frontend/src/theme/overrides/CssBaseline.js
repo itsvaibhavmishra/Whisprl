@@ -28,6 +28,10 @@ export default function CssBaseline() {
           width: '100%',
           height: '100%',
         },
+        // on a phone the toasts sit a fixed 20px from the top, which is under the status bar once the page reaches behind it
+        '@media (max-width: 600px)': {
+          "body [data-sonner-toaster][data-y-position='top']": { top: 'calc(20px + env(safe-area-inset-top))' },
+        },
         input: {
           '&[type=number]': {
             MozAppearance: 'textfield',

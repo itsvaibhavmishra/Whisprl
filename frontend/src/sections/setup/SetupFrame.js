@@ -14,7 +14,7 @@ const SetupFrame = ({ children }) => {
   return (
     <Box sx={{ display: "grid", gridTemplateColumns: { md: "5fr 7fr" }, minHeight: "100dvh" }}>
       <BrandPanel />
-      <Stack sx={{ px: { xs: 2.5, sm: 4 }, py: { xs: 3, md: 6 } }}>
+      <Stack sx={{ px: { xs: 2.5, sm: 4 }, pt: { xs: "calc(24px + env(safe-area-inset-top))", md: 6 }, pb: { xs: 3, md: 6 } }}>
         <Stack direction="row" alignItems="center" spacing={1}>
           <Box component="img" src={whisprlMark} alt="Whisprl" width={48} height={52} sx={{ display: { md: "none" } }} />
           <Box sx={{ flex: 1 }} />

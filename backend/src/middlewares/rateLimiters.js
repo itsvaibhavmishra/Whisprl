@@ -41,4 +41,6 @@ export const searchLimit = () => limit(1, 30, byUser);
 export const writeLimit = () => limit(15, 150, byUser);
 // a day's worth of new friend requests, on top of the cap on requests still waiting
 export const requestLimit = () => limit(24 * 60, 20, byUser);
+// only successful ones count, so a link fixed after a refusal does not use up the day
+export const gameRequestLimit = () => limit(24 * 60, 5, byUser, { skipFailedRequests: true });
 export const readLimit = () => limit(1, 120, byUser);
