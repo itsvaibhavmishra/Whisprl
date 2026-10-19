@@ -1,4 +1,4 @@
-import { mail, panel, paragraph } from "#src/templates/mail/layout.js";
+import { greeting, mail, panel, paragraph } from "#src/templates/mail/layout.js";
 
 // one block rather than a digit per circle, so the code can be copied in a single go
 export const codeBlock = (otp) => `
@@ -15,7 +15,7 @@ export default (name, otp) =>
     title: "Your Whisprl code",
     preheader: `${otp} is your Whisprl verification code. It expires in 10 minutes.`,
     body: `
-${paragraph(`Hey ${name},`)}
+${greeting(name)}
 ${paragraph("Here is the code to confirm your email address.")}
 ${codeBlock(otp)}
 ${panel("Good to know", "The code works for 10 minutes, and only once. Never share it with anyone, including anyone saying they are from Whisprl.")}

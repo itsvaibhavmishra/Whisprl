@@ -138,7 +138,7 @@ export const sendVerificationCode = async (user) => {
   await user.save();
 
   try {
-    await mailOrFail(user.email, `${code} is your Whisprl code`, otpMail(validator.escape(user.firstName), code));
+    await mailOrFail(user.email, `${code} is your Whisprl code`, otpMail(user.firstName, code));
   } catch (error) {
     user.verification = undefined;
     await user.save();
@@ -206,7 +206,7 @@ export const sendPasswordReset = async (email) => {
 
   const resetUrl = `${process.env.FRONT_URL}/auth/reset-password/?code=${token}`;
   try {
-    await mailOrFail(user.email, "Reset your Whisprl password", resetMail(validator.escape(user.firstName), resetUrl));
+    await mailOrFail(user.email, "Reset your Whisprl password", resetMail(user.firstName, resetUrl));
   } catch (error) {
     user.passwordReset = undefined;
     await user.save();

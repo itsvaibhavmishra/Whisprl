@@ -57,9 +57,20 @@ key's Download becomes Save to password manager, through Android's Credential Ma
 with nowhere to save passwords says so, and Copy still works. Passkeys need WebAuthn, which the
 web view does not offer, so the app leaves the passkey step out of setup.
 
-**Notifications.** The app gets pushes through Firebase Cloud Messaging. It needs the Firebase
-project's `google-services.json` in `frontend/android/app/`, which is kept out of git, and the
-backend needs that project's service account JSON, on one line, as `FIREBASE_SERVICE_ACCOUNT`.
+**Notifications.** The app gets pushes through Firebase Cloud Messaging. There are two Firebase
+projects, one for development and one for production, and an app only receives pushes from the
+backend holding the matching project's credentials. Each project gives two different files:
+
+- `google-services.json`, which identifies the project to the app and ships inside the APK. The
+  development one goes in `frontend/android/app/` and a debug build reads it; the production one
+  goes in `frontend/android/app/src/release/` and a release build reads that instead. Both are
+  kept out of git, and a release build fails without the production file, or with one from any
+  other project, rather than quietly sending people to the wrong project.
+- The service account JSON, from Project settings, Service accounts, Generate new private key.
+  It is a private key and never goes near the app: the backend holding that project reads it on
+  one line as `FIREBASE_SERVICE_ACCOUNT`. To replace it, generate a new key, swap the variable,
+  then delete the old key under Service accounts in Google Cloud.
+
 Without the file the app offers no notifications, since asking Firebase for a token would crash
 it, and without the variable the server sends none. A phone's token is kept on its session, so
 logging out stops its pushes, and muted chats get none.
@@ -87,8 +98,12 @@ is installed, and the website when it is not, so a shared profile link works for
 app's profile links point at the website for the same reason, since its own origin is
 `https://localhost`. Android checks `frontend/public/.well-known/assetlinks.json` on the site
 against the key that signed the app, so that file has to list the SHA-256 fingerprint of every key
-that signs a build people install: today the debug key of the machine that builds it, and the upload
-and Play signing keys once those exist. Sign-in pages under `/auth` stay in the browser, so a web
+that signs a build people install: the debug key of the machine that builds it, and the release key,
+which signs release builds and which Play App Signing uses once the app is on Play. Release builds
+are signed with the release key whenever `frontend/android/keystore.properties` names it; the key and that file
+stay out of git, and the key is backed up outside this machine. Google sign-in checks the same keys:
+each needs an Android OAuth client with its SHA-1 in the Google Cloud project that holds the web
+client. Sign-in pages under `/auth` stay in the browser, so a web
 sign-in that returns there is never taken over by the app. Opening a link while the app is closed
 or open lands on that page through `OpenAppLinks.js`, and checking it before deploy works with
 `adb shell am start -a android.intent.action.VIEW -d "https://whisprl.netlify.app/contacts/@someone"`.
@@ -117,8 +132,11 @@ and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
   repo. Losing it means no installed app accepts another update until people install an APK
   carrying a new public key, so keep a copy in a password manager.
 - **The production settings** come from repository variables named like the `REACT_APP_` keys in
-  `frontend/.env copy`, the same values Netlify builds the website with. Without the secret the
-  release still publishes and warns that no update was attached.
+  `frontend/.env copy`, the same values Netlify builds the website with.
+- **The APK** is built in the same run from the same web build and attached as `whisprl.apk`,
+  signed with the release key from the `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`
+  secrets, with the production Firebase config from `GOOGLE_SERVICES_JSON`, which has to be
+  `whisprl-prod`. A release with any of these secrets missing fails before it publishes anything.
 - **`REACT_APP_UPDATE_URL`** is set only for builds people install. A development build leaves it
   out, so it never replaces itself with production code. A production APK must be built with it,
   or that APK never updates.
@@ -208,6 +226,24 @@ An edit is franked again with a fresh key, and the new fingerprint replaces the 
 that arrives without one clears the stored fingerprint, so the message reads as `unchecked`
 rather than failing against words that are no longer there.
 
+## Game requests
+
+The last card in the games list asks for a game: a classic, something new or an idea of the
+person's own, with its name, up to three links and optional details, and no media. A person has
+one open request per game, and five a day.
+
+Staff with the `requests` permission see them at `/admin/requests`, grouped by game and ranked by
+how many people asked. `nameKeyOf` in `src/utils/textSearch.js` folds a name to a key, so
+"Tic-Tac-Toe", "tic tac toe" and "The TicTacToe" count as one game. The search scores in memory
+with `searchScore` from the same file: every word has to match, names weigh three times what the
+details, links and requesters' names do, and a word can match by its start, with a typo or two,
+or run into the next word. A name that starts with the query ranks first. That suits the
+hundreds or thousands of requests Whisprl gets; at many more it would need a search index.
+
+Marking a game added or dismissed closes every open request for it. It changes nobody's access,
+so it needs no passkey, and who did it and when are kept on the requests rather than in the audit
+log. A person's requests are deleted with their account.
+
 ## Deleting an account
 
 Settings, then Account, then Delete account asks why someone is leaving, with "Something else"
@@ -269,6 +305,10 @@ templates differ only in their content. A template returns `{ html, text }`: the
 half is not optional, because a message with no text part is one of the oldest spam signals
 there is. `sendMail` passes both to Nodemailer, which sends them as one multipart message.
 
+- **Text people typed goes in through `escapeHtml`**, and a greeting through `greeting(name)`,
+  which does it already. Whisprl stores text as it was typed and React escapes it on screen, so
+  an email's HTML is the one place a name or a reason could turn into markup. The plain-text
+  half takes the values as they are.
 - **The header band is navy in both colour schemes**, like the app's rail. That is what lets
   one logo work everywhere: an image that has to look right on white and on near-black needs
   two files and a swap, and this needs neither.
@@ -346,13 +386,35 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 
 - **A feature branch** publishes nothing. Push as often as you like.
 - **`rc`** publishes nothing either.
-- **Merging into `production` publishes** a GitHub Release tagged `v<version>`, with that version's
-  changelog section as its notes. It skips that if the tag already exists, so an ordinary merge
-  that did not bump the version cannot cut a duplicate. Netlify and Northflank deploy from the
-  branches themselves. The release also carries the Android app's live update, `app-update.zip`
-  and `app-update.json`, which installed apps download (see Live updates under The Android app).
-- **The `skip release` label** on an `rc` into `production` PR turns off the release-ready
-  checks, for a merge that is deliberately not a release.
+- **Merging into `production`** always redeploys the website and the backend, since Netlify and
+  Northflank deploy from the branch itself. Whether it also publishes a version depends on the
+  pull request's label:
+
+| Label | When | Publishes |
+|---|---|---|
+| `release: web` | the version went up, `versionCode` did not | a GitHub Release tagged `v<version>` with the changelog section as its notes, the live update and the APK. Installed apps update themselves |
+| `release: app` | the version and `versionCode` both went up | the same, with a note that Android users need the new APK, since their app skips this update |
+| none | neither changed | nothing beyond the redeploy |
+
+`scripts/release.sh` picks the label from `versionCode`, and `release-ready.yml` fails a pull
+request whose label does not match what changed.
+
+Every release carries `app-update.zip`, `app-update.json` and `whisprl.apk`, and the workflow
+publishes it only once all three are built, so `releases/latest/download/` always has each of
+them. Installed apps read their update there (see Live updates under The Android app), and
+`releases/latest/download/whisprl.apk` always downloads the newest app. A web release's APK keeps
+the same `versionCode`, so it serves new installs and changes nothing for existing ones. A release
+that fails to build publishes nothing, and running the Release workflow again from the Actions
+tab retries it.
+
+Which release a change needs:
+
+- **A web feature or a frontend fix:** `release: web`. A frontend fix the app should get needs a
+  version, even a patch, because the app only takes an update whose version is above its own.
+- **A change to Java, a plugin or a permission:** raise `versionCode` in the same pull request,
+  and it goes out as `release: app`.
+- **A backend-only fix, docs or CI:** no label. The app talks to the same backend, so it gets a
+  backend fix with the redeploy.
 
 ## Cutting a release
 
@@ -365,20 +427,24 @@ That refuses a dirty tree, cuts `release/0.2.0` from `origin/rc`, moves the devl
 dated `CHANGELOG.md` section, stamps What's new's upcoming highlights with the version and date
 (`scripts/whatsnew.py`), bumps the version, runs the gate, commits, pushes, and opens
 **both** pull requests: the prepare one into `rc`, and the release one from `rc` into
-`production`. If the gate fails it deletes the branch and pushes nothing, leaving the tree as it
-found it.
+`production`, labelled `release: app` when `versionCode` on `rc` is above production's and
+`release: web` when it is not. If the gate fails it deletes the branch and pushes nothing, leaving
+the tree as it found it.
 
 Merge the prepare PR, then the release PR. Nothing else is needed: `release-ready.yml` blocks
-the second merge unless the version went up, the changelog has a dated section for it, the
-devlog is empty, What's new has nothing left in `upcoming`, and the tag is free.
+the second merge unless the version went up, the label matches `versionCode`, the changelog has a
+dated section for it, the devlog is empty, What's new has nothing left in `upcoming`, and the tag
+is free.
 
 ```sh
 scripts/skip-release.sh
 ```
 
-opens an `rc` into `production` PR already labelled `skip release`, for moving work to `production`
+opens an `rc` into `production` PR without a release label, for moving work to `production`
 without cutting a version. Anything left in `devlog.txt` stays there and lands in whichever
-version is released next, so nothing is lost by merging one.
+version is released next, so nothing is lost by merging one. It merges only while `rc` has the
+same version and `versionCode` as `production`, so once a native change is on `rc`, only an app
+release moves it.
 
 A version is published once. A mistake means burning a number rather than replacing it.
 

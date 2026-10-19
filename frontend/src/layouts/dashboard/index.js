@@ -74,7 +74,7 @@ const DashboardLayout = () => {
   }, [navigate]);
 
   if (!isLoggedIn || !userId) {
-    return <Navigate to={"/auth/welcome"} />;
+    return <Navigate to={"/auth/welcome"} replace />;
   }
 
   // setup sends you on to where you were going, so a link opened mid-setup still lands

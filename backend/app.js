@@ -3,7 +3,6 @@ import express from "express";
 // security packages
 import cors from "cors";
 import helmet from "helmet";
-import { xss } from "express-xss-sanitizer";
 import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
 import createHttpError from "http-errors"; // error handler
@@ -28,7 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // security middlewares, rate limits sit on each route
 app.use(helmet()); // general security
-app.use(xss()); // xss protection
 app.use(mongoSanitize()); // sanitization for mongodb
 app.use(compression()); // gzip compression
 

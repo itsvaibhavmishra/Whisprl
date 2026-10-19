@@ -1,9 +1,9 @@
 import createHttpError from "http-errors";
-import validator from "validator";
 
 import {
   ChatPreferenceModel,
   FriendRequestModel,
+  GameRequestModel,
   PasskeyChallengeModel,
   PasskeyModel,
   RequestCooldownModel,
@@ -69,7 +69,7 @@ export const sendDeletionCode = async (user) => {
   await UserModel.updateOne({ _id: user._id }, { deletionCode: { codeHash: sha256(code), expiresAt: now + CODE_LIFETIME, sentAt: now, attempts: 0 } });
 
   try {
-    await mailOrFail(user.email, `${code} is your code to delete your Whisprl account`, deletionCodeMail(validator.escape(user.firstName), code));
+    await mailOrFail(user.email, `${code} is your code to delete your Whisprl account`, deletionCodeMail(user.firstName, code));
   } catch (error) {
     await UserModel.updateOne({ _id: user._id }, { $unset: { deletionCode: 1 } });
     throw error;
@@ -99,7 +99,7 @@ const tellScheduled = ({ email, firstName }, dueAt) =>
   sendMail(
     email,
     "Your Whisprl account will be deleted",
-    deletionScheduledMail({ name: validator.escape(firstName), day: endsOn(dueAt), loginUrl: `${process.env.FRONT_URL}/auth/login` })
+    deletionScheduledMail({ name: firstName, day: endsOn(dueAt), loginUrl: `${process.env.FRONT_URL}/auth/login` })
   ).catch((error) => console.error(`[deletion mail] ${error.message}`));
 
 export const scheduleDeletion = async (io, user, body) => {
@@ -138,6 +138,7 @@ const deleteAccount = async (io, user_id) => {
     PasskeyModel.deleteMany({ user: user._id }),
     PasskeyChallengeModel.deleteMany({ user: user._id }),
     ChatPreferenceModel.deleteMany({ user: user._id }),
+    GameRequestModel.deleteMany({ user: user._id }),
     FriendRequestModel.deleteMany(theirs),
     RequestCooldownModel.deleteMany(theirs),
     UserModel.updateMany(

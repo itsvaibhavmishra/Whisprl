@@ -176,6 +176,10 @@ const ChatSettings = () => (
   </SettingsSection>
 );
 
+const PrivacyPolicyLink = () => (
+  <SettingLink component={RouterLink} to={PATH_DOCS.general.privacy} label="Privacy policy" description="What Whisprl stores, and who else handles it." />
+);
+
 const PrivacySettings = () => (
   <Stack spacing={6}>
     <SettingsSection title="Status">
@@ -185,21 +189,37 @@ const PrivacySettings = () => (
       <SuggestionsSetting />
       <BirthdaySetting />
     </SettingsSection>
+    <SettingsSection>
+      <PrivacyPolicyLink />
+    </SettingsSection>
   </Stack>
 );
 
 const BANNER_PATTERNS = ["whispers", "cats", "sky"];
+const RELEASES_PER_PAGE = 3;
 
-const WhatsNewSettings = () =>
-  RELEASES.length ? (
+const ReleaseList = () => {
+  const [shown, setShown] = useState(RELEASES_PER_PAGE);
+  return (
     <Stack spacing={5}>
-      {RELEASES.map((release, index) => (
+      {RELEASES.slice(0, shown).map((release, index) => (
         <Stack key={release.version} component="section" aria-label={releaseTitle(release)} spacing={2}>
           <ReleaseBanner title={releaseTitle(release)} subtitle={releaseNote(release)} pattern={BANNER_PATTERNS[index % BANNER_PATTERNS.length]} />
           <ReleaseHighlights highlights={release.highlights} isWide />
         </Stack>
       ))}
+      {shown < RELEASES.length && (
+        <Button variant="outlined" color="inherit" onClick={() => setShown(shown + RELEASES_PER_PAGE)} sx={{ alignSelf: "center" }}>
+          Show older releases
+        </Button>
+      )}
     </Stack>
+  );
+};
+
+const WhatsNewSettings = () =>
+  RELEASES.length ? (
+    <ReleaseList />
   ) : (
     <Typography variant="body2" sx={{ color: "text.secondary" }}>
       The highlights of each release show here once it is out.
@@ -209,6 +229,8 @@ const WhatsNewSettings = () =>
 const AboutSettings = () => (
   <SettingsSection>
     <SettingLink component={RouterLink} to={PATH_DOCS.general.tnc} label="Terms and conditions" description="What you agree to when you use Whisprl." />
+    <PrivacyPolicyLink />
+    <SettingLink component={RouterLink} to={PATH_DOCS.general.childSafety} label="Child safety" description="How Whisprl keeps young people safe, and how to report harm." />
     <SettingLink {...externalLink} href={SOURCE_URL} label="Source code" description="Whisprl is open source on GitHub." />
     <SettingLink {...externalLink} href={`${SOURCE_URL}/issues/new`} label="Report a problem" description="Opens a new issue on GitHub." />
   </SettingsSection>

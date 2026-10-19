@@ -33,7 +33,7 @@ const AuthLayout = () => {
   }, [dispatch]);
 
   if (isLoggedIn) {
-    return <Navigate to={"/"} />;
+    return <Navigate to={"/"} replace />;
   }
 
   if (pathname.replace(/\/+$/, "") === PATH_AUTH.general.welcome) {

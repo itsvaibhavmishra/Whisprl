@@ -39,6 +39,9 @@ export default function Router() {
       children: [
         { element: <Navigate to={DEFAULT_DOCS} replace />, index: true },
         { path: "tnc", element: <TnCPage /> },
+        { path: "privacy", element: <PrivacyPage /> },
+        { path: "delete-account", element: <DeleteAccountPage /> },
+        { path: "child-safety", element: <ChildSafetyPage /> },
       ],
     },
     { path: "/welcome", element: <Navigate to={DEFAULT_AUTH} replace /> },
@@ -54,6 +57,7 @@ export default function Router() {
             { path: "overview", element: <OverviewPage /> },
             { path: "people", element: <PeoplePage /> },
             { path: "reports", element: <ReportsPage /> },
+            { path: "requests", element: <GameRequestsPage /> },
             { path: "audit", element: <AuditLogPage /> },
             { path: "team", element: <TeamPage /> },
             { path: "*", element: <Navigate to="/404" replace /> },
@@ -107,10 +111,14 @@ const AdminLayout = Loadable(lazy(() => import("@/layouts/admin")));
 const OverviewPage = Loadable(lazy(() => import("@/pages/admin/Overview")));
 const PeoplePage = Loadable(lazy(() => import("@/pages/admin/People")));
 const ReportsPage = Loadable(lazy(() => import("@/pages/admin/Reports")));
+const GameRequestsPage = Loadable(lazy(() => import("@/pages/admin/GameRequests")));
 const AuditLogPage = Loadable(lazy(() => import("@/pages/admin/AuditLog")));
 const TeamPage = Loadable(lazy(() => import("@/pages/admin/Team")));
 
 // docs pages
 const TnCPage = Loadable(lazy(() => import("@/pages/docs/TnC")));
+const PrivacyPage = Loadable(lazy(() => import("@/pages/docs/Privacy")));
+const DeleteAccountPage = Loadable(lazy(() => import("@/pages/docs/DeleteAccount")));
+const ChildSafetyPage = Loadable(lazy(() => import("@/pages/docs/ChildSafety")));
 
 const Page404 = Loadable(lazy(() => import("@/pages/404")));

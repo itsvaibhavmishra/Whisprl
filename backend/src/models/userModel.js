@@ -8,7 +8,7 @@ const PASSWORD_COST = 12;
 
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
-export const PERMISSIONS = ["overview", "people", "reports", "suspend", "ban", "audit"];
+export const PERMISSIONS = ["overview", "people", "reports", "requests", "suspend", "ban", "audit"];
 
 const publicKeySchema = mongoose.Schema(
   {

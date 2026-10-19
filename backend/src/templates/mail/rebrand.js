@@ -1,4 +1,4 @@
-import { button, heading, highlight, lead, mail, paragraph, rule, shot } from "#src/templates/mail/layout.js";
+import { button, greeting, heading, highlight, lead, mail, paragraph, rule, shot } from "#src/templates/mail/layout.js";
 
 const SITE = "https://whisprl.netlify.app";
 const PREVIEW = "https://res.cloudinary.com/twinkconnect/image/upload/email-media/collage.jpg";
@@ -24,7 +24,7 @@ export default (name) =>
     title: "TwinkConnect is now Whisprl",
     preheader: "Same account, same friends. Encrypted messages, group chats, voice notes and status updates are all new.",
     body: `
-${paragraph(`Hey ${name},`)}
+${greeting(name)}
 ${lead("Remember TwinkConnect? It is Whisprl now, and it is not the app you walked away from.")}
 ${shot(PREVIEW, "A Whisprl status playing, a voice note, a chat with a reply, and a friend request", SITE)}
 ${paragraph("Your account came through the rename untouched. Same email, same password, same friends, nothing to move.")}

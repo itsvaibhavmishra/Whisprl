@@ -6,9 +6,11 @@ import {
   addToTeam,
   ban,
   changeTeamAccess,
+  closeGameRequest,
   dismiss,
   getAuditLog,
   getConfirmationOptions,
+  getGameRequests,
   getOverview,
   getPeople,
   getReports,
@@ -39,6 +41,10 @@ adminRouter.route("/people/:user_id/restore").put(writeLimit(), restore);
 adminRouter.route("/reports").get(readLimit(), allow("reports"), getReports);
 
 adminRouter.route("/reports/:report_id/dismiss").put(writeLimit(), allow("reports"), dismiss);
+
+adminRouter.route("/game-requests").get(searchLimit(), allow("requests"), getGameRequests);
+
+adminRouter.route("/game-requests/:name_key/close").put(writeLimit(), allow("requests"), closeGameRequest);
 
 adminRouter.route("/audit").get(readLimit(), allow("audit"), getAuditLog);
 

@@ -1,6 +1,5 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
-import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
 import { HIDDEN_PROFILE_FIELDS } from "#src/models/userModel.js";
@@ -54,7 +53,7 @@ const NOTICES = {
 
 // the action stands whether or not the email arrives, so a failed send is only logged
 const tellPerson = ({ email, firstName }, { subject, heading, body }, reason) =>
-  sendMail(email, subject, accountNoticeMail({ name: validator.escape(firstName), heading, body, reason: validator.escape(reason) })).catch(
+  sendMail(email, subject, accountNoticeMail({ name: firstName, heading, body, reason })).catch(
     (error) => console.error(`[moderation mail] ${error.message}`)
   );
 

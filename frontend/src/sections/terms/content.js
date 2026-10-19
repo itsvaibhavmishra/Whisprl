@@ -1,23 +1,20 @@
-import { PORTFOLIO_URL, SOURCE_URL } from "@/config";
+import { CONTACT_EMAIL, PORTFOLIO_URL, SOURCE_URL } from "@/config";
+import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "16 October 2026";
+export const LAST_UPDATED = "19 October 2026";
 
-const CONTACT = { label: "vaibhaw.vercel.app", href: PORTFOLIO_URL };
-
-export const INTRO = {
-  parts: [
-    "These terms cover your use of Whisprl, a free real-time chat app run by ",
-    { label: "Vaibhaw Mishra", href: CONTACT.href },
-    " at whisprl.netlify.app. By creating an account or using Whisprl, you agree to them. If you do not agree, please do not use Whisprl.",
-  ],
-};
+export const INTRO = [
+  "These terms cover your use of Whisprl, a free real-time chat app run by ",
+  { label: "Vaibhaw Mishra", href: PORTFOLIO_URL },
+  " at whisprl.netlify.app and on Android. By creating an account or using Whisprl, you agree to them. If you do not agree, please do not use Whisprl.",
+];
 
 export const SECTIONS = [
   {
     id: "your-account",
     title: "Your account",
     blocks: [
-      "You need an account to chat. You can sign up with your email address, which is confirmed with a one-time code, or with a Google, GitHub or LinkedIn account.",
+      "You need an account to chat. You can sign up with your email address, which is confirmed with a one-time code, or with a Google, GitHub or LinkedIn account. The Android app offers Google and email.",
       "You must be at least 13 years old to use Whisprl.",
       "Use your real name and an email address you control. Disposable email addresses are not accepted.",
       "Keep your login details to yourself. You are responsible for what happens under your account, so get in touch straight away if you think someone else has got into it.",
@@ -31,14 +28,21 @@ export const SECTIONS = [
       {
         list: [
           "harass, threaten or bully anyone, or send hateful content",
-          "send anything illegal, including any content that exploits children",
+          "share anything that sexually exploits or endangers a child",
+          "send anything else that is illegal",
           "send spam, scams or unwanted bulk messages",
           "share malware, or links meant to harm someone",
           "pretend to be someone else",
           "try to get into other accounts, get around reCAPTCHA or rate limits, or overload the service",
         ],
       },
-      "Accounts that break these rules may be suspended or removed.",
+      {
+        parts: [
+          "The ",
+          { label: "child safety standards", to: PATH_DOCS.general.childSafety },
+          " set out how Whisprl handles anything that harms a child. Accounts that break these rules may be suspended or removed.",
+        ],
+      },
     ],
   },
   {
@@ -47,48 +51,34 @@ export const SECTIONS = [
     blocks: [
       "What you send stays yours. By sending it, you let Whisprl store it and deliver it to the people in that conversation, and that is all it is used for.",
       "You are responsible for what you send, and for having the right to share it.",
-      "Messages, photos, videos, voice messages, documents, reactions and statuses shared with friends are end-to-end encrypted: they are locked in your browser before they leave it, and only the people they are for can open them. Whisprl's servers store them so they are there when you come back, but cannot read them. Messages sent before encryption arrived are stored as they were sent.",
-      "A status is deleted after 24 hours, along with its photo or video, and only the person who posted it can see who viewed it.",
-      "Whisprl uses your microphone only while you are recording a voice message.",
+      "Messages, photos, videos, voice messages, documents, reactions and statuses shared with friends are end-to-end encrypted: they are locked on your device before they leave it, and only the people they are for can open them. Whisprl's servers store them so they are there when you come back, but cannot read them.",
+      "A status is deleted after 24 hours, along with its photo or video.",
     ],
   },
   {
-    id: "your-data",
-    title: "What is stored, and why",
+    id: "privacy",
+    title: "Your privacy",
     blocks: [
-      "Whisprl keeps only what it needs to work:",
       {
-        list: [
-          "your name, username, profile picture and status, so friends can find and recognise you",
-          "your email address, to sign you in and send you codes. Nobody else on Whisprl can see it or find you by it",
-          "your password and one-time codes, stored only as one-way hashes, so nobody can read your password, including the people who run Whisprl",
-          "your friends list and conversations, and your messages, files and the statuses you share with friends, encrypted so only the people they are for can open them",
-          "who has viewed each status, shown only to the person who posted it",
-          "whether you are online, so your friends can see it",
-          "the games you play in a chat: who sits where, every move and how it ends. The server referees each game so nobody can cheat, which means games are not end-to-end encrypted, though the chat beside them still is",
-          "which sign-in methods you have connected, and the public half of any passkey you add and of the key each browser you log in on keeps, which can only check a sign-in, never make one",
+        parts: [
+          "The ",
+          { label: "privacy policy", to: PATH_DOCS.general.privacy },
+          " explains what Whisprl stores, why, who else handles it and how long it is kept. Your data is not sold, and Whisprl shows no ads.",
         ],
       },
-      "Whisprl relies on these services to run:",
-      {
-        list: [
-          "Google, GitHub and LinkedIn, if you sign in with them. Whisprl receives your name, email address and profile picture from them.",
-          "Google reCAPTCHA, to keep bots out of sign-up and log-in",
-          "Google Analytics, to count visits and see which pages are used",
-          "Cloudinary, to store the photos, videos, voice messages and documents you send, which it receives encrypted",
-          "Gmail, to send your verification codes and password reset emails",
-          "Netlify and Northflank, which host the app",
-          "Sentry, to tell us when something in Whisprl breaks. A report, stored in Frankfurt, holds what went wrong, your device and Whisprl version, and your account number, never your messages or anything on your screen",
-        ],
-      },
-      "Whisprl sets no cookies of its own. It keeps the key that keeps you logged in, your encryption key and preferences such as dark mode in your browser's storage. Google Analytics and reCAPTCHA set cookies of their own. Your data is not sold, and Whisprl shows no ads.",
     ],
   },
   {
     id: "leaving",
     title: "Leaving Whisprl",
     blocks: [
-      "You can stop using Whisprl at any time. To delete your account, go to Settings, then Account, then Delete account, and confirm with the code emailed to you. It is hidden straight away and deleted 14 days later, and logging in before then brings it back. Your profile, username, friends, statuses and passkeys are removed, and you leave every group. People you chatted with keep those chats, which then show you as “Whisprl user”.",
+      {
+        parts: [
+          "You can stop using Whisprl at any time, and delete your account from Settings, then Account, then Delete account. It is hidden straight away and deleted 14 days later. ",
+          { label: "Deleting your account", to: PATH_DOCS.general.deleteAccount },
+          " explains what is removed and what stays.",
+        ],
+      },
       "Accounts that break these terms may be suspended or closed.",
     ],
   },
@@ -117,20 +107,14 @@ export const SECTIONS = [
   {
     id: "changes",
     title: "Changes to these terms",
-    blocks: [
-      "When these terms change, the date at the top changes with them. Using Whisprl after that means you accept the new version.",
-    ],
+    blocks: ["When these terms change, the date at the top changes with them. Using Whisprl after that means you accept the new version."],
   },
   {
     id: "contact",
     title: "Contact",
     blocks: [
       {
-        parts: [
-          "Questions about these terms, or a request about your data? Reach Vaibhaw Mishra through ",
-          CONTACT,
-          ".",
-        ],
+        parts: ["Questions about these terms? Email Whisprl at ", { email: CONTACT_EMAIL }, "."],
       },
     ],
   },

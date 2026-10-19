@@ -29,6 +29,12 @@ export const UnwatchGame = createApiThunk("game/unwatch", () => emitGameEvent("g
 
 export const ActInGame = createApiThunk("game/act", (action) => emitGameEvent("game_act", action));
 
+export const RequestGame = createApiThunk("game/request", async (request) => {
+  const { data } = await axios.post("/games/requests", request);
+  notify({ severity: "success", message: "Request sent. Thanks for the idea" });
+  return data;
+});
+
 // the game leaves the screen before the server answers; if it refuses, watching again brings the game back
 export const CloseGame = createApiThunk("game/close", (conversationId, { dispatch }) =>
   emitGameEvent("game_act", { conversationId, type: "close" }).catch((error) => {

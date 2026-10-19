@@ -42,7 +42,6 @@
     "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^7.4.1",
-    "express-xss-sanitizer": "^1.2.1",
     "firebase-admin": "^14.5.0",
     "google-auth-library": "^11.3.1",
     "helmet": "^8.0.0",

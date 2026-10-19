@@ -1,10 +1,11 @@
 import { Box, Button, Container, IconButton, Link, Stack, Typography } from "@mui/material";
 import { GithubLogo, InstagramLogo, LinkedinLogo } from "phosphor-react";
+import { useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
 
 import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import AppearanceMenu from "@/components/AppearanceMenu";
-import { PORTFOLIO_URL, SOURCE_URL } from "@/config";
+import { DEFAULT_PATH, PORTFOLIO_URL, SOURCE_URL } from "@/config";
 import { PATH_AUTH, PATH_DOCS } from "@/routes/paths";
 
 const SOCIALS = [
@@ -13,34 +14,55 @@ const SOCIALS = [
   { label: "Vaibhaw Mishra on LinkedIn", href: "https://www.linkedin.com/in/itsvaibhavmishra", Icon: LinkedinLogo },
 ];
 
-const SiteHeader = () => (
-  <Stack
-    component="header"
-    direction="row"
-    alignItems="center"
-    justifyContent="space-between"
-    sx={{ pt: { xs: "calc(16px + env(safe-area-inset-top))", md: 3 }, pb: { xs: 2, md: 3 } }}
-  >
-    <Box component={RouterLink} to={PATH_AUTH.general.welcome} sx={{ display: "flex" }}>
-      <Box
-        component="img"
-        src={whisprlMark}
-        alt="Whisprl home"
-        width={48}
-        height={52}
-      />
-    </Box>
-    <Stack component="nav" aria-label="Account" direction="row" spacing={1} alignItems="center">
-      <Button component={RouterLink} to={PATH_AUTH.general.login} color="inherit">
-        Log in
-      </Button>
-      <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained">
-        Create account
-      </Button>
-      <AppearanceMenu />
-    </Stack>
-  </Stack>
+const DOCS = [
+  { label: "Terms and conditions", to: PATH_DOCS.general.tnc },
+  { label: "Privacy policy", to: PATH_DOCS.general.privacy },
+  { label: "Child safety", to: PATH_DOCS.general.childSafety },
+];
+
+const AccountLinks = () => (
+  <>
+    <Button component={RouterLink} to={PATH_AUTH.general.login} color="inherit">
+      Log in
+    </Button>
+    <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained">
+      Create account
+    </Button>
+  </>
 );
+
+const SiteHeader = () => {
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  return (
+    <Stack
+      component="header"
+      direction="row"
+      alignItems="center"
+      justifyContent="space-between"
+      sx={{ pt: { xs: "calc(16px + env(safe-area-inset-top))", md: 3 }, pb: { xs: 2, md: 3 } }}
+    >
+      <Box component={RouterLink} to={isLoggedIn ? DEFAULT_PATH : PATH_AUTH.general.welcome} sx={{ display: "flex" }}>
+        <Box
+          component="img"
+          src={whisprlMark}
+          alt="Whisprl home"
+          width={48}
+          height={52}
+        />
+      </Box>
+      <Stack component="nav" aria-label="Account" direction="row" spacing={1} alignItems="center">
+        {isLoggedIn ? (
+          <Button component={RouterLink} to={DEFAULT_PATH} variant="contained">
+            Open Whisprl
+          </Button>
+        ) : (
+          <AccountLinks />
+        )}
+        <AppearanceMenu />
+      </Stack>
+    </Stack>
+  );
+};
 
 const SiteFooter = () => (
   <Stack
@@ -59,9 +81,11 @@ const SiteFooter = () => (
       .
     </Typography>
     <Stack direction="row" spacing={3} alignItems="center" flexWrap="wrap" useFlexGap>
-      <Link component={RouterLink} to={PATH_DOCS.general.tnc} color="text.secondary" variant="body2">
-        Terms and conditions
-      </Link>
+      {DOCS.map(({ label, to }) => (
+        <Link key={to} component={RouterLink} to={to} color="text.secondary" variant="body2">
+          {label}
+        </Link>
+      ))}
       <Link href={SOURCE_URL} target="_blank" rel="noopener" color="text.secondary" variant="body2">
         Source on GitHub
       </Link>
