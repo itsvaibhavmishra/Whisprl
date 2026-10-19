@@ -3,7 +3,7 @@ import { Box, ButtonBase } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
 import { m, useReducedMotion } from "framer-motion";
 
-import { neighboursOf, placedOn, totalOf } from "@/sections/chat/game/games/chain-reaction/cascade";
+import { neighboursOf, totalOf } from "@/sections/chat/game/games/chain-reaction/cascade";
 import Orb, { OrbDefs } from "@/sections/chat/game/games/chain-reaction/Orb";
 import { colourOf, toneOf } from "@/sections/chat/game/games/chain-reaction/palette";
 import useCascade from "@/sections/chat/game/games/chain-reaction/useCascade";
@@ -14,6 +14,9 @@ const GAP = 4;
 const ORB = 17;
 const SPREAD = 19;
 const MAX_WIDTH = 560;
+const CELL_ROUND = 14;
+// the board's corners are rounded in its own units, so a corner cell can follow the same curve
+const BOARD_ROUND = 32;
 
 // a cell one orb from bursting shivers, which is how this game shows where the danger is
 const tremble = keyframes`
@@ -32,6 +35,26 @@ const spotsFor = (count) => {
     return [Math.cos(angle) * SPREAD, Math.sin(angle) * SPREAD];
   });
 };
+
+// a cell in a corner of the board takes that corner's curve, so its outline never pokes past the frame
+const cornersOf = ({ width, height }, cell) => {
+  const last = width * height - 1;
+  return [0, width - 1, last, last - width + 1].map((corner) => (cell === corner ? BOARD_ROUND - GAP : CELL_ROUND));
+};
+
+const cellOutline = (half, [topLeft, topRight, bottomRight, bottomLeft]) =>
+  [
+    `M${topLeft - half} ${-half}`,
+    `H${half - topRight}`,
+    `A${topRight} ${topRight} 0 0 1 ${half} ${topRight - half}`,
+    `V${half - bottomRight}`,
+    `A${bottomRight} ${bottomRight} 0 0 1 ${half - bottomRight} ${half}`,
+    `H${bottomLeft - half}`,
+    `A${bottomLeft} ${bottomLeft} 0 0 1 ${-half} ${half - bottomLeft}`,
+    `V${topLeft - half}`,
+    `A${topLeft} ${topLeft} 0 0 1 ${topLeft - half} ${-half}`,
+    "Z",
+  ].join(" ");
 
 const centreOf = ({ width }, cell) => ({ x: (cell % width) * CELL + CELL / 2, y: Math.floor(cell / width) * CELL + CELL / 2 });
 
@@ -57,23 +80,22 @@ const ChainReactionBoard = ({ state, onMove }) => {
   const prefix = `cr${useId().replace(/:/g, "")}`;
   const isStill = useReducedMotion();
   const cascade = useCascade(state, isStill);
-  const [pending, setPending] = useState(null);
+  const [sent, setSent] = useState(null);
   if (!state) return null;
   // a new game on another size arrives a render before the cascade catches up, and its old board would not fit
-  const fitted = cascade.board?.orbs.length === state.orbs.length ? cascade.board : state;
-  // the tapped orb shows at once and stays until the count moves on, by the server's answer or the bot playing the turn instead
-  const placing = pending?.moves === totalOf(state) ? pending : null;
-  const board = placing ? placedOn(fitted, placing.cell, placing.seat) : fitted;
+  const board = cascade.board?.orbs.length === state.orbs.length ? cascade.board : state;
   const { flight } = cascade;
 
   const { width, height } = state;
   const turnColour = colourOf(state, state.turn);
-  const legal = new Set(placing ? [] : state.legalMoves ?? []);
+  // a tap is outlined at once and the board waits for the count to move on, since a second tap would only come back as "not your turn"
+  const sending = sent?.moves === totalOf(state) ? sent : null;
+  const legal = new Set(sending ? [] : state.legalMoves ?? []);
 
   const place = async (cell) => {
-    setPending({ cell, seat: state.turn, moves: totalOf(state) });
+    setSent({ cell, moves: totalOf(state) });
     const result = await onMove(cell);
-    if (result?.meta?.requestStatus === "rejected") setPending(null);
+    if (result?.meta?.requestStatus === "rejected") setSent(null);
   };
 
   return (
@@ -84,7 +106,7 @@ const ChainReactionBoard = ({ state, onMove }) => {
           position: "relative",
           aspectRatio: `${width} / ${height}`,
           width: `min(${MAX_WIDTH}px, 100cqw, 100cqh * ${width} / ${height})`,
-          borderRadius: 3,
+          borderRadius: `${(BOARD_ROUND / (width * CELL)) * 100}% / ${(BOARD_ROUND / (height * CELL)) * 100}%`,
           bgcolor: "rgba(10, 8, 36, 0.78)",
           backdropFilter: "blur(6px)",
           // the frame takes the colour of whoever is to move, so the board itself says whose turn it is
@@ -99,18 +121,15 @@ const ChainReactionBoard = ({ state, onMove }) => {
             const { x, y } = centreOf(state, cell);
             const count = board.orbs[cell];
             const isTense = count > 0 && count === neighboursOf(state, cell).length - 1;
-            const isLast = !flight && state.lastMove?.cell === cell && count > 0;
+            const isLast = !sending && !flight && state.lastMove?.cell === cell && count > 0;
+            const outline = sending?.cell === cell ? turnColour : isLast && colourOf(state, owner);
             return (
               <g key={cell} transform={`translate(${x} ${y})`}>
-                <rect
-                  x={-CELL / 2 + GAP}
-                  y={-CELL / 2 + GAP}
-                  width={CELL - GAP * 2}
-                  height={CELL - GAP * 2}
-                  rx={14}
+                <path
+                  d={cellOutline(CELL / 2 - GAP, cornersOf(state, cell))}
                   fill={owner === null ? "rgba(255, 255, 255, 0.035)" : alpha(colourOf(state, owner), 0.1)}
-                  stroke={isLast ? alpha(colourOf(state, owner), 0.9) : alpha(turnColour, 0.28)}
-                  strokeWidth={isLast ? 3.5 : 2}
+                  stroke={outline ? alpha(outline, 0.9) : alpha(turnColour, 0.28)}
+                  strokeWidth={outline ? 3.5 : 2}
                 />
                 {count > 0 && (
                   <Box component="g" sx={isTense && !isStill ? { animation: `${tremble} 0.32s linear infinite` } : undefined}>
@@ -125,7 +144,7 @@ const ChainReactionBoard = ({ state, onMove }) => {
           {flight && <Flight grid={state} flight={flight} prefix={prefix} tone={toneOf(state, flight.seat)} />}
         </Box>
 
-        <Box sx={{ position: "absolute", inset: 0, display: "grid", gridTemplateColumns: `repeat(${width}, 1fr)` }}>
+        <Box sx={{ position: "absolute", inset: 0, display: "grid", gridTemplateColumns: `repeat(${width}, 1fr)`, borderRadius: "inherit", overflow: "hidden" }}>
           {board.owners.map((_, cell) => (
             <ButtonBase
               key={cell}

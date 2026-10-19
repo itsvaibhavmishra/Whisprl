@@ -11,7 +11,7 @@ export const neighboursOf = ({ width, height }, cell) => {
 
 export const totalOf = ({ orbs }) => orbs.reduce((sum, count) => sum + count, 0);
 
-export const placedOn = ({ owners, orbs }, cell, seat) => ({
+const placedOn = ({ owners, orbs }, cell, seat) => ({
   owners: owners.map((owner, at) => (at === cell ? seat : owner)),
   orbs: orbs.map((count, at) => (at === cell ? count + 1 : count)),
 });
