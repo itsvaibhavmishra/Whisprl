@@ -15,7 +15,7 @@ import { CODE_LIFETIME, MAX_CODE_ATTEMPTS, assertCooledDown, mailOrFail, matches
 import { deleteFile, isCloudinaryFile } from "#src/services/fileUploadService.js";
 import { announceGroupChange, leaveEveryGroup } from "#src/services/groupService.js";
 import { sendMail } from "#src/services/mailer.js";
-import { DELETED_ACCOUNT, endsOn } from "#src/services/moderationService.js";
+import { PLACEHOLDER_PROFILE, endsOn, profileOf } from "#src/services/moderationService.js";
 import { isStaff } from "#src/services/roleService.js";
 import { endAllSessions, signOutEverywhere } from "#src/services/sessionService.js";
 import { sha256 } from "#src/utils/sha256.js";
@@ -109,7 +109,11 @@ export const scheduleDeletion = async (io, user, body) => {
 
   const requestedAt = new Date();
   const dueAt = new Date(requestedAt.getTime() + DELETION_DELAY);
-  await UserModel.updateOne({ _id: user._id }, { deletion: { requestedAt, dueAt, ...why }, $unset: { deletionCode: 1 } });
+  // hidden at once, the way a ban hides an account, and shown again if they log back in
+  await UserModel.updateOne(
+    { _id: user._id },
+    { deletion: { requestedAt, dueAt, ...why }, ...PLACEHOLDER_PROFILE, hiddenProfile: profileOf(user), $unset: { deletionCode: 1, username: 1 } }
+  );
   await endAllSessions(user._id);
   signOutEverywhere(io, user._id);
   tellScheduled(user, dueAt);
@@ -119,7 +123,7 @@ export const scheduleDeletion = async (io, user, body) => {
 
 // the account stays as a placeholder rather than vanishing, so the people it chatted with can still open what it sent them
 const deleteAccount = async (io, user_id) => {
-  const user = await UserModel.findOne({ _id: user_id, deletedAt: { $exists: false } });
+  const user = await UserModel.findOne({ _id: user_id, deletedAt: { $exists: false } }).select("+hiddenProfile");
   if (!user) return;
 
   await endAllSessions(user._id);
@@ -145,7 +149,7 @@ const deleteAccount = async (io, user_id) => {
   await UserModel.updateOne(
     { _id: user._id },
     {
-      ...DELETED_ACCOUNT,
+      ...PLACEHOLDER_PROFILE,
       // the address is freed for a new account, and this one can never be logged into again
       email: `${user._id}@deleted.invalid`,
       verified: false,
@@ -159,7 +163,8 @@ const deleteAccount = async (io, user_id) => {
     }
   );
 
-  const files = [user.avatar, user.cover, ...statuses.map((status) => status.file?.url)].filter(isCloudinaryFile);
+  const { avatar, cover } = user.hiddenProfile ?? user;
+  const files = [avatar, cover, ...statuses.map((status) => status.file?.url)].filter(isCloudinaryFile);
   await Promise.allSettled(files.map(deleteFile));
 };
 
@@ -178,7 +183,8 @@ export const settleDeletionAtLogin = async (io, user) => {
     throw createHttpError.Unauthorized("This account has been deleted");
   }
 
-  await UserModel.updateOne({ _id: user._id }, { $unset: { deletion: 1 } });
-  user.deletion = undefined;
+  const { hiddenProfile = {} } = await UserModel.findById(user._id).select("+hiddenProfile").lean();
+  await UserModel.updateOne({ _id: user._id }, { ...hiddenProfile, $unset: { deletion: 1, hiddenProfile: 1 } });
+  user.set({ ...hiddenProfile, deletion: undefined });
   return "Welcome back. Your account will not be deleted.";
 };

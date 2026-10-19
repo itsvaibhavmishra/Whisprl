@@ -88,7 +88,7 @@ export const SECTIONS = [
     id: "leaving",
     title: "Leaving Whisprl",
     blocks: [
-      "You can stop using Whisprl at any time. To delete your account, go to Settings, then Account, then Delete account, and confirm with the code emailed to you. It is deleted 14 days later, and logging in before then keeps it. Your profile, username, friends, statuses and passkeys are removed, and you leave every group. People you chatted with keep those chats, which then show you as a deleted account.",
+      "You can stop using Whisprl at any time. To delete your account, go to Settings, then Account, then Delete account, and confirm with the code emailed to you. It is hidden straight away and deleted 14 days later, and logging in before then brings it back. Your profile, username, friends, statuses and passkeys are removed, and you leave every group. People you chatted with keep those chats, which then show you as “Whisprl user”.",
       "Accounts that break these terms may be suspended or closed.",
     ],
   },

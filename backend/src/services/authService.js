@@ -85,7 +85,10 @@ export const authenticate = async (token) => {
 // a username never holds an @, and only verified accounts log in by one, so an account still verifying goes by its email
 const accountFilterOf = (identifier) => {
   const value = String(identifier).trim();
-  return value.indexOf("@") > 0 ? { email: normalizeEmail(value) } : { username: normalizeUsername(value), verified: true };
+  if (value.indexOf("@") > 0) return { email: normalizeEmail(value) };
+  const username = normalizeUsername(value);
+  // a hidden account, such as one waiting to be deleted, still logs in by the username it set aside
+  return { $or: [{ username }, { "hiddenProfile.username": username }], verified: true };
 };
 
 export const loginWithPassword = async (identifier, password) => {

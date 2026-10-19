@@ -31,11 +31,11 @@ const MAX_NOTE = 500;
 const CODE_LENGTH = 6;
 
 const WHAT_GOES =
-  "Your profile, username, friends, statuses and passkeys go, and you leave every group. People you chatted with keep their chats, with you shown as a deleted account.";
+  "Your profile, username, friends, statuses and passkeys go, and you leave every group. People you chatted with keep their chats, with you shown as “Whisprl user”.";
 
 const ReasonStep = ({ reason, onReason, note, onNote }) => (
   <>
-    <DialogContentText>Your account is deleted 14 days after you confirm. Log in before then and it stays as it is.</DialogContentText>
+    <DialogContentText>Your account is hidden as soon as you confirm, and deleted 14 days later. Log in before then and it comes back as it was.</DialogContentText>
     <DialogContentText sx={{ mt: 1.5 }}>{WHAT_GOES}</DialogContentText>
     <Typography id="delete-reason-label" sx={{ mt: 2.5, mb: 0.5, fontWeight: 600 }}>
       Why are you leaving?
@@ -79,7 +79,7 @@ const CodeStep = ({ email, code, onCode, onResend, isResending }) => (
       Send a new code
     </LoadingButton>
     <Alert severity="warning" sx={{ mt: 2 }}>
-      You&apos;ll be logged out everywhere now, and your account is deleted in 14 days unless you log in again.
+      You&apos;ll be logged out everywhere and your account hidden now, then deleted in 14 days unless you log in again.
     </Alert>
   </>
 );

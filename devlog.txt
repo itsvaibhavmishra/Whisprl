@@ -16,7 +16,7 @@
   - New:
     - Android notifications show the message itself, opened on the phone so the server still never reads it
     - Links to Whisprl open the Android app when it is installed, and the website when it is not
-    - Delete your account from Settings, confirmed with a code sent to your email, with 14 days to change your mind by logging back in
+    - Delete your account from Settings, confirmed with a code sent to your email. It is hidden at once, and logging back in within 14 days brings it back
 
   - Improvements:
     - With Whisprl added to a phone's home screen, the chat, status, contacts and settings lists, the sign-in and setup pages, and notices keep clear of the status bar

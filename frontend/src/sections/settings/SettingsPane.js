@@ -123,7 +123,7 @@ const DeleteAccountSetting = () => {
   if (isStaff(role)) return null;
 
   return (
-    <SettingRow label="Delete account" description="Your account is deleted 14 days after you confirm, and logging in before then keeps it.">
+    <SettingRow label="Delete account" description="Your account is hidden as soon as you confirm and deleted 14 days later. Logging in before then brings it back.">
       <Button variant="outlined" color="error" onClick={() => setIsDeleting(true)}>
         Delete account
       </Button>

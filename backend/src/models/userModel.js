@@ -120,7 +120,7 @@ const userSchema = mongoose.Schema(
 
     bannedAt: { type: Date },
     suspendedUntil: { type: Date },
-    // what a ban replaced, so staff can still tell who it is and a restore puts it all back
+    // what a ban or a pending deletion replaced, so staff can still tell who it is and showing it again puts it all back
     hiddenProfile: { type: profileSchema, select: false },
     verification: { type: verificationSchema, select: false },
     passwordReset: { type: passwordResetSchema, select: false },

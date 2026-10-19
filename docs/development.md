@@ -169,7 +169,7 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
 - **A ban writes the placeholder in rather than hiding the account on read.** `populate`
   skips query middleware, so masking on read missed most of the places a person is shown.
   Banning moves the name, username, photo, cover and status line into `hiddenProfile` and
-  writes "Deleted account" over them; restoring puts them back. Staff pages read
+  writes "Whisprl user" over them; restoring puts them back. Staff pages read
   `hiddenProfile` to show who it really is.
 - **Every staff action records an audit entry** through `recordAction`, and asks for the
   acting person's passkey first. Staff without a passkey are told to add one in Settings:
@@ -212,8 +212,10 @@ rather than failing against words that are no longer there.
 
 Settings, then Account, then Delete account asks why someone is leaving, with "Something else"
 asking for a few words, then emails a code to the account's address. Entering it logs the account
-out everywhere, emails the date it goes, and deletes it 14 days later. Logging in any way before
-then cancels the deletion and says so. Staff accounts cannot be deleted, so the owner and admins
+out everywhere, emails the date it goes, and deletes it 14 days later. Until then it is hidden
+the way a ban hides an account: friends see "Whisprl user", searches and suggestions leave it out,
+and its username stays reserved. Logging in any way before then, the username included, shows it
+again and cancels the deletion. Staff accounts cannot be deleted, so the owner and admins
 give up their access first.
 
 The server sleeps on a free plan, so nothing waits on a timer. `deleteDueAccounts` in
@@ -221,7 +223,7 @@ The server sleeps on a free plan, so nothing waits on a timer. `deleteDueAccount
 a minute after that, and logging in to an account already past its date deletes it there and
 then rather than letting it back in.
 
-A deleted account stays as a placeholder, the same "Deleted account" a ban shows, because the
+A deleted account stays as a placeholder, the same "Whisprl user" a ban shows, because the
 people it chatted with need its public keys to open what it sent them. Everything else goes:
 the email becomes an unusable `<id>@deleted.invalid`, which frees the address for a new account,
 and the password, username, birthday, photos, statuses, passkeys, friends, requests and settings

@@ -15,7 +15,10 @@ import accountNoticeMail from "#src/templates/mail/accountNotice.js";
 const PAGE_SIZE = 30;
 const SEARCHED_FIELDS = ["firstName", "lastName", "username", "email"];
 const LISTED_FIELDS = "firstName lastName username email avatar role verified bannedAt suspendedUntil createdAt";
-export const DELETED_ACCOUNT = { firstName: "Deleted account", lastName: "", avatar: "", cover: "", activityStatus: "" };
+// what everyone else sees in place of a banned, hidden or deleted account
+export const PLACEHOLDER_PROFILE = { firstName: "Whisprl user", lastName: "", avatar: "", cover: "", activityStatus: "" };
+
+export const profileOf = (user) => Object.fromEntries(HIDDEN_PROFILE_FIELDS.map((field) => [field, user[field]]).filter(([, value]) => value !== undefined));
 
 export const isSuspended = (user) => Boolean(user.suspendedUntil) && user.suspendedUntil > new Date();
 
@@ -125,11 +128,12 @@ export const banPerson = async (io, actor, user_id, { reason, reportId }) => {
   const given = assertReason(reason);
   const target = await findTarget(actor, user_id);
   assertNotBanned(target);
-  const hiddenProfile = Object.fromEntries(HIDDEN_PROFILE_FIELDS.map((field) => [field, target[field]]).filter(([, value]) => value !== undefined));
+  // an account already hidden, as one waiting to be deleted is, keeps the real profile it set aside
+  const hiddenProfile = target.hiddenProfile ?? profileOf(target);
 
   await UserModel.updateOne(
     { _id: target._id },
-    { ...DELETED_ACCOUNT, hiddenProfile, bannedAt: new Date(), $unset: { suspendedUntil: 1, username: 1 } }
+    { ...PLACEHOLDER_PROFILE, hiddenProfile, bannedAt: new Date(), $unset: { suspendedUntil: 1, username: 1 } }
   );
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "banned", target: target._id, reason: given });
