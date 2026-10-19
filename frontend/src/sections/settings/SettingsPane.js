@@ -16,6 +16,7 @@ import BirthdaySetting from "@/sections/settings/BirthdaySetting";
 import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
 import ChangePasswordDialog from "@/sections/settings/ChangePasswordDialog";
 import ChatPreview from "@/sections/settings/ChatPreview";
+import DeleteAccountDialog from "@/sections/settings/DeleteAccountDialog";
 import PasskeySetting from "@/sections/settings/PasskeySetting";
 import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
@@ -30,6 +31,7 @@ import { RELEASES, releaseNote, releaseTitle } from "@/sections/whats-new/whatsN
 import getAvatar from "@/utils/avatars";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
 import { isApp } from "@/utils/platform";
+import { isStaff } from "@/utils/roles";
 import { previewSound } from "@/utils/sounds";
 
 const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRight };
@@ -114,6 +116,22 @@ const AppearanceSettings = () => (
   </Stack>
 );
 
+// staff hand back their access before they can go, so the server would refuse them anyway
+const DeleteAccountSetting = () => {
+  const role = useSelector((state) => state.user.user.role);
+  const [isDeleting, setIsDeleting] = useState(false);
+  if (isStaff(role)) return null;
+
+  return (
+    <SettingRow label="Delete account" description="Your account is deleted 14 days after you confirm, and logging in before then keeps it.">
+      <Button variant="outlined" color="error" onClick={() => setIsDeleting(true)}>
+        Delete account
+      </Button>
+      {isDeleting && <DeleteAccountDialog onClose={() => setIsDeleting(false)} />}
+    </SettingRow>
+  );
+};
+
 const AccountSettings = () => {
   const { email, firstName, lastName, avatar } = useSelector((state) => state.user.user);
   return (
@@ -127,6 +145,7 @@ const AccountSettings = () => {
       />
       <UsernameSetting />
       <SettingRow label="Email" description={email} />
+      <DeleteAccountSetting />
     </SettingsSection>
   );
 };

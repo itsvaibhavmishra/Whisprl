@@ -1,11 +1,11 @@
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { ArrowLeft } from "phosphor-react";
 
-import WhisprlAvatar from "@/assets/icons/logo/WhisprlAvatar.webp";
+import MascotHalo from "@/components/MascotHalo";
 
 export const PaneEmpty = ({ text, children }) => (
   <Stack alignItems="center" spacing={2} sx={{ px: 3, py: 8, textAlign: "center" }}>
-    <Box component="img" src={WhisprlAvatar} alt="" sx={{ width: 96, height: 96, borderRadius: "50%", bgcolor: "chat.field" }} />
+    <MascotHalo size={120} />
     <Typography sx={{ maxWidth: 300, fontSize: 14, fontWeight: 500, color: "text.secondary" }}>{text}</Typography>
     {children}
   </Stack>

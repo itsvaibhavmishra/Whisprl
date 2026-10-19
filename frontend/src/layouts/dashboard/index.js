@@ -17,6 +17,7 @@ import { selectIsLoading } from "@/redux/slices/requestSlice";
 import { PATH_SETUP } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import EncryptionGate from "@/sections/encryption/EncryptionGate";
+import { reportErrorsAs } from "@/utils/errorReports";
 import { openNotifiedChat, setChatOpener } from "@/utils/notifications";
 import { needsSetup } from "@/utils/onboarding";
 import { isApp } from "@/utils/platform";
@@ -59,6 +60,11 @@ const DashboardLayout = () => {
   }, [dispatch, isLoggedIn, userId, isSetUp, notifications]);
 
   useEffect(() => (isApp ? listenForPushTaps(openNotifiedChat) : undefined), []);
+
+  useEffect(() => {
+    reportErrorsAs(userId);
+    return () => reportErrorsAs(null);
+  }, [userId]);
 
   useEffect(() => {
     setChatOpener((conversationId) => {

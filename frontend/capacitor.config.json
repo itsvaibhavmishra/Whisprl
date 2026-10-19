@@ -1,5 +1,13 @@
 {
   "appId": "com.vaibhaw.whisprl",
   "appName": "Whisprl",
-  "webDir": "build"
+  "webDir": "build",
+  "plugins": {
+    "LiveUpdate": {
+      "publicKey": "-----BEGIN PUBLIC KEY-----MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAqXcqw8MqwvA994w3N7cp3fyzJGuBAbb6i5pX5MnbSwntm1ptz16nuWpjvLB65UZiTPUS1kHRb9xLdG6/FlZ18Rh4yFnM6x3KuoGtqZCiwFlaB88ifLbgQXOc0Ss3m50n4OyD22caDC4QAAKxg6oTJhsiYY05Tru3WBrLEXoyjUQVbpaLDPREW0GU3++t4DAZFmFYrRGwws6+ZUZKG86d5bYDGLOKA2gu/Wt/r7tkvI8DQMajEjZxmGDKfZmayRY40NXu6ehnaUqcOVRiRM+yHccUZ6UFKmFPEZjKdU2pz3qdmmipZh7bLopwhby+2e4Su9Fuzt3koEEgS6VAS149V19ZiY3BXNEanmc2DAC9kyoQrctWf6/JqmqdWOqOXeDvXbDc8Dohmn+60aHnZccmZfUU0sPX4cw8JYjuxI2Q6N1svlJzdtPZLIjNBey+KeDr4tceAlKurhyOGcGL+xTN5/stMZ9v9XXjxMqiro6nZpj/i0VYQihdQx57C3ACsmIVAgMBAAE=-----END PUBLIC KEY-----",
+      "readyTimeout": 10000,
+      "autoBlockRolledBackBundles": true,
+      "autoDeleteBundles": true
+    }
+  }
 }

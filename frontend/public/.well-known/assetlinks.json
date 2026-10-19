@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.vaibhaw.whisprl",
+      "sha256_cert_fingerprints": ["02:E2:0F:B3:41:D0:64:67:99:B0:1F:2F:5E:F8:70:62:54:FC:E3:9F:49:E2:49:7D:2E:D0:6B:69:C0:E7:7B:8F"]
+    }
+  }
+]

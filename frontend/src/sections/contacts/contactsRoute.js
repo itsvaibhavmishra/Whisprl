@@ -1,7 +1,9 @@
 import { useParams } from "react-router-dom";
 
+import { SITE_URL } from "@/config";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { notify } from "@/utils/notify";
+import { isApp } from "@/utils/platform";
 
 const ROOT = PATH_DASHBOARD.general.contacts;
 
@@ -19,7 +21,10 @@ export const useContactsAddress = () => {
   return { isRequests: rest === "requests", isFinding: rest === "find", handle: rest && !PANES.includes(rest) ? rest : null };
 };
 
-export const profileLinkOf = (person) => `${window.location.origin}${contactPathOf(person)}`;
+// the app is served from https://localhost on the phone, so its links point at the website instead
+const linkOrigin = isApp ? SITE_URL : window.location.origin;
+
+export const profileLinkOf = (person) => `${linkOrigin}${contactPathOf(person)}`;
 
 export const copyProfileLink = async (person) => {
   await navigator.clipboard.writeText(profileLinkOf(person));

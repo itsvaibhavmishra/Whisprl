@@ -15,13 +15,13 @@ import accountNoticeMail from "#src/templates/mail/accountNotice.js";
 const PAGE_SIZE = 30;
 const SEARCHED_FIELDS = ["firstName", "lastName", "username", "email"];
 const LISTED_FIELDS = "firstName lastName username email avatar role verified bannedAt suspendedUntil createdAt";
-const DELETED_ACCOUNT = { firstName: "Deleted account", lastName: "", avatar: "", cover: "", activityStatus: "" };
+export const DELETED_ACCOUNT = { firstName: "Deleted account", lastName: "", avatar: "", cover: "", activityStatus: "" };
 
 export const isSuspended = (user) => Boolean(user.suspendedUntil) && user.suspendedUntil > new Date();
 
 export const isShutOut = (user) => Boolean(user.bannedAt) || isSuspended(user);
 
-const endsOn = (until) => until.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+export const endsOn = (until) => until.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 // a banned or suspended account cannot hold a session, so this guards both signing in and every later request
 export const assertNotShutOut = (user) => {

@@ -62,8 +62,16 @@ project's `google-services.json` in `frontend/android/app/`, which is kept out o
 backend needs that project's service account JSON, on one line, as `FIREBASE_SERVICE_ACCOUNT`.
 Without the file the app offers no notifications, since asking Firebase for a token would crash
 it, and without the variable the server sends none. A phone's token is kept on its session, so
-logging out stops its pushes. A push names who wrote and never what, since the server cannot read
-messages, and muted chats get none.
+logging out stops its pushes, and muted chats get none.
+
+The server cannot read a message, so a push carries it still sealed, with only the key sealed for
+that phone, and `MessageNotificationService.java` opens it on the phone with the key held in Block
+Store, even while the app is closed. `MessageCipher.java` repeats the steps of `messageCipher.js`,
+and both are tested against the same messages in `messageVectors.json`, sealed by the web cipher,
+so a change to one that the other misses fails a test. Run the Java side with
+`./gradlew :app:testDebugUnitTest` from `frontend/android/`. A message too long for a push, or one
+the phone cannot open, shows as "New message". Pushes are data only and high priority, so the app
+decides what is shown, and shows nothing while it is on screen.
 
 **Signing in with Google.** Google refuses its sign-in page inside a web view, so the app asks
 Android for the token instead, through Credential Manager in `GoogleSignInPlugin.java`. That
@@ -74,8 +82,51 @@ tells them apart by shape and verifies the ID token's signature, issuer, expiry 
 
 The app offers Google and email sign-in only. GitHub and LinkedIn are for the website.
 
+**Links.** A link to the website's chat, contacts, status or settings pages opens the app when it
+is installed, and the website when it is not, so a shared profile link works for everyone. The
+app's profile links point at the website for the same reason, since its own origin is
+`https://localhost`. Android checks `frontend/public/.well-known/assetlinks.json` on the site
+against the key that signed the app, so that file has to list the SHA-256 fingerprint of every key
+that signs a build people install: today the debug key of the machine that builds it, and the upload
+and Play signing keys once those exist. Sign-in pages under `/auth` stay in the browser, so a web
+sign-in that returns there is never taken over by the app. Opening a link while the app is closed
+or open lands on that page through `OpenAppLinks.js`, and checking it before deploy works with
+`adb shell am start -a android.intent.action.VIEW -d "https://whisprl.netlify.app/contacts/@someone"`.
+
 `versionName` is read from `frontend/package.json`, so the app carries the web app's version.
-`versionCode` is a plain counter in `frontend/android/app/build.gradle`.
+`versionCode` is a plain counter in `frontend/android/app/build.gradle`, raised only when the
+native side changes.
+
+**Live updates.** An installed app updates its web code without a new APK. Each release builds
+the frontend with the production settings, zips it, signs it, and attaches `app-update.zip` and
+`app-update.json` to the GitHub release (`scripts/app-update.sh`, run by `release.yml`). On every
+launch and every return to the foreground the app reads
+`releases/latest/download/app-update.json`, and downloads the update only when it is newer than
+the version running, its signature matches the public key in `capacitor.config.json`, and the
+APK's `versionCode` is at least the `minNativeVersion` it names, which is the `versionCode` it was
+built against. The update applies on the next launch. The app then calls `ready()` once it has
+drawn, and an update that does not within 10 seconds is rolled back to the version inside the APK
+and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
+`@capawesome/capacitor-live-update` and no paid service.
+
+- **Only web code travels this way.** Any change to Java, a plugin or a permission raises
+  `versionCode` and ships as a new APK, or through Play once the app is there, and older APKs
+  skip every update built after it. An update must not break any other Play rule: it never adds
+  what a Play review would refuse, and never changes what the app is for.
+- **The signing key** is RSA, kept in the `LIVE_UPDATE_KEY` repository secret and nowhere in the
+  repo. Losing it means no installed app accepts another update until people install an APK
+  carrying a new public key, so keep a copy in a password manager.
+- **The production settings** come from repository variables named like the `REACT_APP_` keys in
+  `frontend/.env copy`, the same values Netlify builds the website with. Without the secret the
+  release still publishes and warns that no update was attached.
+- **`REACT_APP_UPDATE_URL`** is set only for builds people install. A development build leaves it
+  out, so it never replaces itself with production code. A production APK must be built with it,
+  or that APK never updates.
+- **Testing an update locally:** build an APK with `REACT_APP_UPDATE_URL` pointing at
+  `http://localhost:8300/app-update.json`, raise the version in `frontend/package.json` for a
+  moment, run `scripts/app-update.sh <key> <folder> http://localhost:8300`, put the version back,
+  serve the folder on port 8300 and `adb reverse tcp:8300 tcp:8300`. The next launch stages the
+  update and the one after runs it.
 
 ## Staff roles
 
@@ -157,9 +208,61 @@ An edit is franked again with a fresh key, and the new fingerprint replaces the 
 that arrives without one clears the stored fingerprint, so the message reads as `unchecked`
 rather than failing against words that are no longer there.
 
+## Deleting an account
+
+Settings, then Account, then Delete account asks why someone is leaving, with "Something else"
+asking for a few words, then emails a code to the account's address. Entering it logs the account
+out everywhere, emails the date it goes, and deletes it 14 days later. Logging in any way before
+then cancels the deletion and says so. Staff accounts cannot be deleted, so the owner and admins
+give up their access first.
+
+The server sleeps on a free plan, so nothing waits on a timer. `deleteDueAccounts` in
+`accountDeletionService.js` deletes every account past its date when the server starts and once
+a minute after that, and logging in to an account already past its date deletes it there and
+then rather than letting it back in.
+
+A deleted account stays as a placeholder, the same "Deleted account" a ban shows, because the
+people it chatted with need its public keys to open what it sent them. Everything else goes:
+the email becomes an unusable `<id>@deleted.invalid`, which frees the address for a new account,
+and the password, username, birthday, photos, statuses, passkeys, friends, requests and settings
+are removed. It leaves every group, handing on any it owned. The reason, and any note, stay on
+the placeholder as the only record of why people leave. No email is sent when the account is
+actually deleted.
+
+## Error reports
+
+Production errors go to Sentry, in the EU region (Frankfurt), organization `whisprl`. Two
+projects: `whisprl-web` for the website and the app's web code, each report tagged `web` or
+`android`, and `whisprl-backend` for the server.
+
+- **Website and app:** `utils/errorReports.js` starts before the first render and reports
+  uncaught errors and promise rejections. In the app, Sentry's native SDK also reports Java
+  crashes, sending each on the next launch. A crash while drawing shows `CrashScreen` with a
+  reload button instead of a blank page. It sits inside the live update's start signal, so an
+  update that crashes on start still rolls back.
+- **A tab left open across a deploy** asks for page code the deploy removed. `utils/newVersion.js`
+  reloads it once instead, unreported, which fetches the new version. A failure again within a
+  minute of that reload shows the crash screen and is reported, and one while offline shows the
+  crash screen without a report, since a reload cannot help and the connection is not a bug.
+- **Backend:** `src/utils/errorReports.js` reports every 500 from the Express error handler,
+  every crash that ends the process, and every failed background sweep.
+- **What a report never holds:** session replay, console output, clicks, request bodies,
+  headers or query strings, or any text a message quoted in double quotes, since a parse error
+  quotes what it failed on and that can be a decrypted message. The person is identified by
+  account id only, and Sentry never stores the IP address. Keep it this way: anything on screen
+  in Whisprl may be decrypted.
+- **Off unless a DSN is set.** `REACT_APP_SENTRY_DSN` for the frontend and `SENTRY_DSN` for the
+  backend are set only in production, so errors met while developing stay in the console and do
+  not use up the free plan's monthly allowance, which the whole organization shares.
+- **Readable stack traces:** every frontend build runs `scripts/sentry-sourcemaps.sh` after it,
+  which, given `SENTRY_AUTH_TOKEN` and `REACT_APP_SENTRY_DSN`, ties the built code to its source
+  maps and uploads them for release `whisprl@<version>`. It does nothing without them, so the
+  gate and development builds skip it. The token is an organization token, limited to tasks like
+  this one; it is never needed by the running app or server.
+
 ## Emails
 
-Every email is built from one shell in `backend/src/templates/mail/layout.js`, so the four
+Every email is built from one shell in `backend/src/templates/mail/layout.js`, so the
 templates differ only in their content. A template returns `{ html, text }`: the plain-text
 half is not optional, because a message with no text part is one of the oldest spam signals
 there is. `sendMail` passes both to Nodemailer, which sends them as one multipart message.
@@ -244,7 +347,8 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 - **Merging into `production` publishes** a GitHub Release tagged `v<version>`, with that version's
   changelog section as its notes. It skips that if the tag already exists, so an ordinary merge
   that did not bump the version cannot cut a duplicate. Netlify and Northflank deploy from the
-  branches themselves, so no build is attached.
+  branches themselves. The release also carries the Android app's live update, `app-update.zip`
+  and `app-update.json`, which installed apps download (see Live updates under The Android app).
 - **The `skip release` label** on an `rc` into `production` PR turns off the release-ready
   checks, for a merge that is deliberately not a release.
 

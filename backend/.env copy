@@ -40,3 +40,6 @@ GOOGLE_RECAPTCHA_SECRET = ""
 # Push notifications for the Android app (can be skipped, the server then sends none)
 # The Firebase service account's JSON, on one line
 FIREBASE_SERVICE_ACCOUNT = ''
+
+# Sentry error reports, for the production server only: leave it out in development
+SENTRY_DSN = ''

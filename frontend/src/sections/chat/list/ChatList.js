@@ -4,7 +4,7 @@ import { alpha } from "@mui/material/styles";
 import { Archive, ArrowLeft, CaretRight, UsersThree } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
-import WhisprlAvatar from "@/assets/icons/logo/WhisprlAvatar.webp";
+import MascotHalo from "@/components/MascotHalo";
 import RequestButton from "@/components/profile/RequestButton";
 import SearchPill from "@/components/SearchPill";
 import Wordmark from "@/components/Wordmark";
@@ -271,7 +271,7 @@ const ChatList = ({ onNewGroup }) => {
             )}
             {!shown.length && !people.length && !strangers.length && note && (
               <Stack alignItems="center" spacing={1.5} sx={{ px: 3, py: 6, textAlign: "center" }}>
-                {isUnfiltered && <Box component="img" src={WhisprlAvatar} alt="" sx={{ width: 96, height: 96, borderRadius: "50%", bgcolor: "chat.field" }} />}
+                {isUnfiltered && <MascotHalo size={120} />}
                 <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.secondary", maxWidth: 260 }}>{note}</Typography>
               </Stack>
             )}

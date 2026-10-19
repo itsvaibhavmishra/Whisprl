@@ -11,6 +11,7 @@ import createHttpError from "http-errors"; // error handler
 // folder/file imports
 import router from "#src/routes/index.js";
 import { allowedOrigins } from "#src/utils/allowedOrigins.js";
+import { reportError } from "#src/utils/errorReports.js";
 
 // creating express app
 const app = express();
@@ -64,7 +65,10 @@ const messageOf = (error, status) => {
 // error handling
 app.use((error, req, res, next) => {
   const status = statusOf(error);
-  if (status >= 500) console.error(error);
+  if (status >= 500) {
+    console.error(error);
+    reportError(error, req.user?._id);
+  }
 
   res.status(status).send({
     error: {

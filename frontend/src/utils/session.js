@@ -134,6 +134,8 @@ axios.interceptors.response.use(
   async (error) => {
     // stopped before it left, by an ended session or a failed renewal, so it already says why
     if (!error.isAxiosError) return Promise.reject(error);
+    // a request that would have ended the session but was refused, such as one with a wrong code, leaves it running
+    if (error.config?.endsSession) isLoggingOut = false;
     if (!error.response) return Promise.reject(OFFLINE);
 
     const { config, response } = error;

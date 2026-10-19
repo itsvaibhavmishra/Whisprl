@@ -92,7 +92,7 @@ export const socketSendMessage = async (socket, payload, acknowledge) => {
     if (isNew) {
       socket.to(memberRooms(conversation)).emit("message_received", message);
       // a push that fails must never fail the message it was about
-      pushNewMessage(conversation, socket.user).catch(() => {});
+      pushNewMessage(conversation, socket.user, message).catch(() => {});
     }
     acknowledge?.({ status: "success", message });
   } catch (error) {

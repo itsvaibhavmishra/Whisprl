@@ -3,7 +3,8 @@ name: Release
 # Each merge into production publishes a GitHub Release tagged v<VERSION>, with that version's
 # CHANGELOG section as its notes. A merge that did not bump the version finds its tag already
 # taken and publishes nothing, so it cannot cut a duplicate. Netlify and Northflank deploy from the
-# branches themselves, so nothing is built here.
+# branches themselves. The one thing built here is the Android app's live update, signed and
+# attached to the release, where installed apps look for it.
 
 on:
   push:
@@ -28,6 +29,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Publish release
+        id: release
         run: |
           VERSION=$(node -p "require('./frontend/package.json').version")
           if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then
@@ -37,3 +39,41 @@ jobs:
           # the same script the release command uses, so the notes and the pull request body cannot drift apart
           python3 scripts/changelog.py section "$VERSION" > notes.md
           gh release create "v$VERSION" --target "${{ github.sha }}" --title "Whisprl $VERSION" --notes-file notes.md
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        if: steps.release.outputs.version
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend
+        if: steps.release.outputs.version
+        run: npm ci
+        working-directory: frontend
+
+      # built with the production settings the website uses, and signed with the key whose public half every APK carries
+      - name: Publish the app update
+        if: steps.release.outputs.version
+        env:
+          LIVE_UPDATE_KEY: ${{ secrets.LIVE_UPDATE_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          REACT_APP_SENTRY_DSN: ${{ vars.REACT_APP_SENTRY_DSN }}
+          REACT_APP_NODE: ${{ vars.REACT_APP_NODE }}
+          REACT_APP_API_ORIGIN: ${{ vars.REACT_APP_API_ORIGIN }}
+          REACT_APP_GA_ID: ${{ vars.REACT_APP_GA_ID }}
+          REACT_APP_GOOGLE_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GOOGLE_AUTH_CLIENT_ID }}
+          REACT_APP_GITHUB_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GITHUB_AUTH_CLIENT_ID }}
+          REACT_APP_LINKEDIN_AUTH_CLIENT_ID: ${{ vars.REACT_APP_LINKEDIN_AUTH_CLIENT_ID }}
+          REACT_APP_RECAPTCHA_CLIENT: ${{ vars.REACT_APP_RECAPTCHA_CLIENT }}
+          REACT_APP_UPDATE_URL: https://github.com/${{ github.repository }}/releases/latest/download/app-update.json
+        run: |
+          if [ -z "$LIVE_UPDATE_KEY" ]; then
+            echo "::warning::No LIVE_UPDATE_KEY secret, so installed apps get no update for this release."
+            exit 0
+          fi
+          umask 077
+          printf '%s\n' "$LIVE_UPDATE_KEY" > "$RUNNER_TEMP/live-update-key.pem"
+          scripts/app-update.sh "$RUNNER_TEMP/live-update-key.pem" "$RUNNER_TEMP/app-update"
+          gh release upload "v${{ steps.release.outputs.version }}" "$RUNNER_TEMP/app-update/app-update.zip" "$RUNNER_TEMP/app-update/app-update.json"

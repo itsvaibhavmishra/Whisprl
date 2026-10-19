@@ -4,12 +4,16 @@ import mongoose from "mongoose";
 
 import app from "#app.js";
 import { initializeSocket } from "#socket.js";
+import { deleteDueAccounts } from "#src/services/accountDeletionService.js";
 import { sweepExpiredMessages } from "#src/services/disappearingService.js";
 import { sweepOldEvidence } from "#src/services/reportQueueService.js";
 import { dropKeylessSessions } from "#src/services/sessionService.js";
 import { sweepExpiredStatuses } from "#src/services/statusService.js";
 import { clearDefaultStatuses, giveEveryoneACoverStyle } from "#src/services/userService.js";
 import { giveEveryoneAUsername } from "#src/services/usernameService.js";
+import { flushErrorReports, reportError, startErrorReports } from "#src/utils/errorReports.js";
+
+startErrorReports();
 
 // env variables
 const port = process.env.PORT || "5000";
@@ -39,8 +43,15 @@ mongoose
     dropKeylessSessions()
       .then((dropped) => dropped && console.log(`[DB] Ended ${dropped} sessions from before session keys`))
       .catch((error) => console.log(`[DB] Old sessions not ended: ${error.message}`));
-    const sweepFailed = (error) => console.log(`[DB] Sweep failed: ${error.message}`);
+    deleteDueAccounts(app.get("io"))
+      .then((deleted) => deleted && console.log(`[DB] Deleted ${deleted} accounts that were due while the server was off`))
+      .catch((error) => console.log(`[DB] Due accounts not deleted: ${error.message}`));
+    const sweepFailed = (error) => {
+      console.log(`[DB] Sweep failed: ${error.message}`);
+      reportError(error);
+    };
     setInterval(() => {
+      deleteDueAccounts(app.get("io")).catch(sweepFailed);
       sweepExpiredMessages(app.get("io")).catch(sweepFailed);
       sweepExpiredStatuses().catch(sweepFailed);
       sweepOldEvidence().catch(sweepFailed);
@@ -75,7 +86,8 @@ const exitHandler = () => {
 
 const unexpectedErrorHandler = (error) => {
   console.log(error);
-  exitHandler();
+  reportError(error);
+  flushErrorReports().finally(exitHandler);
 };
 
 process.on("uncaughtException", unexpectedErrorHandler);

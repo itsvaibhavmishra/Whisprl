@@ -8,11 +8,11 @@ const float = keyframes`
   50% { transform: translateY(-8px); }
 `;
 
-const MascotHalo = () => (
+const MascotHalo = ({ size = 176 }) => (
   <Box
     sx={{
-      width: 176,
-      height: 176,
+      width: size,
+      height: size,
       borderRadius: "50%",
       display: "grid",
       placeItems: "center",
@@ -23,7 +23,7 @@ const MascotHalo = () => (
       component="img"
       src={Mascot}
       alt=""
-      sx={{ width: 150, height: "auto", animation: `${float} 5s ease-in-out infinite`, "@media (prefers-reduced-motion: reduce)": { animation: "none" } }}
+      sx={{ width: "85%", height: "auto", animation: `${float} 5s ease-in-out infinite`, "@media (prefers-reduced-motion: reduce)": { animation: "none" } }}
     />
   </Box>
 );

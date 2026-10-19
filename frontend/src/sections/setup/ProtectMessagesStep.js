@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Alert, Box, Button, Stack, Typography } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
+import { Alert, Box, Button, Skeleton, Stack, Typography } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { Check, Copy } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -96,14 +96,22 @@ const ProtectMessagesStep = () => {
   const [recoveryKey, setRecoveryKey] = useState(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
 
-  useEffect(() => {
-    dispatch(PrepareEncryption());
-  }, [dispatch]);
+  const makeKey = useCallback(
+    async (thunk) => {
+      const result = await dispatch(thunk());
+      if (thunk.fulfilled.match(result)) setRecoveryKey(result.payload.recoveryKey);
+    },
+    [dispatch]
+  );
 
-  const makeKey = async (thunk) => {
-    const result = await dispatch(thunk());
-    if (thunk.fulfilled.match(result)) setRecoveryKey(result.payload.recoveryKey);
-  };
+  // a new account has no key to replace, so there is nothing to ask before making it
+  useEffect(() => {
+    dispatch(PrepareEncryption()).then(({ payload }) => {
+      if (payload?.status === "setup") makeKey(CreateAccountKey);
+    });
+  }, [dispatch, makeKey]);
+
+  const isMakingKey = status === "checking" || (status === "setup" && isCreating);
 
   const startFresh = async () => {
     await makeKey(CreateAccountKey);
@@ -128,11 +136,11 @@ const ProtectMessagesStep = () => {
           Your messages are end-to-end encrypted, so only you and your friends can read them. {!recoveryKey && BEFORE_THE_KEY[status]}
         </Typography>
       </Stack>
-      {recoveryKey ? (
-        <SavedKey recoveryKey={recoveryKey} />
-      ) : (
-        <LoadingButton size="large" variant="contained" fullWidth loading={!action || isCreating || isReplacing} onClick={action?.run}>
-          {action?.label ?? "Make my recovery key"}
+      {recoveryKey && <SavedKey recoveryKey={recoveryKey} />}
+      {!recoveryKey && isMakingKey && <Skeleton variant="rounded" height={58} aria-label="Making your recovery key" />}
+      {!recoveryKey && !isMakingKey && (
+        <LoadingButton size="large" variant="contained" fullWidth loading={isCreating || isReplacing} onClick={action.run}>
+          {action.label}
         </LoadingButton>
       )}
       {isUnlocking && status === "locked" && <UnlockDialog onStartFresh={startFresh} />}

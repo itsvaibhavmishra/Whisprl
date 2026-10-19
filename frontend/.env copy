@@ -16,5 +16,11 @@ REACT_APP_GITHUB_AUTH_CLIENT_ID = ""
 
 REACT_APP_LINKEDIN_AUTH_CLIENT_ID = ""
 
+# Sentry error reports, for production builds only: leave it out in development
+REACT_APP_SENTRY_DSN =
+
+# Where the Android app looks for live updates, for builds people install only: leave it out in development
+REACT_APP_UPDATE_URL =
+
 # Google reCAPTCHA Client ID (Cannot be skipped-Required)
 REACT_APP_RECAPTCHA_CLIENT = ""

@@ -4,10 +4,13 @@ import createHttpError from "http-errors";
 
 import ChatPreferenceModel from "#src/models/chatPreferenceModel.js";
 import SessionModel from "#src/models/sessionModel.js";
+import UserModel from "#src/models/userModel.js";
 import { memberRooms } from "#src/services/conversationService.js";
 
 const LONGEST_TOKEN = 4096;
 const MOST_PER_SEND = 500;
+// Firebase refuses a push whose data passes four kilobytes, so a longer message goes without its words
+const MOST_DATA_BYTES = 3800;
 const STALE_TOKEN = new Set(["messaging/registration-token-not-registered", "messaging/invalid-registration-token"]);
 
 let messaging;
@@ -35,33 +38,73 @@ const unmutedRecipients = async (conversation, senderId) => {
   return recipients.filter((userId) => !mutedIds.has(userId));
 };
 
-// the message itself is end-to-end encrypted, so a push can only say who wrote, never what
-const noticeOf = (conversation, sender) =>
-  conversation.isGroup
-    ? { title: conversation.name, body: `${sender.firstName}: New message` }
-    : { title: `${sender.firstName} ${sender.lastName}`, body: "New message" };
+const currentKeyIdsOf = async (userIds) => {
+  const users = await UserModel.find({ _id: { $in: userIds } }).select("publicKeys");
+  return new Map(users.map((user) => [String(user._id), user.publicKeys.at(-1)?.keyId]));
+};
 
-export const pushNewMessage = async (conversation, sender) => {
+const kindOf = (message) => {
+  if (message.viewOnce) return "view-once";
+  return message.attachment ? "file" : "text";
+};
+
+// the ciphertext as it is stored, with only the key sealed for this recipient, so the phone can open what the server cannot
+const sealedFor = (message, sender, keyId) => {
+  const { cipher } = message;
+  if (!cipher || !keyId) return {};
+  const isGroup = Boolean(cipher.keys);
+  const senderKeyId = isGroup ? cipher.senderKeyId : cipher.keyIds[0];
+  const senderPublicKey = sender.publicKeys?.find((entry) => entry.keyId === senderKeyId)?.publicKey;
+  const sealedKey = isGroup ? cipher.keys.find((entry) => entry.keyId === keyId) : null;
+  const isForRecipient = isGroup ? Boolean(sealedKey) : cipher.keyIds[1] === keyId;
+  if (!senderPublicKey || !isForRecipient) return {};
+
+  return {
+    kind: kindOf(message),
+    keyId,
+    senderPublicKey,
+    cipherIv: cipher.iv,
+    cipherData: cipher.data,
+    ...(sealedKey && { sealedIv: sealedKey.iv, sealedData: sealedKey.data }),
+  };
+};
+
+export const pushDataFor = (conversation, sender, message, recipientId, keyId) => {
+  const named = {
+    conversationId: String(conversation._id),
+    recipientId,
+    senderId: String(sender._id),
+    title: conversation.isGroup ? conversation.name : `${sender.firstName} ${sender.lastName}`,
+    ...(conversation.isGroup && { sender: sender.firstName }),
+  };
+  const sealed = { ...named, ...sealedFor(message, sender, keyId) };
+  return Buffer.byteLength(JSON.stringify(sealed)) <= MOST_DATA_BYTES ? sealed : named;
+};
+
+export const pushNewMessage = async (conversation, sender, message) => {
   const sendable = messagingOrNull();
   if (!sendable) return;
 
-  const sessions = await SessionModel.find({ user: { $in: await unmutedRecipients(conversation, sender._id) }, pushToken: { $exists: true } }).select("pushToken");
+  const sessions = await SessionModel.find({ user: { $in: await unmutedRecipients(conversation, sender._id) }, pushToken: { $exists: true } }).select("user pushToken");
   if (!sessions.length) return;
 
-  const conversationId = String(conversation._id);
-  const stale = [];
+  const keyIds = await currentKeyIdsOf(sessions.map((session) => session.user));
+  const pushes = sessions.map((session) => {
+    const recipientId = String(session.user);
+    return {
+      token: session.pushToken,
+      data: pushDataFor(conversation, sender, message, recipientId, keyIds.get(recipientId)),
+      // high priority wakes a sleeping phone, which Android allows for a message its owner is then shown
+      android: { priority: "high", collapseKey: String(conversation._id) },
+    };
+  });
 
-  // Firebase refuses more than five hundred tokens in one call, which a full group of busy people can reach
-  for (let start = 0; start < sessions.length; start += MOST_PER_SEND) {
-    const batch = sessions.slice(start, start + MOST_PER_SEND);
-    const { responses } = await sendable.sendEachForMulticast({
-      tokens: batch.map((session) => session.pushToken),
-      notification: noticeOf(conversation, sender),
-      data: { conversationId },
-      android: { collapseKey: conversationId, notification: { tag: conversationId } },
-    });
-    batch.forEach((session, position) => {
-      if (STALE_TOKEN.has(responses[position].error?.code)) stale.push(session._id);
+  const stale = [];
+  // Firebase refuses more than five hundred pushes in one call, which a full group of busy people can reach
+  for (let start = 0; start < pushes.length; start += MOST_PER_SEND) {
+    const { responses } = await sendable.sendEach(pushes.slice(start, start + MOST_PER_SEND));
+    responses.forEach((response, position) => {
+      if (STALE_TOKEN.has(response.error?.code)) stale.push(sessions[start + position]._id);
     });
   }
 

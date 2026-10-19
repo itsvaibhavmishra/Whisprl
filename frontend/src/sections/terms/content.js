@@ -78,6 +78,7 @@ export const SECTIONS = [
           "Cloudinary, to store the photos, videos, voice messages and documents you send, which it receives encrypted",
           "Gmail, to send your verification codes and password reset emails",
           "Netlify and Northflank, which host the app",
+          "Sentry, to tell us when something in Whisprl breaks. A report, stored in Frankfurt, holds what went wrong, your device and Whisprl version, and your account number, never your messages or anything on your screen",
         ],
       },
       "Whisprl sets no cookies of its own. It keeps the key that keeps you logged in, your encryption key and preferences such as dark mode in your browser's storage. Google Analytics and reCAPTCHA set cookies of their own. Your data is not sold, and Whisprl shows no ads.",
@@ -87,7 +88,7 @@ export const SECTIONS = [
     id: "leaving",
     title: "Leaving Whisprl",
     blocks: [
-      "You can stop using Whisprl at any time. There is no button to delete an account yet, so to have your account and messages removed, get in touch and they will be deleted.",
+      "You can stop using Whisprl at any time. To delete your account, go to Settings, then Account, then Delete account, and confirm with the code emailed to you. It is deleted 14 days later, and logging in before then keeps it. Your profile, username, friends, statuses and passkeys are removed, and you leave every group. People you chatted with keep those chats, which then show you as a deleted account.",
       "Accounts that break these terms may be suspended or closed.",
     ],
   },

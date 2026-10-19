@@ -14,13 +14,22 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Android notifications show the message itself, opened on the phone so the server still never reads it
+    - Links to Whisprl open the Android app when it is installed, and the website when it is not
+    - Delete your account from Settings, confirmed with a code sent to your email, with 14 days to change your mind by logging back in
 
   - Improvements:
     - With Whisprl added to a phone's home screen, the chat, status, contacts and settings lists, the sign-in and setup pages, and notices keep clear of the status bar
+    - A new account's recovery key appears as soon as setup reaches it, without a button to press first
 
   - Fixed:
+    - A crash while drawing a page shows a screen with a reload button instead of a blank page
+    - A tab left open across a release reloads itself once to fetch the new version, instead of failing to open the next page
+    - Profiles in the Android app no longer draw a strip of their cover over the name and photo
 
   - Developers:
+    - Errors on the website, in the Android app (Java crashes included) and on the server are reported to Sentry in production, without messages, screen contents or request bodies, with source maps uploaded at build so each report points at our own code
+    - Each release carries a signed live update, so installed Android apps get new web code on their next launch without a new APK, and roll themselves back if it fails to start
     - The Android app signs in with Google through the phone rather than a web view, and Whisprl verifies the token it returns
     - Whisprl builds as an Android app from the same frontend with Capacitor, with its own welcome tour, keeps the message key in Block Store so reinstalling the app does not lock messages, saves the recovery key to the phone's password manager, and sends notifications through Firebase. docs/development.md covers building it and running it on an emulator
 
