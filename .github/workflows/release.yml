@@ -1,10 +1,6 @@
 name: Release
 
-# Each merge into production publishes a GitHub Release tagged v<VERSION>, with that version's
-# CHANGELOG section as its notes. A merge that did not bump the version finds its tag already
-# taken and publishes nothing, so it cannot cut a duplicate. Netlify and Northflank deploy from the
-# branches themselves. The one thing built here is the Android app's live update, signed and
-# attached to the release, where installed apps look for it.
+# published only once the live update and the APK are both built, since installed apps and download links read the latest release
 
 on:
   push:
@@ -27,35 +23,68 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Publish release
-        id: release
+      - name: Plan the release
+        id: plan
         run: |
-          VERSION=$(node -p "require('./frontend/package.json').version")
+          source scripts/version.sh
+          VERSION=$(read_version)
           if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then
             echo "::notice::v$VERSION already released, bump the version to cut a new one."
             exit 0
           fi
-          # the same script the release command uses, so the notes and the pull request body cannot drift apart
-          python3 scripts/changelog.py section "$VERSION" > notes.md
-          gh release create "v$VERSION" --target "${{ github.sha }}" --title "Whisprl $VERSION" --notes-file notes.md
+          PREVIOUS=$(gh release view --json tagName --jq .tagName 2>/dev/null || true)
+          PREVIOUS_NATIVE=0
+          if [ -n "$PREVIOUS" ]; then
+            PREVIOUS_NATIVE=$(read_native_version "$PREVIOUS")
+          fi
+          KIND=web
+          if [ "$(read_native_version)" -gt "$PREVIOUS_NATIVE" ]; then
+            KIND=app
+          fi
+          echo "v$VERSION, release: $KIND"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "kind=$KIND" >> "$GITHUB_OUTPUT"
+
+      - name: Check the signing secrets
+        if: steps.plan.outputs.version
+        env:
+          LIVE_UPDATE_KEY: ${{ secrets.LIVE_UPDATE_KEY }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          for name in LIVE_UPDATE_KEY GOOGLE_SERVICES_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::The $name secret is not set, so nothing is published."
+              exit 1
+            fi
+          done
 
       - uses: actions/setup-node@v4
-        if: steps.release.outputs.version
+        if: steps.plan.outputs.version
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - uses: actions/setup-java@v4
+        if: steps.plan.outputs.version
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
       - name: Install frontend
-        if: steps.release.outputs.version
+        if: steps.plan.outputs.version
         run: npm ci
         working-directory: frontend
 
       # built with the production settings the website uses, and signed with the key whose public half every APK carries
-      - name: Publish the app update
-        if: steps.release.outputs.version
+      - name: Build the live update
+        if: steps.plan.outputs.version
         env:
           LIVE_UPDATE_KEY: ${{ secrets.LIVE_UPDATE_KEY }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -69,11 +98,45 @@ jobs:
           REACT_APP_RECAPTCHA_CLIENT: ${{ vars.REACT_APP_RECAPTCHA_CLIENT }}
           REACT_APP_UPDATE_URL: https://github.com/${{ github.repository }}/releases/latest/download/app-update.json
         run: |
-          if [ -z "$LIVE_UPDATE_KEY" ]; then
-            echo "::warning::No LIVE_UPDATE_KEY secret, so installed apps get no update for this release."
-            exit 0
-          fi
           umask 077
           printf '%s\n' "$LIVE_UPDATE_KEY" > "$RUNNER_TEMP/live-update-key.pem"
-          scripts/app-update.sh "$RUNNER_TEMP/live-update-key.pem" "$RUNNER_TEMP/app-update"
-          gh release upload "v${{ steps.release.outputs.version }}" "$RUNNER_TEMP/app-update/app-update.zip" "$RUNNER_TEMP/app-update/app-update.json"
+          scripts/app-update.sh "$RUNNER_TEMP/live-update-key.pem" "$RUNNER_TEMP/release"
+
+      # the same web build as the live update, so a new install starts on this version
+      - name: Build the APK
+        if: steps.plan.outputs.version
+        working-directory: frontend
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          umask 077
+          mkdir -p android/app/src/release
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/src/release/google-services.json
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/whisprl-upload.jks"
+          cat > android/keystore.properties <<EOF
+          storeFile=$RUNNER_TEMP/whisprl-upload.jks
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=whisprl-upload
+          keyPassword=$ANDROID_KEYSTORE_PASSWORD
+          EOF
+          # the maps are already in Sentry, and on a phone they only make the download bigger
+          find build -name '*.map' -delete
+          npx cap sync android
+          (cd android && ./gradlew assembleRelease)
+          cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/release/whisprl.apk"
+
+      - name: Publish the release
+        if: steps.plan.outputs.version
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          KIND: ${{ steps.plan.outputs.kind }}
+        run: |
+          if [ "$KIND" = app ]; then
+            printf '**New app version.** Install `whisprl.apk` below: the app cannot update itself to this one.\n\n' > notes.md
+          fi
+          # the same script the release command uses, so the notes and the pull request body cannot drift apart
+          python3 scripts/changelog.py section "$VERSION" >> notes.md
+          gh release create "v$VERSION" --target "${{ github.sha }}" --title "Whisprl $VERSION" --notes-file notes.md \
+            "$RUNNER_TEMP/release/app-update.zip" "$RUNNER_TEMP/release/app-update.json" "$RUNNER_TEMP/release/whisprl.apk"

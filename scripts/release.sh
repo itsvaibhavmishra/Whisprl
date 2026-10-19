@@ -49,6 +49,12 @@ abort() {
 }
 trap abort ERR
 
+KIND="web"
+if [[ "$(read_native_version)" -gt "$(read_native_version origin/production)" ]]; then
+    KIND="app"
+fi
+echo "  kind: $KIND release"
+
 python3 scripts/changelog.py release "$VERSION" "$REPO"
 python3 scripts/whatsnew.py release "$VERSION"
 
@@ -86,7 +92,7 @@ EOF
 # the prepare pull request lands, then updates itself and release-ready passes.
 upsert_pull_request production rc "Release $VERSION" "$(
     cat <<EOF
-Merging this publishes **$VERSION**: the tag and the GitHub release.
+Merging this publishes **$VERSION** as a $KIND release: the tag, the GitHub release, the app's live update and the APK.
 
 Red until *Prepare release $VERSION* is merged, because until then \`rc\` is still on $CURRENT.
 
@@ -94,6 +100,6 @@ Red until *Prepare release $VERSION* is merged, because until then \`rc\` is sti
 
 $NOTES
 EOF
-)"
+)" "release: $KIND"
 
-printf '\n%s is ready. Merge the prepare pull request, then the release one.\n' "$VERSION"
+printf '\n%s is ready as a %s release. Merge the prepare pull request, then the release one.\n' "$VERSION" "$KIND"

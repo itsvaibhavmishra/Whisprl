@@ -16,6 +16,7 @@ KEY="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 OUT="$(mkdir -p "$2" && cd "$2" && pwd)"
 
 source "$(dirname "$0")/lib.sh"
+source "$ROOT/scripts/version.sh"
 
 require openssl
 require zip
@@ -24,9 +25,9 @@ require zip
 [ -n "${REACT_APP_UPDATE_URL:-}" ] || fail "REACT_APP_UPDATE_URL is not set, so the update could never find the next one."
 [ -n "${REACT_APP_API_ORIGIN:-}" ] || fail "REACT_APP_API_ORIGIN is not set, so the update would not know its server."
 
-VERSION="$(node -p "require('./frontend/package.json').version")"
-NATIVE_VERSION="$(sed -n 's/^ *versionCode \([0-9][0-9]*\).*/\1/p' frontend/android/app/build.gradle)"
-[ -n "$NATIVE_VERSION" ] || fail "Could not read versionCode from frontend/android/app/build.gradle."
+VERSION="$(read_version)"
+NATIVE_VERSION="$(read_native_version)"
+[ "$NATIVE_VERSION" -gt 0 ] || fail "Could not read versionCode from frontend/android/app/build.gradle."
 BASE="${3:-$(repo_url)/releases/download/v$VERSION}"
 
 (cd frontend && npm run build)

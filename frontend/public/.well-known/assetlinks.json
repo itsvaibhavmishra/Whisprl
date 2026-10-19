@@ -4,7 +4,10 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.vaibhaw.whisprl",
-      "sha256_cert_fingerprints": ["02:E2:0F:B3:41:D0:64:67:99:B0:1F:2F:5E:F8:70:62:54:FC:E3:9F:49:E2:49:7D:2E:D0:6B:69:C0:E7:7B:8F"]
+      "sha256_cert_fingerprints": [
+        "02:E2:0F:B3:41:D0:64:67:99:B0:1F:2F:5E:F8:70:62:54:FC:E3:9F:49:E2:49:7D:2E:D0:6B:69:C0:E7:7B:8F",
+        "47:D3:14:63:A1:03:08:51:C9:1A:80:45:2C:67:95:3D:C3:D0:CD:69:A8:97:AE:EE:98:2B:22:A5:EA:58:73:19"
+      ]
     }
   }
 ]
