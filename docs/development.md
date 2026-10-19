@@ -124,6 +124,11 @@ drawn, and an update that does not within 10 seconds is rolled back to the versi
 and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
 `@capawesome/capacitor-live-update` and no paid service.
 
+- **Prefer a web release, and batch what needs an app release.** A web release reaches every
+  user on their next launch; an app release makes each of them install a new APK or Play update.
+  Updating npm packages is web code, except the native ones: `@capacitor/*`, `@capawesome/*` and
+  `@sentry/capacitor`, which change the APK and wait for the next app release with any Java or
+  Gradle change. Backend changes need no app release at all.
 - **Only web code travels this way.** Any change to Java, a plugin or a permission raises
   `versionCode` and ships as a new APK, or through Play once the app is there, and older APKs
   skip every update built after it. An update must not break any other Play rule: it never adds
