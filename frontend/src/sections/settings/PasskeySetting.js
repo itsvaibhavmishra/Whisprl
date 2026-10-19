@@ -8,6 +8,7 @@ import useIsLoading from "@/hooks/useIsLoading";
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 import { SettingRow } from "@/sections/settings/SettingsSection";
 import { canUsePasskeys } from "@/utils/passkeys";
+import { deviceNoun } from "@/utils/platform";
 
 const dateOf = (value) => new Date(value).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 
@@ -86,7 +87,7 @@ const PasskeySetting = () => {
   const isSupported = canUsePasskeys();
   const description = isSupported
     ? "Log in without a password, and unlock your messages on a new browser."
-    : "This browser cannot use passkeys, but you can still remove them here.";
+    : `This ${deviceNoun} cannot use passkeys, but you can still remove them here.`;
 
   return (
     <Box>

@@ -37,7 +37,7 @@ upsert_pull_request production rc "Merge rc without releasing" "$(
     cat <<EOF
 Brings \`production\` up to date with \`rc\` **without publishing anything**.
 
-The \`skip release\` label is what stops it: no tag, no build, no GitHub release. \`production\` stays on $VERSION.
+It carries no release label, which is what stops it: no tag, no build, no GitHub release. \`production\` stays on $VERSION.
 
 ### What is being merged
 
@@ -47,6 +47,6 @@ $COMMITS
 
 $DEVLOG_NOTE
 EOF
-)" "skip release"
+)"
 
-printf '\nopened, labelled skip release. Merging it publishes nothing.\n'
+printf '\nopened without a release label. Merging it publishes nothing.\n'

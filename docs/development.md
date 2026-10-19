@@ -6,6 +6,8 @@
 - To run the app, not to run the gate: `backend/.env` and `frontend/.env`. Each
   package has a `.env copy` listing every key and marking which are required.
 - To release: `gh` (authenticated), `git` and `python3`.
+- For the Android app: Android Studio, for the SDK, an emulator on a Play Store image, and the
+  JDK 21 it bundles.
 
 ## Build and check
 
@@ -21,6 +23,133 @@ pipe into `tail` or `grep` reports the exit code of the pipe, so a failed build 
 Backend tests use Node's own runner, so they need no extra dependency: `cd backend && npm test`
 runs every `*.test.js`. Keep them to pure functions, like the seating rules in
 `src/services/games/seats.test.js`, since the gate has no database.
+
+## The Android app
+
+The app is the web build inside a Capacitor shell, in `frontend/android/`. Every screen is the
+same React code, except the welcome tour (`pages/auth/AppTour.js`) that replaces the landing
+page.
+
+```sh
+cd frontend && npm run build && npx cap sync android    # copy the web build into the Android project
+adb reverse tcp:8200 tcp:8200                           # the app reaches the API as localhost
+cd android && ./gradlew installDebug                    # build and install on the emulator or phone
+```
+
+Gradle needs JDK 21, and Android Studio's works:
+`export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`. The app's origin
+is `https://localhost`, so `APP_ORIGIN` in `backend/.env` allows it beside `FRONT_URL`. Use a
+Play Store emulator image: Block Store and the screen lock prompt come from Play services.
+
+**Keys.** Whenever the app unlocks messages it also keeps the private key in Block Store, through
+`KeyVaultPlugin.java`, and restores it from there when its own storage is empty. With the phone's
+Google Backup on, that copy outlives reinstalling the app, with or without a screen lock. With
+Backup off a reinstall loses it. Clearing the app's data removes it either way, so someone who does
+that signs in and unlocks with their recovery key. A copy leaves the phone for Google's backup only
+end-to-end encrypted, which needs a screen lock, and moving to a new phone relies on that backup.
+Logging out deletes it. The app's own storage is kept out of Android backup by
+`data_extraction_rules.xml`, so Block Store is the only way a key leaves the phone. Making a new
+recovery key asks for the fingerprint, face or screen lock first, and a phone with no screen lock
+goes straight through.
+
+**Recovery key.** The app's web view drops downloads without a word, so in the app the recovery
+key's Download becomes Save to password manager, through Android's Credential Manager. A phone
+with nowhere to save passwords says so, and Copy still works. Passkeys need WebAuthn, which the
+web view does not offer, so the app leaves the passkey step out of setup.
+
+**Notifications.** The app gets pushes through Firebase Cloud Messaging. There are two Firebase
+projects, one for development and one for production, and an app only receives pushes from the
+backend holding the matching project's credentials. Each project gives two different files:
+
+- `google-services.json`, which identifies the project to the app and ships inside the APK. The
+  development one goes in `frontend/android/app/` and a debug build reads it; the production one
+  goes in `frontend/android/app/src/release/` and a release build reads that instead. Both are
+  kept out of git, and a release build fails without the production file, or with one from any
+  other project, rather than quietly sending people to the wrong project.
+- The service account JSON, from Project settings, Service accounts, Generate new private key.
+  It is a private key and never goes near the app: the backend holding that project reads it on
+  one line as `FIREBASE_SERVICE_ACCOUNT`. To replace it, generate a new key, swap the variable,
+  then delete the old key under Service accounts in Google Cloud.
+
+Without the file the app offers no notifications, since asking Firebase for a token would crash
+it, and without the variable the server sends none. A phone's token is kept on its session, so
+logging out stops its pushes, and muted chats get none.
+
+The server cannot read a message, so a push carries it still sealed, with only the key sealed for
+that phone, and `MessageNotificationService.java` opens it on the phone with the key held in Block
+Store, even while the app is closed. `MessageCipher.java` repeats the steps of `messageCipher.js`,
+and both are tested against the same messages in `messageVectors.json`, sealed by the web cipher,
+so a change to one that the other misses fails a test. Run the Java side with
+`./gradlew :app:testDebugUnitTest` from `frontend/android/`. A message too long for a push, or one
+the phone cannot open, shows as "New message". Pushes are data only and high priority, so the app
+decides what is shown, and shows nothing while it is on screen.
+
+**Signing in with Google.** Google refuses its sign-in page inside a web view, so the app asks
+Android for the token instead, through Credential Manager in `GoogleSignInPlugin.java`. That
+returns an ID token rather than the access token the website gets, and `socialAuthService.js`
+tells them apart by shape and verifies the ID token's signature, issuer, expiry and audience with
+`google-auth-library`. Both carry the same audience, the web client id in
+`GOOGLE_AUTH_CLIENT_ID`, so one account works from either.
+
+The app offers Google and email sign-in only. GitHub and LinkedIn are for the website.
+
+**Links.** A link to the website's chat, contacts, status or settings pages opens the app when it
+is installed, and the website when it is not, so a shared profile link works for everyone. The
+app's profile links point at the website for the same reason, since its own origin is
+`https://localhost`. Android checks `frontend/public/.well-known/assetlinks.json` on the site
+against the key that signed the app, so that file has to list the SHA-256 fingerprint of every key
+that signs a build people install: the debug key of the machine that builds it, and the release key,
+which signs release builds and which Play App Signing uses once the app is on Play. Release builds
+are signed with the release key whenever `frontend/android/keystore.properties` names it; the key and that file
+stay out of git, and the key is backed up outside this machine. Google sign-in checks the same keys:
+each needs an Android OAuth client with its SHA-1 in the Google Cloud project that holds the web
+client. Sign-in pages under `/auth` stay in the browser, so a web
+sign-in that returns there is never taken over by the app. Opening a link while the app is closed
+or open lands on that page through `OpenAppLinks.js`, and checking it before deploy works with
+`adb shell am start -a android.intent.action.VIEW -d "https://whisprl.netlify.app/contacts/@someone"`.
+
+`versionName` is read from `frontend/package.json`, so the app carries the web app's version.
+`versionCode` is a plain counter in `frontend/android/app/build.gradle`, raised only when the
+native side changes.
+
+**Live updates.** An installed app updates its web code without a new APK. Each release builds
+the frontend with the production settings, zips it, signs it, and attaches `app-update.zip` and
+`app-update.json` to the GitHub release (`scripts/app-update.sh`, run by `release.yml`). On every
+launch and every return to the foreground the app reads
+`releases/latest/download/app-update.json`, and downloads the update only when it is newer than
+the version running, its signature matches the public key in `capacitor.config.json`, and the
+APK's `versionCode` is at least the `minNativeVersion` it names, which is the `versionCode` it was
+built against. The update applies on the next launch. The app then calls `ready()` once it has
+drawn, and an update that does not within 10 seconds is rolled back to the version inside the APK
+and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
+`@capawesome/capacitor-live-update` and no paid service.
+
+- **Prefer a web release, and batch what needs an app release.** A web release reaches every
+  user on their next launch; an app release makes each of them install a new APK or Play update.
+  Updating npm packages is web code, except the native ones: `@capacitor/*`, `@capawesome/*` and
+  `@sentry/capacitor`, which change the APK and wait for the next app release with any Java or
+  Gradle change. Backend changes need no app release at all.
+- **Only web code travels this way.** Any change to Java, a plugin or a permission raises
+  `versionCode` and ships as a new APK, or through Play once the app is there, and older APKs
+  skip every update built after it. An update must not break any other Play rule: it never adds
+  what a Play review would refuse, and never changes what the app is for.
+- **The signing key** is RSA, kept in the `LIVE_UPDATE_KEY` repository secret and nowhere in the
+  repo. Losing it means no installed app accepts another update until people install an APK
+  carrying a new public key, so keep a copy in a password manager.
+- **The production settings** come from repository variables named like the `REACT_APP_` keys in
+  `frontend/.env copy`, the same values Netlify builds the website with.
+- **The APK** is built in the same run from the same web build and attached as `whisprl.apk`,
+  signed with the release key from the `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`
+  secrets, with the production Firebase config from `GOOGLE_SERVICES_JSON`, which has to be
+  `whisprl-prod`. A release with any of these secrets missing fails before it publishes anything.
+- **`REACT_APP_UPDATE_URL`** is set only for builds people install. A development build leaves it
+  out, so it never replaces itself with production code. A production APK must be built with it,
+  or that APK never updates.
+- **Testing an update locally:** build an APK with `REACT_APP_UPDATE_URL` pointing at
+  `http://localhost:8300/app-update.json`, raise the version in `frontend/package.json` for a
+  moment, run `scripts/app-update.sh <key> <folder> http://localhost:8300`, put the version back,
+  serve the folder on port 8300 and `adb reverse tcp:8300 tcp:8300`. The next launch stages the
+  update and the one after runs it.
 
 ## Staff roles
 
@@ -63,7 +192,7 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
 - **A ban writes the placeholder in rather than hiding the account on read.** `populate`
   skips query middleware, so masking on read missed most of the places a person is shown.
   Banning moves the name, username, photo, cover and status line into `hiddenProfile` and
-  writes "Deleted account" over them; restoring puts them back. Staff pages read
+  writes "Whisprl user" over them; restoring puts them back. Staff pages read
   `hiddenProfile` to show who it really is.
 - **Every staff action records an audit entry** through `recordAction`, and asks for the
   acting person's passkey first. Staff without a passkey are told to add one in Settings:
@@ -102,13 +231,89 @@ An edit is franked again with a fresh key, and the new fingerprint replaces the 
 that arrives without one clears the stored fingerprint, so the message reads as `unchecked`
 rather than failing against words that are no longer there.
 
+## Game requests
+
+The last card in the games list asks for a game: a classic, something new or an idea of the
+person's own, with its name, up to three links and optional details, and no media. A person has
+one open request per game, and five a day.
+
+Staff with the `requests` permission see them at `/admin/requests`, grouped by game and ranked by
+how many people asked. `nameKeyOf` in `src/utils/textSearch.js` folds a name to a key, so
+"Tic-Tac-Toe", "tic tac toe" and "The TicTacToe" count as one game. The search scores in memory
+with `searchScore` from the same file: every word has to match, names weigh three times what the
+details, links and requesters' names do, and a word can match by its start, with a typo or two,
+or run into the next word. A name that starts with the query ranks first. That suits the
+hundreds or thousands of requests Whisprl gets; at many more it would need a search index.
+
+Marking a game added or dismissed closes every open request for it. It changes nobody's access,
+so it needs no passkey, and who did it and when are kept on the requests rather than in the audit
+log. A person's requests are deleted with their account.
+
+## Deleting an account
+
+Settings, then Account, then Delete account asks why someone is leaving, with "Something else"
+asking for a few words, then emails a code to the account's address. Entering it logs the account
+out everywhere, emails the date it goes, and deletes it 14 days later. Until then it is hidden
+the way a ban hides an account: friends see "Whisprl user", searches and suggestions leave it out,
+and its username stays reserved. Logging in any way before then, the username included, shows it
+again and cancels the deletion. Staff accounts cannot be deleted, so the owner and admins
+give up their access first.
+
+The server sleeps on a free plan, so nothing waits on a timer. `deleteDueAccounts` in
+`accountDeletionService.js` deletes every account past its date when the server starts and once
+a minute after that, and logging in to an account already past its date deletes it there and
+then rather than letting it back in.
+
+A deleted account stays as a placeholder, the same "Whisprl user" a ban shows, because the
+people it chatted with need its public keys to open what it sent them. Everything else goes:
+the email becomes an unusable `<id>@deleted.invalid`, which frees the address for a new account,
+and the password, username, birthday, photos, statuses, passkeys, friends, requests and settings
+are removed. It leaves every group, handing on any it owned. The reason, and any note, stay on
+the placeholder as the only record of why people leave. No email is sent when the account is
+actually deleted.
+
+## Error reports
+
+Production errors go to Sentry, in the EU region (Frankfurt), organization `whisprl`. Two
+projects: `whisprl-web` for the website and the app's web code, each report tagged `web` or
+`android`, and `whisprl-backend` for the server.
+
+- **Website and app:** `utils/errorReports.js` starts before the first render and reports
+  uncaught errors and promise rejections. In the app, Sentry's native SDK also reports Java
+  crashes, sending each on the next launch. A crash while drawing shows `CrashScreen` with a
+  reload button instead of a blank page. It sits inside the live update's start signal, so an
+  update that crashes on start still rolls back.
+- **A tab left open across a deploy** asks for page code the deploy removed. `utils/newVersion.js`
+  reloads it once instead, unreported, which fetches the new version. A failure again within a
+  minute of that reload shows the crash screen and is reported, and one while offline shows the
+  crash screen without a report, since a reload cannot help and the connection is not a bug.
+- **Backend:** `src/utils/errorReports.js` reports every 500 from the Express error handler,
+  every crash that ends the process, and every failed background sweep.
+- **What a report never holds:** session replay, console output, clicks, request bodies,
+  headers or query strings, or any text a message quoted in double quotes, since a parse error
+  quotes what it failed on and that can be a decrypted message. The person is identified by
+  account id only, and Sentry never stores the IP address. Keep it this way: anything on screen
+  in Whisprl may be decrypted.
+- **Off unless a DSN is set.** `REACT_APP_SENTRY_DSN` for the frontend and `SENTRY_DSN` for the
+  backend are set only in production, so errors met while developing stay in the console and do
+  not use up the free plan's monthly allowance, which the whole organization shares.
+- **Readable stack traces:** every frontend build runs `scripts/sentry-sourcemaps.sh` after it,
+  which, given `SENTRY_AUTH_TOKEN` and `REACT_APP_SENTRY_DSN`, ties the built code to its source
+  maps and uploads them for release `whisprl@<version>`. It does nothing without them, so the
+  gate and development builds skip it. The token is an organization token, limited to tasks like
+  this one; it is never needed by the running app or server.
+
 ## Emails
 
-Every email is built from one shell in `backend/src/templates/mail/layout.js`, so the four
+Every email is built from one shell in `backend/src/templates/mail/layout.js`, so the
 templates differ only in their content. A template returns `{ html, text }`: the plain-text
 half is not optional, because a message with no text part is one of the oldest spam signals
 there is. `sendMail` passes both to Nodemailer, which sends them as one multipart message.
 
+- **Text people typed goes in through `escapeHtml`**, and a greeting through `greeting(name)`,
+  which does it already. Whisprl stores text as it was typed and React escapes it on screen, so
+  an email's HTML is the one place a name or a reason could turn into markup. The plain-text
+  half takes the values as they are.
 - **The header band is navy in both colour schemes**, like the app's rail. That is what lets
   one logo work everywhere: an image that has to look right on white and on near-black needs
   two files and a swap, and this needs neither.
@@ -186,12 +391,35 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 
 - **A feature branch** publishes nothing. Push as often as you like.
 - **`rc`** publishes nothing either.
-- **Merging into `production` publishes** a GitHub Release tagged `v<version>`, with that version's
-  changelog section as its notes. It skips that if the tag already exists, so an ordinary merge
-  that did not bump the version cannot cut a duplicate. Netlify and Northflank deploy from the
-  branches themselves, so no build is attached.
-- **The `skip release` label** on an `rc` into `production` PR turns off the release-ready
-  checks, for a merge that is deliberately not a release.
+- **Merging into `production`** always redeploys the website and the backend, since Netlify and
+  Northflank deploy from the branch itself. Whether it also publishes a version depends on the
+  pull request's label:
+
+| Label | When | Publishes |
+|---|---|---|
+| `release: web` | the version went up, `versionCode` did not | a GitHub Release tagged `v<version>` with the changelog section as its notes, the live update and the APK. Installed apps update themselves |
+| `release: app` | the version and `versionCode` both went up | the same, with a note that Android users need the new APK, since their app skips this update |
+| none | neither changed | nothing beyond the redeploy |
+
+`scripts/release.sh` picks the label from `versionCode`, and `release-ready.yml` fails a pull
+request whose label does not match what changed.
+
+Every release carries `app-update.zip`, `app-update.json` and `whisprl.apk`, and the workflow
+publishes it only once all three are built, so `releases/latest/download/` always has each of
+them. Installed apps read their update there (see Live updates under The Android app), and
+`releases/latest/download/whisprl.apk` always downloads the newest app. A web release's APK keeps
+the same `versionCode`, so it serves new installs and changes nothing for existing ones. A release
+that fails to build publishes nothing, and running the Release workflow again from the Actions
+tab retries it.
+
+Which release a change needs:
+
+- **A web feature or a frontend fix:** `release: web`. A frontend fix the app should get needs a
+  version, even a patch, because the app only takes an update whose version is above its own.
+- **A change to Java, a plugin or a permission:** raise `versionCode` in the same pull request,
+  and it goes out as `release: app`.
+- **A backend-only fix, docs or CI:** no label. The app talks to the same backend, so it gets a
+  backend fix with the redeploy.
 
 ## Cutting a release
 
@@ -204,20 +432,24 @@ That refuses a dirty tree, cuts `release/0.2.0` from `origin/rc`, moves the devl
 dated `CHANGELOG.md` section, stamps What's new's upcoming highlights with the version and date
 (`scripts/whatsnew.py`), bumps the version, runs the gate, commits, pushes, and opens
 **both** pull requests: the prepare one into `rc`, and the release one from `rc` into
-`production`. If the gate fails it deletes the branch and pushes nothing, leaving the tree as it
-found it.
+`production`, labelled `release: app` when `versionCode` on `rc` is above production's and
+`release: web` when it is not. If the gate fails it deletes the branch and pushes nothing, leaving
+the tree as it found it.
 
 Merge the prepare PR, then the release PR. Nothing else is needed: `release-ready.yml` blocks
-the second merge unless the version went up, the changelog has a dated section for it, the
-devlog is empty, What's new has nothing left in `upcoming`, and the tag is free.
+the second merge unless the version went up, the label matches `versionCode`, the changelog has a
+dated section for it, the devlog is empty, What's new has nothing left in `upcoming`, and the tag
+is free.
 
 ```sh
 scripts/skip-release.sh
 ```
 
-opens an `rc` into `production` PR already labelled `skip release`, for moving work to `production`
+opens an `rc` into `production` PR without a release label, for moving work to `production`
 without cutting a version. Anything left in `devlog.txt` stays there and lands in whichever
-version is released next, so nothing is lost by merging one.
+version is released next, so nothing is lost by merging one. It merges only while `rc` has the
+same version and `versionCode` as `production`, so once a native change is on `rc`, only an app
+release moves it.
 
 A version is published once. A mistake means burning a number rather than replacing it.
 
@@ -263,6 +495,8 @@ Whisprl/
 │   └── src/                 routes, controllers, services, models, middlewares,
 │                            utils, templates/mail
 ├── frontend/                React 18 + MUI app
+│   ├── android/             the Android app's Capacitor shell and its native key vault
+│   ├── capacitor.config.json
 │   ├── config-overrides.js  react-app-rewired overrides, including the @ alias
 │   ├── public/              includes _redirects for SPA routing on Netlify
 │   └── src/                 pages, sections, components, layouts, redux, routes,

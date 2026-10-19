@@ -8,6 +8,7 @@ import { AccentPicker, ThemeModePicker } from "@/components/AppearancePickers";
 import Pane, { READING_WIDTH } from "@/components/Pane";
 import { SOURCE_URL } from "@/config";
 import useSettings from "@/hooks/useSettings";
+import { ForgetPushDevice } from "@/redux/slices/actions/pushActions";
 import { GetMyProfile } from "@/redux/slices/actions/userActions";
 import { PATH_DASHBOARD, PATH_DOCS } from "@/routes/paths";
 import ProfileEditor from "@/sections/profile/ProfileEditor";
@@ -15,6 +16,7 @@ import BirthdaySetting from "@/sections/settings/BirthdaySetting";
 import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
 import ChangePasswordDialog from "@/sections/settings/ChangePasswordDialog";
 import ChatPreview from "@/sections/settings/ChatPreview";
+import DeleteAccountDialog from "@/sections/settings/DeleteAccountDialog";
 import PasskeySetting from "@/sections/settings/PasskeySetting";
 import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
@@ -28,6 +30,8 @@ import ReleaseHighlights from "@/sections/whats-new/ReleaseHighlights";
 import { RELEASES, releaseNote, releaseTitle } from "@/sections/whats-new/whatsNew";
 import getAvatar from "@/utils/avatars";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
+import { isApp } from "@/utils/platform";
+import { isStaff } from "@/utils/roles";
 import { previewSound } from "@/utils/sounds";
 
 const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRight };
@@ -56,22 +60,33 @@ const ClockSetting = () => {
   );
 };
 
+const NOTIFICATIONS_BLOCKED = isApp
+  ? "Notifications are off for Whisprl in your phone's settings. Turn them on there, then switch this on."
+  : "Your browser is blocking notifications from Whisprl. Allow them in this site's settings, then switch this on.";
+
 const NotificationSetting = () => {
+  const dispatch = useDispatch();
   const { notifications, onSetNotifications } = useSettings();
-  const [permission, setPermission] = useState(notificationPermission);
+  const [permission, setPermission] = useState("default");
+
+  useEffect(() => {
+    notificationPermission().then(setPermission);
+  }, []);
+
   if (permission === "unsupported") return null;
 
   const toggle = async () => {
-    if (notifications) return onSetNotifications(false);
+    if (notifications) {
+      if (isApp) dispatch(ForgetPushDevice());
+      return onSetNotifications(false);
+    }
     const answer = await askForNotifications();
     setPermission(answer);
     if (answer === "granted") onSetNotifications(true);
   };
 
   const description =
-    permission === "denied"
-      ? "Your browser is blocking notifications from Whisprl. Allow them in this site's settings, then switch this on."
-      : "A notification for each new message while Whisprl is in the background. Muted chats stay quiet.";
+    permission === "denied" ? NOTIFICATIONS_BLOCKED : "A notification for each new message while Whisprl is in the background. Muted chats stay quiet.";
 
   return (
     <SettingRow label="Notifications" description={description}>
@@ -101,6 +116,22 @@ const AppearanceSettings = () => (
   </Stack>
 );
 
+// staff hand back their access before they can go, so the server would refuse them anyway
+const DeleteAccountSetting = () => {
+  const role = useSelector((state) => state.user.user.role);
+  const [isDeleting, setIsDeleting] = useState(false);
+  if (isStaff(role)) return null;
+
+  return (
+    <SettingRow label="Delete account" description="Your account is hidden as soon as you confirm and deleted 14 days later. Logging in before then brings it back.">
+      <Button variant="outlined" color="error" onClick={() => setIsDeleting(true)}>
+        Delete account
+      </Button>
+      {isDeleting && <DeleteAccountDialog onClose={() => setIsDeleting(false)} />}
+    </SettingRow>
+  );
+};
+
 const AccountSettings = () => {
   const { email, firstName, lastName, avatar } = useSelector((state) => state.user.user);
   return (
@@ -114,6 +145,7 @@ const AccountSettings = () => {
       />
       <UsernameSetting />
       <SettingRow label="Email" description={email} />
+      <DeleteAccountSetting />
     </SettingsSection>
   );
 };
@@ -144,6 +176,10 @@ const ChatSettings = () => (
   </SettingsSection>
 );
 
+const PrivacyPolicyLink = () => (
+  <SettingLink component={RouterLink} to={PATH_DOCS.general.privacy} label="Privacy policy" description="What Whisprl stores, and who else handles it." />
+);
+
 const PrivacySettings = () => (
   <Stack spacing={6}>
     <SettingsSection title="Status">
@@ -153,21 +189,37 @@ const PrivacySettings = () => (
       <SuggestionsSetting />
       <BirthdaySetting />
     </SettingsSection>
+    <SettingsSection>
+      <PrivacyPolicyLink />
+    </SettingsSection>
   </Stack>
 );
 
 const BANNER_PATTERNS = ["whispers", "cats", "sky"];
+const RELEASES_PER_PAGE = 3;
 
-const WhatsNewSettings = () =>
-  RELEASES.length ? (
+const ReleaseList = () => {
+  const [shown, setShown] = useState(RELEASES_PER_PAGE);
+  return (
     <Stack spacing={5}>
-      {RELEASES.map((release, index) => (
+      {RELEASES.slice(0, shown).map((release, index) => (
         <Stack key={release.version} component="section" aria-label={releaseTitle(release)} spacing={2}>
           <ReleaseBanner title={releaseTitle(release)} subtitle={releaseNote(release)} pattern={BANNER_PATTERNS[index % BANNER_PATTERNS.length]} />
           <ReleaseHighlights highlights={release.highlights} isWide />
         </Stack>
       ))}
+      {shown < RELEASES.length && (
+        <Button variant="outlined" color="inherit" onClick={() => setShown(shown + RELEASES_PER_PAGE)} sx={{ alignSelf: "center" }}>
+          Show older releases
+        </Button>
+      )}
     </Stack>
+  );
+};
+
+const WhatsNewSettings = () =>
+  RELEASES.length ? (
+    <ReleaseList />
   ) : (
     <Typography variant="body2" sx={{ color: "text.secondary" }}>
       The highlights of each release show here once it is out.
@@ -177,6 +229,8 @@ const WhatsNewSettings = () =>
 const AboutSettings = () => (
   <SettingsSection>
     <SettingLink component={RouterLink} to={PATH_DOCS.general.tnc} label="Terms and conditions" description="What you agree to when you use Whisprl." />
+    <PrivacyPolicyLink />
+    <SettingLink component={RouterLink} to={PATH_DOCS.general.childSafety} label="Child safety" description="How Whisprl keeps young people safe, and how to report harm." />
     <SettingLink {...externalLink} href={SOURCE_URL} label="Source code" description="Whisprl is open source on GitHub." />
     <SettingLink {...externalLink} href={`${SOURCE_URL}/issues/new`} label="Report a problem" description="Opens a new issue on GitHub." />
   </SettingsSection>

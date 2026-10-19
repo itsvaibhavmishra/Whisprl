@@ -158,7 +158,7 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
 
   return (
     <Stack component="nav" aria-label="Status updates" sx={{ height: "100%", bgcolor: "chat.list" }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 64, px: 2, py: 1.25 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 64, px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
         <Typography component="h1" sx={{ m: 0 }}>
           <Wordmark name="Status" fontSize={30} />
         </Typography>

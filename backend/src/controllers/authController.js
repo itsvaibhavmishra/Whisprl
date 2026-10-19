@@ -20,12 +20,14 @@ import {
 } from "#src/services/sessionService.js";
 import { settleOnboarding } from "#src/services/onboardingService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
+import { settleDeletionAtLogin } from "#src/services/accountDeletionService.js";
 
 export const respondWithSession = async (req, res, user, message, extra = {}) => {
   assertNotShutOut(user);
+  const welcomeBack = await settleDeletionAtLogin(req.app.get("io"), user);
   await settleOnboarding(user);
   const session = await startSession(user, req.body.sessionKey, req);
-  res.status(200).json({ status: "success", message, user: await toSessionUser(user), ...session, ...extra });
+  res.status(200).json({ status: "success", message: welcomeBack ?? message, user: await toSessionUser(user), ...session, ...extra });
 };
 
 // -------------------------- Login auth --------------------------

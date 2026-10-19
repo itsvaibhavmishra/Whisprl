@@ -19,7 +19,8 @@ const baseFor = (firstName, lastName) => {
   return usernameProblemOf(base) ? FALLBACK_BASE : base;
 };
 
-const isTaken = (username) => UserModel.exists({ username });
+// a hidden account keeps its username for when it is shown again
+const isTaken = (username) => UserModel.exists({ $or: [{ username }, { "hiddenProfile.username": username }] });
 
 // a taken name gets up to six digits, which keeps it within the twenty character limit
 export const availableUsername = async (firstName, lastName) => {

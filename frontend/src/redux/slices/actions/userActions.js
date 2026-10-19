@@ -1,5 +1,7 @@
 import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
+import { EndSession } from "@/redux/slices/actions/authActions";
 import axios from "@/utils/axios";
+import { notify } from "@/utils/notify";
 
 const blobUrlToFile = async (blobUrl, fileName) => {
   const blob = await (await fetch(blobUrl)).blob();
@@ -40,6 +42,21 @@ export const GetMyProfile = createApiThunk("user/me", async () => (await axios.g
 export const ChangePassword = createApiThunk("user/change-password", async (passwords) => {
   const { data } = await axios.post("/user/change-password", passwords);
   notifyResult(data);
+  return data;
+});
+
+// ------------- Delete Account Thunks -------------
+export const SendDeletionCode = createApiThunk("user/deletion-code", async () => {
+  const { data } = await axios.post("/user/deletion/code");
+  notifyResult(data);
+  return data;
+});
+
+// the server has already logged the account out everywhere, so this device follows without a logout of its own
+export const DeleteAccount = createApiThunk("user/delete-account", async (body, { dispatch }) => {
+  const { data } = await axios.post("/user/deletion", body, { endsSession: true });
+  await dispatch(EndSession());
+  notify({ severity: "info", message: data.message });
   return data;
 });
 

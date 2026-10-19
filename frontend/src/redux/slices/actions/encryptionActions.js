@@ -7,6 +7,7 @@ import { updateMemberKeys } from "@/redux/slices/chatSlice";
 import axios from "@/utils/axios";
 import { forgetDeviceKeys, loadDeviceKeys, saveDeviceKeys } from "@/utils/crypto/keyStore";
 import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
+import { confirmOwner, forgetVaultedKeys, vaultDeviceKeys, vaultedDeviceKeys } from "@/utils/crypto/keyVault";
 import { setDeviceKeys } from "@/utils/crypto/messageCipher";
 import { createRecoveryKey, lockPrivateKey, parseRecoveryKey, unlockPrivateKey } from "@/utils/crypto/recoveryKey";
 import { authenticateWithPasskey, randomChallenge, unlockWithPasskey } from "@/utils/passkeys";
@@ -14,6 +15,8 @@ import { authenticateWithPasskey, randomChallenge, unlockWithPasskey } from "@/u
 const keepOnThisDevice = async (userId, deviceKeys) => {
   await saveDeviceKeys(userId, deviceKeys);
   setDeviceKeys(deviceKeys);
+  // the vault is a spare copy for after a reinstall, so a phone that cannot keep one still unlocks
+  await vaultDeviceKeys(userId, deviceKeys).catch(() => {});
 };
 
 const refreshChats = (dispatch, getState) => {
@@ -41,6 +44,13 @@ export const PrepareEncryption = createApiThunk(
 
     if (stored?.keyId === currentKeyId) {
       setDeviceKeys(stored);
+      return { status: "ready", currentKeyId };
+    }
+
+    const vaulted = await vaultedDeviceKeys(userId).catch(() => null);
+    if (vaulted?.keyId === currentKeyId) {
+      await saveDeviceKeys(userId, vaulted);
+      setDeviceKeys(vaulted);
       return { status: "ready", currentKeyId };
     }
 
@@ -115,7 +125,8 @@ export const UnlockWithPasskey = createApiThunk("encryption/unlock-passkey", asy
 });
 
 // ------------- Replace Recovery Key -------------
-export const ReplaceRecoveryKey = createApiThunk("encryption/replace-recovery-key", async (_, { getState }) => {
+export const ReplaceRecoveryKey = createApiThunk("encryption/replace-recovery-key", async (_, { getState, rejectWithValue }) => {
+  if (!(await confirmOwner("Unlock to make a new recovery key"))) return rejectWithValue(null);
   const { keyId, privateKey } = await loadDeviceKeys(getState().user.user._id);
   const { recoveryKey, backup } = await lockWithNewRecoveryKey(privateKey, keyId);
   await axios.put("/keys/backup", backup);
@@ -126,4 +137,5 @@ export const ReplaceRecoveryKey = createApiThunk("encryption/replace-recovery-ke
 export const ForgetDeviceKeys = createAsyncThunk("encryption/forget", async (userId) => {
   setDeviceKeys(null);
   await forgetDeviceKeys(userId).catch(() => {});
+  await forgetVaultedKeys(userId).catch(() => {});
 });

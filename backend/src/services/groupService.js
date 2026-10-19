@@ -2,7 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { AlbumModel, ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
-import { populateMembers } from "#src/services/conversationService.js";
+import { memberRooms, populateMembers } from "#src/services/conversationService.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { blockedEitherWay } from "#src/services/blockService.js";
 import { saveEvent } from "#src/services/messageService.js";
@@ -160,6 +160,28 @@ const leave = async (group, user_id) => {
   }
   await group.save();
   return withEvents(group, user_id, events, [user_id]);
+};
+
+// a deleted account leaves every group it was in, handing on any it owned
+export const leaveEveryGroup = async (user_id) => {
+  const groups = await ConversationModel.find({ users: user_id, ...GROUP });
+  const changes = [];
+  for (const group of groups) changes.push(await leave(group, user_id));
+  return changes;
+};
+
+// everyone still in the group, and anyone who just left it, hears about the change; newcomers join its room first
+export const announceGroupChange = (io, { group, groupId, events, departed }) => {
+  const room = String(groupId);
+  const members = group ? memberRooms(group) : [];
+  const leavers = departed.map(String);
+
+  if (members.length) io.in(members).socketsJoin(room);
+  if (leavers.length) io.in(leavers).socketsLeave(room);
+
+  const recipients = [...members, ...leavers];
+  if (recipients.length) io.to(recipients).emit("group_updated", group?.toJSON() ?? { _id: groupId, users: [] });
+  events.forEach((event) => io.to(members).emit("message_received", event));
 };
 
 export const removeMember = async (user, group_id, member_id) => {

@@ -32,6 +32,10 @@ const Register = () => {
         By creating an account, you agree to the{" "}
         <Link component={RouterLink} to={PATH_DOCS.general.tnc} underline="hover">
           terms and conditions
+        </Link>{" "}
+        and the{" "}
+        <Link component={RouterLink} to={PATH_DOCS.general.privacy} underline="hover">
+          privacy policy
         </Link>
         .
       </Typography>

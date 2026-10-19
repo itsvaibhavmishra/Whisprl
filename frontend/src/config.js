@@ -69,6 +69,7 @@ export const DEFAULT_DOCS = PATH_DOCS.general.tnc;
 export const SITE_URL = "https://whisprl.netlify.app";
 export const SOURCE_URL = "https://github.com/itsvaibhavmishra/Whisprl";
 export const PORTFOLIO_URL = "https://vaibhaw.vercel.app";
+export const CONTACT_EMAIL = "whisprlai@gmail.com";
 
 export const COMMUNITY = {
   people: "400+",

@@ -17,7 +17,8 @@ const PAGE_TILE = { xs: 576, sm: 720 };
 
 const eachSize = (values, toCss) => Object.fromEntries(Object.entries(values).map(([breakpoint, value]) => [breakpoint, toCss(value)]));
 
-const masked = (images, sizes) => ({ maskImage: images, WebkitMaskImage: images, maskSize: sizes, WebkitMaskSize: sizes });
+// a mask on its own layer, or Android's web view paints the cover over whatever sits below it
+const masked = (images, sizes) => ({ maskImage: images, WebkitMaskImage: images, maskSize: sizes, WebkitMaskSize: sizes, transform: "translateZ(0)" });
 
 // the doodles fade out round the photo that overlaps the cover's lower edge, so its ring stays clean
 const aroundPhoto = ({ x, radius }) => `radial-gradient(circle at ${x}px 100%, #000 ${radius}px, transparent ${radius + 56}px)`;

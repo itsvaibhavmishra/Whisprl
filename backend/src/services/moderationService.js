@@ -1,6 +1,5 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
-import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
 import { HIDDEN_PROFILE_FIELDS } from "#src/models/userModel.js";
@@ -15,13 +14,16 @@ import accountNoticeMail from "#src/templates/mail/accountNotice.js";
 const PAGE_SIZE = 30;
 const SEARCHED_FIELDS = ["firstName", "lastName", "username", "email"];
 const LISTED_FIELDS = "firstName lastName username email avatar role verified bannedAt suspendedUntil createdAt";
-const DELETED_ACCOUNT = { firstName: "Deleted account", lastName: "", avatar: "", cover: "", activityStatus: "" };
+// what everyone else sees in place of a banned, hidden or deleted account
+export const PLACEHOLDER_PROFILE = { firstName: "Whisprl user", lastName: "", avatar: "", cover: "", activityStatus: "" };
+
+export const profileOf = (user) => Object.fromEntries(HIDDEN_PROFILE_FIELDS.map((field) => [field, user[field]]).filter(([, value]) => value !== undefined));
 
 export const isSuspended = (user) => Boolean(user.suspendedUntil) && user.suspendedUntil > new Date();
 
 export const isShutOut = (user) => Boolean(user.bannedAt) || isSuspended(user);
 
-const endsOn = (until) => until.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+export const endsOn = (until) => until.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 // a banned or suspended account cannot hold a session, so this guards both signing in and every later request
 export const assertNotShutOut = (user) => {
@@ -51,7 +53,7 @@ const NOTICES = {
 
 // the action stands whether or not the email arrives, so a failed send is only logged
 const tellPerson = ({ email, firstName }, { subject, heading, body }, reason) =>
-  sendMail(email, subject, accountNoticeMail({ name: validator.escape(firstName), heading, body, reason: validator.escape(reason) })).catch(
+  sendMail(email, subject, accountNoticeMail({ name: firstName, heading, body, reason })).catch(
     (error) => console.error(`[moderation mail] ${error.message}`)
   );
 
@@ -125,11 +127,12 @@ export const banPerson = async (io, actor, user_id, { reason, reportId }) => {
   const given = assertReason(reason);
   const target = await findTarget(actor, user_id);
   assertNotBanned(target);
-  const hiddenProfile = Object.fromEntries(HIDDEN_PROFILE_FIELDS.map((field) => [field, target[field]]).filter(([, value]) => value !== undefined));
+  // an account already hidden, as one waiting to be deleted is, keeps the real profile it set aside
+  const hiddenProfile = target.hiddenProfile ?? profileOf(target);
 
   await UserModel.updateOne(
     { _id: target._id },
-    { ...DELETED_ACCOUNT, hiddenProfile, bannedAt: new Date(), $unset: { suspendedUntil: 1, username: 1 } }
+    { ...PLACEHOLDER_PROFILE, hiddenProfile, bannedAt: new Date(), $unset: { suspendedUntil: 1, username: 1 } }
   );
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "banned", target: target._id, reason: given });

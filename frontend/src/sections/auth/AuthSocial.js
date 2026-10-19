@@ -10,7 +10,9 @@ import {
 } from "@/redux/slices/actions/authActions";
 
 import { getOAuthCode } from "@/utils/socialLoginHelpers";
+import { signInWithGoogle } from "@/utils/googleSignIn";
 import { notify } from "@/utils/notify";
+import { isApp } from "@/utils/platform";
 
 const AuthSocial = () => {
   const dispatch = useDispatch();
@@ -28,6 +30,14 @@ const AuthSocial = () => {
       console.log(error);
     },
   });
+
+  const continueWithGoogle = async () => {
+    if (!isApp) return googleLogin();
+
+    const { outcome, idToken } = await signInWithGoogle();
+    if (outcome === "signed-in") dispatch(GoogleLogin(idToken));
+    else if (outcome === "failed") showSnackbar("google");
+  };
 
   const githubLogin = async () => {
     try {
@@ -55,18 +65,19 @@ const AuthSocial = () => {
     }
   };
 
+  // the app signs in with Google through Android itself, and GitHub and LinkedIn are for the website
   const providers = [
-    { name: "Google", icon: <GoogleLogo weight="bold" color="#DF3E30" />, onClick: () => googleLogin() },
+    { name: "Google", icon: <GoogleLogo weight="bold" color="#DF3E30" />, onClick: continueWithGoogle, isInApp: true },
     { name: "GitHub", icon: <GithubLogo weight="fill" />, onClick: githubLogin },
     { name: "LinkedIn", icon: <LinkedinLogo weight="fill" color="#0A66C2" />, onClick: linkedinLogin },
-  ];
+  ].filter((provider) => provider.isInApp || !isApp);
 
   return (
     <>
       <Divider sx={{ my: 3, typography: "body2", color: "text.secondary" }}>
         or continue with
       </Divider>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1.5 }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${providers.length}, 1fr)`, gap: 1.5 }}>
         {providers.map(({ name, icon, onClick }) => (
           <Button
             key={name}

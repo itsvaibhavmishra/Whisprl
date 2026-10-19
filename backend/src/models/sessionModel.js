@@ -9,6 +9,9 @@ const sessionSchema = mongoose.Schema(
 
     userAgent: { type: String },
 
+    // the phone app's Firebase token, kept on the session so logging out stops its pushes too
+    pushToken: { type: String },
+
     expiresAt: { type: Date, required: true, index: { expires: 0 } },
   },
   {

@@ -1,4 +1,4 @@
-import { button, mail, panel, paragraph, rule } from "#src/templates/mail/layout.js";
+import { button, greeting, mail, panel, paragraph, rule } from "#src/templates/mail/layout.js";
 
 const FONTS = "'Manrope','Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
@@ -14,7 +14,7 @@ export default (name, reset) =>
     title: "Reset your Whisprl password",
     preheader: "Choose a new password. The link works for 10 minutes.",
     body: `
-${paragraph(`Hey ${name},`)}
+${greeting(name)}
 ${paragraph("Someone asked to reset the password on your Whisprl account. Choose a new one here.")}
 <div style="margin:26px 0 4px;">${button(reset, "Choose a new password")}</div>
 ${fallback(reset)}

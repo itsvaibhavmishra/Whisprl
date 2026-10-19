@@ -16,10 +16,10 @@ import { permissionsOf, roleOf } from "#src/services/roleService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 
-const CODE_LIFETIME = 10 * 60 * 1000;
+export const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;
 const RESEND_COOLDOWN = 90 * 1000;
-const MAX_CODE_ATTEMPTS = 5;
+export const MAX_CODE_ATTEMPTS = 5;
 
 export const toSessionUser = async (user) => ({
   _id: user._id,
@@ -43,9 +43,11 @@ export const toSessionUser = async (user) => ({
   permissions: permissionsOf(user),
 });
 
-const matchesHash = (value, hash) => crypto.timingSafeEqual(Buffer.from(sha256(value)), Buffer.from(hash));
+export const newCode = () => crypto.randomInt(0, 1000000).toString().padStart(6, "0");
 
-const assertCooledDown = (sentAt, what) => {
+export const matchesHash = (value, hash) => crypto.timingSafeEqual(Buffer.from(sha256(value)), Buffer.from(hash));
+
+export const assertCooledDown = (sentAt, what) => {
   const waitMs = sentAt ? RESEND_COOLDOWN - (Date.now() - sentAt.getTime()) : 0;
   if (waitMs > 0) {
     throw createHttpError.TooManyRequests(
@@ -54,7 +56,7 @@ const assertCooledDown = (sentAt, what) => {
   }
 };
 
-const mailOrFail = async (to, subject, html) => {
+export const mailOrFail = async (to, subject, html) => {
   try {
     await sendMail(to, subject, html);
   } catch {
@@ -83,7 +85,10 @@ export const authenticate = async (token) => {
 // a username never holds an @, and only verified accounts log in by one, so an account still verifying goes by its email
 const accountFilterOf = (identifier) => {
   const value = String(identifier).trim();
-  return value.indexOf("@") > 0 ? { email: normalizeEmail(value) } : { username: normalizeUsername(value), verified: true };
+  if (value.indexOf("@") > 0) return { email: normalizeEmail(value) };
+  const username = normalizeUsername(value);
+  // a hidden account, such as one waiting to be deleted, still logs in by the username it set aside
+  return { $or: [{ username }, { "hiddenProfile.username": username }], verified: true };
 };
 
 export const loginWithPassword = async (identifier, password) => {
@@ -127,13 +132,13 @@ export const registerUser = async ({ firstName, lastName, email, password, birth
 export const sendVerificationCode = async (user) => {
   assertCooledDown(user.verification?.sentAt, "code");
 
-  const code = crypto.randomInt(0, 1000000).toString().padStart(6, "0");
+  const code = newCode();
   const now = Date.now();
   user.verification = { codeHash: sha256(code), expiresAt: now + CODE_LIFETIME, sentAt: now, attempts: 0 };
   await user.save();
 
   try {
-    await mailOrFail(user.email, `${code} is your Whisprl code`, otpMail(validator.escape(user.firstName), code));
+    await mailOrFail(user.email, `${code} is your Whisprl code`, otpMail(user.firstName, code));
   } catch (error) {
     user.verification = undefined;
     await user.save();
@@ -201,7 +206,7 @@ export const sendPasswordReset = async (email) => {
 
   const resetUrl = `${process.env.FRONT_URL}/auth/reset-password/?code=${token}`;
   try {
-    await mailOrFail(user.email, "Reset your Whisprl password", resetMail(validator.escape(user.firstName), resetUrl));
+    await mailOrFail(user.email, "Reset your Whisprl password", resetMail(user.firstName, resetUrl));
   } catch (error) {
     user.passwordReset = undefined;
     await user.save();

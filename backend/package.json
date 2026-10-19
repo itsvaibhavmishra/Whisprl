@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Whisprl Backend",
   "main": "server.js",
   "type": "module",
@@ -31,6 +31,7 @@
     "nodemon": "^3.1.7"
   },
   "dependencies": {
+    "@sentry/node": "^10.69.0",
     "@simplewebauthn/server": "^14.0.3",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
@@ -41,7 +42,8 @@
     "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^7.4.1",
-    "express-xss-sanitizer": "^1.2.1",
+    "firebase-admin": "^14.5.0",
+    "google-auth-library": "^11.3.1",
     "helmet": "^8.0.0",
     "http-errors": "^2.0.0",
     "image-size": "^1.1.1",

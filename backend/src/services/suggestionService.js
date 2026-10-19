@@ -55,7 +55,7 @@ export const suggestionsFor = async (user) => {
     .sort((one, other) => byMostLinks(links.get(one), links.get(other)))
     .slice(0, CANDIDATE_LIMIT);
 
-  const people = await UserModel.find({ _id: { $in: await withoutOpenRequests(user, ranked) }, verified: true, blocked: { $ne: user._id } })
+  const people = await UserModel.find({ _id: { $in: await withoutOpenRequests(user, ranked) }, verified: true, deletion: { $exists: false }, blocked: { $ne: user._id } })
     .select(SUGGESTION_FIELDS)
     .lean();
 

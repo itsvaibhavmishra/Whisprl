@@ -3,13 +3,15 @@ import trimRequest from "trim-request";
 import multer from "multer";
 
 import { protect } from "#src/middlewares/authMiddleware.js";
-import { readLimit, searchLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
+import { codeLimit, readLimit, searchLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   checkUsernameAvailable,
   findPeople,
   getMyProfile,
   getUserData,
+  requestAccountDeletion,
   searchUsers,
+  sendAccountDeletionCode,
   updateBirthdaySetting,
   updatePassword,
   updateProfile,
@@ -54,6 +56,11 @@ userRouter.route("/suggestions").put(protect, writeLimit(), updateSuggestionSett
 
 // Whether friends see this person's birthday
 userRouter.route("/birthday-visibility").put(protect, writeLimit(), updateBirthdaySetting);
+
+// Delete Account Routes: a code goes to the account's email, and the deletion waits 14 days for a login to cancel it
+userRouter.route("/deletion/code").post(protect, writeLimit(), sendAccountDeletionCode);
+
+userRouter.route("/deletion").post(trimRequest.all, protect, codeLimit(), requestAccountDeletion);
 
 // Own Profile Route
 userRouter.route("/me").get(protect, readLimit(), getMyProfile);

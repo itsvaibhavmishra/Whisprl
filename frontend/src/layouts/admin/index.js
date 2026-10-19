@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, Flag, IdentificationBadge, ShieldStar, Users } from "phosphor-react";
+import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, Flag, GameController, IdentificationBadge, ShieldStar, Users } from "phosphor-react";
 import { useSelector } from "react-redux";
 import { Link, Navigate, Outlet, matchPath, useLocation } from "react-router-dom";
 
@@ -18,6 +18,7 @@ const DESTINATIONS = [
   { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUp, permission: "overview" },
   { path: PATH_ADMIN.people, label: "People", Icon: Users, permission: "people" },
   { path: PATH_ADMIN.reports, label: "Reports", Icon: Flag, permission: "reports" },
+  { path: PATH_ADMIN.requests, label: "Game requests", Icon: GameController, permission: "requests" },
   { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwise, permission: "audit" },
   { path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadge, permission: "team" },
 ];

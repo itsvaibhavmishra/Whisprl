@@ -12,6 +12,7 @@ import {
   setShowBirthdayToFriends,
 } from "#src/services/userService.js";
 import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionService.js";
+import { scheduleDeletion, sendDeletionCode } from "#src/services/accountDeletionService.js";
 import { setSuggestToFriendsOfFriends } from "#src/services/suggestionService.js";
 import { changeUsername, checkUsername } from "#src/services/usernameService.js";
 import { assertText, assertValidName, oldEnoughBirthdayFrom } from "#src/utils/accountRules.js";
@@ -182,6 +183,27 @@ export const getUserData = async (req, res, next) => {
     const userData = await getPublicProfile(req.user, req.query);
 
     res.status(200).json({ status: "success", userData });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Delete Account --------------------------
+export const sendAccountDeletionCode = async (req, res, next) => {
+  try {
+    await sendDeletionCode(req.user);
+
+    res.status(200).json({ status: "success", message: `We emailed a code to ${req.user.email}` });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const requestAccountDeletion = async (req, res, next) => {
+  try {
+    const { dueAt, day } = await scheduleDeletion(req.app.get("io"), req.user, req.body);
+
+    res.status(200).json({ status: "success", message: `Your account will be deleted on ${day}. Log in before then to keep it.`, dueAt });
   } catch (error) {
     next(error);
   }

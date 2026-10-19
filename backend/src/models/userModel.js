@@ -8,7 +8,7 @@ const PASSWORD_COST = 12;
 
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
-export const PERMISSIONS = ["overview", "people", "reports", "suspend", "ban", "audit"];
+export const PERMISSIONS = ["overview", "people", "reports", "requests", "suspend", "ban", "audit"];
 
 const publicKeySchema = mongoose.Schema(
   {
@@ -66,6 +66,18 @@ const birthdaySchema = mongoose.Schema(
   { _id: false }
 );
 
+export const DELETION_REASONS = ["not-using", "privacy", "unwanted-contact", "another-account", "not-working", "other"];
+
+const deletionSchema = mongoose.Schema(
+  {
+    requestedAt: { type: Date, required: true },
+    dueAt: { type: Date, required: true },
+    reason: { type: String, enum: DELETION_REASONS, required: true },
+    note: { type: String },
+  },
+  { _id: false }
+);
+
 export const HIDDEN_PROFILE_FIELDS = ["firstName", "lastName", "username", "avatar", "cover", "activityStatus"];
 
 const profileSchema = mongoose.Schema({ firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String }, { _id: false });
@@ -108,10 +120,15 @@ const userSchema = mongoose.Schema(
 
     bannedAt: { type: Date },
     suspendedUntil: { type: Date },
-    // what a ban replaced, so staff can still tell who it is and a restore puts it all back
+    // what a ban or a pending deletion replaced, so staff can still tell who it is and showing it again puts it all back
     hiddenProfile: { type: profileSchema, select: false },
     verification: { type: verificationSchema, select: false },
     passwordReset: { type: passwordResetSchema, select: false },
+    deletionCode: { type: verificationSchema, select: false },
+
+    // kept once the account is gone, as the only record of why people leave
+    deletion: { type: deletionSchema },
+    deletedAt: { type: Date },
 
     friends: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
     blocked: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
@@ -146,6 +163,8 @@ const userSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.index({ "deletion.dueAt": 1 }, { sparse: true });
 
 userSchema.pre("save", async function () {
   if (this.isModified("password") && this.password) {

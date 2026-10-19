@@ -22,7 +22,7 @@ const ACTIONS = {
   ban: {
     thunk: BanPerson,
     title: (name) => `Ban ${name}?`,
-    explanation: "They can't log in again, their open sessions close now, and everyone else sees a deleted account in their place.",
+    explanation: "They can't log in again, their open sessions close now, and everyone else sees “Whisprl user” in their place.",
     verb: "Ban",
     isDanger: true,
   },

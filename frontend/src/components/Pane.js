@@ -1,11 +1,11 @@
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { ArrowLeft } from "phosphor-react";
 
-import WhisprlAvatar from "@/assets/icons/logo/WhisprlAvatar.webp";
+import MascotHalo from "@/components/MascotHalo";
 
 export const PaneEmpty = ({ text, children }) => (
   <Stack alignItems="center" spacing={2} sx={{ px: 3, py: 8, textAlign: "center" }}>
-    <Box component="img" src={WhisprlAvatar} alt="" sx={{ width: 96, height: 96, borderRadius: "50%", bgcolor: "chat.field" }} />
+    <MascotHalo size={120} />
     <Typography sx={{ maxWidth: 300, fontSize: 14, fontWeight: 500, color: "text.secondary" }}>{text}</Typography>
     {children}
   </Stack>
@@ -28,7 +28,7 @@ export const PaneSection = ({ label, count, children }) => (
 // a column narrow enough to read across, for panes that hold a list or a profile rather than a grid
 export const READING_WIDTH = 760;
 
-export const PANE_INSET = { px: { xs: 2, md: 4 }, pt: { xs: 1.5, md: 4 } };
+export const PANE_INSET = { px: { xs: 2, md: 4 }, pt: { xs: "calc(12px + env(safe-area-inset-top))", md: "calc(32px + env(safe-area-inset-top))" } };
 
 export const LIST_WIDTH = { md: 340, lg: 380 };
 
