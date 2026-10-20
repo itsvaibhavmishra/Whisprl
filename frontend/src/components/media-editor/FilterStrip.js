@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 
 import { drawCovering } from "@/utils/media-editor/draw";
@@ -18,12 +18,19 @@ const thumbnailsOf = (image) =>
 const FilterStrip = ({ image, chosen, onChoose }) => {
   const thumbnails = useMemo(() => (image ? thumbnailsOf(image) : []), [image]);
   const current = filterNamed(chosen);
+  const chosenButton = useRef(null);
+
+  // a swipe on the photo can pick one beyond the edge of the strip, so the strip follows it
+  useEffect(() => {
+    chosenButton.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [current]);
 
   return (
     <Stack direction="row" spacing={1.25} sx={{ px: 2, py: 1.25, overflowX: "auto" }}>
       {PHOTO_FILTERS.map((filter, index) => (
         <ButtonBase
           key={filter.name}
+          ref={filter === current ? chosenButton : undefined}
           aria-label={filter.name}
           aria-pressed={filter === current}
           onClick={() => onChoose(filter)}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 const NEAR_BOTTOM = 120;
 const OPEN_AT_MARGIN = 16;
@@ -43,12 +43,13 @@ export const useChatScroll = ({
   const openAt = useRef(null);
   openAt.current = openAtKey;
   const hasOpened = useRef(false);
-  const [isAwayFromBottom, setIsAwayFromBottom] = useState(false);
+  // told rather than kept as state, so showing the jump button does not redraw every message
+  const onAwayChange = useRef(null);
 
   const measureBottom = useCallback(() => {
     const container = scrollRef.current;
     isAtBottom.current = container.scrollHeight - container.scrollTop - container.clientHeight < NEAR_BOTTOM;
-    setIsAwayFromBottom(!isAtBottom.current);
+    onAwayChange.current?.(!isAtBottom.current);
   }, []);
 
   const rememberAnchor = useCallback(() => {
@@ -107,7 +108,7 @@ export const useChatScroll = ({
     isAtBottom.current = true;
     anchor.current = null;
     hasOpened.current = false;
-    setIsAwayFromBottom(false);
+    onAwayChange.current?.(false);
   }, [conversationId]);
 
   useLayoutEffect(restorePosition, [conversationId, contentVersion, restorePosition]);
@@ -130,5 +131,13 @@ export const useChatScroll = ({
     if (canLoadNewer && bottomRef.current) return watchEdge(bottomRef.current, scrollRef.current, LOAD_NEWER_AHEAD, onLoadNewer);
   }, [conversationId, lastMessageId, canLoadNewer, onLoadNewer]);
 
-  return { scrollRef, contentRef, topRef, bottomRef, handleScroll, holdStill, jumpToLatest, scrollToKey, isAwayFromBottom };
+  const watchAway = useCallback((listener) => {
+    onAwayChange.current = listener;
+    listener(!isAtBottom.current);
+    return () => {
+      onAwayChange.current = null;
+    };
+  }, []);
+
+  return { scrollRef, contentRef, topRef, bottomRef, handleScroll, holdStill, jumpToLatest, scrollToKey, watchAway };
 };

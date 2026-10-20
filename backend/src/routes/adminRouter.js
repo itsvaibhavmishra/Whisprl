@@ -8,6 +8,7 @@ import {
   changeTeamAccess,
   closeGameRequest,
   dismiss,
+  getActivePeople,
   getAuditLog,
   getConfirmationOptions,
   getGameRequests,
@@ -26,6 +27,8 @@ const adminRouter = express.Router();
 adminRouter.use(protect, staffOnly);
 
 adminRouter.route("/overview").get(readLimit(), allow("overview"), getOverview);
+
+adminRouter.route("/active").get(readLimit(), allow("overview"), getActivePeople);
 
 adminRouter.route("/people").get(searchLimit(), allow("people"), getPeople);
 

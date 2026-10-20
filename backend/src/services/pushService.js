@@ -81,24 +81,13 @@ export const pushDataFor = (conversation, sender, message, recipientId, keyId) =
   return Buffer.byteLength(JSON.stringify(sealed)) <= MOST_DATA_BYTES ? sealed : named;
 };
 
-export const pushNewMessage = async (conversation, sender, message) => {
-  const sendable = messagingOrNull();
-  if (!sendable) return;
+const pushSessionsFor = async (conversation, senderId) =>
+  SessionModel.find({ user: { $in: await unmutedRecipients(conversation, senderId) }, pushToken: { $exists: true } }).select("user pushToken");
 
-  const sessions = await SessionModel.find({ user: { $in: await unmutedRecipients(conversation, sender._id) }, pushToken: { $exists: true } }).select("user pushToken");
-  if (!sessions.length) return;
+// high priority wakes a sleeping phone, which Android allows for something its owner is then shown
+const pushTo = (session, conversation, data) => ({ token: session.pushToken, data, android: { priority: "high", collapseKey: String(conversation._id) } });
 
-  const keyIds = await currentKeyIdsOf(sessions.map((session) => session.user));
-  const pushes = sessions.map((session) => {
-    const recipientId = String(session.user);
-    return {
-      token: session.pushToken,
-      data: pushDataFor(conversation, sender, message, recipientId, keyIds.get(recipientId)),
-      // high priority wakes a sleeping phone, which Android allows for a message its owner is then shown
-      android: { priority: "high", collapseKey: String(conversation._id) },
-    };
-  });
-
+const sendAll = async (sendable, sessions, pushes) => {
   const stale = [];
   // Firebase refuses more than five hundred pushes in one call, which a full group of busy people can reach
   for (let start = 0; start < pushes.length; start += MOST_PER_SEND) {
@@ -107,6 +96,28 @@ export const pushNewMessage = async (conversation, sender, message) => {
       if (STALE_TOKEN.has(response.error?.code)) stale.push(sessions[start + position]._id);
     });
   }
-
   if (stale.length) await SessionModel.updateMany({ _id: { $in: stale } }, { $unset: { pushToken: 1 } });
+};
+
+export const pushNewMessage = async (conversation, sender, message) => {
+  const sendable = messagingOrNull();
+  if (!sendable) return;
+  const sessions = await pushSessionsFor(conversation, sender._id);
+  if (!sessions.length) return;
+
+  const keyIds = await currentKeyIdsOf(sessions.map((session) => session.user));
+  const pushes = sessions.map((session) => {
+    const recipientId = String(session.user);
+    return pushTo(session, conversation, pushDataFor(conversation, sender, message, recipientId, keyIds.get(recipientId)));
+  });
+  await sendAll(sendable, sessions, pushes);
+};
+
+// an invite carries nothing secret, so its words travel as they are
+export const pushGameInvite = async (conversation, sender, gameName) => {
+  const sendable = messagingOrNull();
+  if (!sendable) return;
+  const sessions = await pushSessionsFor(conversation, sender._id);
+  const data = { conversationId: String(conversation._id), senderId: String(sender._id), title: `${sender.firstName} ${sender.lastName}`, text: `Wants to play ${gameName}` };
+  await sendAll(sendable, sessions, sessions.map((session) => pushTo(session, conversation, { ...data, recipientId: String(session.user) })));
 };

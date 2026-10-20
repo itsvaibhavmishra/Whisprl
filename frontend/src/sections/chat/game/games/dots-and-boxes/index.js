@@ -13,6 +13,7 @@ const dotsAndBoxes = {
   id: "dots-and-boxes",
   name: "Dots and Boxes",
   summary: "Close a box to claim it, and go again. For two to six players.",
+  keywords: ["squares", "lines", "dot game", "pencil and paper", "timbiriche"],
   art,
   preload: [art.scene, art.board, art.notebook, art.cat, art.title],
   theme: {

@@ -2,6 +2,7 @@ import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { seatSwitchOffered } from "@/redux/slices/gameSlice";
 import axios from "@/utils/axios";
 import { firstNameIn } from "@/utils/groups";
+import { openNotifiedChat } from "@/utils/notifications";
 import { notify } from "@/utils/notify";
 import { socket } from "@/utils/socket";
 
@@ -51,7 +52,7 @@ export const CloseGame = createApiThunk("game/close", (conversationId, { dispatc
 export const GetLeaderboard = createApiThunk("game/leaderboard", async (conversationId) => ({
   conversationId,
   rows: (await axios.get(`/games/${conversationId}/leaderboard`)).data.leaderboard,
-}));
+}), { notifyErrors: false });
 
 export const TakeSeat = createApiThunk("game/takeSeat", (seat, { dispatch }) => sitOrOfferSwitch(dispatch, { ...seat, type: "sit" }));
 
@@ -73,7 +74,9 @@ export const ReceiveGameInvite = (invite) => async (_, getState) => {
   const from = firstNameIn(conversation, invite.from, user.user._id);
   // asked for here rather than imported, so naming a game in a toast does not put every game in the first bundle
   const { GAMES } = await import("@/sections/chat/game/catalog");
-  notify({ severity: "info", message: `${from} saved you a seat at ${GAMES[invite.game]?.name ?? "a game"} in ${conversation.name}` });
+  const gameName = GAMES[invite.game]?.name ?? "a game";
+  const message = conversation.isGroup ? `${from} saved you a seat at ${gameName} in ${conversation.name}` : `${from} wants to play ${gameName}`;
+  notify({ severity: "info", message, action: { label: "Join", onClick: () => openNotifiedChat(invite.conversationId) } });
 };
 
 export const ReceiveGameNotice = (notice) => (_, getState) => {

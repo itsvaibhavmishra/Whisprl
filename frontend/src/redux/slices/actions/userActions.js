@@ -1,5 +1,6 @@
 import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
 import { EndSession } from "@/redux/slices/actions/authActions";
+import { updateUser } from "@/redux/slices/userSlice";
 import axios from "@/utils/axios";
 import { notify } from "@/utils/notify";
 
@@ -36,7 +37,7 @@ export const UpdateProfile = createApiThunk(
 );
 
 // ------------- Get My Profile Thunk -------------
-export const GetMyProfile = createApiThunk("user/me", async () => (await axios.get("/user/me")).data);
+export const GetMyProfile = createApiThunk("user/me", async () => (await axios.get("/user/me")).data, { notifyErrors: false });
 
 // ------------- Change Password Thunk -------------
 export const ChangePassword = createApiThunk("user/change-password", async (passwords) => {
@@ -63,16 +64,18 @@ export const DeleteAccount = createApiThunk("user/delete-account", async (body, 
 // ------------- Search Friends Thunk -------------
 export const SearchFriends = createApiThunk(
   "friends/search",
-  async ({ keyword, page = 0 }) => (await axios.get("/friends/search", { params: { search: keyword, page } })).data
+  async ({ keyword, page = 0 }) => (await axios.get("/friends/search", { params: { search: keyword, page } })).data,
+  { notifyErrors: false }
 );
 
 // ------------- Get Friends Thunk -------------
-export const GetFriends = createApiThunk("friends/get-friends", async () => (await axios.get("/friends/get-friends")).data);
+export const GetFriends = createApiThunk("friends/get-friends", async () => (await axios.get("/friends/get-friends")).data, { notifyErrors: false });
 
 // ------------- Get Online Friends Thunk -------------
 export const GetOnlineFriends = createApiThunk(
   "friends/online-friends",
-  async () => (await axios.get("/friends/online-friends")).data
+  async () => (await axios.get("/friends/online-friends")).data,
+  { notifyErrors: false }
 );
 
 // ------------- Username -------------
@@ -88,10 +91,17 @@ export const UpdateUsername = createApiThunk(
 );
 
 // ------------- Quick Reactions -------------
-export const UpdateQuickReactions = createApiThunk(
-  "user/quick-reactions",
-  async (reactions) => (await axios.put("/user/quick-reactions", { reactions })).data
-);
+// shown at once and put back if the server refuses
+export const UpdateQuickReactions = createApiThunk("user/quick-reactions", async (reactions, { dispatch, getState }) => {
+  const before = getState().user.user.quickReactions;
+  dispatch(updateUser({ quickReactions: reactions }));
+  try {
+    return (await axios.put("/user/quick-reactions", { reactions })).data;
+  } catch (error) {
+    dispatch(updateUser({ quickReactions: before }));
+    throw error;
+  }
+});
 
 // ------------- Game Audio -------------
 export const UpdateGameAudio = createApiThunk(

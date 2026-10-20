@@ -1,7 +1,7 @@
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { DirectConversationWith, SendTextMessage } from "@/redux/slices/actions/chatActions";
 import { postingProgress, reactionChosen, statusAdded, statusRemoved, statusSeen, viewSaved } from "@/redux/slices/statusSlice";
-import { ATTACHMENT_TYPES, MAX_ATTACHMENT_SIZE, pickFiles, prepareImage, thumbnailOf, wholePercents } from "@/utils/attachments";
+import { MAX_ATTACHMENT_SIZE, MEDIA_TYPES, pickFiles, readImage, thumbnailOf, wholePercents } from "@/utils/attachments";
 import axios from "@/utils/axios";
 import { sealFile } from "@/utils/crypto/fileCipher";
 import { encryptStatus, encryptStatusReaction, openStatus, openStatusReaction } from "@/utils/crypto/statusCipher";
@@ -34,7 +34,8 @@ const readable = async (statuses, meId) =>
 
 // ------------- Statuses -------------
 export const GetStatuses = createApiThunk("status/list", async (_, { getState }) =>
-  readable((await axios.get("/status")).data.statuses, getState().user.user._id)
+  readable((await axios.get("/status")).data.statuses, getState().user.user._id),
+  { notifyErrors: false }
 );
 
 export const GetDiscover = createApiThunk("status/discover", async (_, { getState }) =>
@@ -54,9 +55,11 @@ export const ReceiveStatus = (status) => async (dispatch, getState) => {
 };
 
 // ------------- Choose A Photo Or Video -------------
-// a photo is shrunk now and a video only read, since compressing it waits until it is shared
-const draftOf = async (file) =>
-  file.type.startsWith("video/") ? { kind: "video", file, ...(await probeVideo(file)) } : { kind: "image", ...(await prepareImage(file)) };
+// a photo is redrawn at its own size when it is shared, so only a video, and a GIF sent as it is, are read now
+const draftOf = async (file) => {
+  if (file.type.startsWith("video/")) return { kind: "video", file, ...(await probeVideo(file)) };
+  return { kind: "image", file, ...(file.type === "image/gif" ? await readImage(file) : {}) };
+};
 
 const refused = (message) => {
   notify({ severity: "info", message });
@@ -67,11 +70,11 @@ const refused = (message) => {
 const CAPTURE_TYPES = { photo: ["image/*"], video: ["video/*"] };
 
 export const ChooseStatusMedia = (capture) => async () => {
-  const [file] = await pickFiles(CAPTURE_TYPES[capture] ?? ATTACHMENT_TYPES.media, { multiple: false, capture: Boolean(capture) });
+  const [file] = await pickFiles(CAPTURE_TYPES[capture] ?? MEDIA_TYPES, { multiple: false, capture: Boolean(capture) });
   if (!file) return null;
   try {
     const draft = await draftOf(file);
-    return draft.kind === "image" && draft.file.size > MAX_ATTACHMENT_SIZE ? refused(`${file.name} is larger than 5 MB`) : draft;
+    return isGif(draft) && draft.file.size > MAX_ATTACHMENT_SIZE ? refused(`${file.name} is larger than 5 MB`) : draft;
   } catch (error) {
     return refused(error instanceof VideoRefusal ? error.message : `${file.name} could not be opened`);
   }
@@ -181,7 +184,7 @@ export const DeleteStatus = createApiThunk("status/delete", async (statusId, { d
 });
 
 // ------------- Hidden From -------------
-export const GetHiddenFrom = createApiThunk("status/hidden-from", async () => (await axios.get("/status/hidden-from")).data.hiddenFrom);
+export const GetHiddenFrom = createApiThunk("status/hidden-from", async () => (await axios.get("/status/hidden-from")).data.hiddenFrom, { notifyErrors: false });
 
 export const SetHiddenFrom = createApiThunk("status/set-hidden-from", async (ids) => {
   const { data } = await axios.put("/status/hidden-from", { hiddenFrom: ids });

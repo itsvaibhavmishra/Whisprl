@@ -95,7 +95,7 @@ const messagesOf = (layer, dragY) => {
     bgcolor: { xs: layer === "sheet" ? "rgba(14, 20, 32, 0.86)" : "transparent", lg: "transparent" },
     backdropFilter: { xs: layer === "sheet" ? "blur(14px)" : "blur(0px)", lg: "none" },
     transform: dragY ? `translateY(${dragY}px)` : "none",
-    // a strip this short has no room for the space the full list keeps for the typing bubble
+    // a strip this short has no room for the typing bubble
     "& [data-typing-slot]": { display: { xs: layer === "strip" ? "none" : "block", lg: "block" } },
     transition: [
       `--chat-top ${SHEET_EASE}`,

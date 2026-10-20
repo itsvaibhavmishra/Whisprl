@@ -41,15 +41,16 @@ export const GetSuggestions = createApiThunk("friends/suggestions", async () => 
 export const HideSuggestion = createApiThunk("friends/hide-suggestion", async (userId) => (await axios.delete(`/friends/suggestions/${userId}`)).data);
 
 // ------------- Get Requests Thunk -------------
-export const GetRequests = createApiThunk("friends/requests", async () => (await axios.get("/friends/requests")).data);
+export const GetRequests = createApiThunk("friends/requests", async () => (await axios.get("/friends/requests")).data, { notifyErrors: false });
 
 // ------------- Requests Seen Thunk -------------
-export const SeeRequests = createApiThunk("friends/requests/seen", async () => (await axios.put("/friends/requests/seen")).data);
+export const SeeRequests = createApiThunk("friends/requests/seen", async () => (await axios.put("/friends/requests/seen")).data, { notifyErrors: false });
 
 // ------------- Search Users Thunk -------------
 export const SearchForUsers = createApiThunk(
   "user/search",
-  async ({ keyword, page = 0 }) => (await axios.get("/user/search", { params: { search: keyword, page } })).data
+  async ({ keyword, page = 0 }) => (await axios.get("/user/search", { params: { search: keyword, page } })).data,
+  { notifyErrors: false }
 );
 
 // the server names the chat a note is sealed for, since it may be one the two already share

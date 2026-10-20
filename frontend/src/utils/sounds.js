@@ -70,3 +70,38 @@ export const startRisingTone = (overMs) => {
     oscillator.stop(endsAt);
   };
 };
+
+const DEFLATE_FROM = 1100;
+const DEFLATE_TO = 140;
+const DEFLATE_S = 0.45;
+const FLUTTER_HZ = 28;
+const FLUTTER_DEPTH = 70;
+const DEFLATE_LEVEL = 0.1;
+
+// a whistle that falls as it flutters, the sound of a balloon let go rather than burst
+export const playDeflateTone = () => {
+  if (!soundsOn()) return;
+  const context = new AudioContext();
+  const whistle = context.createOscillator();
+  const flutter = context.createOscillator();
+  const flutterDepth = context.createGain();
+  const gain = context.createGain();
+  const startedAt = context.currentTime;
+  const endsAt = startedAt + DEFLATE_S;
+
+  whistle.type = "triangle";
+  whistle.frequency.setValueAtTime(DEFLATE_FROM, startedAt);
+  whistle.frequency.exponentialRampToValueAtTime(DEFLATE_TO, endsAt);
+  flutter.frequency.value = FLUTTER_HZ;
+  flutterDepth.gain.value = FLUTTER_DEPTH;
+  flutter.connect(flutterDepth).connect(whistle.frequency);
+  gain.gain.setValueAtTime(0, startedAt);
+  gain.gain.linearRampToValueAtTime(DEFLATE_LEVEL, startedAt + FADE_S / 2);
+  gain.gain.linearRampToValueAtTime(0, endsAt);
+  whistle.connect(gain).connect(context.destination);
+  whistle.onended = () => context.close();
+  [whistle, flutter].forEach((oscillator) => {
+    oscillator.start(startedAt);
+    oscillator.stop(endsAt);
+  });
+};

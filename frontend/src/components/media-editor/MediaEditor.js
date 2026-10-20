@@ -257,7 +257,7 @@ const MediaEditor = ({ media, initialEdits = NO_EDITS, isStory = false, people =
               onLayerChange={updateLayer}
               onLayerRemove={removeLayer}
               onLayerTap={editText}
-              onSwipe={isPhoto && !tool ? swipeFilter : undefined}
+              onSwipe={isPhoto && (!tool || tool === "filters") ? swipeFilter : undefined}
               onPhotoChange={isStory && isPhoto ? (photo) => setEdits((current) => ({ ...current, photo })) : undefined}
             />
           ) : (

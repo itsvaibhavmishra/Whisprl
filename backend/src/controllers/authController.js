@@ -18,6 +18,7 @@ import {
   signOutSession,
   startSession,
 } from "#src/services/sessionService.js";
+import { platformOf } from "#src/services/activityService.js";
 import { settleOnboarding } from "#src/services/onboardingService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
 import { settleDeletionAtLogin } from "#src/services/accountDeletionService.js";
@@ -122,7 +123,7 @@ export const getChallenge = (req, res) => {
 
 export const renewAccessToken = async (req, res, next) => {
   try {
-    const session = await renewSession(req.body);
+    const session = await renewSession(req.body, platformOf(req));
     const user = await findSessionUser(session.user);
 
     res.status(200).json({ status: "success", user: await toSessionUser(user), ...issueAccessToken(user._id, session._id) });

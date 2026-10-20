@@ -4,18 +4,35 @@ import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
-import { GetOverview } from "@/redux/slices/actions/adminActions";
+import { GetActivePeople, GetOverview } from "@/redux/slices/actions/adminActions";
+import ActivePeople from "@/sections/admin/ActivePeople";
 import DailyChart from "@/sections/admin/DailyChart";
 import DateRangePicker from "@/sections/admin/DateRangePicker";
+import GamePlays from "@/sections/admin/GamePlays";
 import { PRESETS, lastDays, presetOf } from "@/sections/admin/dayRanges";
 import Notice from "@/sections/admin/Notice";
 import OverviewFigures from "@/sections/admin/OverviewFigures";
 import PillGroup from "@/sections/admin/PillGroup";
+import PlatformSplit from "@/sections/admin/PlatformSplit";
+
+// the server's page size, so the next page starts where this list ends
+const PEOPLE_PER_PAGE = 20;
+
+const SectionTitle = ({ title, detail }) => (
+  <Box>
+    <Typography component="h3" sx={{ m: 0, fontSize: 16, fontWeight: 800 }}>
+      {title}
+    </Typography>
+    <Typography sx={{ mt: 0.25, fontSize: 13, color: "text.secondary" }}>{detail}</Typography>
+  </Box>
+);
 
 const Overview = () => {
   const dispatch = useDispatch();
   const overview = useSelector((state) => state.admin.overview);
+  const activePeople = useSelector((state) => state.admin.activePeople);
   const isLoading = useIsLoading(GetOverview);
+  const isLoadingPeople = useIsLoading(GetActivePeople);
   const [range, setRange] = useState(() => lastDays(30));
   const [hasFailed, setHasFailed] = useState(false);
 
@@ -23,7 +40,10 @@ const Overview = () => {
 
   useEffect(() => {
     read();
-  }, [read]);
+    dispatch(GetActivePeople({ ...range, page: 0 }));
+  }, [read, dispatch, range]);
+
+  const showMorePeople = () => dispatch(GetActivePeople({ ...range, page: Math.ceil(activePeople.list.length / PEOPLE_PER_PAGE) }));
 
   const preset = presetOf(range);
 
@@ -91,6 +111,30 @@ const Overview = () => {
             unit="joined"
             isBars
           />
+        </Box>
+
+        <Box
+          sx={{
+            mt: { xs: 5, lg: 6 },
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
+            gap: { xs: 5, lg: 6 },
+            alignItems: "start",
+            opacity: isLoading ? 0.5 : 1,
+            transition: "opacity 160ms ease",
+          }}
+        >
+          <Box component="section" sx={{ minWidth: 0 }}>
+            <SectionTitle title="Who was active" detail="Where they opened Whisprl, and on how many of these days." />
+            <Box sx={{ mt: 2 }}>
+              <PlatformSplit counts={overview.range.platforms} />
+            </Box>
+            <ActivePeople people={activePeople.list} hasMore={activePeople.hasMore} isLoading={isLoadingPeople} onMore={showMorePeople} />
+          </Box>
+          <Box component="section" sx={{ minWidth: 0 }}>
+            <SectionTitle title="Games played" detail="Games that got going in these days, bot games included." />
+            <GamePlays rows={overview.range.games} />
+          </Box>
         </Box>
       </>
     );

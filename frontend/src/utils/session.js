@@ -10,7 +10,8 @@ const RENEW_EARLY_MS = 60 * 1000;
 // a sleeping server can take most of a minute to wake, but a renewal that never answers must not hold up every request
 const RENEWAL_TIMEOUT_MS = 90 * 1000;
 
-const OFFLINE = { error: { status: "error", message: "Could not reach Whisprl, check your connection" } };
+const OFFLINE = { isOffline: true, error: { status: "error", message: "No connection, check your internet" } };
+const UNAVAILABLE = { error: { status: "error", message: "Whisprl is not responding, please try again" } };
 const LOGGED_OUT = { isLoggedOut: true };
 
 let store;
@@ -142,6 +143,6 @@ axios.interceptors.response.use(
     const code = response.data?.error?.code;
     if (code === "session_ended") return onSessionEnded(config);
     if (code === "token_invalid" && !config.isRetry) return retryWithNewToken(config);
-    return Promise.reject(response.data || OFFLINE);
+    return Promise.reject(response.data || UNAVAILABLE);
   }
 );
