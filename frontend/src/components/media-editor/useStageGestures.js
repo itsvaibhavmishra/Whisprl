@@ -14,6 +14,7 @@ const SCALES = { min: 0.25, max: 8 };
 const PHOTO_SCALES = { min: 0.5, max: 4 };
 const WHEEL_ZOOM = 0.0015;
 const PINCH_ZOOM = 0.01;
+const CIRCLE_STEPS = 72;
 
 const distance = (from, to) => Math.hypot(to.x - from.x, to.y - from.y);
 const angle = (from, to) => Math.atan2(to.y - from.y, to.x - from.x);
@@ -70,6 +71,22 @@ const photoTransformOf = ({ base, start }, pointers, size) => {
   return placedPhoto(base, from[0], to[0], 1, size);
 };
 
+const averageOf = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+
+// centred between the fingers and passing as near all of them as a circle can
+const circleAround = (fingers) => {
+  const centre = { x: averageOf(fingers.map((finger) => finger.x)), y: averageOf(fingers.map((finger) => finger.y)) };
+  const radius = averageOf(fingers.map((finger) => distance(centre, finger)));
+  return Array.from({ length: CIRCLE_STEPS + 1 }, (_, step) => {
+    const turn = (step / CIRCLE_STEPS) * 2 * Math.PI;
+    return { x: centre.x + radius * Math.cos(turn), y: centre.y + radius * Math.sin(turn) };
+  });
+};
+
+const lineBetween = (fingers) => fingers;
+
+const SHAPES = { 2: lineBetween, 3: circleAround };
+
 const pointOf = (event) => {
   const rect = event.currentTarget.getBoundingClientRect();
   return { x: event.clientX - rect.left, y: event.clientY - rect.top };
@@ -86,13 +103,23 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
     gesture.current.start = new Map([...pointers.current].slice(0, 2));
   };
 
+  const shapeUnderFingers = () => {
+    const fingers = SHAPES[pointers.current.size]([...pointers.current.values()]);
+    gesture.current.stroke = { ...gesture.current.stroke, points: fingers.map((finger) => [finger.x / size.width, finger.y / size.height]) };
+    onLiveStroke(gesture.current.stroke);
+  };
+
+  // a second finger draws a straight line between the two and a third a circle, as long as the first has not started drawing
+  const canAddFinger = (event) => event.pointerType === "touch" && !gesture.current.hasMoved && pointers.current.size < 3;
+
   const onPointerDown = (event) => {
-    if (event.button > 0 || (brush && gesture.current)) return;
+    if (event.button > 0 || (brush && gesture.current && !canAddFinger(event))) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     const point = pointOf(event);
     pointers.current.set(event.pointerId, point);
+    if (brush && gesture.current) return shapeUnderFingers();
     if (brush) {
-      gesture.current = { kind: "stroke", stroke: { brush: brush.name, color: brush.color, size: brush.size, points: [[point.x / size.width, point.y / size.height]] } };
+      gesture.current = { kind: "stroke", from: point, stroke: { brush: brush.name, color: brush.color, size: brush.size, points: [[point.x / size.width, point.y / size.height]] } };
       onLiveStroke(gesture.current.stroke);
       return;
     }
@@ -114,7 +141,9 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
     const point = pointOf(event);
     pointers.current.set(event.pointerId, point);
     const current = gesture.current;
+    if (current?.kind === "stroke" && pointers.current.size > 1) return shapeUnderFingers();
     if (current?.kind === "stroke") {
+      current.hasMoved ||= distance(current.from, point) > TAP_SLOP;
       current.stroke.points.push([point.x / size.width, point.y / size.height]);
       onLiveStroke(current.stroke);
       return;

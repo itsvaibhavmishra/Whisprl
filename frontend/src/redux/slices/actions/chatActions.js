@@ -70,7 +70,7 @@ export const GetConversations = createApiThunk("conversation/get-conversations",
   const arrivalsWhenAsked = getState().chat.arrivals;
   const { data } = await axios.get("/conversation/get-conversations");
   return { conversations: await Promise.all(data.conversations.map(readableConversation)), arrivalsWhenAsked };
-});
+}, { notifyErrors: false });
 
 // ------------- Create or Open Conversation -------------
 export const CreateOpenConversation = createApiThunk(
@@ -147,7 +147,7 @@ export const GetMessages = createApiThunk("message/get-messages", async (convoId
   dispatch(AcknowledgeMessages(convoId));
 
   return { ...page, unread: isOpening ? unreadMarkerOf(data.messages, isUnread) : null };
-});
+}, { notifyErrors: false });
 
 // ------------- Load Older Messages -------------
 export const LoadOlderMessages = createApiThunk(
@@ -158,6 +158,7 @@ export const LoadOlderMessages = createApiThunk(
     return { conversationId: activeConversation._id, ...(await dispatch(readablePage(data, activeConversation))) };
   },
   {
+    notifyErrors: false,
     condition: (_, { getState }) => {
       const { hasOlderMessages, activeConversation } = getState().chat;
       return Boolean(activeConversation && hasOlderMessages && !selectIsLoading(getState(), LoadOlderMessages));
@@ -174,6 +175,7 @@ export const LoadNewerMessages = createApiThunk(
     return { conversationId: activeConversation._id, hasNewer: data.hasNewer, ...(await dispatch(readablePage(data, activeConversation))) };
   },
   {
+    notifyErrors: false,
     condition: (_, { getState }) => {
       const { hasNewerMessages, activeConversation } = getState().chat;
       return Boolean(activeConversation && hasNewerMessages && !selectIsLoading(getState(), LoadNewerMessages));

@@ -56,11 +56,16 @@ const SENTENCES = {
     event.seconds
       ? `${actor} turned on disappearing messages. New messages disappear after ${durationOf(event.seconds)}`
       : `${actor} turned off disappearing messages`,
+  game_opened: ({ actor, event }) => `${actor} started ${event.name}`,
+  game_closed: ({ actor, event }) => `${actor} closed ${event.name}`,
 };
+
+// a kind of event added after this copy of Whisprl was built still reads as something, rather than breaking the chat
+const unknownEvent = ({ actor }) => `${actor} changed something in this chat`;
 
 export const describeEvent = (message, group, meId) => {
   const { event } = message;
   const actor = nameIn(group, message.sender._id, meId);
   const targets = listOf((event.users ?? []).map((userId) => nameIn(group, userId, meId)));
-  return capitalised(SENTENCES[event.type]({ actor, targets, event }));
+  return capitalised((SENTENCES[event.type] ?? unknownEvent)({ actor, targets, event }));
 };

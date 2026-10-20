@@ -2,10 +2,11 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, GameSessionModel } from "#src/models/index.js";
-import { findMemberConversation } from "#src/services/conversationService.js";
+import { findMemberConversation, memberRooms, populateMembers } from "#src/services/conversationService.js";
 import { assertManager } from "#src/services/groupService.js";
-import { assertCanMessage } from "#src/services/messageService.js";
-import { recordResult } from "#src/services/gameResultService.js";
+import { assertCanMessage, saveEvent } from "#src/services/messageService.js";
+import { pushGameInvite } from "#src/services/pushService.js";
+import { recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import {
   backToLobby,
@@ -219,7 +220,7 @@ const reachDeadline = (io, conversationId, deadline) =>
     if (deadlineOf(session) !== deadline) return;
     const next = session.status === "countdown" ? startGame(session) : playedForAbsent(session);
     await save(next);
-    await recordResult(session, next);
+    await Promise.all([recordPlay(session, next), recordResult(session, next)]);
     syncClock(io, gameRoom, conversationId, next);
     await broadcast(io, gameRoom, await ConversationModel.findById(conversationId), next);
   });
@@ -410,6 +411,24 @@ const ACTIONS = {
   answer: answerInvite,
 };
 
+// only a table opening and closing earn a line in the chat, so playing a game does not fill it
+const TABLE_EVENTS = { open: "game_opened", close: "game_closed" };
+
+const announceTable = async (io, conversation, userId, type, before, after) => {
+  const eventType = TABLE_EVENTS[type];
+  if (!eventType || (type === "open" && before)) return;
+  const game = gameOf((after ?? before).game);
+  const members = await populateMembers(conversation);
+  const { message } = await saveEvent(members, userId, eventType, { name: game.name });
+  io.to(memberRooms(members)).emit("message_received", message);
+  if (type !== "open" || members.isGroup) return;
+
+  // between two people, opening a game is asking the other to play
+  const [guest] = memberRooms(members, userId);
+  io.to(guest).emit("game_invited", { conversationId: String(members._id), game: game.id, from: userId });
+  await pushGameInvite(members, members.users.find((member) => String(member._id) === userId), game.name);
+};
+
 // -------------------------- Entry points --------------------------
 const playableConversation = async (conversationId, userId) => {
   const conversation = await findMemberConversation(conversationId, userId);
@@ -431,11 +450,12 @@ export const actInGame = (io, userId, { conversationId, type, ...details }) => {
     const after = next && settled(next);
     if (after) {
       await save(after);
-      await recordResult(session, after);
+      await Promise.all([recordPlay(session, after), recordResult(session, after)]);
     } else await GameSessionModel.deleteOne({ conversation: id });
 
     syncClock(io, gameRoom, id, after);
     await broadcast(io, gameRoom, conversation, after);
+    await announceTable(io, conversation, String(userId), type, session, after);
   });
 };
 

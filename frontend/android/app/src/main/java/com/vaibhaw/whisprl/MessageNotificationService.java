@@ -73,6 +73,8 @@ public class MessageNotificationService extends MessagingService {
 
     // a message this phone cannot open still gets its notification, only without the words
     private String textOf(Map<String, String> data) {
+        // a game invite has nothing secret in it, so its words arrive ready to show
+        if (data.containsKey("text")) return data.get("text");
         if (!data.containsKey("cipherData")) return FALLBACK_TEXT;
         try {
             byte[] pkcs8 = privateKeyFor(data.get("recipientId"), data.get("keyId"));

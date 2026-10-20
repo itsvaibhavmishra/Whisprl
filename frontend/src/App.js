@@ -5,20 +5,16 @@ import ThemeSettings from "@/components/theme-settings";
 import Router from "@/routes";
 import ThemeProvider from "@/theme";
 
-// Toast
-import { Toaster } from "sonner";
-
 import { ErrorBoundary } from "@/utils/errorReports";
 import HelmetHandler from "@/utils/helmetHandler";
 import { startLiveUpdates } from "@/utils/liveUpdate";
+import AppToaster from "@/components/AppToaster";
 import ScrollToTop from "@/components/ScrollToTop";
 import AppBackButton from "@/components/AppBackButton";
 import AppLock from "@/components/AppLock";
 import OpenAppLinks from "@/components/OpenAppLinks";
 
 import ReactGA from "react-ga4";
-import useSettings from "@/hooks/useSettings";
-import { useMediaQuery, useTheme } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
@@ -35,25 +31,12 @@ const StartedSignal = () => {
 };
 
 function App() {
-  const theme = useTheme();
-  const { themeMode, themeDirection } = useSettings();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
-
   return (
     <>
       <ThemeProvider>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <ThemeSettings>
-            {/* Toast */}
-            <Toaster
-              position={isSmallScreen ? "top-center" : "top-right"}
-              theme={themeMode}
-              dir={themeDirection}
-              visibleToasts={5}
-              richColors
-              closeButton
-              duration={5000}
-            />
+            <AppToaster />
 
             <ErrorBoundary fallback={({ error }) => <CrashScreen error={error} />}>
               <Router />

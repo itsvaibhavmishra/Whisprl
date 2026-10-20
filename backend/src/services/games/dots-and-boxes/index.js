@@ -3,6 +3,7 @@ import { assertOptions, DEFAULTS, outcome, play, setup, turnOf, viewFor } from "
 
 const dotsAndBoxes = {
   id: "dots-and-boxes",
+  name: "Dots and Boxes",
   minPlayers: 2,
   maxPlayers: 6,
   turnSeconds: 20,

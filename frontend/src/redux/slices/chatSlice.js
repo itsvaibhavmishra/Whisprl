@@ -287,9 +287,9 @@ const slice = createSlice({
       state.files.push(action.payload);
     },
 
-    fileEdited: (state, action) => {
-      const edited = state.files.find((file) => file.id === action.payload.id);
-      if (edited) Object.assign(edited, action.payload);
+    updateFile: (state, action) => {
+      const file = state.files.find((chosen) => chosen.id === action.payload.id);
+      if (file) Object.assign(file, action.payload);
     },
 
     removeFile: (state, action) => {
@@ -539,7 +539,7 @@ export const {
   setConnection,
   conversationListed,
   addFiles,
-  fileEdited,
+  updateFile,
   removeFile,
   transferProgress,
   transferEnded,

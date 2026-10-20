@@ -8,6 +8,7 @@ const ticTacToe = {
   id: "tic-tac-toe",
   name: "Tic-tac-toe",
   summary: "Three in a row wins. For two players.",
+  keywords: ["noughts and crosses", "x and o", "xo", "zero kata", "three in a row"],
   // a game looks how it was drawn, with no light or dark mode, and its art loads only once it opens
   art,
   // every file the canvas waits for before the game animates in

@@ -3,6 +3,7 @@ import { outcome, play, setup, turnOf, viewFor } from "#src/services/games/tic-t
 
 const ticTacToe = {
   id: "tic-tac-toe",
+  name: "Tic-tac-toe",
   minPlayers: 2,
   maxPlayers: 2,
   turnSeconds: 30,

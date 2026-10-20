@@ -4,7 +4,7 @@ import { loadDeviceKeys } from "@/utils/crypto/keyStore";
 import { authenticateWithPasskey, createPasskey, lockWithPasskey, randomChallenge } from "@/utils/passkeys";
 
 // ------------- List Passkeys -------------
-export const GetPasskeys = createApiThunk("passkeys/list", async () => (await axios.get("/passkeys")).data);
+export const GetPasskeys = createApiThunk("passkeys/list", async () => (await axios.get("/passkeys")).data, { notifyErrors: false });
 
 // ------------- Link A Passkey To Messages -------------
 // the passkey's secret locks this browser's copy of the account key, so the passkey can unlock it elsewhere

@@ -10,7 +10,8 @@ export const createApiThunk = (type, request, { notifyErrors = true, ...options 
         return await request(arg, thunkApi);
       } catch (error) {
         const message = errorMessageOf(error);
-        if (notifyErrors) notify({ severity: "error", message });
+        // every request that fails offline says the same thing, so one toast stands for all of them
+        if (notifyErrors) notify({ severity: "error", message, id: error?.isOffline ? "offline" : undefined });
         return thunkApi.rejectWithValue(message);
       }
     },

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 import { SessionModel } from "#src/models/index.js";
-import { recordActivity } from "#src/services/activityService.js";
+import { platformOf, recordActivity } from "#src/services/activityService.js";
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;
 const CHALLENGE_SECONDS = 2 * 60;
@@ -61,7 +61,7 @@ export const startSession = async (user, sessionKey, req) => {
     userAgent: req.get("user-agent")?.slice(0, 256),
     expiresAt: nextExpiry(),
   });
-  recordActivity(user._id);
+  recordActivity(user._id, platformOf(req));
   return { sessionId: session._id, ...issueAccessToken(user._id, session._id) };
 };
 
@@ -78,7 +78,7 @@ const isSignedBy = (publicKey, challenge, signature) => {
 };
 
 // nothing is replaced, so tabs renewing together, retries and replies that never arrive all leave the session as it was
-export const renewSession = async ({ sessionId, challenge, signature }) => {
+export const renewSession = async ({ sessionId, challenge, signature }, platform) => {
   try {
     readToken(challenge, CHALLENGE_AUDIENCE);
   } catch {
@@ -92,7 +92,7 @@ export const renewSession = async ({ sessionId, challenge, signature }) => {
 
   session.expiresAt = nextExpiry();
   await session.save();
-  recordActivity(session.user);
+  recordActivity(session.user, platform);
   return session;
 };
 

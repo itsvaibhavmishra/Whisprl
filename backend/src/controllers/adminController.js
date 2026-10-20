@@ -3,13 +3,21 @@ import { closeGameRequests, listGameRequests } from "#src/services/gameRequestSe
 import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/services/moderationService.js";
 import { dismissReport, listReports } from "#src/services/reportQueueService.js";
 import { assertConfirmed, confirmationOptions } from "#src/services/passkeyService.js";
-import { overviewOf } from "#src/services/overviewService.js";
+import { activePeopleOf, overviewOf } from "#src/services/overviewService.js";
 import { addAdmin, changeAccess, listTeam, removeAdmin } from "#src/services/teamService.js";
 
 // -------------------------- Overview --------------------------
 export const getOverview = async (req, res, next) => {
   try {
     return res.status(200).json({ status: "success", ...(await overviewOf(req.query.from, req.query.to)) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getActivePeople = async (req, res, next) => {
+  try {
+    return res.status(200).json({ status: "success", ...(await activePeopleOf(req.query.from, req.query.to, req.query.page)) });
   } catch (error) {
     next(error);
   }

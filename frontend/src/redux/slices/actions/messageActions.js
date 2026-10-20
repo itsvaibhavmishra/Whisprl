@@ -161,7 +161,7 @@ export const LoadHistory = createApiThunk(
     }
     dispatch(historyLoaded({ conversationId, messages, isComplete: !hasMore }));
   },
-  { condition: (conversationId, { getState }) => !getState().chat.history[conversationId] && !selectIsLoading(getState(), LoadHistory) }
+  { notifyErrors: false, condition: (conversationId, { getState }) => !getState().chat.history[conversationId] && !selectIsLoading(getState(), LoadHistory) }
 );
 
 const AROUND = 25;
@@ -210,4 +210,4 @@ export const MarkViewOnceOpened = createApiThunk("message/open-view-once", async
 export const GetCommonGroups = createApiThunk("conversation/common-groups", async (userId, { dispatch }) => {
   const { data } = await axios.get(`/conversation/common-groups/${userId}`);
   dispatch(commonGroupsLoaded({ userId, groups: data.groups }));
-});
+}, { notifyErrors: false });

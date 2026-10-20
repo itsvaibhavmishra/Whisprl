@@ -38,7 +38,10 @@ const reasonCannotStart = (conversation, session, meId) => {
 // one game a row on a phone, two on a tablet, four on a desktop
 const COLUMNS = { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" };
 
-const matches = (game, query) => `${game.name} ${game.summary}`.toLowerCase().includes(query.trim().toLowerCase());
+// spaces and punctuation are left out, so "tic tac toe" and "tictactoe" both find Tic-tac-toe
+const plain = (text) => text.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+
+const matches = (game, query) => plain([game.name, game.summary, ...game.keywords].join(" ")).includes(plain(query));
 
 const GameList = ({ conversation, onClose }) => {
   const dispatch = useDispatch();

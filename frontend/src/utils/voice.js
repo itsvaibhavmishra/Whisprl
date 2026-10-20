@@ -65,13 +65,16 @@ const recordFrom = (stream, onLevels) => {
   recorder.start();
 
   const startedAt = performance.now();
-  const secondsSoFar = () => (performance.now() - startedAt) / 1000;
+  let pausedAt = null;
+  let pausedMs = 0;
+  const secondsSoFar = () => ((pausedAt ?? performance.now()) - startedAt - pausedMs) / 1000;
   const context = new AudioContext();
   const analyser = context.createAnalyser();
   context.createMediaStreamSource(stream).connect(analyser);
   const samples = new Uint8Array(analyser.fftSize);
   const levels = [];
   const sampler = setInterval(() => {
+    if (pausedAt !== null) return;
     levels.push(loudnessOf(analyser, samples));
     onLevels(levels, secondsSoFar());
   }, LEVEL_EVERY_MS);
@@ -90,6 +93,17 @@ const recordFrom = (stream, onLevels) => {
     });
 
   return {
+    pause: () => {
+      if (pausedAt !== null) return;
+      recorder.pause();
+      pausedAt = performance.now();
+    },
+    resume: () => {
+      if (pausedAt === null) return;
+      recorder.resume();
+      pausedMs += performance.now() - pausedAt;
+      pausedAt = null;
+    },
     finish: async () => {
       const duration = secondsSoFar();
       await stopped();

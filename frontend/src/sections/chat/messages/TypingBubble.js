@@ -3,7 +3,7 @@ import { Stack, Typography } from "@mui/material";
 import TypingDots from "@/components/TypingDots";
 import { listOf } from "@/utils/groups";
 
-export const TYPING_BUBBLE_HEIGHT = 40;
+const TYPING_BUBBLE_HEIGHT = 40;
 
 const TypingBubble = ({ names, isGroup }) => (
   <Stack

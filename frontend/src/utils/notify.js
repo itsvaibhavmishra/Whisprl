@@ -2,8 +2,8 @@ import { toast } from "sonner";
 
 const SEVERITIES = ["success", "info", "warning", "error"];
 
-export const notify = ({ severity, message, description, action, duration }) =>
-  message && (SEVERITIES.includes(severity) ? toast[severity] : toast)(message, { description, action, duration });
+export const notify = ({ severity, message, description, action, duration, id }) =>
+  message && (SEVERITIES.includes(severity) ? toast[severity] : toast)(message, { description, action, duration, id });
 
 // a logout is announced once by itself, so the requests it stopped add nothing
 export const errorMessageOf = (error) =>
