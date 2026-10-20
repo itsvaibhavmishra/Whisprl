@@ -19,9 +19,10 @@ import WhatsNewDialog from "@/sections/whats-new/WhatsNewDialog";
 
 const LIST_WIDTH = { md: 340, lg: 380 };
 
-// while a back swipe is held, the list shows under the swipe's pictures and the chat hides without losing its place
+// on a phone the list stays laid out under an open chat, only unseen, so nothing in it animates in from the corner when it shows again
+const UNDER_THE_CHAT = { position: { xs: "absolute", md: "static" }, inset: 0, zIndex: 1, visibility: { xs: "hidden", md: "visible" }, bgcolor: "chat.list" };
+// a held back swipe shows the list as it will be, and hides the chat without losing its place
 const PREVIEWING = "html[data-back-preview] &";
-const LIST_IN_PREVIEW = { display: "block", position: "absolute", inset: 0, zIndex: 1, width: "100%", bgcolor: "chat.list" };
 
 // on a phone the list and the open chat are separate screens, and the bottom navigation steps aside inside a chat
 const Chat = () => {
@@ -64,22 +65,18 @@ const Chat = () => {
     >
       <Box
         sx={{
-          display: { xs: isChatShown ? "none" : "block", md: "block" },
           width: { xs: "100%", ...LIST_WIDTH },
           flexShrink: 0,
           // the colour rides in the same declaration, since a responsive border shorthand would reset it to the text colour
           borderRight: (theme) => ({ xs: "none", md: `1px solid ${theme.palette.divider}` }),
-          ...(isPreviewable && { [PREVIEWING]: LIST_IN_PREVIEW }),
+          ...(isChatShown && UNDER_THE_CHAT),
+          ...(isPreviewable && { [PREVIEWING]: { visibility: "visible" } }),
         }}
       >
-        <Box sx={{ height: "100%", ...(isPreviewable && { [PREVIEWING]: { height: PAGE_HEIGHT_WITH_TAB_BAR } }) }}>
+        <Box sx={{ height: isChatShown ? { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100%" } : "100%" }}>
           <ChatList onNewGroup={openGroupDialog} />
         </Box>
-        {isPreviewable && (
-          <Box sx={{ display: "none", [PREVIEWING]: { display: "block" } }}>
-            <TabBar />
-          </Box>
-        )}
+        {isPreviewable && <TabBar />}
       </Box>
 
       <Box
