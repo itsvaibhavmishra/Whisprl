@@ -191,12 +191,13 @@ export const releaseAllAttachments = () => {
   opened.clear();
 };
 
-export const pickFiles = (accept, { multiple = true } = {}) =>
+export const pickFiles = (accept, { multiple = true, capture = false } = {}) =>
   new Promise((resolve) => {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = multiple;
     input.accept = accept.join(",");
+    if (capture) input.capture = "environment";
     input.addEventListener("change", () => resolve(Array.from(input.files)));
     input.click();
   });

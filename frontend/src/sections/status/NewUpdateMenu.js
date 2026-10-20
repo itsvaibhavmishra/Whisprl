@@ -1,6 +1,16 @@
 import { IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ImageSquare, Plus, TextT } from "phosphor-react";
+import { Camera, ImageSquare, Plus, TextT, VideoCamera } from "phosphor-react";
+
+import { isApp } from "@/utils/platform";
+
+// a computer's browser opens the file picker instead of a camera, so only phones and tablets offer one
+const CAN_CAPTURE = isApp || window.matchMedia("(pointer: coarse)").matches;
+
+const CAPTURES = [
+  { kind: "photo", label: "Take a photo", Icon: Camera },
+  { kind: "video", label: "Record a video", Icon: VideoCamera },
+];
 
 export const NewUpdateButton = ({ onOpen, disabled }) => (
   <Tooltip title="New update">
@@ -38,6 +48,15 @@ const NewUpdateMenu = ({ anchor, onClose, onWrite, onChooseMedia }) => {
         </ListItemIcon>
         Photo or video
       </MenuItem>
+      {CAN_CAPTURE &&
+        CAPTURES.map(({ kind, label, Icon }) => (
+          <MenuItem key={kind} onClick={choose(() => onChooseMedia(kind))}>
+            <ListItemIcon>
+              <Icon size={20} />
+            </ListItemIcon>
+            {label}
+          </MenuItem>
+        ))}
     </Menu>
   );
 };

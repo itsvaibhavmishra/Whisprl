@@ -17,7 +17,9 @@ history.go = (step) => {
 
 const motionOf = (action, fromPath, toPath) => {
   if (isBackSwipeHeld()) return null;
-  return action === "POP" ? stepMotion(appStep) : motionBetween(fromPath, toPath);
+  const motion = motionBetween(fromPath, toPath);
+  // a step back keeps its direction, but only when the screen changes, so closing a drawer moves nothing behind it
+  return action === "POP" && motion ? stepMotion(appStep) : motion;
 };
 
 const ScreenRouter = ({ children }) => {
