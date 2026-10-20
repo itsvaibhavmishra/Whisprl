@@ -57,7 +57,7 @@ const MessageSkeletons = () => (
   <Stack role="status" aria-label="Loading messages" sx={{ width: "100%", pb: 1 }}>
     <Skeleton variant="rounded" animation={false} sx={{ alignSelf: "center", width: 64, height: 24, my: 1, borderRadius: 99, bgcolor: "chat.pill" }} />
     {TURNS.map(({ isMine, bubbles }, turn) => (
-      <Stack key={turn} spacing={0.5} sx={{ position: "relative", mt: turn ? { xs: 0.75, md: 1 } : 0 }}>
+      <Stack key={turn} spacing={0.5} sx={{ position: "relative", mt: turn ? { xs: 1.25, md: 1.5 } : 0 }}>
         {bubbles.map((lines, position) => (
           <Bubble key={position} lines={lines} isMine={isMine} isStart={position === 0} isEnd={position === bubbles.length - 1} />
         ))}
