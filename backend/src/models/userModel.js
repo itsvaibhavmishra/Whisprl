@@ -145,6 +145,9 @@ const userSchema = mongoose.Schema(
 
     quickReactions: { type: [String], default: undefined },
 
+    // the sound and music levels each game was last set to, by game id
+    gameAudio: { type: Map, of: mongoose.Schema.Types.Mixed },
+
     // set only when an account is made, so every account from before setup existed counts as returning
     isNewAccount: { type: Boolean, default: false },
     agePausedUntil: { type: Date },
