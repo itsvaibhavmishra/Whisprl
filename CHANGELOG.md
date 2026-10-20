@@ -6,6 +6,12 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2026-10-20
+
+### Fixed
+
+- A tap while drawing now always leaves a dot, which most taps on a phone did not
+
 ## [2.5.0] - 2026-10-20
 
 ### New
@@ -427,6 +433,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.1]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.1
 [2.5.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.0
 [2.4.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.4.0
 [2.3.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.3.0
