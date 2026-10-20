@@ -61,7 +61,7 @@ const TextEditor = ({ layer, stageWidth, onDone }) => {
   };
 
   return (
-    <Stack onKeyDown={onKeyDown} sx={{ position: "absolute", inset: 0, zIndex: 2, bgcolor: "rgba(0, 0, 0, 0.6)", color: "#fff" }}>
+    <Stack onKeyDown={onKeyDown} sx={{ position: "absolute", inset: 0, zIndex: 2, pt: "env(safe-area-inset-top)", pb: "env(safe-area-inset-bottom)", bgcolor: "rgba(0, 0, 0, 0.6)", color: "#fff" }}>
       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ px: 1, height: 56, flexShrink: 0 }}>
         <ToolButton label="Align text" onClick={() => change({ align: following(ALIGNMENTS, draft.align) })}>
           <AlignIcon size={24} />

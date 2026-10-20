@@ -8,6 +8,8 @@ export const defaultSettings = {
   themeDirection: "ltr",
   themeColorPresets: "default",
   sounds: true,
+  haptics: true,
+  appLock: false,
   notifications: false,
   use24Hour: false,
   wallpapers: { all: "aurora", doodles: true, chats: {} },

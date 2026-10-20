@@ -28,6 +28,8 @@ export const forgetVaultedKeys = async (userId) => {
 
 export const saveToPasswordManager = async (id, password) => (await KeyVault.savePassword({ id, password })).outcome;
 
+export const canConfirmOwner = async () => isApp && (await KeyVault.canConfirmOwner()).canConfirm;
+
 export const confirmOwner = async (reason) => {
   if (!isApp) return true;
   const { confirmed } = await KeyVault.confirmOwner({ title: "Confirm it's you", subtitle: reason });

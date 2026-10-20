@@ -106,6 +106,7 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
 
   const next = nextAction();
   const bot = botAction();
+  const isOpening = session.status === "opening";
 
   return (
     <Stack sx={{ flex: 1, minHeight: 0, overflowX: "hidden", overflowY: "auto" }}>
@@ -126,32 +127,40 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
       )}
       <Box ref={controlsRef} sx={scrimOf(theme.shade, Boolean(game.Masthead))}>
         <Stack spacing={0.9} sx={CONTROLS}>
-          <GameSeats
-            conversation={conversation}
-            session={{ ...session, seats: seatsShown }}
-            game={game}
-            meId={meId}
-            isManager={isManager}
-            act={act}
-            onTake={!mySeat && !coolingFor ? takeSeat : null}
-            onLeave={() => act({ type: "stand" })}
-            onSaveSeat={onSaveSeat}
-          />
-          {canChangeCount && <PlayerCount game={game} session={session} onChange={(count) => act({ type: "seats", count })} />}
-          <GameOptions
-            game={game}
-            session={session}
-            canChange={canChangeTable && !secondsToStart}
-            onChange={(options) => act({ type: "settings", options })}
-          />
-          <StatusPill theme={theme} isLive={Boolean(secondsToStart)} isWide icon={<HourglassMedium size={16} weight="fill" />}>
-            {secondsToStart ? `Starting in ${secondsToStart}` : lobbyLineOf(session, conversation, meId)}
-          </StatusPill>
-          <Stack spacing={0.85} sx={ACTIONS}>
-            {next && <GameButton theme={theme} label={next.label} onClick={next.onClick} isDisabled={!next.onClick} isQuiet={next.isQuiet} isSmall isFull />}
-            {bot && <BotToggle label={bot.label} onClick={bot.onClick} />}
-          </Stack>
-          {bot && <PracticeNote />}
+          {isOpening ? (
+            <StatusPill theme={theme} isWide icon={<HourglassMedium size={16} weight="fill" />}>
+              Setting the table
+            </StatusPill>
+          ) : (
+            <>
+              <GameSeats
+                conversation={conversation}
+                session={{ ...session, seats: seatsShown }}
+                game={game}
+                meId={meId}
+                isManager={isManager}
+                act={act}
+                onTake={!mySeat && !coolingFor ? takeSeat : null}
+                onLeave={() => act({ type: "stand" })}
+                onSaveSeat={onSaveSeat}
+              />
+              {canChangeCount && <PlayerCount game={game} session={session} onChange={(count) => act({ type: "seats", count })} />}
+              <GameOptions
+                game={game}
+                session={session}
+                canChange={canChangeTable && !secondsToStart}
+                onChange={(options) => act({ type: "settings", options })}
+              />
+              <StatusPill theme={theme} isLive={Boolean(secondsToStart)} isWide icon={<HourglassMedium size={16} weight="fill" />}>
+                {secondsToStart ? `Starting in ${secondsToStart}` : lobbyLineOf(session, conversation, meId)}
+              </StatusPill>
+              <Stack spacing={0.85} sx={ACTIONS}>
+                {next && <GameButton theme={theme} label={next.label} onClick={next.onClick} isDisabled={!next.onClick} isQuiet={next.isQuiet} isSmall isFull />}
+                {bot && <BotToggle label={bot.label} onClick={bot.onClick} />}
+              </Stack>
+              {bot && <PracticeNote />}
+            </>
+          )}
         </Stack>
       </Box>
       {!game.Masthead && <Box sx={{ flex: { xs: "2 1 0", lg: "1 1 0" } }} />}

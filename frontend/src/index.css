@@ -26,6 +26,103 @@ body {
   transition: all 0.3s ease;
 }
 
+/* ------------- Screen slides on a phone ------------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  animation-fill-mode: both;
+  mix-blend-mode: normal;
+}
+
+:root[data-screen-motion="push"]::view-transition-old(root) {
+  animation-name: screen-recede;
+}
+
+:root[data-screen-motion="push"]::view-transition-new(root) {
+  animation-name: screen-from-right;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.18);
+}
+
+/* the screen being left stays on top as it slides away, uncovering the one beneath */
+:root[data-screen-motion="back"]::view-transition-old(root) {
+  z-index: 1;
+  animation-name: screen-to-right;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-screen-motion="back"]::view-transition-new(root) {
+  animation-name: screen-return;
+}
+
+:root[data-screen-motion$="tab"]::view-transition-old(root),
+:root[data-screen-motion$="tab"]::view-transition-new(root) {
+  animation-duration: 250ms;
+}
+
+:root[data-screen-motion="next-tab"]::view-transition-old(root) {
+  animation-name: screen-to-left;
+}
+
+:root[data-screen-motion="next-tab"]::view-transition-new(root) {
+  animation-name: screen-from-right;
+}
+
+:root[data-screen-motion="previous-tab"]::view-transition-old(root) {
+  animation-name: screen-to-right;
+}
+
+:root[data-screen-motion="previous-tab"]::view-transition-new(root) {
+  animation-name: screen-from-left;
+}
+
+/* the tab bar holds still while the tabs slide past it */
+:root[data-screen-motion$="tab"] [data-tab-bar] {
+  view-transition-name: tab-bar;
+}
+
+::view-transition-group(tab-bar) {
+  animation: none;
+}
+
+@keyframes screen-from-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes screen-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes screen-to-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes screen-to-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes screen-recede {
+  to {
+    transform: translateX(-25%);
+    filter: brightness(0.7);
+  }
+}
+
+@keyframes screen-return {
+  from {
+    transform: translateX(-25%);
+    filter: brightness(0.7);
+  }
+}
+
 /* ------------- Toast styles ------------- */
 :where([data-sonner-toast]) :where([data-title]) {
   font-size: medium;

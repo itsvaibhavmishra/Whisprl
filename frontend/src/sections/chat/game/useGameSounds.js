@@ -3,6 +3,10 @@ import { useEffect, useRef } from "react";
 import { GAMES } from "@/sections/chat/game/catalog";
 import { playGameSound } from "@/sections/chat/game/gameSounds";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
+import { CONFIRM, REJECT, TAP, TICK, feel } from "@/utils/haptics";
+
+// the moments a game is also felt, which leaves out every move but your own
+const FELT = { start: CONFIRM, yourTurn: TAP, won: CONFIRM, lost: REJECT };
 
 const resultCueOf = (session, meId) => {
   const { winners } = session.result;
@@ -30,11 +34,16 @@ const useGameSounds = (session, meId) => {
   const secondsToStart = useSecondsLeft(session?.status === "countdown" && session.startsAt);
 
   useEffect(() => {
-    if (secondsToStart) playGameSound("tick");
+    if (!secondsToStart) return;
+    playGameSound("tick");
+    feel(TICK);
   }, [secondsToStart]);
 
   useEffect(() => {
-    cuesBetween(previous.current, session, meId).forEach((cue) => playGameSound(cue));
+    cuesBetween(previous.current, session, meId).forEach((cue) => {
+      playGameSound(cue);
+      if (FELT[cue]) feel(FELT[cue]);
+    });
     previous.current = session;
   }, [session, meId]);
 };

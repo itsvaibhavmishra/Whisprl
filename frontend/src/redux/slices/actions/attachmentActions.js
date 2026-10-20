@@ -43,6 +43,7 @@ import { notify, notifyError } from "@/utils/notify";
 import { playQueuedSound } from "@/utils/sounds";
 import { COMPRESS_SHARE, VideoRefusal, compressVideo, probeVideo } from "@/utils/video";
 import { completeVoiceFile } from "@/utils/voice";
+import { feel } from "@/utils/haptics";
 import uuidv4 from "@/utils/uuidv4";
 
 const UPLOAD_PAUSES = [2000, 5000];
@@ -256,6 +257,7 @@ export const SendAttachments = (caption, isViewOnce = false) => async (dispatch,
   );
 
   playQueuedSound();
+  feel();
 
   // one at a time, so the files ahead in the group are not slowed by a video being compressed behind them
   for (const attachment of files) await dispatch(PrepareQueued(attachment.id));
@@ -279,6 +281,7 @@ export const SendVoiceMessage = ({ file, duration, waveform }) => (dispatch, get
   );
   if (replyingTo) dispatch(setReplyingTo(null));
   playQueuedSound();
+  feel();
   dispatch(PrepareQueued(clientId));
 };
 

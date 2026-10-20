@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 
 import { SendVoiceMessage } from "@/redux/slices/actions/attachmentActions";
 import Waveform from "@/sections/chat/messages/Waveform";
+import { PRESS, feel } from "@/utils/haptics";
 import { notify } from "@/utils/notify";
 import { formatDuration } from "@/utils/video";
 import { MAX_VOICE_SECONDS, MIN_VOICE_SECONDS, MicrophoneRefusal, startVoiceRecording } from "@/utils/voice";
@@ -108,6 +109,7 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
   };
 
   const start = async (startPhase) => {
+    feel(PRESS);
     moveTo(startPhase);
     const attempt = attempts.current;
     const isCurrent = () => attempts.current === attempt;

@@ -195,7 +195,7 @@ const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
         {hasNeighbours && <Neighbour status={ownerIndex < order.length - 1 && neighbourAt(1)} label="Next" onOpen={() => jumpTo(ownerIndex + 1, "next")} />}
       </Stack>
       {hasCloseBeside && (
-        <IconButton aria-label="Close" onClick={onClose} sx={{ position: "absolute", top: 16, right: 16, width: 44, height: 44, color: "#fff", "&:hover": { bgcolor: "rgba(255, 255, 255, 0.12)" } }}>
+        <IconButton aria-label="Close" onClick={onClose} sx={{ position: "absolute", top: "calc(16px + env(safe-area-inset-top))", right: 16, width: 44, height: 44, color: "#fff", "&:hover": { bgcolor: "rgba(255, 255, 255, 0.12)" } }}>
           <X size={22} weight="bold" />
         </IconButton>
       )}

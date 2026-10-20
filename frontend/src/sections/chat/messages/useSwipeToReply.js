@@ -2,6 +2,9 @@ import { useRef, useState } from "react";
 import { Box } from "@mui/material";
 import { ArrowBendUpLeft } from "phosphor-react";
 
+import { TICK, feel } from "@/utils/haptics";
+import { isApp } from "@/utils/platform";
+
 const DECIDE_PX = 10;
 const TRIGGER_PX = 56;
 const MAX_PX = 72;
@@ -37,7 +40,10 @@ const useSwipeToReply = (direction, onReply) => {
     }
 
     const pulled = Math.min(Math.max(along, 0), MAX_PX);
-    if (current.pulled < TRIGGER_PX && pulled >= TRIGGER_PX) navigator.vibrate?.(10);
+    if (current.pulled < TRIGGER_PX && pulled >= TRIGGER_PX) {
+      if (isApp) feel(TICK);
+      else navigator.vibrate?.(10);
+    }
     current.pulled = pulled;
     setOffset(pulled * direction);
   };
