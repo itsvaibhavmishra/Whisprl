@@ -10,8 +10,14 @@ import androidx.credentials.CreateCredentialResponse;
 import androidx.credentials.CreatePasswordRequest;
 import androidx.credentials.CredentialManager;
 import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.GetPasswordOption;
+import androidx.credentials.PasswordCredential;
 import androidx.credentials.exceptions.CreateCredentialCancellationException;
 import androidx.credentials.exceptions.CreateCredentialException;
+import androidx.credentials.exceptions.GetCredentialException;
+import androidx.credentials.exceptions.NoCredentialException;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -137,6 +143,37 @@ public class KeyVaultPlugin extends Plugin {
         getActivity()
             .runOnUiThread(() ->
                 CredentialManager.create(getContext()).createCredentialAsync(
+                    getActivity(),
+                    request,
+                    new CancellationSignal(),
+                    ContextCompat.getMainExecutor(getContext()),
+                    outcome
+                )
+            );
+    }
+
+    @PluginMethod
+    public void pickPassword(PluginCall call) {
+        GetCredentialRequest request = new GetCredentialRequest.Builder().addCredentialOption(new GetPasswordOption()).build();
+        CredentialManagerCallback<GetCredentialResponse, GetCredentialException> outcome = new CredentialManagerCallback<>() {
+            @Override
+            public void onResult(GetCredentialResponse response) {
+                JSObject result = new JSObject();
+                result.put("outcome", "picked");
+                result.put("password", ((PasswordCredential) response.getCredential()).getPassword());
+                call.resolve(result);
+            }
+
+            @Override
+            public void onError(GetCredentialException error) {
+                JSObject result = new JSObject();
+                result.put("outcome", error instanceof NoCredentialException ? "none" : "cancelled");
+                call.resolve(result);
+            }
+        };
+        getActivity()
+            .runOnUiThread(() ->
+                CredentialManager.create(getContext()).getCredentialAsync(
                     getActivity(),
                     request,
                     new CancellationSignal(),

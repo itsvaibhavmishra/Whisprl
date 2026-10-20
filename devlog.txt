@@ -14,6 +14,7 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - The Android app can unlock your messages with the recovery key saved in Google Password Manager, and offers to save one you type in, so a reinstall with Google Backup off no longer means typing it
 
   - Improvements:
 

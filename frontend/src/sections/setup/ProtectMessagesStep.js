@@ -9,6 +9,7 @@ import { CreateAccountKey, PrepareEncryption, ReplaceRecoveryKey } from "@/redux
 import { ConfirmRecoveryKeySaved } from "@/redux/slices/actions/onboardingActions";
 import RecoveryKeyBox, { KEEP_RECOVERY_KEY, keepRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
 import UnlockDialog from "@/sections/encryption/UnlockDialog";
+import CopiedKeyDialog from "@/sections/setup/CopiedKeyDialog";
 import { deviceNoun, isApp } from "@/utils/platform";
 
 const WHERE_TO_KEEP_IT = [
@@ -48,6 +49,8 @@ const SavedKey = ({ recoveryKey }) => {
   const isConfirming = useIsLoading(ConfirmRecoveryKeySaved);
   const [isKept, setIsKept] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isCheckingCopy, setIsCheckingCopy] = useState(false);
+  const confirm = () => dispatch(ConfirmRecoveryKeySaved());
 
   const keep = async () => {
     if (await keepRecoveryKey(recoveryKey, username)) setIsKept(true);
@@ -56,7 +59,6 @@ const SavedKey = ({ recoveryKey }) => {
   const copy = async () => {
     await navigator.clipboard.writeText(recoveryKey);
     setIsCopied(true);
-    setIsKept(true);
   };
 
   return (
@@ -81,9 +83,18 @@ const SavedKey = ({ recoveryKey }) => {
         </Typography>
       )}
       <KeepingPlaces />
-      <LoadingButton size="large" variant="contained" fullWidth disabled={!isKept} loading={isConfirming} onClick={() => dispatch(ConfirmRecoveryKeySaved())}>
+      {/* a key only copied may never have been pasted anywhere, so it is asked about once more before going on */}
+      <LoadingButton
+        size="large"
+        variant="contained"
+        fullWidth
+        disabled={!isKept && !isCopied}
+        loading={isConfirming}
+        onClick={isKept ? confirm : () => setIsCheckingCopy(true)}
+      >
         Continue
       </LoadingButton>
+      {isCheckingCopy && <CopiedKeyDialog isContinuing={isConfirming} onBack={() => setIsCheckingCopy(false)} onContinue={confirm} />}
     </Stack>
   );
 };
