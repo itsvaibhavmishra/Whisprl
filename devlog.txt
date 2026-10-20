@@ -32,5 +32,6 @@
     - Status, the status editor and its text editor keep their buttons clear of the phone's status bar
 
   - Developers:
+    - An app release pull request builds its APK as a private draft release, replaced on every push to rc, to try it on a phone before merging
 
   - Internal:
