@@ -144,6 +144,8 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
     if (current?.kind === "stroke" && pointers.current.size > 1) return shapeUnderFingers();
     if (current?.kind === "stroke") {
       current.hasMoved ||= distance(current.from, point) > TAP_SLOP;
+      // a resting finger still reports moves, often to the very spot it landed on, so a tap stays one point
+      if (!current.hasMoved) return;
       current.stroke.points.push([point.x / size.width, point.y / size.height]);
       onLiveStroke(current.stroke);
       return;
