@@ -1,8 +1,5 @@
 import { SETTINGS_STORAGE_KEY } from "@/config";
 
-export const EFFECTS_KEY = "game-effects-volume";
-export const MUSIC_KEY = "game-music-volume";
-
 const EFFECTS_LEVEL = 0.12;
 // a result plays once the move that decided it has landed, rather than over it
 const AFTER_LAST_MOVE = 0.26;
@@ -16,18 +13,6 @@ const audio = () => {
   return context;
 };
 
-const readLevel = (key, fallback) => {
-  const stored = localStorage.getItem(key);
-  // a key nobody has set yet means the default, not silence: Number(JSON.parse(null)) is 0
-  if (stored === null) return fallback;
-  try {
-    const saved = Number(JSON.parse(stored));
-    return Number.isFinite(saved) ? Math.min(1, Math.max(0, saved)) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
 // the app's own sound setting still wins, so turning sound off everywhere turns a game quiet too
 const isAppSoundOn = () => {
   try {
@@ -37,9 +22,16 @@ const isAppSoundOn = () => {
   }
 };
 
-export const effectsVolume = () => (isAppSoundOn() ? readLevel(EFFECTS_KEY, 1) : 0);
+// what a game starts at until its player has chosen, so music is there but quiet
+export const DEFAULT_GAME_AUDIO = { effects: 1, music: 0.1 };
 
-export const musicVolume = () => (isAppSoundOn() ? readLevel(MUSIC_KEY, 0) : 0);
+let levels = DEFAULT_GAME_AUDIO;
+
+export const gameAudioOf = (user, gameId) => ({ ...DEFAULT_GAME_AUDIO, ...user?.gameAudio?.[gameId] });
+
+export const effectsVolume = () => (isAppSoundOn() ? levels.effects : 0);
+
+export const musicVolume = () => (isAppSoundOn() ? levels.music : 0);
 
 const note = (frequency, startIn, length, { type = "sine", level = 1 } = {}) => {
   const ctx = audio();
@@ -122,6 +114,7 @@ export const playGameSound = (name, ...details) => {
 };
 
 let music = null;
+let source = null;
 
 // a track sits under a conversation, so even a slider at the top stays background
 const MUSIC_CEILING = 0.5;
@@ -146,7 +139,44 @@ const fadeTo = (playing, target, done) => {
   }, FADE_STEP_MS);
 };
 
+const playMusic = () => {
+  try {
+    const element = new Audio(source);
+    element.loop = true;
+    element.volume = 0;
+    // a browser refuses this until the person has tapped something, which is not worth reporting
+    element.play().catch(() => {});
+    music = { element, fade: null };
+    fadeTo(music, levelled(musicVolume()));
+  } catch {
+    // no audio element means no music, which nobody needs telling about
+  }
+};
+
+// a track that is already playing is only turned up or down, so moving the level never starts it again
+const syncMusic = () => {
+  if (!source) return;
+  if (!music) {
+    if (musicVolume()) playMusic();
+    return;
+  }
+  clearInterval(music.fade);
+  music.fade = null;
+  music.element.volume = levelled(musicVolume());
+};
+
+export const applyGameLevels = (chosen) => {
+  levels = chosen;
+  syncMusic();
+};
+
+export const startMusic = (track) => {
+  source = track;
+  syncMusic();
+};
+
 export const stopMusic = () => {
+  source = null;
   if (!music) return;
   const playing = music;
   music = null;
@@ -156,29 +186,4 @@ export const stopMusic = () => {
     playing.element.removeAttribute("src");
     playing.element.load();
   });
-};
-
-export const setMusicLevel = (level) => {
-  if (!music) return;
-  // a hand on the slider wants the change now, so it cancels whatever fade was running
-  clearInterval(music.fade);
-  music.fade = null;
-  music.element.volume = levelled(level);
-};
-
-// a level just chosen on the slider is passed in, because the slider's own write to storage may not have landed yet
-export const startMusic = (source, chosen) => {
-  const level = isAppSoundOn() ? chosen ?? musicVolume() : 0;
-  if (music || !level || !source) return;
-  try {
-    const element = new Audio(source);
-    element.loop = true;
-    element.volume = 0;
-    // a browser refuses this until the person has tapped something, which is not worth reporting
-    element.play().catch(() => {});
-    music = { element, fade: null };
-    fadeTo(music, levelled(level));
-  } catch {
-    // no audio element means no music, which nobody needs telling about
-  }
 };

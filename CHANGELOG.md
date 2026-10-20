@@ -23,11 +23,13 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - On a phone, a chat or page slides in over the one it opened from and slides away on back, and the tabs slide sideways in the order of the tab bar
 - A game opens the moment it is chosen and its seats fill in as the server sets the table, instead of nothing happening for a second
 - Every game action, moves included, waits on one fewer trip to the database
+- Each game remembers its own sound and music levels across devices, and its music starts at 10%
 - The Android app's icon sits on white instead of black
 - In the Android app, a back swipe in a chat moves the chat with your finger and can be let go to stay, and from Chats it shows Android's own way home
 
 ### Fixed
 
+- Moving a game's music level no longer restarts the track
 - Status, the status editor and its text editor keep their buttons clear of the phone's status bar
 
 ### Developers

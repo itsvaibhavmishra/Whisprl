@@ -32,6 +32,7 @@ export const toSessionUser = async (user) => ({
   activityStatus: user.activityStatus,
   onlineStatus: user.onlineStatus,
   quickReactions: user.quickReactions,
+  gameAudio: Object.fromEntries(user.gameAudio ?? []),
   birthday: user.birthday ?? null,
   showBirthdayToFriends: user.showBirthdayToFriends,
   suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,

@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
+import { gameOf } from "#src/services/games/catalog.js";
 import { presenceShownTo } from "#src/services/blockService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { QUICK_REACTION_COUNT, areQuickReactions } from "#src/utils/emoji.js";
@@ -247,6 +248,17 @@ export const setQuickReactions = async (user, reactions) => {
   user.quickReactions = reactions;
   await user.save();
   return reactions;
+};
+
+export const isGameLevel = (level) => typeof level === "number" && level >= 0 && level <= 1;
+
+export const setGameAudio = async (user, gameId, { effects, music }) => {
+  gameOf(gameId);
+  if (!isGameLevel(effects) || !isGameLevel(music)) throw createHttpError.BadRequest("Choose a level from 0 to 1");
+
+  const levels = { effects, music };
+  await UserModel.updateOne({ _id: user._id }, { [`gameAudio.${gameId}`]: levels });
+  return { ...Object.fromEntries(user.gameAudio ?? []), [gameId]: levels };
 };
 
 export const setShowBirthdayToFriends = async (user, isShown) => {

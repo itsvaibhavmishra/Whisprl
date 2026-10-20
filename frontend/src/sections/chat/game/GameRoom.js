@@ -9,7 +9,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { ActInGame, AnswerInvite, CloseGame } from "@/redux/slices/actions/gameActions";
 import { gameCollapsed, resultDismissed } from "@/redux/slices/gameSlice";
 import { GAMES } from "@/sections/chat/game/catalog";
-import { musicVolume, startMusic, stopMusic } from "@/sections/chat/game/gameSounds";
+import { applyGameLevels, gameAudioOf, startMusic, stopMusic } from "@/sections/chat/game/gameSounds";
 import GameButton from "@/sections/chat/game/GameButton";
 import GamesDialog from "@/sections/chat/game/GamesDialog";
 import GameTitle from "@/sections/chat/game/GameTitle";
@@ -80,9 +80,16 @@ const GameRoom = ({ conversation, session }) => {
   const isAnchored = game.art.anchor === "top";
   const [roomRef, sceneWidth, isSceneNarrower] = useSceneWidth(game.art, game.mastheadRatio, controlsHeight);
 
+  // each game remembers its own levels, so the sound and music the player chose come back with it
+  const effects = useSelector((state) => gameAudioOf(state.user.user, session.game).effects);
+  const music = useSelector((state) => gameAudioOf(state.user.user, session.game).music);
+  useEffect(() => {
+    applyGameLevels({ effects, music });
+  }, [effects, music]);
+
   // music belongs to the open game, so it starts with the panel and stops when it closes
   useEffect(() => {
-    if (musicVolume()) startMusic(game.music);
+    startMusic(game.music);
     return stopMusic;
   }, [game.music]);
   const conversationId = conversation._id;
@@ -239,7 +246,7 @@ const GameRoom = ({ conversation, session }) => {
       {confirming && (
         <ConfirmDialog {...CONFIRMATIONS[confirming]} onConfirm={confirmed[confirming]} onClose={() => setConfirming(null)} />
       )}
-      {soundAnchor && <SoundMenu anchor={soundAnchor} track={game.music} onClose={() => setSoundAnchor(null)} />}
+      {soundAnchor && <SoundMenu anchor={soundAnchor} gameId={session.game} track={game.music} onClose={() => setSoundAnchor(null)} />}
       {isShowingRules && <RulesDialog game={game} turnSeconds={session.turnSeconds} onClose={() => setIsShowingRules(false)} />}
       {isShowingScores && <GamesDialog conversation={conversation} tab="leaderboard" onClose={() => setIsShowingScores(false)} />}
       {savingSeat !== null && (

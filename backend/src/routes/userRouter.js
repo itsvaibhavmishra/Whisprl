@@ -8,6 +8,7 @@ import {
   checkUsernameAvailable,
   findPeople,
   getMyProfile,
+  updateGameAudio,
   getUserData,
   requestAccountDeletion,
   searchUsers,
@@ -50,6 +51,8 @@ userRouter.route("/report").post(protect, writeLimit(), report);
 
 // Quick Reactions Route
 userRouter.route("/quick-reactions").put(protect, writeLimit(), updateQuickReactions);
+
+userRouter.route("/game-audio/:game_id").put(protect, writeLimit(), updateGameAudio);
 
 // Whether friends of friends see this person in their suggestions
 userRouter.route("/suggestions").put(protect, writeLimit(), updateSuggestionSetting);
