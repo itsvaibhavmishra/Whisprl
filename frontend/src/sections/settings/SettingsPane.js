@@ -17,6 +17,7 @@ import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
 import ChangePasswordDialog from "@/sections/settings/ChangePasswordDialog";
 import ChatPreview from "@/sections/settings/ChatPreview";
 import DeleteAccountDialog from "@/sections/settings/DeleteAccountDialog";
+import AppLockSetting from "@/sections/settings/AppLockSetting";
 import PasskeySetting from "@/sections/settings/PasskeySetting";
 import QuickReactionsSetting from "@/sections/settings/QuickReactionsSetting";
 import RecoveryKeySetting from "@/sections/settings/RecoveryKeySetting";
@@ -32,9 +33,26 @@ import getAvatar from "@/utils/avatars";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
 import { isApp } from "@/utils/platform";
 import { isStaff } from "@/utils/roles";
+import { feel } from "@/utils/haptics";
 import { previewSound } from "@/utils/sounds";
 
 const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRight };
+
+const VibrationSetting = () => {
+  const { haptics, onToggleHaptics } = useSettings();
+
+  const toggle = (event) => {
+    onToggleHaptics();
+    // a frame later, once the switch is saved, since a buzz checks the saved setting
+    if (event.target.checked) requestAnimationFrame(() => feel());
+  };
+
+  return (
+    <SettingRow label="Vibration" description="A light buzz when you send, react, hold a message or play a game.">
+      <Switch checked={haptics} onChange={toggle} inputProps={{ "aria-label": "Vibration" }} />
+    </SettingRow>
+  );
+};
 
 const SoundSetting = () => {
   const { sounds, onToggleSounds } = useSettings();
@@ -160,6 +178,7 @@ const SecuritySettings = () => {
         </Button>
       </SettingRow>
       <PasskeySetting />
+      {isApp && <AppLockSetting />}
       <RecoveryKeySetting />
       {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
     </SettingsSection>
@@ -170,6 +189,7 @@ const ChatSettings = () => (
   <SettingsSection>
     <QuickReactionsSetting />
     <SoundSetting />
+    {isApp && <VibrationSetting />}
     <NotificationSetting />
     <ClockSetting />
     <BlockedPeopleSetting />

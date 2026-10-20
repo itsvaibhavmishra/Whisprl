@@ -6,6 +6,42 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-10-20
+
+### New
+
+- On a phone, a status can be a photo or video taken straight from the camera
+- The Android app can unlock your messages with the recovery key saved in Google Password Manager, and offers to save one you type in, so a reinstall with Google Backup off no longer means typing it
+- The Android app can lock itself and ask for your fingerprint, face or screen lock when you open it or come back after a minute away
+- The Android app gives a light buzz when you send, react, hold a message, swipe to reply or play a game, with a switch in Settings
+
+### Improvements
+
+- In the Android app, back closes whatever is open first, then goes up a level, and leaves the app from Chats, instead of retracing every page visited
+- A chat shows placeholder bubbles while its messages load, instead of an empty screen
+- The chats list shows placeholder rows while it loads, instead of saying there are no chats yet
+- On a phone, a game takes the whole screen, with its buttons clear of the status bar, and back hides it to bring the chat back
+- Games run smoother: a move and the countdown before a game no longer redraw the whole chat, which mattered most in long chats
+- On a phone, a chat or page slides in over the one it opened from and slides away on back, and the tabs slide sideways in the order of the tab bar
+- A game opens the moment it is chosen and its seats fill in as the server sets the table, instead of nothing happening for a second
+- Every game action, moves included, waits on one fewer trip to the database
+- Each game remembers its own sound and music levels across devices, and its music starts at 10%
+- The Android app's icon sits on white instead of black
+- In the Android app, a back swipe in a chat moves the chat with your finger and can be let go to stay, and from Chats it shows Android's own way home
+
+### Fixed
+
+- Moving a game's music level no longer restarts the track
+- Status, the status editor and its text editor keep their buttons clear of the phone's status bar
+
+### Developers
+
+- An app release pull request builds its APK as a private draft release, replaced on every push to rc, to try it on a phone before merging
+
+### Internal
+
+- The What's new highlights for the next release are written
+
 ## [2.3.0] - 2026-10-19
 
 ### New
@@ -357,6 +393,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.4.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.4.0
 [2.3.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.3.0
 [2.2.1]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.2.1
 [2.2.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.2.0

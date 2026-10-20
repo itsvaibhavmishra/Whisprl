@@ -93,6 +93,12 @@ export const UpdateQuickReactions = createApiThunk(
   async (reactions) => (await axios.put("/user/quick-reactions", { reactions })).data
 );
 
+// ------------- Game Audio -------------
+export const UpdateGameAudio = createApiThunk(
+  "user/game-audio",
+  async ({ gameId, effects, music }) => (await axios.put(`/user/game-audio/${gameId}`, { effects, music })).data
+);
+
 export const UpdateSuggestionSetting = createApiThunk(
   "user/suggestions",
   async (suggestToFriendsOfFriends) => (await axios.put("/user/suggestions", { suggestToFriendsOfFriends })).data

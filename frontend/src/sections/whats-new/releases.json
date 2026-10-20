@@ -2,6 +2,37 @@
   "upcoming": [],
   "releases": [
     {
+      "version": "2.4.0",
+      "date": "2026-10-20",
+      "highlights": [
+        {
+          "emoji": "📱",
+          "title": "Screens that move like an app",
+          "text": "On a phone, a chat or page slides in from the right and slides back out, and the tabs slide sideways in the order of the bar. Computers keep the same layout."
+        },
+        {
+          "emoji": "🎲",
+          "title": "Games start at once",
+          "text": "Pick a game and its table opens straight away while the seats are set up, instead of a pause before anything shows."
+        },
+        {
+          "emoji": "💬",
+          "title": "Smoother chats",
+          "text": "Chats and the list show placeholders while they load, so the screen is never blank and never says you have no chats yet."
+        },
+        {
+          "emoji": "🧩",
+          "title": "Games take the whole screen",
+          "text": "On a phone, a game fills the screen with nothing above it, and going back brings the chat straight back."
+        },
+        {
+          "emoji": "📷",
+          "title": "Status from your camera",
+          "text": "Take a photo or record a video for your status straight from the New update menu."
+        }
+      ]
+    },
+    {
       "version": "2.2.1",
       "date": "2026-10-17",
       "highlights": [

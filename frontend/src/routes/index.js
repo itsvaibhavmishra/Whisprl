@@ -1,4 +1,5 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useRoutes, Navigate } from "react-router-dom";
 
 import LoadingScreen from "@/components/LoadingScreen";
@@ -18,7 +19,29 @@ const Loadable = (Component) => (props) => {
   );
 };
 
+// a tab fetched ahead of time renders at once, so a slide into it never shows the loading screen
+const preloadable = (load) => {
+  const LazyPage = Loadable(lazy(load));
+  let LoadedPage = null;
+  const Page = (props) => {
+    const [ReadyPage] = useState(() => LoadedPage ?? LazyPage);
+    return <ReadyPage {...props} />;
+  };
+  Page.preload = () => load().then((module) => (LoadedPage = module.default));
+  return Page;
+};
+
+const TAB_PRELOAD_DELAY_MS = 1500;
+
 export default function Router() {
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+
+  useEffect(() => {
+    if (!isLoggedIn) return undefined;
+    const timer = setTimeout(() => [ChatPage, StatusPage, ContactsPage, Settings].forEach((page) => page.preload()), TAB_PRELOAD_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isLoggedIn]);
+
   return useRoutes([
     {
       path: "/auth",
@@ -87,11 +110,11 @@ export default function Router() {
   ]);
 }
 // app pages
-const ChatPage = Loadable(lazy(() => import("@/pages/dashboard/Chat")));
-const StatusPage = Loadable(lazy(() => import("@/pages/dashboard/Status")));
-const ContactsPage = Loadable(lazy(() => import("@/pages/dashboard/Contacts")));
+const ChatPage = preloadable(() => import("@/pages/dashboard/Chat"));
+const StatusPage = preloadable(() => import("@/pages/dashboard/Status"));
+const ContactsPage = preloadable(() => import("@/pages/dashboard/Contacts"));
 const SetupPage = Loadable(lazy(() => import("@/pages/Setup")));
-const Settings = Loadable(lazy(() => import("@/pages/dashboard/Settings")));
+const Settings = preloadable(() => import("@/pages/dashboard/Settings"));
 
 // auth pages
 const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));

@@ -9,6 +9,8 @@ const initialState = {
   onChangeDirectionByLang: () => {},
   onChangeColor: () => {},
   onToggleSounds: () => {},
+  onToggleHaptics: () => {},
+  onSetAppLock: () => {},
   onSetNotifications: () => {},
   onToggle24Hour: () => {},
   onSetWallpaper: () => {},
@@ -55,6 +57,14 @@ const SettingsProvider = ({ children }) => {
     setSettings({ ...settings, sounds: !settings.sounds });
   };
 
+  const onToggleHaptics = () => {
+    setSettings({ ...settings, haptics: !settings.haptics });
+  };
+
+  const onSetAppLock = (appLock) => {
+    setSettings({ ...settings, appLock });
+  };
+
   const onSetNotifications = (notifications) => {
     setSettings({ ...settings, notifications });
   };
@@ -89,6 +99,8 @@ const SettingsProvider = ({ children }) => {
         onChangeDirectionByLang,
         onChangeColor,
         onToggleSounds,
+        onToggleHaptics,
+        onSetAppLock,
         onSetNotifications,
         onToggle24Hour,
         onSetWallpaper,

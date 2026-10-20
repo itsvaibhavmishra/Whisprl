@@ -237,7 +237,7 @@ const MediaEditor = ({ media, initialEdits = NO_EDITS, isStory = false, people =
 
   return (
     <Dialog open fullScreen onClose={isSaving ? undefined : onEscape} PaperProps={{ "aria-label": label, sx: { bgcolor: "#000", color: "#fff" } }}>
-      <Stack sx={{ height: "100%" }}>
+      <Stack sx={{ height: "100%", pt: "env(safe-area-inset-top)", pb: "env(safe-area-inset-bottom)" }}>
         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ ...behindText, px: 1, height: 56 }}>
           {toolbar}
         </Stack>

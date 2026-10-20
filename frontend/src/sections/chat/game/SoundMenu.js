@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Popover, Slider, Stack, Typography } from "@mui/material";
 import { MusicNotes, SpeakerHigh } from "phosphor-react";
 
-import useLocalStorage from "@/hooks/useLocalStorage";
-import { EFFECTS_KEY, MUSIC_KEY, playGameSound, setMusicLevel, startMusic, stopMusic } from "@/sections/chat/game/gameSounds";
+import { UpdateGameAudio } from "@/redux/slices/actions/userActions";
+import { applyGameLevels, gameAudioOf, playGameSound } from "@/sections/chat/game/gameSounds";
 
-const Level = ({ icon, label, value, onChange }) => (
+const Level = ({ icon, label, value, onChange, onSave }) => (
   <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: 210 }}>
     <Stack alignItems="center" sx={{ width: 26, color: "text.secondary" }}>{icon}</Stack>
     <Stack sx={{ flex: 1 }}>
@@ -17,6 +18,7 @@ const Level = ({ icon, label, value, onChange }) => (
         step={0.05}
         value={value}
         onChange={(_, next) => onChange(next)}
+        onChangeCommitted={(_, next) => onSave(next)}
         aria-label={label}
         valueLabelDisplay="off"
       />
@@ -25,9 +27,10 @@ const Level = ({ icon, label, value, onChange }) => (
 );
 
 // music and effects are different kinds of noise, so one switch for both is never the setting someone wants
-const SoundMenu = ({ anchor, track, onClose }) => {
-  const [effects, setEffects] = useLocalStorage(EFFECTS_KEY, 1);
-  const [music, setMusic] = useLocalStorage(MUSIC_KEY, 0);
+const SoundMenu = ({ anchor, gameId, track, onClose }) => {
+  const dispatch = useDispatch();
+  const saved = useSelector((state) => gameAudioOf(state.user.user, gameId));
+  const [levels, setLevels] = useState(saved);
   const [preview, setPreview] = useState(null);
 
   useEffect(() => {
@@ -36,15 +39,12 @@ const SoundMenu = ({ anchor, track, onClose }) => {
     return () => clearTimeout(timer);
   }, [preview]);
 
-  const changeMusic = (level) => {
-    setMusic(level);
-    if (!level) {
-      stopMusic();
-      return;
-    }
-    startMusic(track, level);
-    setMusicLevel(level);
+  const change = (next) => {
+    setLevels(next);
+    applyGameLevels(next);
   };
+
+  const save = (next) => dispatch(UpdateGameAudio({ gameId, ...next }));
 
   return (
     <Popover
@@ -59,13 +59,22 @@ const SoundMenu = ({ anchor, track, onClose }) => {
         <Level
           icon={<SpeakerHigh size={18} weight="bold" />}
           label="Sound effects"
-          value={effects}
-          onChange={(level) => {
-            setEffects(level);
-            setPreview(level);
+          value={levels.effects}
+          onChange={(effects) => {
+            change({ ...levels, effects });
+            setPreview(effects);
           }}
+          onSave={(effects) => save({ ...levels, effects })}
         />
-        {track && <Level icon={<MusicNotes size={18} weight="bold" />} label="Music" value={music} onChange={changeMusic} />}
+        {track && (
+          <Level
+            icon={<MusicNotes size={18} weight="bold" />}
+            label="Music"
+            value={levels.music}
+            onChange={(music) => change({ ...levels, music })}
+            onSave={(music) => save({ ...levels, music })}
+          />
+        )}
       </Stack>
     </Popover>
   );

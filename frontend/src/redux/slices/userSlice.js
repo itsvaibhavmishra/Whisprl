@@ -5,6 +5,7 @@ import {
   GetOnlineFriends,
   SearchFriends,
   UpdateBirthdaySetting,
+  UpdateGameAudio,
   UpdateProfile,
   UpdateQuickReactions,
   UpdateSuggestionSetting,
@@ -130,6 +131,9 @@ const slice = createSlice({
       })
       .addCase(UpdateQuickReactions.fulfilled, (state, action) => {
         state.user.quickReactions = action.payload.quickReactions;
+      })
+      .addCase(UpdateGameAudio.fulfilled, (state, action) => {
+        state.user.gameAudio = action.payload.gameAudio;
       })
       .addCase(UpdateSuggestionSetting.pending, (state, action) => {
         state.user.suggestToFriendsOfFriends = action.meta.arg;

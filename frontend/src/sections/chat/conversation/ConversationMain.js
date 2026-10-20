@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useRef, useState } from "react";
 import { Badge, Box, CircularProgress, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { ArrowDown, LockSimple } from "phosphor-react";
@@ -13,6 +13,7 @@ import { GetMessages, LoadNewerMessages, LoadOlderMessages } from "@/redux/slice
 import { RevealMessage } from "@/redux/slices/actions/messageActions";
 import { focusMessage, selectActiveOutbox } from "@/redux/slices/chatSlice";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
+import MessageSkeletons from "@/sections/chat/conversation/MessageSkeletons";
 import { notify } from "@/utils/notify";
 import { formatDayLabel } from "@/utils/formatMessageTime";
 import { bareEmojiSizeOf } from "@/utils/emoji";
@@ -271,6 +272,7 @@ const ConversationMain = () => {
             )}
           </Box>
 
+          {!hasFetched && !messages.length && <MessageSkeletons />}
           {days.map(({ key, label, entries }) => (
             <Stack key={key} spacing={0.5} useFlexGap>
               <DayLabel>{label}</DayLabel>
@@ -383,4 +385,5 @@ const ConversationMain = () => {
   );
 };
 
-export default ConversationMain;
+// the conversation re-renders for every game update, and the list reads all it needs from the store, so it skips those
+export default memo(ConversationMain);

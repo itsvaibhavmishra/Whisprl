@@ -53,9 +53,12 @@ recovery key asks for the fingerprint, face or screen lock first, and a phone wi
 goes straight through.
 
 **Recovery key.** The app's web view drops downloads without a word, so in the app the recovery
-key's Download becomes Save to password manager, through Android's Credential Manager. A phone
-with nowhere to save passwords says so, and Copy still works. Passkeys need WebAuthn, which the
-web view does not offer, so the app leaves the passkey step out of setup.
+key's Download becomes Save to password manager, through Android's Credential Manager. A phone with
+nowhere to save passwords says so, and Copy still works. Google Password Manager syncs with the
+Google account rather than with Backup, so after a reinstall with Backup off the locked screen's Use
+my saved recovery key picks the key back from it, and a key typed in to unlock is offered a place
+there for next time. Passkeys need WebAuthn, which the web view does not offer, so the app leaves
+the passkey step out of setup.
 
 **Notifications.** The app gets pushes through Firebase Cloud Messaging. There are two Firebase
 projects, one for development and one for production, and an app only receives pushes from the
@@ -391,6 +394,8 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 
 - **A feature branch** publishes nothing. Push as often as you like.
 - **`rc`** publishes nothing either.
+- **An app release pull request** from `rc` into `production` publishes only a draft APK that only
+  the repository's owners can see (see Trying an app release on a phone).
 - **Merging into `production`** always redeploys the website and the backend, since Netlify and
   Northflank deploy from the branch itself. Whether it also publishes a version depends on the
   pull request's label:
@@ -452,6 +457,24 @@ same version and `versionCode` as `production`, so once a native change is on `r
 release moves it.
 
 A version is published once. A mistake means burning a number rather than replacing it.
+
+## Trying an app release on a phone
+
+A `release: app` release changes native code, which no live update can fix afterwards, so it is
+tried on a phone before it ships. The Release workflow does this on its own for the `rc` into
+`production` pull request, once it is labelled `release: app` and `rc` is on a new version,
+which is the case once the prepare pull request has merged.
+
+It builds the same signed APK the release will, against the production backend, and publishes it
+as the draft release `test-v<version>`. Every push to `rc` while the pull request is open replaces
+that draft, cancelling a build still running for an older commit, and publishing the real release
+deletes it. A draft is visible only to the repository's owners and never counts as the latest
+release, so no installed app reads it and nothing is tagged. Open it in GitHub on the phone and
+install `whisprl.apk` over the app: it carries the release's signature, so it keeps the account and
+its keys, and the real release later installs over it the same way.
+
+It tests the app, not the backend: backend changes deploy only with the merge into `production`, so
+the test build talks to the backend that is live now.
 
 The scripts need `gh` (authenticated), `git` and `python3`. `scripts/changelog.py` holds the
 devlog-to-changelog text transforms as pure functions, so it can be read and tested on its own;

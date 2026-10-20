@@ -424,8 +424,8 @@ export const actInGame = (io, userId, { conversationId, type, ...details }) => {
   const id = String(conversationId);
 
   return serialized(id, async (gameRoom) => {
-    const conversation = await playableConversation(id, userId);
-    const session = await loadSession(id);
+    // read together, since each read is a round trip to the database and every move waits on both
+    const [conversation, session] = await Promise.all([playableConversation(id, userId), loadSession(id)]);
     const next = await ACTIONS[type]({ io, conversation, session, gameRoom, userId: String(userId), details });
 
     const after = next && settled(next);
@@ -447,14 +447,13 @@ export const watchGame = async (io, socket, conversationId) => {
 
   return serialized(id, async (gameRoom) => {
     const userId = socket.data.userId;
-    const conversation = await findMemberConversation(id, userId);
+    const [conversation, session] = await Promise.all([findMemberConversation(id, userId), loadSession(id)]);
     if (socket.data.watching !== id) {
       socket.join(audienceOf(id));
       socket.data.watching = id;
       gameRoom.watchers.set(userId, (gameRoom.watchers.get(userId) ?? 0) + 1);
     }
 
-    const session = await loadSession(id);
     // after a restart this is how a countdown or a turn that was running gets picked back up
     syncClock(io, gameRoom, id, session);
     // without a game nobody else has anything to update, so only the newcomer hears there is none

@@ -32,6 +32,7 @@ import { batchKeyOf } from "@/utils/messageFiles";
 import { frankingKey, frankingOf } from "@/utils/crypto/franking";
 import { encodePayload } from "@/utils/messagePayload";
 import { isMuted } from "@/utils/chats";
+import { feel } from "@/utils/haptics";
 import { notifyArrival } from "@/utils/notifications";
 import { playQueuedSound, playSound } from "@/utils/sounds";
 
@@ -244,6 +245,7 @@ export const SendTextMessage = ({ text, mentions, contact, statusQuote, emojiSca
   );
   if (takesReply) dispatch(setReplyingTo(null));
   playQueuedSound();
+  feel();
   dispatch(FlushOutbox());
 };
 

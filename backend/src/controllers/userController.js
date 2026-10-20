@@ -8,6 +8,7 @@ import {
   saveProfile,
   searchEveryone,
   searchForUsers,
+  setGameAudio,
   setQuickReactions,
   setShowBirthdayToFriends,
 } from "#src/services/userService.js";
@@ -90,6 +91,16 @@ export const updateUsername = async (req, res, next) => {
     assertText(req.body.username);
     const { username, usernameChangedAt } = await changeUsername(req.user, req.body.username);
     res.status(200).json({ status: "success", username, usernameChangedAt });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// -------------------------- Game Audio --------------------------
+export const updateGameAudio = async (req, res, next) => {
+  try {
+    const gameAudio = await setGameAudio(req.user, req.params.game_id, req.body);
+    return res.status(200).json({ status: "success", gameAudio });
   } catch (error) {
     next(error);
   }

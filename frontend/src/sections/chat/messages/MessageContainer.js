@@ -26,6 +26,7 @@ import useSwipeToReply, { SwipeReplyHint } from "@/sections/chat/messages/useSwi
 import { mediaItemsOf } from "@/sections/chat/viewer/mediaItems";
 import getAvatar, { nameColorOf } from "@/utils/avatars";
 import { gradientOf } from "@/utils/gradients";
+import { PRESS, feel } from "@/utils/haptics";
 import { firstNameIn, memberOf } from "@/utils/groups";
 import { filesOf, isMediaFile } from "@/utils/messageFiles";
 import { bareEmojiSizeOf, emojiScaleOf } from "@/utils/emoji";
@@ -42,13 +43,13 @@ const flash = keyframes`
 `;
 
 // the corner nearest the next bubble in a run is tucked in, so a run of messages reads as one block
-const cornersOf = (isMine, isStart, isEnd) => {
+export const cornersOf = (isMine, isStart, isEnd) => {
   const [outerTop, outerBottom] = [isStart ? 18 : 6, isEnd ? 18 : 6];
   return isMine ? `18px ${outerTop}px ${outerBottom}px 18px` : `${outerTop}px 18px 18px ${outerBottom}px`;
 };
 
 // fixed to the window, so every bubble of yours shows its own slice of one gradient and shifts as it scrolls
-const ownBubble = (theme) => ({
+export const ownBubble = (theme) => ({
   backgroundImage: gradientOf(theme.palette.primary.bubble, 180),
   backgroundAttachment: "fixed",
 });
@@ -124,6 +125,7 @@ const MessageContainer = ({
   // the reacted bubble stays where it is while its reactions appear or go
   const react = (emoji) => {
     onHoldStill?.(anchorKey);
+    feel();
     dispatch(ReactToMessage({ message, emoji, isForAlbum: isAlbum }));
   };
   // a group's list holds reactions to each photo as well as to the group, and each is taken back where it was made
@@ -158,6 +160,7 @@ const MessageContainer = ({
       if (canAct) swipe.handlers.onTouchStart(event);
       pressTimer.current = setTimeout(() => {
         wasLongPress.current = true;
+        feel(PRESS);
         setMenuAnchor(bubble);
       }, LONG_PRESS_MS);
     },

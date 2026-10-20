@@ -12,6 +12,8 @@ import { ErrorBoundary } from "@/utils/errorReports";
 import HelmetHandler from "@/utils/helmetHandler";
 import { startLiveUpdates } from "@/utils/liveUpdate";
 import ScrollToTop from "@/components/ScrollToTop";
+import AppBackButton from "@/components/AppBackButton";
+import AppLock from "@/components/AppLock";
 import OpenAppLinks from "@/components/OpenAppLinks";
 
 import ReactGA from "react-ga4";
@@ -55,6 +57,7 @@ function App() {
 
             <ErrorBoundary fallback={({ error }) => <CrashScreen error={error} />}>
               <Router />
+              <AppLock />
               <StartedSignal />
             </ErrorBoundary>
           </ThemeSettings>
@@ -64,6 +67,7 @@ function App() {
       <HelmetHandler />
       <ScrollToTop />
       <OpenAppLinks />
+      <AppBackButton />
     </>
   );
 }

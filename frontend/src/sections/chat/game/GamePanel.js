@@ -1,7 +1,10 @@
 import { useRef, useState } from "react";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { m, useReducedMotion } from "framer-motion";
+import { useDispatch } from "react-redux";
 
+import useScreenBack from "@/hooks/useScreenBack";
+import { gameCollapsed } from "@/redux/slices/gameSlice";
 import { GAMES } from "@/sections/chat/game/catalog";
 import GameRoom from "@/sections/chat/game/GameRoom";
 
@@ -87,15 +90,17 @@ const ResizeHandle = ({ width, bounds, onResize }) => {
   );
 };
 
-const GamePanel = ({ conversation, session, onPress }) => {
+const GamePanel = ({ conversation, session }) => {
   const gameId = session.game;
   const theme = useTheme();
   const isWide = useMediaQuery(theme.breakpoints.up("lg"));
   const isStill = useReducedMotion();
+  const dispatch = useDispatch();
   const [width, setWidth] = useState(() => savedWidthOf(gameId));
   const [isResizing, setIsResizing] = useState(false);
   const panelRef = useRef(null);
   const bounds = GAMES[gameId].width;
+  useScreenBack(isWide ? undefined : () => dispatch(gameCollapsed(true)));
 
   // a narrow window holds less than the game allows, and a width past what fits would make the handle do nothing
   const roomLeft = () => (panelRef.current?.parentElement?.clientWidth ?? Infinity) - CHAT_MIN_WIDTH;
@@ -116,7 +121,6 @@ const GamePanel = ({ conversation, session, onPress }) => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -24 }}
         transition={isStill ? STILL : SLIDE}
-        onPointerDown={onPress}
         sx={{ flex: 1, minHeight: 0, display: "flex" }}
       >
         <GameRoom conversation={conversation} session={session} />
