@@ -119,7 +119,8 @@ const GameRoom = ({ conversation, session }) => {
         // the scenery sits behind everything here and above nothing outside
         isolation: "isolate",
         overflow: "hidden",
-        // the artwork runs full screen on a phone and the chat floats over its foot, so only the content is inset
+        // the artwork runs full screen on a phone, under the status bar and the chat at its foot, so only the content is inset
+        pt: { xs: "env(safe-area-inset-top)", lg: 0 },
         pb: { xs: "var(--chat-overlay, 200px)", lg: 0 },
         color: theme.ink,
         bgcolor: theme.surface,
@@ -140,7 +141,7 @@ const GameRoom = ({ conversation, session }) => {
           py: 1,
           flexShrink: 0,
           // the start screen has no title in this row, so the bar floats over the art instead of taking a row of its own
-          ...(screen === "start" && { position: "absolute", top: 0, left: 0, right: 0, zIndex: 2 }),
+          ...(screen === "start" && { position: "absolute", top: { xs: "env(safe-area-inset-top)", lg: 0 }, left: 0, right: 0, zIndex: 2 }),
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0, display: "flex" }}>

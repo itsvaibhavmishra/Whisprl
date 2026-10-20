@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useRef, useState } from "react";
 import { Badge, Box, CircularProgress, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { ArrowDown, LockSimple } from "phosphor-react";
@@ -385,4 +385,5 @@ const ConversationMain = () => {
   );
 };
 
-export default ConversationMain;
+// the conversation re-renders for every game update, and the list reads all it needs from the store, so it skips those
+export default memo(ConversationMain);

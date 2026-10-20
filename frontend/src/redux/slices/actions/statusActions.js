@@ -63,8 +63,11 @@ const refused = (message) => {
   return null;
 };
 
-export const ChooseStatusMedia = () => async () => {
-  const [file] = await pickFiles(ATTACHMENT_TYPES.media, { multiple: false });
+// the camera opens only for these broad types, so a capture asks for them rather than the exact formats a pick lists
+const CAPTURE_TYPES = { photo: ["image/*"], video: ["video/*"] };
+
+export const ChooseStatusMedia = (capture) => async () => {
+  const [file] = await pickFiles(CAPTURE_TYPES[capture] ?? ATTACHMENT_TYPES.media, { multiple: false, capture: Boolean(capture) });
   if (!file) return null;
   try {
     const draft = await draftOf(file);

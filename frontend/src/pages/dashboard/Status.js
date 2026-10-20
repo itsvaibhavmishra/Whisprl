@@ -63,8 +63,8 @@ const Status = () => {
   }, [isPlayable, personId]);
 
   const write = () => setDraft({ kind: "text" });
-  const chooseMedia = async () => {
-    const chosen = await dispatch(ChooseStatusMedia());
+  const chooseMedia = async (capture) => {
+    const chosen = await dispatch(ChooseStatusMedia(capture));
     if (chosen) setDraft(chosen);
   };
 

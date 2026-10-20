@@ -22,8 +22,13 @@
         },
         {
           "emoji": "🧩",
-          "title": "The header stays in games",
-          "text": "On a phone, the chat header stays in place during a game instead of folding into a bar."
+          "title": "Games take the whole screen",
+          "text": "On a phone, a game fills the screen with nothing above it, and going back brings the chat straight back."
+        },
+        {
+          "emoji": "📷",
+          "title": "Status from your camera",
+          "text": "Take a photo or record a video for your status straight from the New update menu."
         }
       ]
     },

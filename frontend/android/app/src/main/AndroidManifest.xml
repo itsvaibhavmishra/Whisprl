@@ -69,6 +69,16 @@
         </provider>
     </application>
 
+    <!-- Android hides other apps unless they are named here, and a status photo or video comes from the phone's camera app -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.VIDEO_CAPTURE" />
+        </intent>
+    </queries>
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
