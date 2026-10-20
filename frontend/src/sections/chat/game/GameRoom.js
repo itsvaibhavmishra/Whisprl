@@ -26,6 +26,7 @@ import useArtReady from "@/sections/chat/game/useArtReady";
 import useSceneWidth from "@/sections/chat/game/useSceneWidth";
 import { turnLineOf } from "@/sections/chat/game/gameStatus";
 import { canManage } from "@/utils/groups";
+import { feel } from "@/utils/haptics";
 
 const CONFIRMATIONS = {
   close: { title: "Close the game?", text: "Everyone at the table gets up and the game goes away.", action: "Close game" },
@@ -205,7 +206,10 @@ const GameRoom = ({ conversation, session }) => {
                 state={session.state}
                 seats={session.seats}
                 conversation={conversation}
-                onMove={(move) => act({ type: "move", move })}
+                onMove={(move) => {
+                  feel();
+                  act({ type: "move", move });
+                }}
               />
             </Suspense>
           </Box>

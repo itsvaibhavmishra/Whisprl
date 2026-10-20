@@ -9,6 +9,7 @@ import ProfileIdentity from "@/components/profile/ProfileIdentity";
 import { SOFT } from "@/components/profile/RelationshipActions";
 import ProfileView from "@/components/profile/ProfileView";
 import useHasSettled from "@/hooks/useHasSettled";
+import useScreenBack from "@/hooks/useScreenBack";
 import { FindProfile, GetRequests, GetUserData } from "@/redux/slices/actions/contactActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { isAddressOf } from "@/sections/contacts/contactsRoute";
@@ -42,6 +43,7 @@ const usePersonAt = (handle) => {
 
 // a profile opened from a search, a suggestion or a request leads back there, while one opened from the list has the list beside it
 const BackBar = ({ backLabel, onBack }) => {
+  useScreenBack(onBack);
   const navigate = useNavigate();
   if (!backLabel && !onBack) return null;
 

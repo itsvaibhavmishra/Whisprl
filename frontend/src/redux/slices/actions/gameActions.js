@@ -29,6 +29,11 @@ export const UnwatchGame = createApiThunk("game/unwatch", () => emitGameEvent("g
 
 export const ActInGame = createApiThunk("game/act", (action) => emitGameEvent("game_act", action));
 
+// named by the game alone, so the panel can show which one is opening; it opens in the chat being watched
+export const OpenGame = createApiThunk("game/open", (game, { getState }) =>
+  emitGameEvent("game_act", { conversationId: getState().game.watching, type: "open", game })
+);
+
 export const RequestGame = createApiThunk("game/request", async (request) => {
   const { data } = await axios.post("/games/requests", request);
   notify({ severity: "success", message: "Request sent. Thanks for the idea" });

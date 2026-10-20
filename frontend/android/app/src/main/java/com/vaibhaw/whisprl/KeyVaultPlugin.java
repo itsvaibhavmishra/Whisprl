@@ -81,11 +81,22 @@ public class KeyVaultPlugin extends Plugin {
             .addOnFailureListener(error -> call.reject(error.getMessage()));
     }
 
+    private boolean hasScreenLock() {
+        KeyguardManager keyguard = (KeyguardManager) getContext().getSystemService(Context.KEYGUARD_SERVICE);
+        return keyguard.isDeviceSecure();
+    }
+
+    @PluginMethod
+    public void canConfirmOwner(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("canConfirm", hasScreenLock());
+        call.resolve(result);
+    }
+
     @PluginMethod
     public void confirmOwner(PluginCall call) {
-        KeyguardManager keyguard = (KeyguardManager) getContext().getSystemService(Context.KEYGUARD_SERVICE);
         // a phone with no screen lock has nothing to check against
-        if (!keyguard.isDeviceSecure()) {
+        if (!hasScreenLock()) {
             resolveConfirmed(call, true);
             return;
         }

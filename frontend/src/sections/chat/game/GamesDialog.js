@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import SearchPill from "@/components/SearchPill";
 import useIsLoading from "@/hooks/useIsLoading";
-import { ActInGame, GetLeaderboard } from "@/redux/slices/actions/gameActions";
+import { GetLeaderboard, OpenGame } from "@/redux/slices/actions/gameActions";
 import { selectGameSession } from "@/redux/slices/gameSlice";
 import ClosableTitle from "@/sections/chat/game/ClosableTitle";
 import GameCard from "@/sections/chat/game/GameCard";
@@ -50,7 +50,7 @@ const GameList = ({ conversation, onClose }) => {
   const shown = GAME_IDS.filter((id) => matches(GAMES[id], query));
 
   const open = (game) => {
-    dispatch(ActInGame({ conversationId: conversation._id, type: "open", game }));
+    dispatch(OpenGame(game));
     onClose();
   };
 

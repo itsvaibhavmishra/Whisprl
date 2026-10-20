@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, ButtonBase, Collapse, GlobalStyles, Stack, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, ButtonBase, GlobalStyles, Stack, Typography } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
 import { CaretUp } from "phosphor-react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
 import { UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
-import { UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
+import { OpenGame, UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
 import { selectActiveOutbox } from "@/redux/slices/chatSlice";
 import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
 import { selectGameSession } from "@/redux/slices/gameSlice";
+import { selectIsLoading } from "@/redux/slices/requestSlice";
 import ChatCanvas from "@/sections/chat/ChatCanvas";
 import FileUploadCont from "@/sections/chat/attachments/FileUploadCont";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
@@ -18,9 +19,10 @@ import ChatSheetGrip from "@/sections/chat/conversation/ChatSheetGrip";
 import Composer, { COLUMN_WIDTH, COMPOSER_GUTTER } from "@/sections/chat/conversation/Composer";
 import ConversationHeader from "@/sections/chat/conversation/ConversationHeader";
 import ConversationMain from "@/sections/chat/conversation/ConversationMain";
-import FoldedHeader from "@/sections/chat/conversation/FoldedHeader";
 import PinnedBar from "@/sections/chat/conversation/PinnedBar";
+import { GAME_IDS } from "@/sections/chat/game/catalog";
 import GamePanel, { CHAT_MIN_WIDTH } from "@/sections/chat/game/GamePanel";
+import { openingSessionOf } from "@/sections/chat/game/gameStatus";
 import GamePill from "@/sections/chat/game/GamePill";
 import SeatSwitchDialog from "@/sections/chat/game/SeatSwitchDialog";
 import useGameSounds from "@/sections/chat/game/useGameSounds";
@@ -133,10 +135,9 @@ const Conversation = () => {
   const [isSearching, setIsSearching] = useState(false);
   const gameSession = useSelector(selectGameSession);
   const isGameHidden = useSelector((state) => state.game.collapsed);
-  const isGameShown = Boolean(gameSession) && !isGameHidden;
-  const isPhone = useMediaQuery((theme) => theme.breakpoints.down("md"));
-  const [isHeaderOpen, setIsHeaderOpen] = useState(false);
-  const isHeaderFolded = isPhone && isGameShown && !isHeaderOpen;
+  const openingGame = useSelector((state) => GAME_IDS.find((game) => selectIsLoading(state, OpenGame, game)));
+  const shownSession = gameSession ?? (openingGame && openingSessionOf(openingGame));
+  const isGameShown = Boolean(shownSession) && !isGameHidden;
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [sheetDrag, setSheetDrag] = useState(0);
   const composerRef = useRef(null);
@@ -164,11 +165,6 @@ const Conversation = () => {
     observer.observe(composer);
     return () => observer.disconnect();
   }, [files.length]);
-
-  // every game opens with the header folded, however it was left last time
-  useEffect(() => {
-    if (!isGameShown) setIsHeaderOpen(false);
-  }, [isGameShown]);
 
   useEffect(() => {
     dispatch(WatchGame(conversationId));
@@ -285,12 +281,7 @@ const Conversation = () => {
 
   return (
     <ChatCanvas conversationId={conversationId} step={sends} sx={{ height: "100%", minWidth: 0, display: "flex", flexDirection: "column" }}>
-      <Collapse in={!isHeaderFolded} sx={{ flexShrink: 0 }}>
-        <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
-      </Collapse>
-      <Collapse in={isHeaderFolded} sx={{ flexShrink: 0 }}>
-        <FoldedHeader onOpen={() => setIsHeaderOpen(true)} />
-      </Collapse>
+      <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
       {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
       {!isSearching && <PinnedBar />}
       <GlobalStyles styles={EDGE_PROPERTIES} />
@@ -310,7 +301,7 @@ const Conversation = () => {
           <AnimatePresence>{gameSession && isGameHidden && <GamePill key="pill" session={gameSession} meId={meId} />}</AnimatePresence>
         </Box>
         <AnimatePresence initial={false}>
-          {isGameShown && <GamePanel key={gameSession.game} conversation={activeConversation} session={gameSession} onPress={() => setIsHeaderOpen(false)} />}
+          {isGameShown && <GamePanel key={shownSession.game} conversation={activeConversation} session={shownSession} />}
         </AnimatePresence>
         {isGameShown && isChatOpen && (
           <Box

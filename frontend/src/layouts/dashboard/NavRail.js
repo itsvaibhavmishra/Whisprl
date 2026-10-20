@@ -207,7 +207,7 @@ const TabItem = ({ label, isActive, badge, badgeWord, children, ...button }) => 
   </ButtonBase>
 );
 
-const TabBar = () => {
+export const TabBar = () => {
   const { pathname } = useLocation();
   const badges = useBadgeCounts();
   const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
@@ -217,6 +217,7 @@ const TabBar = () => {
       component="nav"
       aria-label="Main"
       direction="row"
+      data-tab-bar
       sx={{
         position: "sticky",
         bottom: 0,

@@ -4,6 +4,9 @@ import { firstNameIn } from "@/utils/groups";
 
 export const PRACTICE_NOTE = "Bot games don't count on the leaderboard";
 
+// the table shown while the server sets it up, so a game opens the moment it is chosen
+export const openingSessionOf = (game) => ({ game, status: "opening", seats: [], players: { min: 0, max: 0 } });
+
 const twoPlayerLineOf = (session, conversation, meId) => {
   const peer = peerOf(conversation, meId);
   const mine = session.seats.find((seat) => seat.user === meId);

@@ -188,7 +188,7 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
           )}
           <ButtonBase aria-label="Previous status" tabIndex={-1} onClick={tapTo(onPrevious)} disableRipple sx={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "30%", zIndex: 1 }} />
           <ButtonBase aria-label="Next status" tabIndex={-1} onClick={tapTo(onNext)} disableRipple sx={{ position: "absolute", top: 0, bottom: 0, right: 0, width: "70%", zIndex: 1 }} />
-          <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 3, pb: 5, background: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.35) 60%, transparent)" }}>
+          <Box sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 3, pt: "env(safe-area-inset-top)", pb: 5, background: "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.35) 60%, transparent)" }}>
             <Segments count={count} position={position} durationMs={durationOf(status)} isRunning={isReady && !isPaused} onDone={onNext} />
             <StatusHeader
               status={status}

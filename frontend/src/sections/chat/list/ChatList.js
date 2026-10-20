@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, ButtonBase, IconButton, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { Archive, ArrowLeft, CaretRight, UsersThree } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,14 +8,14 @@ import MascotHalo from "@/components/MascotHalo";
 import RequestButton from "@/components/profile/RequestButton";
 import SearchPill from "@/components/SearchPill";
 import Wordmark from "@/components/Wordmark";
-import useIsLoading from "@/hooks/useIsLoading";
-import { CreateOpenConversation, GetConversations } from "@/redux/slices/actions/chatActions";
+import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 import { SearchForUsers } from "@/redux/slices/actions/contactActions";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
 import { clearSearchUsers } from "@/redux/slices/contactSlice";
 import { clearSearch } from "@/redux/slices/userSlice";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import ChatRow from "@/sections/chat/list/ChatRow";
+import ChatRowSkeletons from "@/sections/chat/list/ChatRowSkeletons";
 import { identityOf, isDeleted, peerOf } from "@/utils/chats";
 
 const SEARCH_PAUSE_MS = 400;
@@ -90,7 +90,8 @@ const ChatList = ({ onNewGroup }) => {
   const strangerMatches = useSelector((state) => state.contact.searchedUsersList);
   const conversations = useSelector((state) => state.chat.conversations);
   const activeId = useSelector((state) => state.chat.activeConversation?._id);
-  const isLoading = useIsLoading(GetConversations);
+  // the list is asked for only once this device's key is loaded, so until then an empty list means nothing yet
+  const hasListLoaded = useSelector((state) => state.chat.hasLoadedConversations || state.chat.hasConversationsFailed);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [isShowingArchived, setIsShowingArchived] = useState(false);
@@ -213,18 +214,8 @@ const ChatList = ({ onNewGroup }) => {
       </Stack>
 
       <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
-        {isLoading && !conversations.length ? (
-          <Stack spacing={0.5} sx={{ px: 1, pt: 1 }}>
-            {[...Array(7).keys()].map((index) => (
-              <Stack key={index} direction="row" spacing={1.5} alignItems="center" sx={{ py: 1 }}>
-                <Skeleton variant="circular" width={50} height={50} />
-                <Box sx={{ flex: 1 }}>
-                  <Skeleton width={`${50 + ((index * 13) % 30)}%`} sx={{ borderRadius: 2 }} />
-                  <Skeleton width={`${70 + ((index * 7) % 25)}%`} sx={{ borderRadius: 2 }} />
-                </Box>
-              </Stack>
-            ))}
-          </Stack>
+        {!hasListLoaded ? (
+          <ChatRowSkeletons />
         ) : (
           <>
             {!isShowingArchived && !needle && archivedCount > 0 && (
