@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(BackGesturePlugin.class);
+        registerPlugin(FileSaverPlugin.class);
         registerPlugin(GoogleSignInPlugin.class);
         registerPlugin(HapticsPlugin.class);
         registerPlugin(KeyVaultPlugin.class);

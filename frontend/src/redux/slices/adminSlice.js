@@ -1,11 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { GetAuditLog, GetGameRequests, GetOverview, GetPeople, GetReports, GetTeam } from "@/redux/slices/actions/adminActions";
+import { GetActivePeople, GetAuditLog, GetGameRequests, GetOverview, GetPeople, GetReports, GetTeam } from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
   overview: null,
   latestOverviewFetch: null,
+  activePeople: { list: null, hasMore: false },
+  latestActivePeopleFetch: null,
   people: { list: null, total: 0, hasMore: false },
   latestPeopleFetch: null,
   reports: { list: null, total: 0, hasMore: false },
@@ -31,6 +33,14 @@ const slice = createSlice({
         if (action.meta.requestId !== state.latestOverviewFetch) return;
         const { totals, active, range, daily } = action.payload;
         state.overview = { totals, active, range, daily };
+      })
+      .addCase(GetActivePeople.pending, (state, action) => {
+        state.latestActivePeopleFetch = action.meta.requestId;
+      })
+      .addCase(GetActivePeople.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.latestActivePeopleFetch) return;
+        const { people, hasMore } = action.payload;
+        state.activePeople = { list: action.meta.arg.page ? [...state.activePeople.list, ...people] : people, hasMore };
       })
       .addCase(GetPeople.pending, (state, action) => {
         state.latestPeopleFetch = action.meta.requestId;

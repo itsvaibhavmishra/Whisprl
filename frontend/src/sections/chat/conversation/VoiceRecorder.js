@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
-import { CaretLeft, CaretUp, LockSimple, Microphone, PaperPlaneTilt, Trash } from "phosphor-react";
+import { CaretLeft, CaretUp, LockSimple, Microphone, Pause, PaperPlaneTilt, Trash } from "phosphor-react";
 import { useDispatch } from "react-redux";
 
 import { SendVoiceMessage } from "@/redux/slices/actions/attachmentActions";
@@ -14,11 +14,11 @@ import { MAX_VOICE_SECONDS, MIN_VOICE_SECONDS, MicrophoneRefusal, startVoiceReco
 const CANCEL_PX = 90;
 const LOCK_PX = 70;
 const NO_DRAG = { left: 0, up: 0 };
-// a mouse has nothing to hold, so a click shorter than this records hands-free instead
+// a tap rather than a hold records hands-free, with the controls to pause, delete or send
 const QUICK_PRESS_MS = 250;
 const HOLD_HINT = "Hold to record, let go to send";
 // none while holding, where it would cover the lock hint
-const TOOLTIPS = { idle: "Hold to record a voice message", holding: "", locked: "Send voice message" };
+const TOOLTIPS = { idle: "Tap or hold to record a voice message", holding: "", locked: "Send voice message" };
 
 const pulse = keyframes`
   50% { opacity: 0.25; }
@@ -46,12 +46,13 @@ const micLabelOf = (phase, pending) => {
   return "Record a voice message";
 };
 
-const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
+const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecordingChange }) => {
   const dispatch = useDispatch();
   const [phase, setPhase] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
   const [levels, setLevels] = useState([]);
   const [drag, setDrag] = useState(NO_DRAG);
+  const [isPaused, setIsPaused] = useState(false);
   const phaseNow = useRef("idle");
   const dragNow = useRef(NO_DRAG);
   const recording = useRef(null);
@@ -75,6 +76,7 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
     recording.current = null;
     moveTo("idle");
     moveDrag(NO_DRAG);
+    setIsPaused(false);
     setLevels([]);
     setElapsed(0);
   };
@@ -96,6 +98,12 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
   const discard = () => {
     cancel();
     micButton.current.focus();
+  };
+
+  const togglePause = () => {
+    if (isPaused) recording.current?.resume();
+    else recording.current?.pause();
+    setIsPaused(!isPaused);
   };
 
   const send = async () => {
@@ -141,7 +149,7 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
     if (phaseNow.current === "locked") return send();
     if (phaseNow.current !== "idle") return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    press.current = { pointerId: event.pointerId, pointerType: event.pointerType, x: event.clientX, y: event.clientY, at: performance.now() };
+    press.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, at: performance.now() };
     start("holding");
   };
 
@@ -162,9 +170,7 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
     // letting go before the microphone opened, say at the permission prompt, counts as a quick press
     const isHold = recording.current !== null && performance.now() - press.current.at >= QUICK_PRESS_MS;
     if (isHold) return send();
-    if (press.current.pointerType === "mouse") return moveTo("locked");
-    cancel();
-    notify({ severity: "info", message: HOLD_HINT });
+    moveTo("locked");
   };
 
   // keyboard only: Chrome drops a pointer's click when the icon under it changes mid-press
@@ -192,21 +198,40 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
           sx={{
             position: "absolute",
             inset: 0,
-            ...overlaySx,
             zIndex: 1,
             px: 1.5,
             borderRadius: "26px",
             bgcolor: "chat.raised",
             boxShadow: (theme) => `0 0 0 1px ${theme.palette.chat.edge}`,
+            ...overlaySx,
           }}
         >
+          {/* the controls sit away from where the microphone was, so the tap that started recording cannot land on one */}
           {isLocked && (
-            <IconButton aria-label="Delete recording" onClick={discard} sx={{ ml: -0.75, color: "text.secondary", "&:hover": { color: "error.main" } }}>
-              <Trash size={20} />
-            </IconButton>
+            <>
+              <IconButton aria-label="Delete recording" onClick={discard} sx={{ ml: -0.75, color: "text.secondary", "&:hover": { color: "error.main" } }}>
+                <Trash size={20} />
+              </IconButton>
+              <Tooltip title={isPaused ? "Resume" : "Pause"}>
+                <IconButton aria-label={isPaused ? "Resume recording" : "Pause recording"} onClick={togglePause} sx={{ color: isPaused ? "error.main" : "text.primary" }}>
+                  {isPaused ? <Microphone size={20} weight="fill" /> : <Pause size={20} weight="fill" />}
+                </IconButton>
+              </Tooltip>
+            </>
           )}
           <Stack direction="row" alignItems="center" spacing={1.25} sx={{ flexGrow: 1, minWidth: 0, opacity: isCancelPending ? 0.4 : 1, transition: "opacity 120ms" }}>
-            <Box aria-hidden sx={{ flexShrink: 0, width: 10, height: 10, borderRadius: "50%", bgcolor: "error.main", animation: `${pulse} 1.2s ease-in-out infinite`, "@media (prefers-reduced-motion: reduce)": { animation: "none" } }} />
+            <Box
+              aria-hidden
+              sx={{
+                flexShrink: 0,
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                bgcolor: isPaused ? "text.disabled" : "error.main",
+                animation: isPaused ? "none" : `${pulse} 1.2s ease-in-out infinite`,
+                "@media (prefers-reduced-motion: reduce)": { animation: "none" },
+              }}
+            />
             <Typography variant="body2" sx={{ minWidth: 38, fontVariantNumeric: "tabular-nums" }}>
               {formatDuration(elapsed)}
             </Typography>
@@ -238,8 +263,25 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
           )}
         </Stack>
       )}
+      {isLocked && (
+        <Box sx={{ position: "absolute", right: 0, bottom: 0, zIndex: 1 }}>
+          <Tooltip title="Send voice message">
+            <IconButton aria-label="Send voice message" onClick={send} sx={sendSx}>
+              <PaperPlaneTilt size={21} weight="fill" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
 
-      <Box sx={{ position: "relative", display: "flex" }}>
+      {/* held, the microphone moves out to the send button's spot beside the bar, keeping the finger's press */}
+      <Box
+        sx={{
+          position: "relative",
+          display: "flex",
+          transition: "transform 160ms ease-out",
+          ...(phase === "holding" && { zIndex: 2, transform: `translateX(${sendSpotShift}px)` }),
+        }}
+      >
         {phase === "holding" && (
           <Stack
             aria-hidden
@@ -282,10 +324,10 @@ const VoiceRecorder = ({ buttonSx, overlaySx, onRecordingChange }) => {
               userSelect: "none",
               WebkitTouchCallout: "none",
               transition: "transform 120ms ease-out, filter 160ms ease",
-              ...(phase === "holding" && { "&, &:active": { transform: "scale(1.15)" } }),
+              ...(phase === "holding" && { background: sendSx.background, color: "common.white", "&, &:active": { transform: "scale(1.3)" } }),
             }}
           >
-            {isLocked ? <PaperPlaneTilt size={20} weight="fill" /> : <Microphone size={20} weight="fill" />}
+            <Microphone size={20} weight="fill" />
           </IconButton>
         </Tooltip>
       </Box>

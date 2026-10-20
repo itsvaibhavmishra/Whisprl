@@ -2,6 +2,37 @@
   "upcoming": [],
   "releases": [
     {
+      "version": "2.5.0",
+      "date": "2026-10-20",
+      "highlights": [
+        {
+          "emoji": "🎮",
+          "title": "Game invites",
+          "text": "Opening a game in a chat shows a line there, and in a one-to-one chat it invites the other person, even when Whisprl is closed."
+        },
+        {
+          "emoji": "✏️",
+          "title": "Draw with taps",
+          "text": "A tap leaves a dot, two fingers draw a straight line and three fingers draw a circle."
+        },
+        {
+          "emoji": "🔎",
+          "title": "Find games by other names",
+          "text": "Search xo or noughts and crosses and Tic-tac-toe turns up."
+        },
+        {
+          "emoji": "💾",
+          "title": "Save to your phone",
+          "text": "Photos, videos and files from a chat can be saved to the Gallery or Downloads in the app."
+        },
+        {
+          "emoji": "🔔",
+          "title": "Quieter alerts",
+          "text": "A short note appears only for what you just did, at the bottom on a phone and the top on a computer."
+        }
+      ]
+    },
+    {
       "version": "2.4.0",
       "date": "2026-10-20",
       "highlights": [

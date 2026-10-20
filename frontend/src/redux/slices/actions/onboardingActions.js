@@ -11,7 +11,7 @@ export const ConfirmRecoveryKeySaved = createApiThunk("onboarding/recovery-key",
 export const AllowNotifications = createApiThunk("onboarding/notifications", async () => (await axios.put("/onboarding/notifications")).data);
 
 // ------------- Refresh Progress -------------
-export const GetOnboarding = createApiThunk("onboarding/get", async () => (await axios.get("/onboarding")).data);
+export const GetOnboarding = createApiThunk("onboarding/get", async () => (await axios.get("/onboarding")).data, { notifyErrors: false });
 
 // ------------- Skip A Step -------------
 export const SkipSetupStep = createApiThunk("onboarding/skip", async (step) => (await axios.put(`/onboarding/${step}/skip`)).data);

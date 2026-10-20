@@ -3,6 +3,7 @@ import { assertOptions, DEFAULTS, outcome, play, setup, turnOf, viewFor } from "
 
 const chainReaction = {
   id: "chain-reaction",
+  name: "Chain Reaction",
   minPlayers: 2,
   maxPlayers: 6,
   turnSeconds: 20,

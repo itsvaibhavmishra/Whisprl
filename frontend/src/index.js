@@ -1,3 +1,5 @@
+// first, so every module after it can count on what an older phone lacks
+import "@/utils/polyfills";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";

@@ -64,8 +64,9 @@ const ROW_PAD = 4;
 const TOOL_SIZE = 40;
 const TOOL_BUTTON = { width: TOOL_SIZE, height: TOOL_SIZE, color: "text.secondary" };
 
-// the bar starts after the attach and microphone buttons, so the microphone stays put under the finger holding it
-const RECORDING_BAR = { left: ROW_PAD + TOOL_SIZE * 2, right: 56 };
+// the bar ends where the quick emoji was, and that spot takes the held microphone and then the send button
+const RECORDING_BAR = { right: ROUND_BUTTON.width + 8 };
+const MIC_TO_SEND_SPOT = ROUND_BUTTON.width / 2 + 8 + ROW_PAD + TOOL_SIZE / 2;
 
 // the quick emoji stands on its own, so only sending gets a filled circle
 const QUICK_EMOJI_BUTTON = {
@@ -290,7 +291,11 @@ const Composer = () => {
                     onContact={() => setIsSharingContact(true)}
                     onGames={chooseGames}
                   />
-                  <VoiceRecorder buttonSx={TOOL_BUTTON} overlaySx={RECORDING_BAR} onRecordingChange={setIsRecording} />
+                  <Tooltip title="Emoji">
+                    <IconButton aria-label="Emoji" disabled={isRecording} onClick={(event) => setEmojiAnchor(event.currentTarget)} sx={TOOL_BUTTON}>
+                      <Smiley size={22} />
+                    </IconButton>
+                  </Tooltip>
                 </Stack>
               ))}
             <Box inert={isRecording ? "" : undefined} sx={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-end" }}>
@@ -298,7 +303,10 @@ const Composer = () => {
                 ref={fieldRef}
                 inputRef={inputRef}
                 value={value}
-                onChange={(event) => changeText(event.target.value, event.target.selectionStart)}
+                onChange={(event) => {
+                  setShowsTools(false);
+                  changeText(event.target.value, event.target.selectionStart);
+                }}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => {
@@ -323,12 +331,16 @@ const Composer = () => {
                   "& .MuiInputBase-input::placeholder": { color: "text.secondary", opacity: 1 },
                 }}
               />
-              <Tooltip title="Emoji">
-                <IconButton aria-label="Emoji" onClick={(event) => setEmojiAnchor(event.currentTarget)} sx={{ mb: "4px", color: "text.secondary" }}>
-                  <Smiley size={22} />
-                </IconButton>
-              </Tooltip>
             </Box>
+            {!showsSend && (
+              <VoiceRecorder
+                buttonSx={{ ...TOOL_BUTTON, mb: "4px" }}
+                sendSx={ROUND_BUTTON}
+                overlaySx={RECORDING_BAR}
+                sendSpotShift={MIC_TO_SEND_SPOT}
+                onRecordingChange={setIsRecording}
+              />
+            )}
           </Stack>
         </Box>
 
@@ -361,8 +373,8 @@ const Composer = () => {
         open={Boolean(emojiAnchor)}
         anchorEl={emojiAnchor}
         onClose={() => setEmojiAnchor(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "left" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "left" }}
       >
         <EmojiPicker onSelect={(emoji) => insertAtCaret(emoji)} />
       </Popover>

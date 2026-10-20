@@ -5,6 +5,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector, useStore } from "react-redux";
 
 import { MotionLazyContainer } from "@/components/animate";
+import NotificationsPrompt from "@/components/NotificationsPrompt";
 import useSettings from "@/hooks/useSettings";
 import NavRail from "@/layouts/dashboard/NavRail";
 import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
@@ -89,6 +90,7 @@ const DashboardLayout = () => {
             <Outlet />
           </Box>
           <EncryptionGate />
+          {isApp && isEncryptionReady && <NotificationsPrompt />}
         </Stack>
       </MotionConfig>
     </MotionLazyContainer>

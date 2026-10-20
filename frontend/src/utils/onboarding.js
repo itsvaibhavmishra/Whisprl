@@ -1,7 +1,9 @@
 import { isApp } from "@/utils/platform";
 
-// the app's web view has no passkeys, and a step that can only say so is one step too many
-const isOfferedHere = (step) => !(isApp && step.id === "passkey");
+// the app's web view has no passkeys, and the app asks about notifications once per phone instead
+const NOT_IN_APP = ["passkey", "notifications"];
+
+const isOfferedHere = (step) => !(isApp && NOT_IN_APP.includes(step.id));
 
 export const pendingStepsOf = (onboarding) => onboarding?.steps.filter((step) => step.status === "none" && isOfferedHere(step)) ?? [];
 

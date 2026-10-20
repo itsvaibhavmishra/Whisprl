@@ -11,6 +11,7 @@ const chainReaction = {
   id: "chain-reaction",
   name: "Chain Reaction",
   summary: "Fill a cell until it bursts and takes its neighbours. For two to six players.",
+  keywords: ["atoms", "orbs", "explosion", "critical mass", "burst"],
   art,
   preload: [art.scene, art.logo, art.cat, art.robot],
   theme: {

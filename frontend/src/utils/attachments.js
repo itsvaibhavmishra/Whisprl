@@ -1,25 +1,13 @@
 import { openFile } from "@/utils/crypto/fileCipher";
+import { saveToPhone } from "@/utils/fileSaver";
+import { isApp } from "@/utils/platform";
 import uuidv4 from "@/utils/uuidv4";
 
 // checked only here, since the server receives every file encrypted and cannot tell what it is
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 
-export const ATTACHMENT_TYPES = {
-  media: [...IMAGE_TYPES, ...VIDEO_TYPES],
-  doc: [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    "text/plain",
-    "application/zip",
-    "application/x-rar-compressed",
-  ],
-};
+export const MEDIA_TYPES = [...IMAGE_TYPES, ...VIDEO_TYPES];
 
 export const MAX_ATTACHMENTS = 5;
 export const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
@@ -44,13 +32,6 @@ const drawWithin = (bitmap, longEdge) => {
   return canvas;
 };
 
-const shrink = async (bitmap, file) => {
-  if (file.type === "image/gif") return file;
-  const shrunk = await new Promise((resolve) => drawWithin(bitmap, LONG_EDGE).toBlob(resolve, "image/jpeg", PHOTO_QUALITY));
-  if (!shrunk || shrunk.size >= file.size) return file;
-  return new File([shrunk], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: file.lastModified });
-};
-
 export const thumbnailOf = async (file) => {
   const bitmap = await createImageBitmap(file);
   const thumbnail = drawWithin(bitmap, THUMBNAIL_EDGE).toDataURL("image/jpeg", THUMBNAIL_QUALITY);
@@ -64,20 +45,33 @@ export const preparedFromCanvas = async (canvas, name) => {
   return { file: new File([photo], name, { type: "image/jpeg" }), width: canvas.width, height: canvas.height, preview };
 };
 
-export const prepareImage = async (file) => {
+export const readImage = async (file) => {
   const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) return { file };
+  if (!bitmap) return {};
 
   const { width, height } = bitmap;
   const preview = drawWithin(bitmap, PREVIEW_EDGE).toDataURL("image/jpeg", PREVIEW_QUALITY);
-  const photo = await shrink(bitmap, file);
   bitmap.close();
-  return { file: photo, width, height, preview };
+  return { width, height, preview };
+};
+
+// a photo already drawn small, as an edited one is, gains nothing from being encoded again
+const needsShrinking = (file, bitmap) => file.type !== "image/jpeg" || Math.max(bitmap.width, bitmap.height) > LONG_EDGE;
+
+export const shrinkImage = async (file) => {
+  if (file.type === "image/gif") return file;
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file;
+  const shrunk = needsShrinking(file, bitmap) ? await new Promise((resolve) => drawWithin(bitmap, LONG_EDGE).toBlob(resolve, "image/jpeg", PHOTO_QUALITY)) : null;
+  bitmap.close();
+  if (!shrunk || shrunk.size >= file.size) return file;
+  return new File([shrunk], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: file.lastModified });
 };
 
 // fetched rather than linked, because a browser ignores the name a link suggests for a file on another site
-export const downloadFile = async (url, fileName) => {
+export const downloadFile = async (url, fileName, kind = "media") => {
   const blob = await (await fetch(url)).blob();
+  if (isApp) return saveToPhone(blob, fileName, kind);
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = fileName;

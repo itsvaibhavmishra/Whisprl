@@ -1,7 +1,7 @@
 import { Fragment, memo, useCallback, useEffect, useRef, useState } from "react";
-import { Badge, Box, CircularProgress, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, CircularProgress, Divider, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowDown, LockSimple } from "phosphor-react";
+import { LockSimple } from "phosphor-react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import MessageContainer from "@/sections/chat/messages/MessageContainer";
@@ -19,7 +19,8 @@ import { formatDayLabel } from "@/utils/formatMessageTime";
 import { bareEmojiSizeOf } from "@/utils/emoji";
 import { filesOf } from "@/utils/messageFiles";
 import { describeEvent, typingNamesIn } from "@/utils/groups";
-import TypingBubble, { TYPING_BUBBLE_HEIGHT } from "@/sections/chat/messages/TypingBubble";
+import TypingBubble from "@/sections/chat/messages/TypingBubble";
+import JumpToLatest from "@/sections/chat/conversation/JumpToLatest";
 import useIsLoading from "@/hooks/useIsLoading";
 
 const messageTypeOf = (message) => {
@@ -157,7 +158,7 @@ const ConversationMain = () => {
   const loadOlder = useCallback(() => dispatch(LoadOlderMessages()), [dispatch]);
   const loadNewer = useCallback(() => dispatch(LoadNewerMessages()), [dispatch]);
 
-  const { scrollRef, contentRef, topRef, bottomRef, handleScroll, holdStill, jumpToLatest, scrollToKey, isAwayFromBottom } = useChatScroll({
+  const { scrollRef, contentRef, topRef, bottomRef, handleScroll, holdStill, jumpToLatest, scrollToKey, watchAway } = useChatScroll({
     conversationId: activeConversation?._id,
     openAtKey: unreadMarker && UNREAD_DIVIDER,
     contentVersion: `${items.length}:${lastItem && keyOf(lastItem.message)}:${detailsId}:${lastItem ? statusLabelFor(lastItem) : ""}`,
@@ -223,23 +224,7 @@ const ConversationMain = () => {
 
   const tapHandlerFor = (item) => (item.type === "queued" ? undefined : () => toggleDetails(item.message));
 
-  // counts what arrives from others while the reader is scrolled up, so the jump button can say what they missed
-  const [missed, setMissed] = useState(0);
   const lastArrival = confirmed.filter((item) => item.message.sender._id !== user._id).at(-1)?.message._id;
-  const countedArrival = useRef({ conversationId: null, messageId: null });
-
-  useEffect(() => {
-    const counted = countedArrival.current;
-    const isNewArrival = counted.conversationId === activeConversation?._id && counted.messageId !== lastArrival;
-    if (isNewArrival && isAwayFromBottom) setMissed((count) => count + 1);
-    countedArrival.current = { conversationId: activeConversation?._id, messageId: lastArrival };
-  }, [activeConversation?._id, lastArrival, isAwayFromBottom]);
-
-  useEffect(() => {
-    if (!isAwayFromBottom) setMissed(0);
-  }, [isAwayFromBottom]);
-
-  const jumpLabel = missed ? `${missed} new message${missed === 1 ? "" : "s"}` : "Jump to latest";
 
   return (
     <Box sx={{ position: "relative", flex: "1 1 0", minHeight: 0, display: "flex" }}>
@@ -344,43 +329,20 @@ const ConversationMain = () => {
             </Stack>
           ))}
 
-          {/* the typing bubble has a slot of its own, so it comes and goes without moving the messages */}
-          <Box data-typing-slot sx={{ minHeight: TYPING_BUBBLE_HEIGHT }}>
-            {typists.length > 0 && !hasNewerMessages && <TypingBubble names={typists} isGroup={isGroup} />}
-          </Box>
+          <Box data-typing-slot>{typists.length > 0 && !hasNewerMessages && <TypingBubble names={typists} isGroup={isGroup} />}</Box>
           <Box ref={bottomRef} sx={{ display: "flex", justifyContent: "center", minHeight: "1px" }}>
             {isLoadingNewer && <CircularProgress size={20} aria-label="Loading newer messages" />}
           </Box>
         </Stack>
       </Box>
 
-      {(isAwayFromBottom || hasNewerMessages) && (
-        <Tooltip title={jumpLabel} placement="left">
-          <IconButton
-            onClick={goToLatest}
-            aria-label={jumpLabel}
-            sx={{
-              position: "absolute",
-              right: { xs: 12, md: 24 },
-              bottom: 12,
-              width: 44,
-              height: 44,
-              color: "text.primary",
-              bgcolor: "chat.raised",
-              boxShadow: (theme) => `0 6px 20px -6px ${theme.palette.chat.shade}, 0 0 0 1px ${theme.palette.divider}`,
-              "&:hover": { bgcolor: "chat.raised", color: "primary.main" },
-            }}
-          >
-            <Badge
-              badgeContent={missed}
-              color="primary"
-              sx={{ "& .MuiBadge-badge": { top: -10, right: -10, fontWeight: 800 } }}
-            >
-              <ArrowDown size={20} weight="bold" />
-            </Badge>
-          </IconButton>
-        </Tooltip>
-      )}
+      <JumpToLatest
+        watchAway={watchAway}
+        hasNewerMessages={hasNewerMessages}
+        conversationId={activeConversation?._id}
+        lastArrival={lastArrival}
+        onJump={goToLatest}
+      />
     </Box>
   );
 };

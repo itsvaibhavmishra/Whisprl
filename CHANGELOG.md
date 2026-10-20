@@ -6,6 +6,40 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-10-20
+
+### New
+
+- Draw a dot with a tap, a straight line with a two-finger tap and a circle with a three-finger tap
+- Opening or closing a game shows as a line in the chat, and opening one in a one-to-one chat invites the other person, even when the app is closed
+- Search games by other names, such as xo or noughts and crosses for Tic-tac-toe
+- Save photos, videos and files from a chat to the Gallery or Downloads in the app
+- The app asks once per phone whether to turn on notifications
+- The admin overview shows who was active, on the website, the Android app or both, and how many people play each game
+
+### Improvements
+
+- Toasts appear only for what you just did, at the bottom on a phone and the top on a computer
+- Mute, favourite, quick emoji and reactions apply at once instead of waiting on the server
+- Voice messages and the quick emoji have smoother holds, a cancel slide and a quicker drop
+- A down arrow takes you back to the latest message without jumping
+- The emoji picker fits narrow screens, and the picker and microphone swapped places
+- Photos and videos open faster in the editor, and swiping through filters keeps the strip in view
+- A long press no longer selects or highlights what it landed on
+- Chain Reaction is now first in the games list
+
+### Fixed
+
+- The first screen crashed on phones with an out-of-date WebView
+- A tab left open across an update showed an unexpected token error instead of reloading
+- Waking the app no longer shows a could-not-reach toast before the connection is back
+- Any kind of file can be sent as a document, not only a fixed list of types, and a document can be saved from the app
+
+### Developers
+
+- Fallbacks for newer browser methods load before the app, with tests
+- A missing file under static now answers 404 instead of the app page
+
 ## [2.4.0] - 2026-10-20
 
 ### New
@@ -393,6 +427,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.0
 [2.4.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.4.0
 [2.3.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.3.0
 [2.2.1]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.2.1

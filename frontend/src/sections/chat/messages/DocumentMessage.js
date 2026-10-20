@@ -3,6 +3,7 @@ import { DownloadSimple, File as FileIcon } from "phosphor-react";
 
 import useFileUrl from "@/hooks/useFileUrl";
 import { downloadFile } from "@/utils/attachments";
+import { notify } from "@/utils/notify";
 
 const CAPTIONS = { lost: "Not sent", failed: "Could not open", uploading: "Uploading…" };
 
@@ -19,6 +20,7 @@ const DocumentRow = ({ file }) => {
   const theme = useTheme();
   const { url, failed } = useFileUrl(file);
   const status = statusOf(file, url, failed);
+  const save = () => downloadFile(url, file.fileName, "document").catch(() => notify({ severity: "error", message: "Could not save this file" }));
   const caption = CAPTIONS[status] ?? (file.size && sizeOf(file.size));
 
   return (
@@ -54,7 +56,7 @@ const DocumentRow = ({ file }) => {
       </Stack>
 
       {status === "ready" && (
-        <IconButton size="small" aria-label={`Download ${file.fileName}`} onClick={() => downloadFile(url, file.fileName)}>
+        <IconButton size="small" aria-label={`Download ${file.fileName}`} onClick={save}>
           <DownloadSimple size={18} />
         </IconButton>
       )}

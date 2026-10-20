@@ -28,9 +28,10 @@ export default function CssBaseline() {
           width: '100%',
           height: '100%',
         },
-        // on a phone the toasts sit a fixed 20px from the top, which is under the status bar once the page reaches behind it
-        '@media (max-width: 600px)': {
-          "body [data-sonner-toaster][data-y-position='top']": { top: 'calc(20px + env(safe-area-inset-top))' },
+        // a long press on a touch screen opens a menu here, so it must not also select or highlight what it landed on
+        '@media (hover: none) and (pointer: coarse)': {
+          body: { userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent' },
+          'input, textarea, [contenteditable="true"]': { userSelect: 'text', WebkitUserSelect: 'text' },
         },
         input: {
           '&[type=number]': {

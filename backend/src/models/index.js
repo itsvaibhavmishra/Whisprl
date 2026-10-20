@@ -14,6 +14,7 @@ import AuditEntryModel from "#src/models/auditEntryModel.js";
 import ActivityModel from "#src/models/activityModel.js";
 import GameSessionModel from "#src/models/gameSessionModel.js";
 import GameResultModel from "#src/models/gameResultModel.js";
+import GamePlayModel from "#src/models/gamePlayModel.js";
 import GameRequestModel from "#src/models/gameRequestModel.js";
 
 export {
@@ -33,5 +34,6 @@ export {
   ActivityModel,
   GameSessionModel,
   GameResultModel,
+  GamePlayModel,
   GameRequestModel,
 };

@@ -44,6 +44,7 @@ const FileFooter = () => {
   const [isViewOnce, setIsViewOnce] = useState(false);
   const canBeViewOnce = files.length === 1 && files[0].kind !== "doc";
   const sendsViewOnce = isViewOnce && canBeViewOnce;
+  const isReading = files.some((file) => file.isReading);
 
   // a view-once photo goes without a caption, which would stay in the chat after the photo is gone
   const handleSend = () => {
@@ -106,7 +107,7 @@ const FileFooter = () => {
               sx={{ flex: 1, minWidth: 0, px: canBeViewOnce ? 0.5 : 1.5, py: "12px", fontSize: 15, fontWeight: 500 }}
             />
           </Stack>
-          <IconButton aria-label="Send" onClick={handleSend} disabled={files.length === 0} sx={ROUND_BUTTON}>
+          <IconButton aria-label="Send" onClick={handleSend} disabled={files.length === 0 || isReading} sx={ROUND_BUTTON}>
             <PaperPlaneTilt size={21} weight="fill" />
           </IconButton>
         </Stack>

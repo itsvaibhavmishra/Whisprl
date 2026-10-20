@@ -165,7 +165,7 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
         <NewUpdateButton onOpen={setMenuAnchor} disabled={!isEncryptionReady || isPosting} />
       </Stack>
 
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
+      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2, display: "flex", flexDirection: "column" }}>
         <Box component="ul" sx={{ m: 0, p: 0, display: "flex", flexDirection: "column", gap: 1 }}>
           <MyStatusRow group={myGroup} isSelected={selected === "yours"} onOpen={onOpenMine} onCreate={setMenuAnchor} />
           <DiscoverRow unseenCount={discoverUnseen} isSelected={selected === "discover"} isWide={isWide} onOpen={onOpenDiscover} />
@@ -185,7 +185,7 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
           </>
         )}
 
-        <Typography sx={{ px: 3, pt: 3, fontSize: 12, fontWeight: 500, color: "text.secondary", textAlign: "center", textWrap: "balance" }}>
+        <Typography sx={{ mt: "auto", px: 3, pt: 3, fontSize: 12, fontWeight: 500, color: "text.secondary", textAlign: "center", textWrap: "balance" }}>
           <LockSimple size={12} weight="bold" aria-hidden style={{ verticalAlign: "-1px", marginRight: 6 }} />
           Updates you share with friends are end-to-end encrypted
         </Typography>

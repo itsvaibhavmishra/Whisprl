@@ -1,4 +1,4 @@
-import { GameResultModel } from "#src/models/index.js";
+import { GamePlayModel, GameResultModel } from "#src/models/index.js";
 import { findMemberConversation } from "#src/services/conversationService.js";
 import { isChosenBot } from "#src/services/games/seats.js";
 
@@ -12,6 +12,12 @@ export const recordResult = (before, after) => {
     players: before.seats.filter((seat) => seat.user).map((seat) => seat.user),
     winners: after.result.winners.map((winner) => winner.user),
   });
+};
+
+// counted once a game gets going, so a table opened and closed without playing is not a play
+export const recordPlay = (before, after) => {
+  if (before?.status === "playing" || after?.status !== "playing") return null;
+  return GamePlayModel.create({ game: after.game, players: after.seats.filter((seat) => seat.user).map((seat) => seat.user) });
 };
 
 const isDraw = { $eq: [{ $size: "$winners" }, 0] };

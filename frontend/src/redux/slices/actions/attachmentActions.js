@@ -5,7 +5,6 @@ import {
   addFiles,
   clearFiles,
   clearUploadFailed,
-  fileEdited,
   markUploadFailed,
   queueMessage,
   removeFile,
@@ -13,12 +12,13 @@ import {
   setReplyingTo,
   transferEnded,
   transferProgress,
+  updateFile,
   updateQueuedMessage,
 } from "@/redux/slices/chatSlice";
 import {
-  ATTACHMENT_TYPES,
   MAX_ATTACHMENTS,
   MAX_ATTACHMENT_SIZE,
+  MEDIA_TYPES,
   attachmentFile,
   cancelTransfer,
   dropSealedCopy,
@@ -27,12 +27,13 @@ import {
   keepSealedCopy,
   originalFileOf,
   pickFiles,
-  prepareImage,
+  readImage,
   releaseAttachment,
   replaceHeldFile,
   replaceWithEdited,
   sealedCopyOf,
   sentMessageIdOf,
+  shrinkImage,
   startTransfer,
   wholePercents,
 } from "@/utils/attachments";
@@ -66,16 +67,28 @@ const signatureOf = (file) => `${file.name}:${file.size}:${file.lastModified}`;
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// a photo is shrunk now and a video only read, since compressing a video waits until it is sent
-const prepareForDraft = async (file) => {
-  const kind = kindOf(file);
-  if (kind === "image") return prepareImage(file);
-  return kind === "video" ? { file, ...(await probeVideo(file)) } : { file };
-};
+// anything can be sent as a document, a photo included, so a document is never shown as media
+const pickedKindOf = (file, group) => (group === "doc" ? "doc" : kindOf(file));
+
+// a photo or video is made smaller when sent, so only a file sent as it is has to fit the limit now
+const isShrunkWhenSent = (file, kind) => kind === "video" || (kind === "image" && file.type !== "image/gif");
 
 const progressReporter = (dispatch, clientId, from, to) => {
   const report = wholePercents((percent) => dispatch(transferProgress({ clientId, percent })));
   return (fraction) => report(from + fraction * (to - from));
+};
+
+// read once it shows, so a large photo or video appears at once and only Send waits for its size and preview
+const ReadAttachment = (id, kind) => async (dispatch, getState) => {
+  const file = attachmentFile(id);
+  try {
+    const { width, height, preview, duration } = kind === "image" ? await readImage(file) : await probeVideo(file);
+    dispatch(updateFile({ id, width, height, preview, duration, isReading: false }));
+  } catch (error) {
+    if (!getState().chat.files.some((chosen) => chosen.id === id)) return;
+    dispatch(RemoveAttachment(id));
+    notify({ severity: "info", message: error instanceof VideoRefusal ? error.message : `${file.name} could not be opened` });
+  }
 };
 
 // ------------- Choose Attachments -------------
@@ -87,7 +100,7 @@ export const ChooseAttachments = (kind) => async (dispatch, getState) => {
     return;
   }
 
-  const picked = await pickFiles(ATTACHMENT_TYPES[kindInUse]);
+  const picked = await pickFiles(kindInUse === "doc" ? [] : MEDIA_TYPES);
   const known = new Set(getState().chat.files.map((file) => file.signature));
   const refused = (message) => {
     notify({ severity: "info", message });
@@ -95,41 +108,31 @@ export const ChooseAttachments = (kind) => async (dispatch, getState) => {
   };
 
   const fresh = picked.filter((file) => {
-    if (!ATTACHMENT_TYPES[kindInUse].includes(file.type)) return refused(`${file.name} is not a file type Whisprl can send`);
+    if (kindInUse === "media" && !MEDIA_TYPES.includes(file.type)) return refused(`${file.name} is not a file type Whisprl can send`);
+    if (!isShrunkWhenSent(file, pickedKindOf(file, kindInUse)) && file.size > MAX_ATTACHMENT_SIZE) return refused(`${file.name} is larger than 5 MB`);
     return !known.has(signatureOf(file));
   });
-  const ready = await Promise.all(
-    fresh.map((file) =>
-      prepareForDraft(file).then(
-        (prepared) => ({ signature: signatureOf(file), ...prepared }),
-        (error) => refused(error instanceof VideoRefusal ? error.message : `${file.name} could not be opened`)
-      )
-    )
-  );
-  const accepted = ready
-    .filter(Boolean)
-    .filter(({ file }) => kindOf(file) === "video" || file.size <= MAX_ATTACHMENT_SIZE || refused(`${file.name} is larger than 5 MB`));
 
   const room = MAX_ATTACHMENTS - getState().chat.files.length;
-  if (accepted.length > room) refused(`Maximum ${MAX_ATTACHMENTS} files allowed per message`);
+  if (fresh.length > room) refused(`Maximum ${MAX_ATTACHMENTS} files allowed per message`);
 
-  accepted.slice(0, room).forEach(({ file, signature, width, height, preview, duration }) => {
-    const fileKind = kindOf(file);
+  fresh.slice(0, room).forEach((file) => {
+    const fileKind = pickedKindOf(file, kindInUse);
+    const id = holdAttachment(file);
     dispatch(
       addFiles({
-        id: holdAttachment(file),
+        id,
         kind: fileKind,
         fileName: file.name,
-        mimeType: file.type,
+        // the server needs a type, and a file the phone does not recognise arrives with none
+        mimeType: file.type || "application/octet-stream",
         size: file.size,
         typeLabel: typeLabelOf(fileKind, file),
-        signature,
-        width,
-        height,
-        preview,
-        duration,
+        signature: signatureOf(file),
+        isReading: fileKind !== "doc",
       })
     );
+    if (fileKind !== "doc") dispatch(ReadAttachment(id, fileKind));
   });
 };
 
@@ -137,18 +140,18 @@ export const ChooseAttachments = (kind) => async (dispatch, getState) => {
 // a photo is redrawn at once so every preview shows the edit; a video is drawn on while it compresses
 export const EditAttachment = (id, edits) => async (dispatch, getState) => {
   const chosen = getState().chat.files.find((file) => file.id === id);
-  if (chosen?.kind !== "image") return dispatch(fileEdited({ id, edits }));
+  if (chosen?.kind !== "image") return dispatch(updateFile({ id, edits }));
   // kept from the first edit, so taking every edit back off returns the photo exactly as it was picked
   const asPicked = chosen.asPicked ?? Object.fromEntries(PICKED_DETAILS.map((key) => [key, chosen[key]]));
   if (!hasEdits(edits)) {
     replaceHeldFile(id, originalFileOf(id));
-    return dispatch(fileEdited({ id, edits: undefined, ...asPicked }));
+    return dispatch(updateFile({ id, edits: undefined, ...asPicked }));
   }
   try {
     const edited = await renderPhoto({ file: originalFileOf(id), edits });
     replaceWithEdited(id, edited.file);
     const { name, type, size } = edited.file;
-    dispatch(fileEdited({ id, edits, asPicked, fileName: name, mimeType: type, size, preview: edited.preview, typeLabel: typeLabelOf("image", edited.file) }));
+    dispatch(updateFile({ id, edits, asPicked, fileName: name, mimeType: type, size, preview: edited.preview, typeLabel: typeLabelOf("image", edited.file) }));
   } catch {
     notify({ severity: "error", message: "This photo could not be edited" });
   }
@@ -195,6 +198,11 @@ export const PrepareQueued = (clientId) => async (dispatch, getState) => {
 
   try {
     let { file } = entry;
+    if (file.kind === "image") {
+      const shrunk = await shrinkImage(attachmentFile(clientId));
+      if (shrunk !== attachmentFile(clientId)) replaceHeldFile(clientId, shrunk);
+      file = { ...file, name: shrunk.name, mimeType: shrunk.type, size: shrunk.size };
+    }
     if (file.kind === "video") {
       const report = progressReporter(dispatch, clientId, 0, COMPRESS_SHARE);
       const overlay = videoOverlayOf(entry.edits);
@@ -228,7 +236,7 @@ export const PrepareQueued = (clientId) => async (dispatch, getState) => {
 // photos and videos go as one captioned group; a single document carries the caption itself
 export const SendAttachments = (caption, isViewOnce = false) => async (dispatch, getState) => {
   const { files, activeConversation, messages } = getState().chat;
-  if (!files.length) return;
+  if (!files.length || files.some((file) => file.isReading)) return;
   dispatch(clearFiles());
 
   const isMedia = files[0].kind !== "doc";
