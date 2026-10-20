@@ -281,9 +281,12 @@ const Conversation = () => {
 
   return (
     <ChatCanvas conversationId={conversationId} step={sends} sx={{ height: "100%", minWidth: 0, display: "flex", flexDirection: "column" }}>
-      <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
-      {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
-      {!isSearching && <PinnedBar />}
+      {/* a game on a phone takes the whole screen, and going back hides it to bring all of this back */}
+      <Box sx={{ flexShrink: 0, ...(isGameShown && { display: { xs: "none", lg: "block" } }) }}>
+        <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
+        {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
+        {!isSearching && <PinnedBar />}
+      </Box>
       <GlobalStyles styles={EDGE_PROPERTIES} />
       <Box
         sx={{
