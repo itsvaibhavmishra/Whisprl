@@ -1,5 +1,26 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "📱",
+      "title": "Screens that move like an app",
+      "text": "On a phone, a chat or page slides in from the right and slides back out, and the tabs slide sideways in the order of the bar. Computers keep the same layout."
+    },
+    {
+      "emoji": "🎲",
+      "title": "Games start at once",
+      "text": "Pick a game and its table opens straight away while the seats are set up, instead of a pause before anything shows."
+    },
+    {
+      "emoji": "💬",
+      "title": "Smoother chats",
+      "text": "Chats and the list show placeholders while they load, so the screen is never blank and never says you have no chats yet."
+    },
+    {
+      "emoji": "🧩",
+      "title": "The header stays in games",
+      "text": "On a phone, the chat header stays in place during a game instead of folding into a bar."
+    }
+  ],
   "releases": [
     {
       "version": "2.2.1",
