@@ -10,6 +10,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### New
 
+- The Android app can unlock your messages with the recovery key saved in Google Password Manager, and offers to save one you type in, so a reinstall with Google Backup off no longer means typing it
 - The Android app can lock itself and ask for your fingerprint, face or screen lock when you open it or come back after a minute away
 - The Android app gives a light buzz when you send, react, hold a message, swipe to reply or play a game, with a switch in Settings
 

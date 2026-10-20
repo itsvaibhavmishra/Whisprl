@@ -1,35 +1,54 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Typography } from "@mui/material";
-import { Key } from "phosphor-react";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography } from "@mui/material";
+import { Key, Password } from "phosphor-react";
 import { LoadingButton } from "@mui/lab";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import FormProvider, { RHFTextField } from "@/components/hook-form";
 import useIsLoading from "@/hooks/useIsLoading";
 import { UnlockWithPasskey, UnlockWithRecoveryKey } from "@/redux/slices/actions/encryptionActions";
+import { keepRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
+import { pickFromPasswordManager } from "@/utils/crypto/keyVault";
+import { notify } from "@/utils/notify";
 import { canUsePasskeys } from "@/utils/passkeys";
-import { deviceNoun } from "@/utils/platform";
+import { deviceNoun, isApp } from "@/utils/platform";
+
+const NOTHING_SAVED = "No recovery key is saved in this phone's password manager. Type it in instead.";
 
 const UnlockForm = ({ onLater, onLostKey }) => {
   const dispatch = useDispatch();
+  const username = useSelector((state) => state.user.user.username);
   const isUsingPasskey = useIsLoading(UnlockWithPasskey);
   const methods = useForm({ defaultValues: { recoveryKey: "" } });
   const {
     setError,
+    setValue,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
+  const hasOtherWays = isApp || canUsePasskeys();
 
-  const onSubmit = async ({ recoveryKey }) => {
+  const unlock = async (recoveryKey, isTyped) => {
     const result = await dispatch(UnlockWithRecoveryKey(recoveryKey));
     if (UnlockWithRecoveryKey.rejected.match(result)) {
       setError("recoveryKey", { message: result.payload });
+      return;
     }
+    // a typed key may be saved nowhere this phone can find, so the password manager is offered once it has worked
+    if (isApp && isTyped) keepRecoveryKey(recoveryKey, username);
+  };
+
+  const unlockWithSavedKey = async () => {
+    const { outcome, password } = await pickFromPasswordManager();
+    if (outcome === "none") notify({ severity: "info", message: NOTHING_SAVED });
+    if (outcome !== "picked") return;
+    setValue("recoveryKey", password);
+    await handleSubmit(({ recoveryKey }) => unlock(recoveryKey, false))();
   };
 
   return (
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+    <FormProvider methods={methods} onSubmit={handleSubmit(({ recoveryKey }) => unlock(recoveryKey, true))}>
       <DialogTitle id="unlock-title" sx={{ pb: 0.5 }}>
         Unlock your messages
       </DialogTitle>
@@ -38,18 +57,27 @@ const UnlockForm = ({ onLater, onLostKey }) => {
           This {deviceNoun} has not opened your encrypted messages before. Use {canUsePasskeys() && "a passkey that unlocks them, or "}the
           recovery key you saved when Whisprl turned on encryption.
         </Typography>
-        {canUsePasskeys() && (
+        {hasOtherWays && (
           <>
-            <LoadingButton
-              fullWidth
-              variant="outlined"
-              color="inherit"
-              loading={isUsingPasskey}
-              startIcon={<Key weight="bold" />}
-              onClick={() => dispatch(UnlockWithPasskey())}
-            >
-              Unlock with a passkey
-            </LoadingButton>
+            <Stack spacing={1.5}>
+              {isApp && (
+                <Button fullWidth variant="outlined" color="inherit" disabled={isSubmitting} startIcon={<Password weight="bold" />} onClick={unlockWithSavedKey}>
+                  Use my saved recovery key
+                </Button>
+              )}
+              {canUsePasskeys() && (
+                <LoadingButton
+                  fullWidth
+                  variant="outlined"
+                  color="inherit"
+                  loading={isUsingPasskey}
+                  startIcon={<Key weight="bold" />}
+                  onClick={() => dispatch(UnlockWithPasskey())}
+                >
+                  Unlock with a passkey
+                </LoadingButton>
+              )}
+            </Stack>
             <Divider sx={{ my: 2.5, typography: "body2", color: "text.secondary" }}>or</Divider>
           </>
         )}

@@ -28,6 +28,9 @@ export const forgetVaultedKeys = async (userId) => {
 
 export const saveToPasswordManager = async (id, password) => (await KeyVault.savePassword({ id, password })).outcome;
 
+// the password manager outlives a reinstall even with the phone's backup off, so the recovery key saved there can be picked instead of typed
+export const pickFromPasswordManager = () => KeyVault.pickPassword();
+
 export const canConfirmOwner = async () => isApp && (await KeyVault.canConfirmOwner()).canConfirm;
 
 export const confirmOwner = async (reason) => {

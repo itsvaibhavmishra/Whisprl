@@ -53,9 +53,12 @@ recovery key asks for the fingerprint, face or screen lock first, and a phone wi
 goes straight through.
 
 **Recovery key.** The app's web view drops downloads without a word, so in the app the recovery
-key's Download becomes Save to password manager, through Android's Credential Manager. A phone
-with nowhere to save passwords says so, and Copy still works. Passkeys need WebAuthn, which the
-web view does not offer, so the app leaves the passkey step out of setup.
+key's Download becomes Save to password manager, through Android's Credential Manager. A phone with
+nowhere to save passwords says so, and Copy still works. Google Password Manager syncs with the
+Google account rather than with Backup, so after a reinstall with Backup off the locked screen's Use
+my saved recovery key picks the key back from it, and a key typed in to unlock is offered a place
+there for next time. Passkeys need WebAuthn, which the web view does not offer, so the app leaves
+the passkey step out of setup.
 
 **Notifications.** The app gets pushes through Firebase Cloud Messaging. There are two Firebase
 projects, one for development and one for production, and an app only receives pushes from the
