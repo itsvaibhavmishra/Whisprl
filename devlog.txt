@@ -18,6 +18,7 @@
   - Improvements:
 
   - Fixed:
+    - A tap while drawing now always leaves a dot, which most taps on a phone did not
 
   - Developers:
 

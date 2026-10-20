@@ -18,28 +18,38 @@ export const pixelRatio = () => Math.min(window.devicePixelRatio || 1, 2);
 
 export const lineWidthOf = (brush, size, width) => size * width * (WIDTH_FACTORS[brush] ?? 1);
 
-const traceStroke = (context, points, width, height) => {
+// a line with no length draws nothing, so a tap's single point is filled as a dot the width of the brush
+const paintDot = (context, [across, down], width, height) => {
+  const [left, top, side] = [across * width, down * height, context.lineWidth];
+  context.beginPath();
+  if (context.lineCap === "square") context.rect(left - side / 2, top - side / 2, side, side);
+  else context.arc(left, top, side / 2, 0, 2 * Math.PI);
+  context.fillStyle = context.strokeStyle;
+  context.fill();
+};
+
+const paintLine = (context, points, width, height) => {
   context.beginPath();
   points.forEach(([across, down], index) => {
     if (index) context.lineTo(across * width, down * height);
     else context.moveTo(across * width, down * height);
   });
-  // a tap leaves a single point, which only draws once the line has some length
-  if (points.length === 1) context.lineTo(points[0][0] * width + 0.01, points[0][1] * height);
+  context.stroke();
 };
+
+const paint = (context, points, width, height) => (points.length === 1 ? paintDot(context, points[0], width, height) : paintLine(context, points, width, height));
 
 const drawStroke = (context, { brush, color, size, points }, width, height) => {
   const lineWidth = lineWidthOf(brush, size, width);
   context.save();
   Object.assign(context, { lineCap: "round", lineJoin: "round", strokeStyle: color, lineWidth });
-  traceStroke(context, points, width, height);
   if (brush === "Marker") Object.assign(context, { globalAlpha: 0.5, lineCap: "square" });
   if (brush === "Eraser") context.globalCompositeOperation = "destination-out";
   if (brush === "Neon") Object.assign(context, { shadowColor: color, shadowBlur: lineWidth * 2 });
-  context.stroke();
+  paint(context, points, width, height);
   if (brush === "Neon") {
     Object.assign(context, { shadowBlur: 0, strokeStyle: "rgba(255, 255, 255, 0.85)", lineWidth: lineWidth * 0.4 });
-    context.stroke();
+    paint(context, points, width, height);
   }
   context.restore();
 };
