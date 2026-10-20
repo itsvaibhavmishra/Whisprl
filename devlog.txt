@@ -35,3 +35,4 @@
     - An app release pull request builds its APK as a private draft release, replaced on every push to rc, to try it on a phone before merging
 
   - Internal:
+    - The What's new highlights for the next release are written
