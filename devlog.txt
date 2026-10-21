@@ -20,5 +20,6 @@
   - Fixed:
 
   - Developers:
+    - An app release also attaches the Play bundle, whisprl-play.aab, ready to upload to the Play Console
 
   - Internal:
