@@ -1,6 +1,6 @@
 name: Release
 
-# published only once the live update and the APK are both built, since installed apps and download links read the latest release
+# published only once every file it carries is built, since installed apps and download links read the latest release
 
 on:
   push:
@@ -148,19 +148,29 @@ jobs:
           (cd android && ./gradlew assembleRelease)
           cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/release/whisprl.apk"
 
+      # Play takes each versionCode once, so only an app release has a bundle worth uploading
+      - name: Build the Play bundle
+        if: steps.plan.outputs.kind == 'app'
+        working-directory: frontend
+        run: |
+          (cd android && ./gradlew bundleRelease)
+          cp android/app/build/outputs/bundle/release/app-release.aab "$RUNNER_TEMP/release/whisprl-play.aab"
+
       - name: Publish the release
         if: steps.plan.outputs.version && steps.plan.outputs.kind != 'test'
         env:
           VERSION: ${{ steps.plan.outputs.version }}
           KIND: ${{ steps.plan.outputs.kind }}
         run: |
+          ASSETS=("$RUNNER_TEMP/release/app-update.zip" "$RUNNER_TEMP/release/app-update.json" "$RUNNER_TEMP/release/whisprl.apk")
           if [ "$KIND" = app ]; then
             printf '**New app version.** Install `whisprl.apk` below: the app cannot update itself to this one.\n\n' > notes.md
+            printf '`whisprl-play.aab` is for uploading to the Play Console. A phone cannot install it.\n\n' >> notes.md
+            ASSETS+=("$RUNNER_TEMP/release/whisprl-play.aab")
           fi
           # the same script the release command uses, so the notes and the pull request body cannot drift apart
           python3 scripts/changelog.py section "$VERSION" >> notes.md
-          gh release create "v$VERSION" --target "${{ github.sha }}" --title "Whisprl $VERSION" --notes-file notes.md \
-            "$RUNNER_TEMP/release/app-update.zip" "$RUNNER_TEMP/release/app-update.json" "$RUNNER_TEMP/release/whisprl.apk"
+          gh release create "v$VERSION" --target "${{ github.sha }}" --title "Whisprl $VERSION" --notes-file notes.md "${ASSETS[@]}"
           gh release delete "test-v$VERSION" --yes 2>/dev/null || true
 
       # a draft is seen only by the repository's owners and never counts as the latest release, so no installed app reads it

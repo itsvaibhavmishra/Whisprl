@@ -23,5 +23,6 @@
     - A two or three finger tap while drawing makes its line or circle even when the first finger drifts as it lands
 
   - Developers:
+    - An app release also attaches the Play bundle, whisprl-play.aab, ready to upload to the Play Console
 
   - Internal:

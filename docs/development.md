@@ -145,6 +145,11 @@ and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
   signed with the release key from the `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`
   secrets, with the production Firebase config from `GOOGLE_SERVICES_JSON`, which has to be
   `whisprl-prod`. A release with any of these secrets missing fails before it publishes anything.
+- **The Play bundle** is built only for an app release, from the same build and signing, and
+  attached as `whisprl-play.aab`. Play accepts each `versionCode` once, so a web release would
+  only repeat the last code. To put a release on Play, download the bundle from the release and
+  upload it under Testing or Production in the Play Console, where it shows as
+  `<versionCode> (<version>)`.
 - **`REACT_APP_UPDATE_URL`** is set only for builds people install. A development build leaves it
   out, so it never replaces itself with production code. A production APK must be built with it,
   or that APK never updates.
@@ -403,15 +408,15 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 | Label | When | Publishes |
 |---|---|---|
 | `release: web` | the version went up, `versionCode` did not | a GitHub Release tagged `v<version>` with the changelog section as its notes, the live update and the APK. Installed apps update themselves |
-| `release: app` | the version and `versionCode` both went up | the same, with a note that Android users need the new APK, since their app skips this update |
+| `release: app` | the version and `versionCode` both went up | the same, with a note that Android users need the new APK, since their app skips this update, and the Play bundle `whisprl-play.aab` |
 | none | neither changed | nothing beyond the redeploy |
 
 `scripts/release.sh` picks the label from `versionCode`, and `release-ready.yml` fails a pull
 request whose label does not match what changed.
 
-Every release carries `app-update.zip`, `app-update.json` and `whisprl.apk`, and the workflow
-publishes it only once all three are built, so `releases/latest/download/` always has each of
-them. Installed apps read their update there (see Live updates under The Android app), and
+Every release carries `app-update.zip`, `app-update.json` and `whisprl.apk`, and an app release
+also carries `whisprl-play.aab` for the Play Console. The workflow publishes a release only once
+every file it carries is built, so `releases/latest/download/` always has the first three. Installed apps read their update there (see Live updates under The Android app), and
 `releases/latest/download/whisprl.apk` always downloads the newest app. A web release's APK keeps
 the same `versionCode`, so it serves new installs and changes nothing for existing ones. A release
 that fails to build publishes nothing, and running the Release workflow again from the Actions
