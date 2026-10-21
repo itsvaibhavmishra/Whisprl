@@ -3,6 +3,7 @@ import { Box, ButtonBase, Dialog, IconButton, Stack, Typography, useMediaQuery }
 import { CaretLeft, CaretRight, X } from "phosphor-react";
 import { useSelector } from "react-redux";
 
+import useDarkSystemBars from "@/hooks/useDarkSystemBars";
 import StatusSlide, { CARD_HEIGHT } from "@/sections/status/StatusSlide";
 import getAvatar from "@/utils/avatars";
 import { backgroundOf, isLive } from "@/utils/statuses";
@@ -74,6 +75,7 @@ const Chevron = ({ label, isHidden, onClick, children }) => (
 
 // people play in the order the list had when the viewer opened, so seeing a status does not reshuffle them
 const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
+  useDarkSystemBars();
   const isWide = useMediaQuery((theme) => theme.breakpoints.up("md"));
   const hasNeighbours = useMediaQuery((theme) => theme.breakpoints.up("lg"));
   // a phone on its side leaves the card too narrow to also hold Close, so Close moves beside it as on a computer

@@ -5,6 +5,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector, useStore } from "react-redux";
 
 import { MotionLazyContainer } from "@/components/animate";
+import { PageArea } from "@/components/LoadingScreen";
 import NotificationsPrompt from "@/components/NotificationsPrompt";
 import useSettings from "@/hooks/useSettings";
 import NavRail from "@/layouts/dashboard/NavRail";
@@ -23,6 +24,9 @@ import { openNotifiedChat, setChatOpener } from "@/utils/notifications";
 import { needsSetup } from "@/utils/onboarding";
 import { isApp } from "@/utils/platform";
 import { listenForPushTaps } from "@/utils/push";
+
+// pages here run up under the status bar and pad themselves below it, so the loader steps below it too
+const PAGE_AREA = { isUnderStatusBar: true };
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
@@ -87,7 +91,9 @@ const DashboardLayout = () => {
         <Stack direction={{ xs: "column-reverse", md: "row" }} sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
           <NavRail />
           <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-            <Outlet />
+            <PageArea.Provider value={PAGE_AREA}>
+              <Outlet />
+            </PageArea.Provider>
           </Box>
           <EncryptionGate />
           {isApp && isEncryptionReady && <NotificationsPrompt />}

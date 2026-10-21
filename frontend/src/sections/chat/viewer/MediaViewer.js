@@ -5,6 +5,7 @@ import { CaretLeft, CaretRight, X } from "phosphor-react";
 import { flushSync } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 
+import useDarkSystemBars from "@/hooks/useDarkSystemBars";
 import useMessageTime from "@/hooks/useMessageTime";
 import { focusMessage } from "@/redux/slices/chatSlice";
 import MessageText from "@/sections/chat/messages/MessageText";
@@ -37,6 +38,7 @@ const StepButton = ({ side, onClick }) => (
 
 // tileOf finds the tile a photo shows in, so the viewer can open out of it and close back into it
 const MediaViewer = ({ items, startIndex = 0, conversation, tileOf, onClose }) => {
+  useDarkSystemBars();
   const theme = useTheme();
   const dispatch = useDispatch();
   const isWide = useMediaQuery(theme.breakpoints.up("md"));

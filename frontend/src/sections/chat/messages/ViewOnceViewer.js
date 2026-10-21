@@ -3,6 +3,7 @@ import { Box, CircularProgress, Dialog, IconButton, Stack, Typography } from "@m
 import { X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useDarkSystemBars from "@/hooks/useDarkSystemBars";
 import { MarkViewOnceOpened } from "@/redux/slices/actions/messageActions";
 import { openViewOnceFile } from "@/utils/attachments";
 import { filesOf } from "@/utils/messageFiles";
@@ -23,6 +24,7 @@ const drawPhoto = (canvas, bitmap) => {
 
 // nothing is kept: shown once, hidden whenever the page loses focus, and wiped on close
 const ViewOnceViewer = ({ message, onClose }) => {
+  useDarkSystemBars();
   const dispatch = useDispatch();
   const username = useSelector((state) => state.user.user.username);
   // the dialog mounts its content after this component, so the canvas arrives through a callback ref
