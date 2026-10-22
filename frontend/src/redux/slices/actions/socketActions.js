@@ -22,9 +22,9 @@ import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
 import { FriendsChanged, GetRequests, RequestsChanged } from "@/redux/slices/actions/contactActions";
-import { ReceiveGameInvite, ReceiveGameNotice, WatchGame } from "@/redux/slices/actions/gameActions";
+import { ReceiveGameInvite, ReceiveGameNotice, ReceiveGameReaction, WatchGame } from "@/redux/slices/actions/gameActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
-import { gameStateReceived } from "@/redux/slices/gameSlice";
+import { gameStateReceived, lookersChanged } from "@/redux/slices/gameSlice";
 import { ReceiveStatus, ReceiveStatusReaction } from "@/redux/slices/actions/statusActions";
 import { notify } from "@/utils/notify";
 import { dropAccessToken } from "@/utils/session";
@@ -59,6 +59,8 @@ const serverEvents = () => ({
   game_state: gameStateReceived,
   game_invited: ReceiveGameInvite,
   game_notice: ReceiveGameNotice,
+  game_lookers: lookersChanged,
+  game_reaction: ReceiveGameReaction,
 });
 
 const listen = (dispatch, getState) => {

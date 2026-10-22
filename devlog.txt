@@ -14,8 +14,11 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Talk at the table: on a phone a game gets its own bar for saying something and throwing emoji, players' words show beside their seat and everyone else's drift across the game, and messages typed during a game say which game in the chat
 
   - Improvements:
+    - A game's rules open as pages inside the game, each with a picture drawn in that game's own style
+    - A game's leaderboard opens inside the game and shows only that game: a head to head for two players, and a podium with everyone's standings for more
 
   - Fixed:
 

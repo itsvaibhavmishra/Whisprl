@@ -19,7 +19,7 @@ const centreOf = (cell) => {
   return [tile.left + tile.width / 2, tile.top + tile.height / 2];
 };
 
-const boxOf = (cell) => {
+export const boxOf = (cell) => {
   const tile = tileOf(cell);
   const [cx, cy] = centreOf(cell);
   const width = MARK * Math.min(tile.width, tile.height * SQUARE);
@@ -27,7 +27,7 @@ const boxOf = (cell) => {
   return { position: "absolute", left: `${cx - width / 2}%`, top: `${cy - height / 2}%`, width: `${width}%`, height: `${height}%` };
 };
 
-const WinningLine = ({ line }) => {
+export const WinningLine = ({ line }) => {
   const [fromX, fromY] = centreOf(line[0]);
   const [toX, toY] = centreOf(line[2]);
   return (

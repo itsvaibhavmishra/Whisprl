@@ -100,7 +100,7 @@ One object, exported from `frontend/src/sections/chat/game/games/<game-id>/index
 | Key | What it is |
 |---|---|
 | `id`, `name`, `summary` | what the games dialog shows; optionally `cardTitleTop`, where the title sits on its card when centring it would cover something in the art |
-| `rules` | the game's rules as short `{ heading, text }` sections, shown from the Rules button in its bar; the canvas adds the turn timer itself |
+| `rules` | the game's rules as short `{ heading, text, picture }` sections, shown as pages inside the game from the Rules button in its bar, `picture` naming what `RulesArt` draws for that page; the canvas adds the turn timer page itself |
 | `art` | its image paths, `beyond` for what the scene runs into past its edge, or `anchor: "top"` and the scene's `ratio` when pieces are placed in the scene's coordinates, and optionally `fireflies`, more of them for a scene that wants them, each with its own `glow` |
 | `preload` | every file the start screen waits for before it animates in |
 | `theme` | `surface`, `card`, `ink`, `accent`, `marks` for each seat's colour, and `shade`, the colour the start screen's wash is mixed from. A game may be dark: `ink` is read on `card`, never on a fixed light colour |
@@ -113,6 +113,7 @@ One object, exported from `frontend/src/sections/chat/game/games/<game-id>/index
 | `isOut(state, seat)` | optional: whether a seat has been knocked out of a game still running, which greys its card and marks it Out |
 | `Mark` | optional: what stands for a seat, drawn the same everywhere it appears |
 | `Board` | lazy: renders a view and sends moves |
+| `RulesArt` | optional and lazy: takes a rule's `picture` and draws it from the board's own pieces, so the rules look like the game they explain |
 | `Masthead`, `mastheadRatio` | optional and lazy: a start screen drawn into the scene, and its stage's shape |
 | `Wordmark` | optional and lazy: the title the game's bar shows during play, when the game draws its own rather than using `title` |
 
@@ -133,13 +134,14 @@ backend/src/services/games/
     ├── bot.js                 how this game's bot chooses
     └── bot.test.js
 
-frontend/src/sections/chat/game/   the canvas: seats, panel, screens, sounds
+frontend/src/sections/chat/game/   the canvas: seats, panel, screens, sheets, table talk, sounds
 ├── catalog.js
 ├── GamePanel.js, GameRoom.js, GameSeats.js, ...
 └── games/
     └── tic-tac-toe/
         ├── index.js           theme, widths, board, move sound
         ├── Board.js           renders a view, sends intents
+        ├── RulesArt.js        the pictures on its rules pages, drawn from Board.js's pieces
         └── tiles.json         measured positions, see game-art.md
 
 frontend/public/games/tic-tac-toe/
@@ -203,6 +205,36 @@ looks like two different games. Draw the piece once and use that everywhere it a
 whatever size. A mark that stands for a person, such as Dots and Boxes writing an owner's initial
 in their colour, reads the same letter to everyone, so it uses their real name, never "You".
 
+## The room
+
+The canvas lays the same room out for the screen it is on, and a game never needs to know which.
+
+- **Beside the chat on a wide screen.** From the `lg` breakpoint the chat keeps the left and the
+  game takes a panel on the right, which each person can resize between the game's `width` bounds.
+- **The whole conversation on a phone.** Below `lg` the game fills the chat's space and the chat
+  folds into a bar at the game's foot: open the chat, say something, or throw an emoji. The
+  phone's own status and navigation bars stay, so this is not true full screen.
+
+The players bar and the result panel stop at the widest board's width, so on a tablet or a panel
+dragged wide they line up with the board rather than stretch to the edges.
+
+Over any screen, the bar's Rules and Leaderboard buttons open a sheet inside the game, in its own
+colours. The rules sheet steps through `rules` as pages. The leaderboard sheet shows only this game
+in this chat: a head to head when two people have played it, and a podium with everyone's
+standings when more have. Neither needs anything from a game beyond its `theme`, `rules` and
+`RulesArt`.
+
+**Talk at the table** is the chat itself, shown on the game:
+
+- A message sent while the game is on the sender's screen carries the game's id as `game`, and the
+  chat marks it with the game's name. Forwards, files and replies to a status are never marked.
+- A seated player's words pop up beside their seat for a few seconds. Anyone else's drift across
+  the game: always in a one-to-one chat, and in a group only from people looking at the game.
+- **Looking means the room is open and the game is not hidden.** Each socket reports it with
+  `game_look`, and the server counts it per person, so a second tab neither doubles nor ends it.
+- Emoji thrown at the table go out with `game_react` to everyone at the game for a moment and are
+  never stored. The list of emoji is kept on both sides, and the two have to match.
+
 ## Sound
 
 Sound effects are generated in the browser rather than shipped as files, so effects add no audio
@@ -248,5 +280,8 @@ on, so nobody who leaves it off ever downloads it.
   without scrolling on a 390 by 844 phone under device emulation.
 - The bot has been played against a practised and a casual player, and its rates are reasonable.
 - Nothing in the panel scrolls sideways at any width.
+- Every screen, the rules and the leaderboard have been seen at 360 by 640, 390 by 844, a tablet and
+  a 1280 by 720 laptop, with nothing cut off or left under the chat bar.
+- Every rules picture shows a position the game's own rules can reach.
 - Reduced motion is respected.
 - The game is playable with a keyboard and every control has a label.

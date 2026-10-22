@@ -11,3 +11,5 @@ export const gameOf = (id) => {
   if (!game) throw createHttpError.BadRequest("That game does not exist");
   return game;
 };
+
+export const isGameId = (id) => typeof id === "string" && GAMES.has(id);

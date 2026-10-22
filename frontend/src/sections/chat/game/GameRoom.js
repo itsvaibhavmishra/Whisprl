@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from "react";
 import { Box, Button, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { m, useReducedMotion } from "framer-motion";
-import { ArrowsInSimple, BookOpen, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
+import { ArrowsInSimple, BookOpen, Smiley, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -11,18 +11,21 @@ import { gameCollapsed, resultDismissed } from "@/redux/slices/gameSlice";
 import { GAMES } from "@/sections/chat/game/catalog";
 import { applyGameLevels, gameAudioOf, startMusic, stopMusic } from "@/sections/chat/game/gameSounds";
 import GameButton from "@/sections/chat/game/GameButton";
-import GamesDialog from "@/sections/chat/game/GamesDialog";
 import GameTitle from "@/sections/chat/game/GameTitle";
 import PlayerBar from "@/sections/chat/game/PlayerBar";
 import ResultPanel from "@/sections/chat/game/ResultPanel";
-import RulesDialog from "@/sections/chat/game/RulesDialog";
+import ReactionTray from "@/sections/chat/game/ReactionTray";
+import { Floats, SayingsContext } from "@/sections/chat/game/RoomChatter";
+import RulesSheet from "@/sections/chat/game/RulesSheet";
 import SaveSeatDialog from "@/sections/chat/game/SaveSeatDialog";
 import SceneSparkle from "@/sections/chat/game/SceneSparkle";
 import Scenery from "@/sections/chat/game/Scenery";
+import ScoresSheet from "@/sections/chat/game/ScoresSheet";
 import SoundMenu from "@/sections/chat/game/SoundMenu";
 import StartScreen from "@/sections/chat/game/StartScreen";
 import StatusPill from "@/sections/chat/game/StatusPill";
 import useArtReady from "@/sections/chat/game/useArtReady";
+import useRoomChatter from "@/sections/chat/game/useRoomChatter";
 import useSceneWidth from "@/sections/chat/game/useSceneWidth";
 import { turnLineOf } from "@/sections/chat/game/gameStatus";
 import { canManage } from "@/utils/groups";
@@ -44,6 +47,9 @@ const BarButton = ({ label, onClick, children }) => (
     </IconButton>
   </Tooltip>
 );
+
+// as wide as the widest board and its margin at most, so on a tablet or a wide panel they line up with the board instead of stretching
+const BESIDE_BOARD = { width: "100%", maxWidth: 592, mx: "auto", flexShrink: 0 };
 
 const hasSavedSeat = (session, meId) => session.seats.some((seat) => seat.invited === meId);
 
@@ -70,7 +76,9 @@ const GameRoom = ({ conversation, session }) => {
   const [isShowingScores, setIsShowingScores] = useState(false);
   const [isShowingRules, setIsShowingRules] = useState(false);
   const [soundAnchor, setSoundAnchor] = useState(null);
+  const [reactionAnchor, setReactionAnchor] = useState(null);
   const dismissedResult = useSelector((state) => state.game.dismissedResult);
+  const { sayings, floats } = useRoomChatter(conversation, session.seats);
   // kept between screens, so the scene does not change size as a game starts and ends
   const [controlsHeight, setControlsHeight] = useState(0);
 
@@ -108,7 +116,7 @@ const GameRoom = ({ conversation, session }) => {
     leave: () => act({ type: "stand" }),
   };
 
-  return (
+  const room = (
     <Stack
       ref={roomRef}
       sx={{
@@ -164,6 +172,12 @@ const GameRoom = ({ conversation, session }) => {
           <BarButton label="Sound and music" onClick={(event) => setSoundAnchor(event.currentTarget)}>
             <SpeakerHigh size={20} weight="bold" />
           </BarButton>
+          {/* a phone throws emoji from the bar at its foot; beside the chat on a wide screen, it is here */}
+          <Box sx={{ display: { xs: "none", lg: "inline-flex" } }}>
+            <BarButton label="Throw an emoji" onClick={(event) => setReactionAnchor(event.currentTarget)}>
+              <Smiley size={20} weight="bold" />
+            </BarButton>
+          </Box>
           {isManager && isPlaying && (
             <BarButton label="End game" onClick={() => setConfirming("cancel")}>
               <Stop size={20} weight="bold" />
@@ -194,7 +208,9 @@ const GameRoom = ({ conversation, session }) => {
         />
       ) : (
         <>
-          <PlayerBar conversation={conversation} session={session} game={game} meId={meId} onLeave={() => setConfirming("leave")} />
+          <Box sx={BESIDE_BOARD}>
+            <PlayerBar conversation={conversation} session={session} game={game} meId={meId} onLeave={() => setConfirming("leave")} />
+          </Box>
           {isPlaying && (
             <Box sx={{ pt: 1.25, display: "flex", justifyContent: "center", flexShrink: 0 }}>
               <StatusPill theme={theme} isLive>
@@ -222,12 +238,14 @@ const GameRoom = ({ conversation, session }) => {
             </Suspense>
           </Box>
           {isPlaying && mySeat?.away && (
-            <Stack sx={{ px: 2, pb: 2, flexShrink: 0 }}>
+            <Stack sx={{ ...BESIDE_BOARD, px: 2, pb: 2 }}>
               <GameButton theme={theme} label="Take my seat back" onClick={() => act({ type: "back" })} />
             </Stack>
           )}
           {screen === "result" && (
-            <ResultPanel conversation={conversation} session={session} game={game} meId={meId} act={act} onBack={() => dispatch(resultDismissed(session.result.endedAt))} />
+            <Box sx={BESIDE_BOARD}>
+              <ResultPanel conversation={conversation} session={session} game={game} meId={meId} act={act} onBack={() => dispatch(resultDismissed(session.result.endedAt))} />
+            </Box>
           )}
         </>
       )}
@@ -247,14 +265,18 @@ const GameRoom = ({ conversation, session }) => {
       {confirming && (
         <ConfirmDialog {...CONFIRMATIONS[confirming]} onConfirm={confirmed[confirming]} onClose={() => setConfirming(null)} />
       )}
+      <ReactionTray anchor={reactionAnchor} onClose={() => setReactionAnchor(null)} />
       {soundAnchor && <SoundMenu anchor={soundAnchor} gameId={session.game} track={game.music} onClose={() => setSoundAnchor(null)} />}
-      {isShowingRules && <RulesDialog game={game} turnSeconds={session.turnSeconds} onClose={() => setIsShowingRules(false)} />}
-      {isShowingScores && <GamesDialog conversation={conversation} tab="leaderboard" onClose={() => setIsShowingScores(false)} />}
+      {isShowingRules && <RulesSheet game={game} turnSeconds={session.turnSeconds} onClose={() => setIsShowingRules(false)} />}
+      {isShowingScores && <ScoresSheet conversation={conversation} game={game} onClose={() => setIsShowingScores(false)} />}
       {savingSeat !== null && (
         <SaveSeatDialog conversation={conversation} session={session} index={savingSeat} meId={meId} onClose={() => setSavingSeat(null)} />
       )}
+      <Floats floats={floats} conversation={conversation} meId={meId} theme={theme} />
     </Stack>
   );
+
+  return <SayingsContext.Provider value={sayings}>{room}</SayingsContext.Provider>;
 };
 
 export default GameRoom;
