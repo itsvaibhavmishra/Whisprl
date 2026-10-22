@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, ButtonBase, GlobalStyles, Stack, Typography } from "@mui/material";
+import { Box, Button, GlobalStyles, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
-import { CaretUp } from "phosphor-react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
 import { UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
-import { OpenGame, UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
+import { LookAtGame, OpenGame, UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
 import { selectActiveOutbox } from "@/redux/slices/chatSlice";
 import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
 import { selectGameSession } from "@/redux/slices/gameSlice";
@@ -20,10 +19,11 @@ import Composer, { COLUMN_WIDTH, COMPOSER_GUTTER } from "@/sections/chat/convers
 import ConversationHeader from "@/sections/chat/conversation/ConversationHeader";
 import ConversationMain from "@/sections/chat/conversation/ConversationMain";
 import PinnedBar from "@/sections/chat/conversation/PinnedBar";
-import { GAME_IDS } from "@/sections/chat/game/catalog";
+import { GAME_IDS, GAMES } from "@/sections/chat/game/catalog";
 import GamePanel, { CHAT_MIN_WIDTH } from "@/sections/chat/game/GamePanel";
 import { openingSessionOf } from "@/sections/chat/game/gameStatus";
 import GamePill from "@/sections/chat/game/GamePill";
+import RoomBar from "@/sections/chat/game/RoomBar";
 import SeatSwitchDialog from "@/sections/chat/game/SeatSwitchDialog";
 import useGameSounds from "@/sections/chat/game/useGameSounds";
 import { peerOf } from "@/utils/chats";
@@ -41,11 +41,6 @@ const ComposerNotice = ({ children, action }) => (
   </Box>
 );
 
-// a glimpse of the newest message, enough to show the chat is there while the game keeps the screen
-const PEEK_HEIGHT = 34;
-// the caret dips this far into the peek's faded top, so only the rest of it stands above the strip
-const CARET_TUCK = 12;
-const CARET_HEIGHT = 26;
 const SHEET_HEIGHT = "62vh";
 const SHEET_EASE = "340ms cubic-bezier(0.32, 0.72, 0, 1)";
 
@@ -56,8 +51,9 @@ const EDGE_PROPERTIES = {
   "@property --chat-round": { syntax: "'<length>'", inherits: "true", initialValue: "0px" },
 };
 
+// under a game the chat keeps out of sight, since what is said shows at the table itself, and opens as a sheet
 const EDGE_OF = {
-  strip: { top: `calc(100% - ${PEEK_HEIGHT}px)`, fade: "24px", round: "0px" },
+  behind: { top: "100%", fade: "0px", round: "0px" },
   sheet: { top: `calc(100% - ${SHEET_HEIGHT})`, fade: "0px", round: "20px" },
   full: { top: "0px", fade: "0px", round: "0px" },
 };
@@ -91,19 +87,15 @@ const messagesOf = (layer, dragY) => {
     "--chat-round": { xs: edge.round, lg: "0px" },
     clipPath: { xs: "inset(var(--chat-top) 0 0 0 round var(--chat-round) var(--chat-round) 0 0)", lg: "none" },
     maskImage: { xs: "linear-gradient(to bottom, transparent var(--chat-top), #000 calc(var(--chat-top) + var(--chat-fade)))", lg: "none" },
-    opacity: { xs: layer === "strip" ? 0.88 : 1, lg: 1 },
     bgcolor: { xs: layer === "sheet" ? "rgba(14, 20, 32, 0.86)" : "transparent", lg: "transparent" },
     backdropFilter: { xs: layer === "sheet" ? "blur(14px)" : "blur(0px)", lg: "none" },
     transform: dragY ? `translateY(${dragY}px)` : "none",
-    // a strip this short has no room for the typing bubble
-    "& [data-typing-slot]": { display: { xs: layer === "strip" ? "none" : "block", lg: "block" } },
     transition: [
       `--chat-top ${SHEET_EASE}`,
       `--chat-fade ${SHEET_EASE}`,
       `--chat-round ${SHEET_EASE}`,
       "background-color 240ms ease",
       "backdrop-filter 240ms ease",
-      "opacity 240ms ease",
       dragY ? "transform 0ms" : "transform 240ms ease",
     ].join(", "),
   };
@@ -138,6 +130,8 @@ const Conversation = () => {
   const openingGame = useSelector((state) => GAME_IDS.find((game) => selectIsLoading(state, OpenGame, game)));
   const shownSession = gameSession ?? (openingGame && openingSessionOf(openingGame));
   const isGameShown = Boolean(shownSession) && !isGameHidden;
+  const isWide = useMediaQuery(useTheme().breakpoints.up("lg"));
+  const watchCount = useSelector((state) => state.game.watchCount);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [sheetDrag, setSheetDrag] = useState(0);
   const composerRef = useRef(null);
@@ -171,6 +165,12 @@ const Conversation = () => {
     return () => dispatch(UnwatchGame());
   }, [dispatch, conversationId]);
 
+  // a new watch starts out not looking, so the server is told again after every one it confirms
+  const isLookingAtGame = Boolean(gameSession) && !isGameHidden;
+  useEffect(() => {
+    if (watchCount) dispatch(LookAtGame(isLookingAtGame));
+  }, [dispatch, isLookingAtGame, watchCount]);
+
   // the outbox only grows when a message is sent from here, so its growth counts sends
   useEffect(() => {
     if (queuedHere > queuedBefore.current) setSends((count) => count + 1);
@@ -185,7 +185,7 @@ const Conversation = () => {
     return () => document.removeEventListener("visibilitychange", markSeenOnReturn);
   }, [conversationId, dispatch]);
 
-  const composer = () => {
+  const noticeOf = () => {
     if (hasBlockedPeer) {
       return (
         <ComposerNotice
@@ -221,7 +221,11 @@ const Conversation = () => {
         </ComposerNotice>
       );
     }
-    return (
+    return null;
+  };
+
+  const composer = () =>
+    noticeOf() ?? (
       <>
         {peerHasNoKey && (
           <ChatNote sx={{ mb: 0.5, mt: 0 }}>
@@ -231,14 +235,13 @@ const Conversation = () => {
         <Composer key={conversationId} />
       </>
     );
-  };
 
   const closeChat = () => {
     setSheetDrag(0);
     setIsChatOpen(false);
   };
 
-  const layer = isGameShown ? (isChatOpen ? "sheet" : "strip") : "full";
+  const layer = isGameShown ? (isChatOpen ? "sheet" : "behind") : "full";
 
   const chat = () =>
     files.length ? (
@@ -254,27 +257,9 @@ const Conversation = () => {
           <ConversationMain />
         </Box>
         <Box ref={composerRef} sx={{ position: "relative" }}>
-          {isGameShown && (
-            // outside the list, since the strip's fade would swallow it
-            <ButtonBase
-              aria-label="Open the chat"
-              onClick={() => setIsChatOpen(true)}
-              sx={{
-                position: "absolute",
-                bottom: `calc(100% + ${PEEK_HEIGHT - CARET_TUCK}px)`,
-                left: "50%",
-                transform: "translateX(-50%)",
-                display: { xs: "flex", lg: "none" },
-                px: 3,
-                py: 0.5,
-                color: "common.white",
-                ...shownWhen(layer === "strip"),
-              }}
-            >
-              <CaretUp size={18} weight="bold" />
-            </ButtonBase>
-          )}
-          {composer()}
+          {layer === "behind" && !isWide
+            ? (noticeOf() ?? <RoomBar theme={GAMES[shownSession.game].theme} onOpenChat={() => setIsChatOpen(true)} />)
+            : composer()}
         </Box>
       </>
     );
@@ -295,8 +280,8 @@ const Conversation = () => {
           minHeight: 0,
           display: "flex",
           flexDirection: { xs: "column", lg: "row-reverse" },
-          // how much of a phone's foot the chat covers, read by the game so its controls stay clear of the strip
-          "--chat-overlay": `${composerHeight + PEEK_HEIGHT + CARET_HEIGHT - CARET_TUCK}px`,
+          // how much of a phone's foot the chat covers, read by the game so its controls stay clear of it
+          "--chat-overlay": `${composerHeight}px`,
         }}
       >
         {/* over the chat rather than above it, so hiding the game moves nothing the reader is looking at */}

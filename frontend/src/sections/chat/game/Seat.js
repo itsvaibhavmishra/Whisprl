@@ -6,6 +6,7 @@ import { Check, DotsThree, LockSimple, Plus } from "phosphor-react";
 
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
+import { SeatSaying } from "@/sections/chat/game/RoomChatter";
 import getAvatar from "@/utils/avatars";
 import { isOnline } from "@/utils/chats";
 import { firstNameIn, memberOf } from "@/utils/groups";
@@ -126,6 +127,7 @@ const Seat = ({ seat, conversation, meId, theme, size, mark, onTake, onLeave, ma
       </Typography>
       {mark && <Box sx={{ width: 26, height: 26, opacity: seat.user || seat.bot ? 1 : 0.45 }}>{mark}</Box>}
       {manage && <SeatMenu seat={seat} meId={meId} {...manage} />}
+      {seat.user && !seat.bot && <SeatSaying user={seat.user} theme={theme} />}
     </Box>
   );
 };

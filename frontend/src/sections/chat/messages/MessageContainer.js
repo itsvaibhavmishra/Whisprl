@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
 import { m, useReducedMotion } from "framer-motion";
-import { ArrowBendUpRight, Prohibit } from "phosphor-react";
+import { ArrowBendUpRight, GameController, Prohibit } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useMessageTime from "@/hooks/useMessageTime";
 import { ReactToMessage } from "@/redux/slices/actions/messageActions";
 import { setReplyingTo } from "@/redux/slices/chatSlice";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
+import { GAMES } from "@/sections/chat/game/catalog";
 import ContactCard from "@/sections/chat/messages/ContactCard";
 import StatusQuote from "@/sections/chat/messages/StatusQuote";
 import DocumentMessage from "@/sections/chat/messages/DocumentMessage";
@@ -207,7 +208,9 @@ const MessageContainer = ({
   // a deleted message keeps only who sent it, since what it answered or passed on went with it
   const quote = !isDeleted && message.replyTo;
   const isForwarded = !isDeleted && message.forwarded;
-  const hasHeader = isForwarded || quote || senderName;
+  // a game since removed from the catalog leaves its messages plain rather than naming something that is gone
+  const gameName = !isDeleted && GAMES[message.game]?.name;
+  const hasHeader = isForwarded || gameName || quote || senderName;
   const isDirect = Boolean(conversation && !conversation.isGroup && conversation.users?.some((member) => member._id !== user._id));
   const hasTick = isMine && isDirect;
   const hasText = !isDeleted && !message.undecryptable && Boolean(message.message) && msgType !== "emoji";
@@ -326,6 +329,12 @@ const MessageContainer = ({
                     <Typography variant="caption" sx={{ fontStyle: "italic" }}>
                       Forwarded
                     </Typography>
+                  </Stack>
+                )}
+                {gameName && (
+                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ opacity: 0.75 }}>
+                    <GameController size={12} weight="fill" />
+                    <Typography variant="caption">{`In ${gameName}`}</Typography>
                   </Stack>
                 )}
                 {quote && (

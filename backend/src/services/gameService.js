@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { ConversationModel, GameSessionModel } from "#src/models/index.js";
 import { findMemberConversation, memberRooms, populateMembers } from "#src/services/conversationService.js";
 import { assertManager } from "#src/services/groupService.js";
-import { assertCanMessage, saveEvent } from "#src/services/messageService.js";
+import { assertCanMessage, canMessageIn, saveEvent } from "#src/services/messageService.js";
 import { pushGameInvite } from "#src/services/pushService.js";
 import { recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
@@ -56,6 +56,8 @@ const gameRoomOf = (conversationId) => {
   if (!gameRooms.has(conversationId)) {
     gameRooms.set(conversationId, {
       watchers: new Map(),
+      // who has the game itself on screen rather than minimised, which decides whose messages float across it
+      lookers: new Map(),
       cooldowns: new Map(),
       // seeded from the clock, so a restart never sends a lower revision than a client already holds
       revision: Date.now(),
@@ -80,6 +82,12 @@ const serialized = (conversationId, task) => {
     });
   gameRoom.queue = run.catch(() => {});
   return run;
+};
+
+const countIn = (counts, userId, change) => {
+  const left = (counts.get(userId) ?? 0) + change;
+  if (left > 0) counts.set(userId, left);
+  else counts.delete(userId);
 };
 
 const coolDown = (gameRoom, userId) => gameRoom.cooldowns.set(String(userId), Date.now() + LIFT_COOLDOWN_MS);
@@ -114,10 +122,13 @@ const stateViewFor = (session, viewerId) => {
   return gameOf(session.game).viewFor(session.state, seat);
 };
 
+const lookersOf = (gameRoom) => [...gameRoom.lookers.keys()];
+
 // nobody is sent the raw session: each person gets only what they may see
 const viewFor = (conversation, session, gameRoom, viewerId) => ({
   conversationId: String(conversation._id),
   revision: gameRoom.revision,
+  lookers: lookersOf(gameRoom),
   session: session && {
     game: session.game,
     status: session.status,
@@ -463,7 +474,7 @@ export const watchGame = async (io, socket, conversationId) => {
   if (!mongoose.isValidObjectId(conversationId)) throw createHttpError.BadRequest("That chat does not exist");
   const id = String(conversationId);
   // a socket watches one chat's game at a time, the one open on its screen
-  if (socket.data.watching !== id) await stopWatching(socket);
+  if (socket.data.watching !== id) await stopWatching(io, socket);
 
   return serialized(id, async (gameRoom) => {
     const userId = socket.data.userId;
@@ -471,7 +482,7 @@ export const watchGame = async (io, socket, conversationId) => {
     if (socket.data.watching !== id) {
       socket.join(audienceOf(id));
       socket.data.watching = id;
-      gameRoom.watchers.set(userId, (gameRoom.watchers.get(userId) ?? 0) + 1);
+      countIn(gameRoom.watchers, userId, 1);
     }
 
     // after a restart this is how a countdown or a turn that was running gets picked back up
@@ -482,17 +493,43 @@ export const watchGame = async (io, socket, conversationId) => {
   });
 };
 
-export const stopWatching = (socket) => {
+const announceLookers = (io, conversationId, gameRoom) => io.to(audienceOf(conversationId)).emit("game_lookers", { conversationId, users: lookersOf(gameRoom) });
+
+export const stopWatching = (io, socket) => {
   const id = socket.data.watching;
   if (!id) return Promise.resolve();
+  const wasLooking = socket.data.isLooking;
   socket.data.watching = undefined;
+  socket.data.isLooking = false;
   socket.leave(audienceOf(id));
 
-  // nothing anyone else sees depends on who is watching, so leaving tells only this game room
   return serialized(id, (gameRoom) => {
     const userId = socket.data.userId;
-    const stillHere = (gameRoom.watchers.get(userId) ?? 1) - 1;
-    if (stillHere > 0) gameRoom.watchers.set(userId, stillHere);
-    else gameRoom.watchers.delete(userId);
+    countIn(gameRoom.watchers, userId, -1);
+    if (!wasLooking) return;
+    countIn(gameRoom.lookers, userId, -1);
+    announceLookers(io, id, gameRoom);
   });
+};
+
+export const lookAtGame = (io, socket, isLooking) => {
+  const id = socket.data.watching;
+  const looking = isLooking === true;
+  if (!id || Boolean(socket.data.isLooking) === looking) return Promise.resolve();
+  socket.data.isLooking = looking;
+  return serialized(id, (gameRoom) => {
+    countIn(gameRoom.lookers, socket.data.userId, looking ? 1 : -1);
+    announceLookers(io, id, gameRoom);
+  });
+};
+
+// the emoji anyone at a game can throw; they are shown and gone, never saved
+const REACTIONS = ["😂", "😮", "😍", "👏", "🔥", "😢", "😡", "👍"];
+
+export const reactInGame = async (socket, emoji) => {
+  const id = socket.data.watching;
+  if (!id || !REACTIONS.includes(emoji)) throw createHttpError.BadRequest("That reaction is not available");
+  // ex-friends and blocked people stay in an old chat's room, so a reaction goes only where a message could
+  if (!(await canMessageIn(id, socket.data.userId))) throw createHttpError.Forbidden("You can't send anything in this chat");
+  socket.to(audienceOf(id)).emit("game_reaction", { conversationId: id, user: socket.data.userId, emoji });
 };

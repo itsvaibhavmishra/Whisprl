@@ -285,9 +285,9 @@ back edge, with the pad lying in front of it, as the design has them.
 
 ## Fitting the screen around the art
 
-**The design is a full screen; the game is not.** The chat's header sits above the game, and the
-chat's thin peek and composer below it, so a phone gives the game less height than the design
-shows. On a 390 by 844 phone the start screen has about 660px against the design's 760.
+**The design is a full screen, and on a phone the game nearly is.** The chat's header steps aside
+while a game is shown, but the chat folds into a bar along the game's foot, and the game has to
+keep its controls above it. On a 390 by 844 phone the bar takes the bottom 63px, leaving 781px.
 
 - **The art keeps its place and the interface gives.** Pinned art cannot shrink to make room, so
   the room comes from the controls. Measure the design's controls at the same width first: on
@@ -295,9 +295,9 @@ shows. On a 390 by 844 phone the start screen has about 660px against the design
   matching those proportions recovered most of the space before any spacing was touched.
 - **Copy can be the overflow.** A note that wraps to a second line costs a line's height. The
   design's shorter wording fitted on one.
-- **The game knows how much of it the chat covers.** The canvas measures the composer as it really
-  is, since a reply quote or the encryption notice makes it taller, adds the peek and the caret,
-  and sets `--chat-overlay`. Keep everything the game needs above it.
+- **The game knows how much of it the chat covers.** The canvas measures whatever sits at the foot
+  as it really is, the bar or a notice shown in its place, and sets `--chat-overlay`. Keep
+  everything the game needs above it.
 - **Measure, then look.** Read element boxes in the browser at the design's width and compare
   them with the design's, and read overflow as `scrollHeight - clientHeight` on the screen's
   scroller. A screenshot taken mid-animation looks broken when it is not.

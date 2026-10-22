@@ -1,6 +1,6 @@
 import { requestGame } from "#src/services/gameRequestService.js";
 import { leaderboardOf } from "#src/services/gameResultService.js";
-import { actInGame, stopWatching, watchGame } from "#src/services/gameService.js";
+import { actInGame, lookAtGame, reactInGame, stopWatching, watchGame } from "#src/services/gameService.js";
 
 const answered = async (acknowledge, work) => {
   const reply = typeof acknowledge === "function" ? acknowledge : () => {};
@@ -15,13 +15,17 @@ const answered = async (acknowledge, work) => {
 export const socketWatchGame = (io, socket, conversationId, acknowledge) =>
   answered(acknowledge, () => watchGame(io, socket, conversationId));
 
-export const socketUnwatchGame = (socket, acknowledge) => answered(acknowledge, () => stopWatching(socket));
+export const socketUnwatchGame = (io, socket, acknowledge) => answered(acknowledge, () => stopWatching(io, socket));
+
+export const socketLookAtGame = (io, socket, isLooking, acknowledge) => answered(acknowledge, () => lookAtGame(io, socket, isLooking));
+
+export const socketReactInGame = (socket, emoji, acknowledge) => answered(acknowledge, () => reactInGame(socket, emoji));
 
 export const socketActInGame = (io, socket, payload, acknowledge) =>
   answered(acknowledge, () => actInGame(io, socket.data.userId, payload ?? {}));
 
-export const leaveGameOnDisconnect = (socket) =>
-  stopWatching(socket).catch((error) => console.error(`[games] ${error.message}`));
+export const leaveGameOnDisconnect = (io, socket) =>
+  stopWatching(io, socket).catch((error) => console.error(`[games] ${error.message}`));
 
 export const getLeaderboard = async (req, res, next) => {
   try {
