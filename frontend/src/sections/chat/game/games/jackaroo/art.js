@@ -22,6 +22,8 @@ const art = {
   cardBack: `${FOLDER}/card-back.webp`,
   marble: (tone) => `${FOLDER}/marble-${tone}.webp`,
   ring: (tone) => `${FOLDER}/ring-${tone}.webp`,
+  // fetched only when music is turned on, so it never costs anyone who leaves it off
+  music: `${FOLDER}/music.m4a`,
 };
 
 export default art;

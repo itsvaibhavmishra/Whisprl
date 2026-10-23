@@ -75,6 +75,8 @@ const jackaroo = {
       picture: "home",
     },
   ],
+  // Eastern Arctic Dubstep by VishwaJai, CC0, from opengameart.org
+  music: art.music,
   soundsItself: true,
   moveCountOf: (state) => state?.plays ?? 0,
   colourOf,
