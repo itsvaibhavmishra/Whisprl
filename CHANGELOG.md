@@ -27,7 +27,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Developers
 
 - An app release also attaches the Play bundle, whisprl-play.aab, ready to upload to the Play Console
-- An app release's test build talks to the rc backend on Render, which deploys at the same commit only for that build
+- A web release now gets a test build too, like an app release, and every test build talks to the rc backend on Render, which deploys at the same commit only for that build
 
 ## [2.5.1] - 2026-10-20
 
