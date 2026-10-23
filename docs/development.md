@@ -399,8 +399,9 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 
 - **A feature branch** publishes nothing. Push as often as you like.
 - **`rc`** publishes nothing either.
-- **An app release pull request** from `rc` into `production` publishes only a draft APK that only
-  the repository's owners can see (see Trying an app release on a phone).
+- **A release pull request** from `rc` into `production`, labelled `release: web` or
+  `release: app`, publishes only a draft APK that only the repository's owners can see (see Trying
+  a release on a phone).
 - **Merging into `production`** always redeploys the website and the backend, since Netlify and
   Northflank deploy from the branch itself. Whether it also publishes a version depends on the
   pull request's label:
@@ -463,12 +464,13 @@ release moves it.
 
 A version is published once. A mistake means burning a number rather than replacing it.
 
-## Trying an app release on a phone
+## Trying a release on a phone
 
-A `release: app` release changes native code, which no live update can fix afterwards, so it is
-tried on a phone before it ships. The Release workflow does this on its own for the `rc` into
-`production` pull request, once it is labelled `release: app` and `rc` is on a new version,
-which is the case once the prepare pull request has merged.
+Every release reaches the Android app, as a live update or a new APK, so it is tried on a phone
+before it ships. The Release workflow does this on its own for the `rc` into `production` pull
+request, once it is labelled `release: web` or `release: app` and `rc` is on a new version, which
+is the case once the prepare pull request has merged. A pull request with no release label builds
+nothing.
 
 It builds the same signed APK the release will, against the rc backend, and publishes it as the
 draft release `test-v<version>`. Every push to `rc` while the pull request is open replaces
@@ -476,12 +478,14 @@ that draft, cancelling a build still running for an older commit, and publishing
 deletes it. A draft is visible only to the repository's owners and never counts as the latest
 release, so no installed app reads it and nothing is tagged. Open it in GitHub on the phone and
 install `whisprl.apk` over the app: it carries the release's signature, so it keeps the account and
-its keys, and the real release later installs over it the same way.
+its keys. Once the release is out, install its own `whisprl.apk` over the test build the same way:
+the test build is already on that version, so it never takes the release's live update and would
+stay on the rc backend.
 
 The rc backend is a Render service (`whisprl.onrender.com`) with auto-deploy off. The same workflow
 deploys it through its deploy hook, at the commit the APK is built from, so the test build runs
-against rc's backend changes too. Nothing else deploys it: a merge into `rc` or a `release: web`
-pull request leaves it as it was. It needs the `RENDER_RC_DEPLOY_HOOK` secret and the
+against rc's backend changes too. Nothing else deploys it: a merge into `rc` or an `rc` into
+`production` pull request with no release label leaves it as it was. It needs the `RENDER_RC_DEPLOY_HOOK` secret and the
 `RC_API_ORIGIN` variable (`https://whisprl.onrender.com/api`), and the workflow refuses a test build
 without them rather than quietly building against production.
 
