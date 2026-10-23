@@ -25,6 +25,7 @@ import Stage from "@/components/media-editor/Stage";
 import TextEditor from "@/components/media-editor/TextEditor";
 import { ColorRow, SizeSlider, ToolButton } from "@/components/media-editor/ToolControls";
 import ToolSheet from "@/components/media-editor/ToolSheet";
+import useDarkSystemBars from "@/hooks/useDarkSystemBars";
 import useFittedSize from "@/hooks/useFittedSize";
 import useImageBitmap from "@/hooks/useImageBitmap";
 import { BRUSHES, lineWidthOf } from "@/utils/media-editor/draw";
@@ -86,6 +87,7 @@ const BrushPreview = ({ brush, stageWidth }) => {
 
 // edits stay as data until the caller draws them, so a photo, a video and a story without either all share one editor
 const MediaEditor = ({ media, initialEdits = NO_EDITS, isStory = false, people = [], label, doneLabel, footer, onDone, onClose }) => {
+  useDarkSystemBars();
   const [edits, setEdits] = useState(initialEdits);
   const [tool, setTool] = useState(null);
   const [editing, setEditing] = useState(() => (media ? null : { ...NEW_TEXT, id: uuidv4() }));

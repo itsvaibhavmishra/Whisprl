@@ -21,6 +21,9 @@
     - A game's leaderboard opens inside the game and shows only that game: a head to head for two players, and a podium with everyone's standings for more
 
   - Fixed:
+    - The status bar's clock and icons follow Whisprl's own light or dark mode, and stay light over the photo editor and viewers
+    - The loading spinner sits in the middle of what you can see, and the page no longer jumps while it shows
+    - A two or three finger tap while drawing makes its line or circle even when the first finger drifts as it lands
 
   - Developers:
     - An app release also attaches the Play bundle, whisprl-play.aab, ready to upload to the Play Console
