@@ -134,6 +134,8 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
     status: session.status,
     startsAt: session.startsAt ?? null,
     turn: session.status === "playing" ? gameOf(session.game).turnOf(session.state) : null,
+    // a wait rather than a moment, so a phone whose clock is off still starts the turn when the last play has shown
+    turnStartsIn: session.status === "playing" && session.turnStartsAt ? Math.max(0, new Date(session.turnStartsAt).getTime() - Date.now()) : 0,
     turnEndsAt: session.status === "playing" ? session.turnEndsAt : null,
     turnSeconds: gameOf(session.game).turnSeconds,
     seats: session.seats.map(seatView),
@@ -142,7 +144,7 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
     options: session.options ?? null,
     cooldownUntil: cooldownOf(gameRoom, viewerId),
     state: stateViewFor(session, viewerId),
-    result: session.result ?? null,
+    result: session.result ? { ...session.result, showsIn: Math.max(0, new Date(session.result.showsAt ?? 0).getTime() - Date.now()) } : null,
   },
 });
 
@@ -167,34 +169,44 @@ const settled = (session) => {
 
 const isTurnOf = (session, index) => gameOf(session.game).turnOf(session.state) === index;
 
-const withTurnClock = (session) => {
+// a clock starts once the last play has finished showing, and a game can say how long that takes and how long its bot thinks
+const withTurnClock = (session, playOutMs = 0) => {
   const game = gameOf(session.game);
-  const wait = isBotPlaying(session.seats[game.turnOf(session.state)]) ? BOT_PAUSE_MS : game.turnSeconds * 1000;
-  return { ...session, turnEndsAt: new Date(Date.now() + wait) };
+  const startsAt = Date.now() + playOutMs;
+  const wait = isBotPlaying(session.seats[game.turnOf(session.state)]) ? (game.thinkMs?.(session.state) ?? BOT_PAUSE_MS) : game.turnSeconds * 1000;
+  return { ...session, turnStartsAt: new Date(startsAt), turnEndsAt: new Date(startsAt + wait) };
 };
 
+const playOutMsOf = (game, state) => game.playOutMs?.(state) ?? 0;
+
 // Ready is agreeing to start, so it clears once the game does
-const startGame = (session) =>
-  withTurnClock({
-    ...session,
-    status: "playing",
-    startsAt: undefined,
-    result: undefined,
-    seats: unreadyAll(session.seats),
-    state: gameOf(session.game).setup(session.state, tableOf(session)),
-  });
+const startGame = (session) => {
+  const game = gameOf(session.game);
+  const state = game.setup(session.state, tableOf(session));
+  const started = { ...session, status: "playing", startsAt: undefined, result: undefined, seats: unreadyAll(session.seats), state };
+  return withTurnClock(started, playOutMsOf(game, state));
+};
 
 // a finished game goes back to its lobby with the final board and who won still showing
 const played = (session, index, move) => {
   const game = gameOf(session.game);
   const state = game.play(session.state, index, move);
   const outcome = game.outcome(state);
-  if (!outcome) return withTurnClock({ ...session, state });
+  if (!outcome) return withTurnClock({ ...session, state }, playOutMsOf(game, state));
   const winners = outcome.winners.map((winningSeat) => {
     const { user, bot } = session.seats[winningSeat];
     return { user: user ? String(user) : null, bot: Boolean(bot) };
   });
-  return { ...session, status: "lobby", state, turnEndsAt: undefined, result: { winners, endedAt: new Date() }, seats: backToLobby(session.seats) };
+  return {
+    ...session,
+    status: "lobby",
+    state,
+    turnStartsAt: undefined,
+    turnEndsAt: undefined,
+    // the result is shown once the last play has finished showing, as a turn's clock waits for it
+    result: { winners, endedAt: new Date(), showsAt: new Date(Date.now() + playOutMsOf(game, state)) },
+    seats: backToLobby(session.seats),
+  };
 };
 
 const playedForAbsent = (session) => {
@@ -298,7 +310,7 @@ const close = ({ conversation, session, userId }) => {
 const cancel = ({ conversation, session, userId }) => {
   assertGroupManager(conversation, userId);
   requirePlaying(session);
-  return { ...session, status: "lobby", state: undefined, turnEndsAt: undefined, result: undefined, seats: backToLobby(session.seats) };
+  return { ...session, status: "lobby", state: undefined, turnStartsAt: undefined, turnEndsAt: undefined, result: undefined, seats: backToLobby(session.seats) };
 };
 
 const sitDown = async ({ conversation, session, gameRoom, userId, details }) => {

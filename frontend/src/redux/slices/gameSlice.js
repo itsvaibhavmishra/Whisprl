@@ -22,12 +22,16 @@ const slice = createSlice({
   name: "game",
   initialState,
   reducers: {
-    gameStateReceived(state, { payload }) {
-      if (payload.conversationId !== state.watching) return;
-      // updates can overtake each other on the way, and an older one must not undo a newer one
-      if (state.view && state.view.revision >= payload.revision) return;
-      state.view = payload;
-      state.lookers = payload.lookers ?? [];
+    gameStateReceived: {
+      reducer(state, { payload }) {
+        if (payload.conversationId !== state.watching) return;
+        // updates can overtake each other on the way, and an older one must not undo a newer one
+        if (state.view && state.view.revision >= payload.revision) return;
+        state.view = payload;
+        state.lookers = payload.lookers ?? [];
+      },
+      // stamped on arrival, so a wait the server sends in milliseconds counts from here, whatever this phone's clock says
+      prepare: (payload) => ({ payload: { ...payload, receivedAt: Date.now() } }),
     },
     lookersChanged(state, { payload }) {
       if (payload.conversationId === state.watching) state.lookers = payload.users;
@@ -75,6 +79,8 @@ const slice = createSlice({
 export const { gameStateReceived, lookersChanged, gameCollapsed, resultDismissed, seatSwitchOffered, seatSwitchClosed } = slice.actions;
 
 export const selectGameSession = (state) => state.game.view?.session ?? null;
+
+export const selectViewReceivedAt = (state) => state.game.view?.receivedAt ?? 0;
 
 // the game of a chat, while that chat is open and its game is on screen rather than minimised
 export const selectGameOnScreen = ({ game }, conversationId) => (game.watching === conversationId && game.view?.session && !game.collapsed ? game.view.session.game : null);

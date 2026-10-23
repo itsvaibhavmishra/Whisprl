@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, Button, GlobalStyles, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { AnimatePresence } from "framer-motion";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
@@ -125,6 +125,7 @@ const Conversation = () => {
   const { _id: meId, blocked = [] } = useSelector((state) => state.user.user);
   const friends = useSelector((state) => state.user.friends);
   const [isSearching, setIsSearching] = useState(false);
+  const toggleSearch = useCallback(() => setIsSearching((open) => !open), []);
   const gameSession = useSelector(selectGameSession);
   const isGameHidden = useSelector((state) => state.game.collapsed);
   const openingGame = useSelector((state) => GAME_IDS.find((game) => selectIsLoading(state, OpenGame, game)));
@@ -268,7 +269,7 @@ const Conversation = () => {
     <ChatCanvas conversationId={conversationId} step={sends} sx={{ height: "100%", minWidth: 0, display: "flex", flexDirection: "column" }}>
       {/* a game on a phone takes the whole screen, and going back hides it to bring all of this back */}
       <Box sx={{ flexShrink: 0, ...(isGameShown && { display: { xs: "none", lg: "block" } }) }}>
-        <ConversationHeader isSearching={isSearching} onToggleSearch={() => setIsSearching((open) => !open)} />
+        <ConversationHeader isSearching={isSearching} onToggleSearch={toggleSearch} />
         {isSearching && <ChatSearchBar onClose={() => setIsSearching(false)} />}
         {!isSearching && <PinnedBar />}
       </Box>

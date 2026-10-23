@@ -93,7 +93,7 @@ updates with them, all end-to-end encrypted. Free, open source, and right in you
 
 **Play**
 
-- Tic-tac-toe, Dots and Boxes and Chain Reaction, beside the chat or across a phone's whole screen
+- Tic-tac-toe, Dots and Boxes, Chain Reaction and Jackaroo, beside the chat or across a phone's whole screen
 - Play a friend, a group of up to six, or the bot for practice
 - Talk while you play: your words pop up at your seat, and emoji fly across the table
 - Rules with pictures inside every game, and each game's own leaderboard in every chat

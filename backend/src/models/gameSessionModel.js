@@ -26,6 +26,8 @@ const gameSessionSchema = mongoose.Schema(
     seats: [seatSchema],
     // deadlines rather than running timers, so a restart can pick a countdown or a turn back up
     startsAt: { type: Date },
+    // a turn's clock starts once the last play has finished showing, which can be a moment after the turn changed
+    turnStartsAt: { type: Date },
     turnEndsAt: { type: Date },
     // the settings chosen in the lobby, shaped by the game; a game without any never sets it
     options: { type: mongoose.Schema.Types.Mixed },

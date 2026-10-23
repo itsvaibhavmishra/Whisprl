@@ -1,14 +1,15 @@
-import { Suspense, useEffect, useState } from "react";
-import { Box, Button, IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { alpha, ThemeProvider } from "@mui/material/styles";
 import { m, useReducedMotion } from "framer-motion";
-import { ArrowsInSimple, BookOpen, Smiley, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
+import { ArrowLeft, ArrowsInSimple, BookOpen, Smiley, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { ActInGame, AnswerInvite, CloseGame } from "@/redux/slices/actions/gameActions";
-import { gameCollapsed, resultDismissed } from "@/redux/slices/gameSlice";
+import { ActInGame, ActInGameQuietly, AnswerInvite, CloseGame } from "@/redux/slices/actions/gameActions";
+import { gameCollapsed, resultDismissed, selectViewReceivedAt } from "@/redux/slices/gameSlice";
 import { GAMES } from "@/sections/chat/game/catalog";
+import { bodyFontOf, loadGameFonts, withBodyFont } from "@/sections/chat/game/gameFonts";
 import { applyGameLevels, gameAudioOf, startMusic, stopMusic } from "@/sections/chat/game/gameSounds";
 import GameButton from "@/sections/chat/game/GameButton";
 import GameTitle from "@/sections/chat/game/GameTitle";
@@ -26,6 +27,7 @@ import StartScreen from "@/sections/chat/game/StartScreen";
 import StatusPill from "@/sections/chat/game/StatusPill";
 import useArtReady from "@/sections/chat/game/useArtReady";
 import useRoomChatter from "@/sections/chat/game/useRoomChatter";
+import useHasPassed from "@/sections/chat/game/useHasPassed";
 import useSceneWidth from "@/sections/chat/game/useSceneWidth";
 import { turnLineOf } from "@/sections/chat/game/gameStatus";
 import { canManage } from "@/utils/groups";
@@ -40,13 +42,40 @@ const CONFIRMATIONS = {
 // the bar sits over the artwork, so the buttons carry their own backing, in the game's card so its ink reads on it
 const controlsOf = (theme) => ({ flexShrink: 0, px: 0.25, borderRadius: 99, bgcolor: alpha(theme.card, 0.6), backdropFilter: "blur(8px)" });
 
-const BarButton = ({ label, onClick, children }) => (
-  <Tooltip title={label}>
-    <IconButton aria-label={label} onClick={onClick} sx={{ color: "inherit" }}>
+// a labelled bar gives each control its own dark round button with a short name under it, as a game's design can ask
+const LabelledButton = ({ label, caption, theme, onClick, children }) => (
+  <ButtonBase aria-label={label} onClick={onClick} sx={{ flexDirection: "column", gap: 0.35, minWidth: 36, borderRadius: 2, color: "#fff" }}>
+    <Box
+      sx={{
+        width: 31,
+        height: 31,
+        "& svg": { width: 17, height: 17 },
+        borderRadius: "50%",
+        display: "grid",
+        placeItems: "center",
+        bgcolor: "rgba(16, 10, 7, 0.72)",
+        border: `1px solid ${alpha(theme.outline ?? "#fff", 0.5)}`,
+        boxShadow: "0 3px 10px rgba(0, 0, 0, 0.35)",
+      }}
+    >
       {children}
-    </IconButton>
-  </Tooltip>
+    </Box>
+    {caption && <Typography sx={{ fontSize: 9.5, fontWeight: 600, lineHeight: 1, textShadow: "0 1px 3px rgba(0, 0, 0, 0.8)" }}>{caption}</Typography>}
+  </ButtonBase>
 );
+
+const BarButton = ({ label, caption = label, theme, onClick, children }) =>
+  theme.bar === "labelled" ? (
+    <LabelledButton label={label} caption={caption} theme={theme} onClick={onClick}>
+      {children}
+    </LabelledButton>
+  ) : (
+    <Tooltip title={label}>
+      <IconButton aria-label={label} onClick={onClick} sx={{ color: "inherit" }}>
+        {children}
+      </IconButton>
+    </Tooltip>
+  );
 
 // as wide as the widest board and its margin at most, so on a tablet or a wide panel they line up with the board instead of stretching
 const BESIDE_BOARD = { width: "100%", maxWidth: 592, mx: "auto", flexShrink: 0 };
@@ -86,7 +115,14 @@ const GameRoom = ({ conversation, session }) => {
   const { theme } = game;
   const isArtReady = useArtReady(game.preload);
   const isAnchored = game.art.anchor === "top";
+  const isLabelled = theme.bar === "labelled";
   const [roomRef, sceneWidth, isSceneNarrower] = useSceneWidth(game.art, game.mastheadRatio, controlsHeight);
+
+  useEffect(() => {
+    loadGameFonts(theme.fonts);
+  }, [theme.fonts]);
+  const bodyFont = bodyFontOf(theme);
+  const fontTheme = useMemo(() => bodyFont && withBodyFont(bodyFont), [bodyFont]);
 
   // each game remembers its own levels, so the sound and music the player chose come back with it
   const effects = useSelector((state) => gameAudioOf(state.user.user, session.game).effects);
@@ -102,6 +138,9 @@ const GameRoom = ({ conversation, session }) => {
   }, [game.music]);
   const conversationId = conversation._id;
   const screen = screenOf(session, dismissedResult);
+  // the result waits for the winning play to finish showing on the board, so it never cuts it short
+  const receivedAt = useSelector(selectViewReceivedAt);
+  const isResultDue = useHasPassed(receivedAt + (session.result?.showsIn ?? 0));
   const isPlaying = screen === "playing";
 
   const isManager = conversation.isGroup && canManage(conversation, meId);
@@ -110,6 +149,15 @@ const GameRoom = ({ conversation, session }) => {
   const mySeat = session.seats.find((seat) => seat.user === meId);
 
   const act = (action) => dispatch(ActInGame({ conversationId, ...action }));
+  // the board is redrawn only for what it shows, so what it is handed keeps one identity across the room's own renders
+  const onMove = useCallback(
+    (move, { isQuiet = false } = {}) => {
+      feel();
+      return dispatch((isQuiet ? ActInGameQuietly : ActInGame)({ conversationId, type: "move", move }));
+    },
+    [dispatch, conversationId]
+  );
+  const onLeave = useCallback(() => setConfirming("leave"), []);
   const confirmed = {
     close: () => dispatch(CloseGame(conversationId)),
     cancel: () => act({ type: "cancel" }),
@@ -127,6 +175,10 @@ const GameRoom = ({ conversation, session }) => {
         // the scenery sits behind everything here and above nothing outside
         isolation: "isolate",
         overflow: "hidden",
+        // a game is taps and drags, so on the web as on a phone nothing in it selects as text, except what you type
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        "& input, & textarea": { userSelect: "text", WebkitUserSelect: "text" },
         // the artwork runs full screen on a phone, under the status bar and the chat at its foot, so only the content is inset
         pt: { xs: "env(safe-area-inset-top)", lg: 0 },
         pb: { xs: "var(--chat-overlay, 200px)", lg: 0 },
@@ -152,7 +204,12 @@ const GameRoom = ({ conversation, session }) => {
           ...(screen === "start" && { position: "absolute", top: { xs: "env(safe-area-inset-top)", lg: 0 }, left: 0, right: 0, zIndex: 2 }),
         }}
       >
-        <Box sx={{ flex: 1, minWidth: 0, display: "flex" }}>
+        {isLabelled && (
+          <BarButton label="Hide game" caption={null} theme={theme} onClick={() => dispatch(gameCollapsed(true))}>
+            <ArrowLeft size={20} weight="bold" />
+          </BarButton>
+        )}
+        <Box sx={{ flex: 1, minWidth: 0, display: "flex", justifyContent: isLabelled ? "center" : "flex-start" }}>
           {screen !== "start" &&
             (game.Wordmark ? (
               <Suspense fallback={null}>
@@ -162,32 +219,34 @@ const GameRoom = ({ conversation, session }) => {
               <GameTitle title={game.title} name={game.name} isStatic width={132} />
             ))}
         </Box>
-        <Stack direction="row" alignItems="center" sx={controlsOf(theme)}>
-          <BarButton label="Rules" onClick={() => setIsShowingRules(true)}>
+        <Stack direction="row" alignItems="flex-start" spacing={isLabelled ? 0.5 : 0} sx={isLabelled ? { flexShrink: 0 } : controlsOf(theme)}>
+          <BarButton label="Rules" theme={theme} onClick={() => setIsShowingRules(true)}>
             <BookOpen size={20} weight="bold" />
           </BarButton>
-          <BarButton label="Leaderboard" onClick={() => setIsShowingScores(true)}>
+          <BarButton label="Leaderboard" theme={theme} onClick={() => setIsShowingScores(true)}>
             <Trophy size={20} weight="bold" />
           </BarButton>
-          <BarButton label="Sound and music" onClick={(event) => setSoundAnchor(event.currentTarget)}>
+          <BarButton label="Sound and music" caption="Sound" theme={theme} onClick={(event) => setSoundAnchor(event.currentTarget)}>
             <SpeakerHigh size={20} weight="bold" />
           </BarButton>
           {/* a phone throws emoji from the bar at its foot; beside the chat on a wide screen, it is here */}
           <Box sx={{ display: { xs: "none", lg: "inline-flex" } }}>
-            <BarButton label="Throw an emoji" onClick={(event) => setReactionAnchor(event.currentTarget)}>
+            <BarButton label="Throw an emoji" caption="Emoji" theme={theme} onClick={(event) => setReactionAnchor(event.currentTarget)}>
               <Smiley size={20} weight="bold" />
             </BarButton>
           </Box>
           {isManager && isPlaying && (
-            <BarButton label="End game" onClick={() => setConfirming("cancel")}>
+            <BarButton label="End game" theme={theme} onClick={() => setConfirming("cancel")}>
               <Stop size={20} weight="bold" />
             </BarButton>
           )}
-          <BarButton label="Hide game" onClick={() => dispatch(gameCollapsed(true))}>
-            <ArrowsInSimple size={20} weight="bold" />
-          </BarButton>
+          {!isLabelled && (
+            <BarButton label="Hide game" theme={theme} onClick={() => dispatch(gameCollapsed(true))}>
+              <ArrowsInSimple size={20} weight="bold" />
+            </BarButton>
+          )}
           {canClose && (
-            <BarButton label="Close game" onClick={() => setConfirming("close")}>
+            <BarButton label="Close game" caption="Close" theme={theme} onClick={() => setConfirming("close")}>
               <X size={20} weight="bold" />
             </BarButton>
           )}
@@ -208,10 +267,12 @@ const GameRoom = ({ conversation, session }) => {
         />
       ) : (
         <>
-          <Box sx={BESIDE_BOARD}>
-            <PlayerBar conversation={conversation} session={session} game={game} meId={meId} onLeave={() => setConfirming("leave")} />
-          </Box>
-          {isPlaying && (
+          {!game.drawsPlayers && (
+            <Box sx={BESIDE_BOARD}>
+              <PlayerBar conversation={conversation} session={session} game={game} meId={meId} onLeave={onLeave} />
+            </Box>
+          )}
+          {isPlaying && !game.drawsPlayers && (
             <Box sx={{ pt: 1.25, display: "flex", justifyContent: "center", flexShrink: 0 }}>
               <StatusPill theme={theme} isLive>
                 {turnLineOf(session, conversation, meId)}
@@ -230,10 +291,9 @@ const GameRoom = ({ conversation, session }) => {
                 state={session.state}
                 seats={session.seats}
                 conversation={conversation}
-                onMove={(move) => {
-                  feel();
-                  act({ type: "move", move });
-                }}
+                session={session}
+                onLeave={onLeave}
+                onMove={onMove}
               />
             </Suspense>
           </Box>
@@ -242,7 +302,7 @@ const GameRoom = ({ conversation, session }) => {
               <GameButton theme={theme} label="Take my seat back" onClick={() => act({ type: "back" })} />
             </Stack>
           )}
-          {screen === "result" && (
+          {screen === "result" && isResultDue && (
             <Box sx={BESIDE_BOARD}>
               <ResultPanel conversation={conversation} session={session} game={game} meId={meId} act={act} onBack={() => dispatch(resultDismissed(session.result.endedAt))} />
             </Box>
@@ -276,7 +336,7 @@ const GameRoom = ({ conversation, session }) => {
     </Stack>
   );
 
-  return <SayingsContext.Provider value={sayings}>{room}</SayingsContext.Provider>;
+  return <SayingsContext.Provider value={sayings}>{fontTheme ? <ThemeProvider theme={fontTheme}>{room}</ThemeProvider> : room}</SayingsContext.Provider>;
 };
 
-export default GameRoom;
+export default memo(GameRoom);

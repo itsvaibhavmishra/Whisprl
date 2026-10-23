@@ -1,0 +1,46 @@
+{
+ "stage": {
+  "width": 941,
+  "height": 1062
+ },
+ "scene": {
+  "width": 941,
+  "height": 1672
+ },
+ "title": {
+  "left": 23.8,
+  "top": 14.31,
+  "width": 53.99
+ },
+ "board": {
+  "left": 7.86,
+  "top": 38.79,
+  "width": 85.44
+ },
+ "marbles": [
+  {
+   "tone": 0,
+   "left": 40.91,
+   "top": 17.42,
+   "width": 3.83
+  },
+  {
+   "tone": 4,
+   "left": 65.67,
+   "top": 21.75,
+   "width": 3.83
+  },
+  {
+   "tone": 0,
+   "left": 26.04,
+   "top": 34.75,
+   "width": 2.76
+  },
+  {
+   "tone": 0,
+   "left": 59.72,
+   "top": 33.99,
+   "width": 5.1
+  }
+ ]
+}

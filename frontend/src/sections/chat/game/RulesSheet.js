@@ -43,7 +43,7 @@ const Page = ({ rule, game }) => {
   const picture = pictureOf(rule, game);
   return (
     <Stack sx={{ flex: "0 0 100%", scrollSnapAlign: "start", px: 3, pb: 1, minWidth: 0 }}>
-      {picture && <Box sx={{ height: { xs: 190, sm: 210 }, mb: 2.5, display: "grid", placeItems: "center", containerType: "size" }}>{picture}</Box>}
+      {picture && <Box sx={{ height: { xs: "min(190px, 24vh)", sm: 210 }, flexShrink: 0, mb: 2.5, display: "grid", placeItems: "center", containerType: "size" }}>{picture}</Box>}
       <Typography sx={{ fontSize: 19, fontWeight: 800, color: game.theme.ink, mb: 1 }}>{rule.heading}</Typography>
       <Typography sx={{ fontSize: 15, lineHeight: 1.6, color: alpha(game.theme.ink, 0.82) }}>{rule.text}</Typography>
     </Stack>
@@ -58,7 +58,7 @@ const RulesSheet = ({ game, turnSeconds, onClose }) => {
   const isLast = page === pages.length - 1;
 
   useEffect(() => {
-    pagesRef.current?.focus();
+    pagesRef.current?.focus({ preventScroll: true });
   }, []);
 
   const goTo = (index) => {
@@ -73,6 +73,8 @@ const RulesSheet = ({ game, turnSeconds, onClose }) => {
         tabIndex={-1}
         onScroll={(event) => setPage(Math.round(event.currentTarget.scrollLeft / event.currentTarget.clientWidth))}
         sx={{
+          // a long page on a short screen scrolls inside the card, so the card never runs under the chat bar
+          minHeight: 0,
           display: "flex",
           overflowX: "auto",
           overflowY: "auto",

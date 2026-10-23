@@ -17,7 +17,7 @@ const StatusPill = ({ theme, isLive = false, isWide = false, icon = null, childr
       borderRadius: 99,
       ...(isLive
         ? { bgcolor: theme.accent, color: "#fff", boxShadow: `0 5px 16px ${alpha(theme.accent, 0.45)}` }
-        : { bgcolor: theme.card, color: theme.ink, boxShadow: "0 4px 14px rgba(70, 48, 110, 0.16)" }),
+        : { bgcolor: theme.card, color: theme.ink, boxShadow: "0 4px 14px rgba(70, 48, 110, 0.16)", ...(theme.outline && { border: `1px solid ${alpha(theme.outline, 0.35)}` }) }),
     }}
   >
     {icon ?? <Box sx={{ width: 13, height: 13, borderRadius: "50%", flexShrink: 0, bgcolor: isLive ? "#fff" : alpha(theme.ink, 0.45) }} />}

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { ArrowLeft, Info, MagnifyingGlass, Timer, User, X } from "phosphor-react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
@@ -161,4 +162,4 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
   );
 };
 
-export default ConversationHeader;
+export default memo(ConversationHeader);

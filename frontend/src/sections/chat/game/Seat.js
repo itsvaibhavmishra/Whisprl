@@ -64,10 +64,10 @@ const MENU_ON_HOVER = {
   },
 };
 
-const READY_GREEN = "#3BB273";
+export const READY_GREEN = "#3BB273";
 
 // you and the bot are always here; anyone else is here when the app says they are online
-const isHere = (seat, member, meId, onlineFriends) => {
+export const isHere = (seat, member, meId, onlineFriends) => {
   if (seat.user === meId || (seat.bot && !seat.user)) return true;
   return Boolean(member && isOnline(member, onlineFriends));
 };

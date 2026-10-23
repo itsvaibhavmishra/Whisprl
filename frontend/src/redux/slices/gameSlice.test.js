@@ -10,6 +10,14 @@ test("an update that arrives after a newer one does not undo it", () => {
   expect(state.view.session.status).toBe("playing");
 });
 
+test("a view is stamped with when it arrived, so waits the server sends count from then", () => {
+  const before = Date.now();
+  const state = [WatchGame.pending("watch", CHAT), viewAt(1, { status: "playing", turnStartsIn: 2500 })].reduce(gameReducer, undefined);
+
+  expect(state.view.receivedAt).toBeGreaterThanOrEqual(before);
+  expect(state.view.receivedAt).toBeLessThanOrEqual(Date.now());
+});
+
 test("closing a game takes it off the screen before the server answers", () => {
   const state = [WatchGame.pending("watch", CHAT), viewAt(1, { status: "lobby" }), CloseGame.pending("close", CHAT)].reduce(gameReducer, undefined);
 

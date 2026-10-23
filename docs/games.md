@@ -58,6 +58,8 @@ One object, exported from `backend/src/services/games/<game-id>/index.js`:
 | `id` | the game id, which is also its folder name |
 | `minPlayers`, `maxPlayers` | how many seats, and how few can start |
 | `turnSeconds` | how long a turn lasts before the bot plays it, shown as a ring draining around the player whose turn it is |
+| `playOutMs(state)` | optional: how long the last play takes to show on screen, so the next turn's clock starts once it has, and a finished game's result waits for its winning play; sent as `turnStartsIn` and the result's `showsIn`, the milliseconds still to wait, and left out it is no time at all |
+| `thinkMs(state)` | optional: how long the bot looks before it plays, counted from when the turn starts; left out, every bot waits the same short pause |
 | `options` | optional: `{ defaults, assert }` for a game with settings, left out by one without |
 | `setup(previous, table)` | a fresh state, given the last game's final state so openers can alternate, and the table: the settings plus `players`, the seat count, and `seating`, who sits where |
 | `turnOf(state)` | which seat is to move |
@@ -101,13 +103,16 @@ One object, exported from `frontend/src/sections/chat/game/games/<game-id>/index
 |---|---|
 | `id`, `name`, `summary` | what the games dialog shows; optionally `cardTitleTop`, where the title sits on its card when centring it would cover something in the art |
 | `rules` | the game's rules as short `{ heading, text, picture }` sections, shown as pages inside the game from the Rules button in its bar, `picture` naming what `RulesArt` draws for that page; the canvas adds the turn timer page itself |
-| `art` | its image paths, `beyond` for what the scene runs into past its edge, or `anchor: "top"` and the scene's `ratio` when pieces are placed in the scene's coordinates, and optionally `fireflies`, more of them for a scene that wants them, each with its own `glow` |
+| `art` | its image paths, `beyond` for what the scene runs into past its edge, or `anchor: "top"` and the scene's `ratio` when pieces are placed in the scene's coordinates, `fadesAtFoot` for an anchored scene that keeps its masthead's width on a tall phone and fades into `surface` below, and optionally `fireflies`, more of them for a scene that wants them, each with its own `glow` |
 | `preload` | every file the start screen waits for before it animates in |
-| `theme` | `surface`, `card`, `ink`, `accent`, `marks` for each seat's colour, and `shade`, the colour the start screen's wash is mixed from. A game may be dark: `ink` is read on `card`, never on a fixed light colour |
+| `theme` | `surface`, `card`, `ink`, `accent`, `marks` for each seat's colour, and `shade`, the colour the start screen's wash is mixed from. A game may be dark: `ink` is read on `card`, never on a fixed light colour. Optionally `onAccent` for the text on its main button, `outline` for the outlined button and the status line, `bar: "labelled"` for round bar buttons with a name under each, and `fonts`, its own `display` and `body` families and the Google Fonts `href` that loads them the first time the game opens |
 | `title` | its wordmark as words placed by fraction, so each can drop in on its own |
 | `width` | the panel's smallest, preferred and largest width beside the chat |
 | `moveSound`, `music` | the sound a move makes, or a function of the states before and after it, and the track it plays; see Sound |
+| `soundsItself` | optional: the board plays its own sounds in time with its animations, so the canvas plays none of its cues for it, though a phone still vibrates for them |
 | `moveCountOf(state)` | how many moves are on the board, which is how a move is heard |
+| `versus` | optional: a two-seat game whose seats face each other across a Vs |
+| `drawsPlayers` | optional: the board draws the players itself, so the canvas leaves out its own row of players and its turn line; the board is then given `session` for whose turn it is and the clock, and `onLeave` for the player's own seat |
 | `options` | optional: each setting's `key`, label, choices, `unavailable(value, players)` and a `Preview` component; the defaults come from the server |
 | `colourOf(state, seat)` | optional: a seat's colour when the game deals them, rather than `marks[seat]` |
 | `isOut(state, seat)` | optional: whether a seat has been knocked out of a game still running, which greys its card and marks it Out |
@@ -169,6 +174,30 @@ Everything about a game's art is in [game-art.md](game-art.md): the design promp
 pieces, cutting them out, measuring a board, and placing pieces where the design put them with
 `scripts/artwork.py`. Read it before asking for any art, because what is asked for decides how
 much of the rest is easy.
+
+## Drawing and moving pieces
+
+Games are drawn with React and the page itself, never a game engine. A game lives inside the chat
+on the web and in the Android app, and an engine such as Unity or Cocos would be a second runtime:
+several megabytes to load before the board shows, its own toolchain, and a screen that cannot
+share the chat's fonts, theme or accessibility. Studios get their precision from how they work
+more than from the engine, and these are the parts of that a game here follows:
+
+- **One coordinate system, measured from the art.** Every hole, slot and sprite size comes from
+  the board's own layout file, produced by the art pipeline from the design (see
+  [game-art.md](game-art.md)). A piece is placed by looking up its point, never by typing a
+  position.
+- **Sizes come from the layout too.** Anything drawn over a hole takes its size from the hole's
+  measured radius or the sprite already drawn there, as Jackaroo's move preview reuses the home
+  ring for the hole a marble stops in. A guessed multiple of something else drifts off the circles.
+- **Animation runs on transform and opacity,** played back from the move the server sent, after
+  React has drawn where everything ends up, so a phone's compositor does the work.
+- **One set of timings.** When the server waits for a move to finish showing, it reads the same
+  numbers the client animates with (Jackaroo's `pace.js` and `playback.js`), and a change to one
+  is a change to both.
+- **A canvas only where the page struggles.** If an effect such as confetti or a dust burst
+  stutters on a cheap phone, that one effect moves onto a small canvas layer over the board, with
+  PixiJS if it needs more than a few lines. The board itself stays in the page.
 
 ## The three screens
 
@@ -237,10 +266,15 @@ standings when more have. Neither needs anything from a game beyond its `theme`,
 
 ## Sound
 
-Sound effects are generated in the browser rather than shipped as files, so effects add no audio
-to the repo and no new dependency. Each game has its own move sound, so two games never sound
-alike: tic-tac-toe chalks a mark, Dots and Boxes draws a pencil line and chimes when a box closes.
-The canvas plays the turn, win, loss and draw cues for every game.
+Sound effects are generated in the browser where they can be, so they add no audio to the repo and
+no new dependency. Each game has its own move sound, so two games never sound alike: tic-tac-toe
+chalks a mark, Dots and Boxes draws a pencil line and chimes when a box closes. The canvas plays
+the turn, win, loss and draw cues for every game that does not sound itself.
+
+A game whose pieces are things you would hear, such as Jackaroo's cards and glass marbles, may
+ship short recordings instead, under `frontend/public/games/<game-id>/sounds/`: CC0 only, trimmed
+of leading silence so they land on the frame they belong to, mono mp3, a few KB each. Such a game
+sets `soundsItself` and plays every sound from its own animations.
 
 A level nobody has set yet means its default, not silence. `Number(JSON.parse(null))` is `0`, so a
 missing volume read straight from storage mutes everything while the slider shows it full.

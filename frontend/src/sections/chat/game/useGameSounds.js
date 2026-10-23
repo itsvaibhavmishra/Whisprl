@@ -23,7 +23,7 @@ const cuesBetween = (before, session, meId) => {
   const game = GAMES[session.game];
   // a game may sound a move by what it did, as a closed box does
   const moveCue = typeof game.moveSound === "function" ? game.moveSound(before.state, session.state) : game.moveSound;
-  const moved = game.moveCountOf(session.state) > game.moveCountOf(before.state) ? [moveCue] : [];
+  const moved = moveCue && game.moveCountOf(session.state) > game.moveCountOf(before.state) ? [moveCue] : [];
   if (session.status !== "playing") return session.result ? [...moved, resultCueOf(session, meId)] : moved;
   const isMyTurnNow = session.turn !== before.turn && session.seats[session.turn]?.user === meId;
   return isMyTurnNow ? [...moved, "yourTurn"] : moved;
@@ -40,8 +40,10 @@ const useGameSounds = (session, meId) => {
   }, [secondsToStart]);
 
   useEffect(() => {
+    // a game that sounds its own moments in time with its animations is still felt here, only not heard
+    const isHeard = !GAMES[session?.game]?.soundsItself;
     cuesBetween(previous.current, session, meId).forEach((cue) => {
-      playGameSound(cue);
+      if (isHeard) playGameSound(cue);
       if (FELT[cue]) feel(FELT[cue]);
     });
     previous.current = session;
