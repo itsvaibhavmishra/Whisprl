@@ -15,7 +15,6 @@ import DetailsPanel from "@/sections/chat/details/DetailsPanel";
 import CreateGroupDialog from "@/sections/chat/group/CreateGroupDialog";
 import ChatList from "@/sections/chat/list/ChatList";
 import { useChatAddress, useChatRouteSync } from "@/sections/chat/chatRoute";
-import WhatsNewDialog from "@/sections/whats-new/WhatsNewDialog";
 
 const LIST_WIDTH = { md: 340, lg: 380 };
 
@@ -92,7 +91,6 @@ const Chat = () => {
       {isChatOpen && <DetailsPanel open={isInfo} />}
 
       <CreateGroupDialog open={isCreatingGroup} onClose={() => setIsCreatingGroup(false)} />
-      <WhatsNewDialog />
     </Box>
   );
 };

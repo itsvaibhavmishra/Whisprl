@@ -10,5 +10,15 @@ export const onRoomEvent = (listener) => {
 // { conversationId, from, text } for a message, { conversationId, from, emoji } for a reaction
 export const emitRoomEvent = (event) => listeners.forEach((listener) => listener(event));
 
-// the emoji anyone at a game can throw, the same list the server accepts
-export const REACTIONS = ["😂", "😮", "😍", "👏", "🔥", "😢", "😡", "👍"];
+// the emoji anyone at a game can throw, each named as the tray shows it; the server accepts the same ones
+export const REACTIONS = [
+  { emoji: "😂", name: "Laugh" },
+  { emoji: "😭", name: "Cry" },
+  { emoji: "😜", name: "Taunt" },
+  { emoji: "😘", name: "Kiss" },
+  { emoji: "😎", name: "Cool" },
+  { emoji: "😡", name: "Angry" },
+  { emoji: "😱", name: "Shocked" },
+  { emoji: "🫠", name: "Melt" },
+  { emoji: "🥳", name: "Party" },
+];

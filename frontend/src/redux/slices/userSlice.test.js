@@ -1,4 +1,4 @@
-import { GetOnboarding, MarkWhatsNewSeen } from "@/redux/slices/actions/onboardingActions";
+import { ConfirmRecoveryKeySaved, GetOnboarding } from "@/redux/slices/actions/onboardingActions";
 import { GetMyProfile, UpdateProfile, UpdateSuggestionSetting } from "@/redux/slices/actions/userActions";
 import userReducer, { updateUser } from "@/redux/slices/userSlice";
 
@@ -43,16 +43,16 @@ test("a refused change puts the switch back", () => {
 test("a setup progress read that a save overtook keeps the save", () => {
   const actions = [
     GetOnboarding.pending("read"),
-    MarkWhatsNewSeen.pending("seen", "next"),
-    MarkWhatsNewSeen.fulfilled({ user: { whatsNewSeen: "next" } }, "seen", "next"),
-    GetOnboarding.fulfilled({ user: { whatsNewSeen: null } }, "read"),
+    ConfirmRecoveryKeySaved.pending("saved"),
+    ConfirmRecoveryKeySaved.fulfilled({ user: { recoveryKeySavedAt: "2026-10-23" } }, "saved"),
+    GetOnboarding.fulfilled({ user: { recoveryKeySavedAt: null } }, "read"),
   ];
 
-  expect(actions.reduce(userReducer, undefined).user.whatsNewSeen).toBe("next");
+  expect(actions.reduce(userReducer, undefined).user.recoveryKeySavedAt).toBe("2026-10-23");
 });
 
 test("a setup progress read with no save in between brings the account up to date", () => {
-  const actions = [GetOnboarding.pending("read"), GetOnboarding.fulfilled({ user: { whatsNewSeen: "2.1.0" } }, "read")];
+  const actions = [GetOnboarding.pending("read"), GetOnboarding.fulfilled({ user: { recoveryKeySavedAt: "2026-10-23" } }, "read")];
 
-  expect(actions.reduce(userReducer, undefined).user.whatsNewSeen).toBe("2.1.0");
+  expect(actions.reduce(userReducer, undefined).user.recoveryKeySavedAt).toBe("2026-10-23");
 });

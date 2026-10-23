@@ -1,5 +1,6 @@
 // Plays a move out after React has drawn where everything ends up, animating each piece back from where it was on transform and opacity.
 import art from "@/sections/chat/game/games/jackaroo/art";
+import { CARD_RATIO } from "@/sections/chat/game/games/jackaroo/CardFace";
 import { THROWS } from "@/sections/chat/game/games/jackaroo/choices";
 import { awesome, dust, glitter, goldBurst, goldWord, removedWhenDone, shake, spawn } from "@/sections/chat/game/games/jackaroo/effects";
 import { marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry";
@@ -259,7 +260,7 @@ const backTurnsAway = (layer, from, delay) => {
 };
 
 // the card a red queen takes leaves its owner, turning face up if it was hidden, holds in the middle so both players see it, then lands grey on the pile
-const takenToPile = (pileTop, from, delay, { isFaceDown, layer }) => {
+const takenToPile = (pileTop, from, delay, { isFaceDown, layer, comesAt = 0 }) => {
   if (!pileTop) return [];
   const to = pileTop.getBoundingClientRect();
   const placed = from ? `${shiftBetween(from, to)} scale(${Math.min(from.height / to.height, HELD)})` : `translate(0px, 0px) scale(${HELD})`;
@@ -268,7 +269,7 @@ const takenToPile = (pileTop, from, delay, { isFaceDown, layer }) => {
   const inColour = "grayscale(0) brightness(1)";
   // the turn away comes out of the same time the server allows, so the play still ends when the next clock starts
   const turnsAway = isFaceDown && from ? [backTurnsAway(layer, from, delay)] : [];
-  const faceAt = turnsAway.length ? FLIP_MS / 2 : 0;
+  const faceAt = Math.max(comesAt, turnsAway.length ? FLIP_MS / 2 : 0);
   const face = pileTop.animate(
     [
       { transform: start, filter: inColour, opacity: 0 },
@@ -280,6 +281,40 @@ const takenToPile = (pileTop, from, delay, { isFaceDown, layer }) => {
     { duration: TAKEN_MS - faceAt, delay: delay + faceAt, easing: "ease-in-out", fill: "backwards" }
   );
   return [...turnsAway, face];
+};
+
+// the red queen's victim sees their hand laid out over the pile as the taker's pick was, its cards' width and spacing shares of the board
+const SPREAD = { share: 0.28, width: 0.21, step: 0.23 };
+const spreadHand = (hand, stage, lostAt, delay) => {
+  const cards = [...(hand?.querySelectorAll("[data-card]") ?? [])];
+  const board = stage.getBoundingClientRect();
+  const count = cards.length + 1;
+  const width = board.width * SPREAD.width;
+  const height = width / CARD_RATIO;
+  const centre = { x: board.left + (layout.pile.x / layout.board) * board.width, y: board.top + (layout.pile.y / layout.board) * board.height };
+  const slotX = (slot) => centre.x + (slot - (count - 1) / 2) * board.width * SPREAD.step;
+  const animations = cards.map((card, index) => {
+    // measured untilted, as the transforms below replace the card's own tilt rather than adding to it
+    const base = getComputedStyle(card).transform;
+    card.style.transform = "none";
+    const box = card.getBoundingClientRect();
+    card.style.transform = "";
+    const scale = width / box.width;
+    const slot = index < lostAt ? index : index + 1;
+    const out = `translate(${slotX(slot) - (box.left + box.width / 2)}px, ${centre.y + height / 2 - box.bottom}px) scale(${scale})`;
+    return card.animate(
+      [
+        { transform: base, easing: "cubic-bezier(0.2, 0.8, 0.3, 1)" },
+        { transform: out, offset: SPREAD.share },
+        { transform: out, offset: 0.55, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+        { transform: base, offset: 0.85 },
+        { transform: base },
+      ],
+      { duration: TAKEN_MS, delay }
+    );
+  });
+  const takenFrom = { left: slotX(lostAt) - width / 2, top: centre.y - height / 2, width, height };
+  return { animations, takenFrom };
 };
 
 // a player's card of a deal leaves the deck after every card dealt before it, the deal alternating from the leader
@@ -321,7 +356,7 @@ export const growFrom = (element, from, delay) => {
 // a card not taken by the red queen flies back into its place in their fan, from wherever its grow is when you tap, and stays there until the fan shows again
 export const flyBack = (element, to) => {
   const at = element.getBoundingClientRect();
-  return element.animate([{ transform: getComputedStyle(element).transform }, { transform: `${shiftBetween(to, at)} scale(${to.width / at.width})` }], {
+  return element.animate([{ transform: getComputedStyle(element).transform }, { transform: `${shiftBetween(to, at)} scale(${to.ownWidth / at.width}) rotate(${to.tilt}deg)` }], {
     duration: BACK_MS,
     easing: "cubic-bezier(0.4, 0, 0.2, 1)",
     fill: "forwards",
@@ -347,14 +382,23 @@ const homeLaneOf = (owner, isTurned) => {
 };
 
 // everything one play does, in order; returns a way to cut it short when the next play arrives
-export const playOut = (lastPlay, view, { stage, effects, marbles, pileCards, playedFrom, takenFrom }) => {
+export const playOut = (lastPlay, view, { stage, effects, marbles, pileCards, playedFrom, takenFrom, myHand }) => {
   const animations = [];
   const timers = [];
   const at = (delay, task) => timers.push(setTimeout(task, delay));
   // a red queen lies under the card it took
   const thrown = flyToPile(lastPlay.lost ? pileCards.at(-2) : pileCards.at(-1), playedFrom);
   const takenAt = thrown ? CARD_MS : 0;
-  const taken = lastPlay.lost ? takenToPile(pileCards.at(-1), takenFrom, takenAt, { isFaceDown: 1 - lastPlay.seat !== view.mySeat, layer: effects }) : [];
+  const isMineTaken = Boolean(lastPlay.lost) && 1 - lastPlay.seat === view.mySeat && lastPlay.lostAt !== undefined;
+  const spread = isMineTaken ? spreadHand(myHand, stage, lastPlay.lostAt, takenAt) : null;
+  animations.push(...(spread?.animations ?? []));
+  const taken = lastPlay.lost
+    ? takenToPile(pileCards.at(-1), spread?.takenFrom ?? takenFrom, takenAt, {
+        isFaceDown: 1 - lastPlay.seat !== view.mySeat,
+        layer: effects,
+        comesAt: spread ? TAKEN_MS * SPREAD.share : 0,
+      })
+    : [];
   animations.push(...[thrown, ...taken].filter(Boolean));
   // a card you played made its sound as it landed, so only a throw-away still owes one
   const isThrownAway = THROWS.includes(lastPlay.kind);

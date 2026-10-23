@@ -18,27 +18,30 @@ const PICKER_CHROME = 30;
 const SCREEN_MARGINS = 32;
 const PICKER_HEIGHT = 435;
 
-const EmojiPicker = ({ onSelect, autoFocus = true }) => {
+const EmojiPicker = ({ onSelect, autoFocus = true, isPanel = false }) => {
   const theme = useTheme();
   const perLine = Math.min(MAX_PER_LINE, Math.floor((window.innerWidth - SCREEN_MARGINS - PICKER_CHROME) / EMOJI_BUTTON));
 
   return (
     <Suspense
       fallback={
-        <Box sx={{ width: perLine * EMOJI_BUTTON + PICKER_CHROME, height: PICKER_HEIGHT, display: "grid", placeItems: "center" }}>
+        <Box sx={{ width: isPanel ? "100%" : perLine * EMOJI_BUTTON + PICKER_CHROME, height: isPanel ? "100%" : PICKER_HEIGHT, display: "grid", placeItems: "center" }}>
           <CircularProgress size={24} aria-label="Loading emoji" />
         </Box>
       }
     >
-      <Picker
-        theme={theme.palette.mode}
-        onEmojiSelect={(emoji) => onSelect(emoji.native)}
-        perLine={perLine}
-        emojiButtonSize={EMOJI_BUTTON}
-        previewPosition="none"
-        skinTonePosition="search"
-        autoFocus={autoFocus}
-      />
+      <Box sx={isPanel ? { height: "100%", "& > div, & em-emoji-picker": { width: "100%", height: "100%" } } : undefined}>
+        <Picker
+          theme={theme.palette.mode}
+          onEmojiSelect={(emoji) => onSelect(emoji.native)}
+          perLine={perLine}
+          emojiButtonSize={EMOJI_BUTTON}
+          previewPosition="none"
+          skinTonePosition="search"
+          autoFocus={autoFocus}
+          {...(isPanel && { dynamicWidth: true, navPosition: "bottom", maxFrequentRows: 1 })}
+        />
+      </Box>
     </Suspense>
   );
 };

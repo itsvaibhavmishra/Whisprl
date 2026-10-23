@@ -1,5 +1,16 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "😜",
+      "title": "Livelier emoji in games",
+      "text": "Throw laugh, cry, taunt, kiss, cool, angry, shocked, melt or party from a bigger tray where every face moves."
+    },
+    {
+      "emoji": "⌨️",
+      "title": "Emoji where the keyboard was",
+      "text": "On a phone, emoji open in the keyboard's place with your recent ones first, and pull up to see more."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.2",

@@ -9,6 +9,7 @@ import Wordmark from "@/components/Wordmark";
 import useSettings from "@/hooks/useSettings";
 import { confirmOwner } from "@/utils/crypto/keyVault";
 import { isApp } from "@/utils/platform";
+import { carriedOver } from "@/utils/updateCarryOver";
 
 const AWAY_BEFORE_LOCKING_MS = 60 * 1000;
 
@@ -16,10 +17,10 @@ const AppLock = () => {
   const { appLock } = useSettings();
   const isRehydrated = useSelector((state) => state._persist?.rehydrated);
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
-  // a cold start always asks, so the lock starts out closed
-  const [isLocked, setIsLocked] = useState(true);
+  // a cold start always asks, so the lock starts out closed; a live update's reload carries on as the app was left
+  const [isLocked, setIsLocked] = useState(() => carriedOver()?.isLocked ?? true);
   const [isAsking, setIsAsking] = useState(false);
-  const leftAt = useRef(null);
+  const leftAt = useRef(carriedOver()?.leftAt ?? null);
   const wasOn = useRef(appLock);
   const isShown = isApp && appLock && isLoggedIn && isLocked;
 

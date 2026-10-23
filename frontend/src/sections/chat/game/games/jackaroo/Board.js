@@ -73,6 +73,8 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     });
   }
   const hasTurnStarted = useHasPassed(timing.turnStartsAt);
+  // the room shows the result once the winning play has played out, and with no deal to come the empty hand gives up its room then
+  const isResultShown = useHasPassed(session.result ? receivedAt + session.result.showsIn : null) && Boolean(session.result);
   // a deal only plays out for plays that arrive while the board is open, never again when it is reopened
   const firstSeenPlays = useRef(state.plays);
   const isFresh = state.plays > firstSeenPlays.current || state.plays === 0;
@@ -287,6 +289,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
       playedFrom: card?.id === flownId.current ? null : handOf(seat),
       // the card you took turns over from wherever it is on its way to the middle, or from the middle once the pick has gone
       takenFrom: seat === mySeat ? (stage.querySelector("[data-taken]")?.getBoundingClientRect() ?? tappedTo.current) : handOf(1 - seat),
+      myHand: handRef.current,
     });
   }, [state.plays, isStill, isTurned, mySeat]);
 
@@ -387,7 +390,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
 
       <Box sx={{ position: "relative", flexShrink: 0, containerType: "inline-size" }}>
         <Prompt {...prompt} isOverHand={mySeat !== -1} />
-        {mySeat !== -1 && (
+        {mySeat !== -1 && !isResultShown && (
           <Hand
             ref={handRef}
             cards={hand}

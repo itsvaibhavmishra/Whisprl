@@ -16,8 +16,17 @@
   - New:
 
   - Improvements:
+    - The app takes an update while you use it and switches to it the moment you leave, so you come back to the same screen and anything half typed, already on the new version
+    - Games throw a new set of emoji from a bigger tray that moves: laugh, cry, taunt, kiss, cool, angry, shocked, melt and party
+    - What's new no longer pops up; every release's highlights stay in Settings
+    - On a phone the emoji button swaps the keyboard for an emoji panel just as tall, with recent emoji first and its sections along the foot, and its grip pulls it up to fill most of the screen
 
   - Fixed:
+    - Opening the keyboard over a game no longer squeezes the game; the keyboard covers its foot instead
+    - What a knocked-out player says in a game no longer fades with their seat or slips behind the board
+    - Jackaroo's result no longer leaves the board squeezed to the top over an empty hand
+    - In Jackaroo a marble may land on one of your own and knock it back to base, earning a card as any knock-out does, so the marble behind is no longer stuck
+    - In Jackaroo, the cards a red queen leaves fly straight back into place in their fan, and when yours are taken your hand lays out over the board, the taken card leaves for the pile and the rest come home
 
   - Developers:
 
