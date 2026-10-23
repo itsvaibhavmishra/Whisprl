@@ -1,4 +1,15 @@
+import { createContext, useContext } from "react";
 import { Box, Stack, useTheme } from "@mui/material";
+
+// a layout's page area fills what its navigation leaves, so a loader inside it centres there rather than on the whole screen
+export const PageArea = createContext(null);
+
+const sizeOf = ({ fromChat, isAuthRoute, pageArea }) => {
+  if (fromChat) return { height: "100%" };
+  if (isAuthRoute) return { height: "50vh" };
+  if (pageArea) return { flex: 1, pt: pageArea.isUnderStatusBar ? "env(safe-area-inset-top)" : 0 };
+  return { minHeight: "100dvh" };
+};
 
 const LoadingScreen = ({ fromChat }) => {
   // using theme
@@ -7,23 +18,12 @@ const LoadingScreen = ({ fromChat }) => {
   // Check if /auth is present in the URL
   const isAuthRoute = window.location.pathname.includes("/auth");
 
-  let height, width;
-
-  if (isAuthRoute) {
-    height = "50vh";
-    width = "100%";
-  } else if (fromChat) {
-    height = "100%";
-    width = "100%";
-  } else {
-    height = "100vh";
-    width = "100vw";
-  }
+  const pageArea = useContext(PageArea);
 
   return (
     <Stack
-      height={height}
-      width={width}
+      width={"100%"}
+      sx={sizeOf({ fromChat, isAuthRoute, pageArea })}
       direction={"row"}
       justifyContent={"center"}
       alignItems={"center"}

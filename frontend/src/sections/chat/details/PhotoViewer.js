@@ -2,10 +2,13 @@ import { Box, Dialog, IconButton, Stack, Typography } from "@mui/material";
 import { useReducedMotion } from "framer-motion";
 import { X } from "phosphor-react";
 
+import useDarkSystemBars from "@/hooks/useDarkSystemBars";
+
 const TITLE_ID = "photo-viewer-title";
 
 // a profile picture is a plain address rather than an encrypted file, so it needs none of the message lightbox
 const PhotoViewer = ({ src, name, onClose }) => {
+  useDarkSystemBars();
   const isStill = useReducedMotion();
   const closeOnBackdrop = (event) => event.target === event.currentTarget && onClose();
 
