@@ -69,20 +69,36 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "kind=$KIND" >> "$GITHUB_OUTPUT"
 
-      - name: Check the signing secrets
+      - name: Check the secrets and settings
         if: steps.plan.outputs.version
         env:
+          KIND: ${{ steps.plan.outputs.kind }}
           LIVE_UPDATE_KEY: ${{ secrets.LIVE_UPDATE_KEY }}
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RENDER_RC_DEPLOY_HOOK: ${{ secrets.RENDER_RC_DEPLOY_HOOK }}
+          RC_API_ORIGIN: ${{ vars.RC_API_ORIGIN }}
         run: |
-          for name in LIVE_UPDATE_KEY GOOGLE_SERVICES_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD; do
+          NAMES="LIVE_UPDATE_KEY GOOGLE_SERVICES_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD"
+          # a test build without the rc backend would quietly talk to production instead
+          if [ "$KIND" = test ]; then
+            NAMES="$NAMES RENDER_RC_DEPLOY_HOOK RC_API_ORIGIN"
+          fi
+          for name in $NAMES; do
             if [ -z "${!name}" ]; then
-              echo "::error::The $name secret is not set, so nothing is published."
+              echo "::error::$name is not set, so nothing is published."
               exit 1
             fi
           done
+
+      # rc's backend deploys only for an app release's test build, at the commit the APK is built from
+      - name: Deploy the rc backend
+        if: steps.plan.outputs.kind == 'test'
+        env:
+          RENDER_RC_DEPLOY_HOOK: ${{ secrets.RENDER_RC_DEPLOY_HOOK }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: curl --fail --silent --show-error --output /dev/null -X POST "$RENDER_RC_DEPLOY_HOOK&ref=$SHA"
 
       - uses: actions/setup-node@v4
         if: steps.plan.outputs.version
@@ -111,7 +127,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           REACT_APP_SENTRY_DSN: ${{ vars.REACT_APP_SENTRY_DSN }}
           REACT_APP_NODE: ${{ vars.REACT_APP_NODE }}
-          REACT_APP_API_ORIGIN: ${{ vars.REACT_APP_API_ORIGIN }}
+          REACT_APP_API_ORIGIN: ${{ steps.plan.outputs.kind == 'test' && vars.RC_API_ORIGIN || vars.REACT_APP_API_ORIGIN }}
           REACT_APP_GA_ID: ${{ vars.REACT_APP_GA_ID }}
           REACT_APP_GOOGLE_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GOOGLE_AUTH_CLIENT_ID }}
           REACT_APP_GITHUB_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GITHUB_AUTH_CLIENT_ID }}
@@ -182,5 +198,5 @@ jobs:
         run: |
           gh release delete "test-v$VERSION" --yes 2>/dev/null || true
           gh release create "test-v$VERSION" --draft --target "$SHA" --title "Whisprl $VERSION test build" \
-            --notes "The app release for v$VERSION as rc has it at ${SHA::7}, against the production backend. Install whisprl.apk over the app to try it before merging. Replaced on every push to rc, and deleted once v$VERSION is released." \
+            --notes "The app release for v$VERSION as rc has it at ${SHA::7}, against the rc backend on Render. Install whisprl.apk over the app to try it before merging. Replaced on every push to rc, and deleted once v$VERSION is released." \
             "$RUNNER_TEMP/release/whisprl.apk"

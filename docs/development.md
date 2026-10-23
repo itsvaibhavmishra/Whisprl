@@ -470,16 +470,25 @@ tried on a phone before it ships. The Release workflow does this on its own for 
 `production` pull request, once it is labelled `release: app` and `rc` is on a new version,
 which is the case once the prepare pull request has merged.
 
-It builds the same signed APK the release will, against the production backend, and publishes it
-as the draft release `test-v<version>`. Every push to `rc` while the pull request is open replaces
+It builds the same signed APK the release will, against the rc backend, and publishes it as the
+draft release `test-v<version>`. Every push to `rc` while the pull request is open replaces
 that draft, cancelling a build still running for an older commit, and publishing the real release
 deletes it. A draft is visible only to the repository's owners and never counts as the latest
 release, so no installed app reads it and nothing is tagged. Open it in GitHub on the phone and
 install `whisprl.apk` over the app: it carries the release's signature, so it keeps the account and
 its keys, and the real release later installs over it the same way.
 
-It tests the app, not the backend: backend changes deploy only with the merge into `production`, so
-the test build talks to the backend that is live now.
+The rc backend is a Render service (`whisprl.onrender.com`) with auto-deploy off. The same workflow
+deploys it through its deploy hook, at the commit the APK is built from, so the test build runs
+against rc's backend changes too. Nothing else deploys it: a merge into `rc` or a `release: web`
+pull request leaves it as it was. It needs the `RENDER_RC_DEPLOY_HOOK` secret and the
+`RC_API_ORIGIN` variable (`https://whisprl.onrender.com/api`), and the workflow refuses a test build
+without them rather than quietly building against production.
+
+It shares production's database and settings, so you sign in with your own account. Two servers
+on one database do not share their sockets, so live updates between the test build and the
+production app arrive only on the next fetch, and the production backend refuses a game it does not
+have yet: try a new game in a chat only test builds open.
 
 The scripts need `gh` (authenticated), `git` and `python3`. `scripts/changelog.py` holds the
 devlog-to-changelog text transforms as pure functions, so it can be read and tested on its own;
