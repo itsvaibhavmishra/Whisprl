@@ -38,6 +38,7 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
   if (place.at === "base" || (place.at === "home" && !forward)) return null;
   const path = [];
   const captured = [];
+  let jumped = 0;
   for (let step = 1; step <= steps; step += 1) {
     if (place.at === "home") {
       if (place.slot + 1 >= HOME_SLOTS || homeSlotTaken(state, marble.owner, place.slot + 1)) return null;
@@ -46,9 +47,7 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
       continue;
     }
     if (forward && byOwner && place.index === HOME_ENTRY[marble.owner]) {
-      // a marble parked in front of a home blocks the way in, unless a king's sweep has just taken it
-      const entryIsClear = path.length === 0 || sweep || !marbleAt(state, place.index);
-      if (!entryIsClear || !fitsHome(state, marble.owner, steps - step + 1)) return null;
+      if (!fitsHome(state, marble.owner, steps - step + 1)) return null;
       place = { at: "home", slot: 0 };
       path.push(place);
       continue;
@@ -57,8 +56,13 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
     const occupant = marbleAt(state, index);
     if (occupant && !sameMarble(occupant, marble)) {
       if (isOnOwnStart(state, occupant)) return null;
-      if (occupant.owner === marble.owner && !sweep) return null;
-      if (step === steps || sweep) captured.push({ marble: occupant, step });
+      if (sweep) captured.push({ marble: occupant, step });
+      else if (step < steps) {
+        // any marble may be jumped, your own too, but only one in a move
+        jumped += 1;
+        if (jumped > 1) return null;
+      } else if (occupant.owner === marble.owner) return null;
+      else captured.push({ marble: occupant, step });
     }
     place = { at: "track", index };
     path.push(place);

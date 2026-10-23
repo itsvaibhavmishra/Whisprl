@@ -64,8 +64,8 @@ export const Pile = forwardRef(({ pile, tonesOf }, topRef) =>
 
 const placesInFan = (fan) => [...(fan?.querySelectorAll("[data-back]") ?? [])].map((back) => back.getBoundingClientRect());
 
-// the red queen's pick: each of the other player's cards grows out of its place in their fan to lie face down and large in the board's centre, and the cards not taken shrink back
-export const TheirCards = ({ count, fan, taken, isStill, onTake }) => {
+// the red queen's pick: each of the other player's cards grows out of its place in their fan to lie face down and large in the board's centre, and the cards not taken fly back
+export const TheirCards = ({ count, fan, taken, isAnswered, isStill, onTake, onBack }) => {
   const rowRef = useRef(null);
   // the card you take sets off for the middle at once, so the server's answer arrives while it is already moving
   const [shift, setShift] = useState({ x: 0, y: 0 });
@@ -88,14 +88,19 @@ export const TheirCards = ({ count, fan, taken, isStill, onTake }) => {
     return () => growing.forEach((animation) => animation.cancel());
   }, [fan, isStill]);
   useLayoutEffect(() => {
+    if (taken === null) return undefined;
     const places = placesInFan(fan);
-    if (taken === null || isStill || !places.length) return undefined;
+    if (isStill || !places.length) {
+      onBack();
+      return undefined;
+    }
     // their fan already holds one card fewer, so each card after the taken one goes back a place to the left
     const placeOf = (index) => places[Math.min(index < taken ? index : index - 1, places.length - 1)];
     const cards = [...rowRef.current.querySelectorAll("[data-pick]")];
     const going = cards.flatMap((card, index) => (index === taken ? [] : [flyBack(card, placeOf(index))]));
+    Promise.allSettled(going.map((animation) => animation.finished)).then(onBack);
     return () => going.forEach((animation) => animation.cancel());
-  }, [taken, fan, isStill]);
+  }, [taken, fan, isStill, onBack]);
   return (
     <Stack
       ref={rowRef}
@@ -116,6 +121,7 @@ export const TheirCards = ({ count, fan, taken, isStill, onTake }) => {
         return (
           <ButtonBase
             key={index}
+            data-taken={index === taken || undefined}
             aria-label={`Their card ${index + 1}`}
             disabled={taken !== null}
             onClick={(event) => take(index, event.currentTarget)}
@@ -130,7 +136,8 @@ export const TheirCards = ({ count, fan, taken, isStill, onTake }) => {
               "&:hover, &.Mui-focusVisible": { transform: `${tilt} translateY(-8px)` },
             }}
           >
-            <Box data-pick sx={{ width: "100%", opacity: taken === null || index === taken ? 1 : 0 }}>
+            {/* once the server says what the card was, the play turns it over from here, so it is hidden under that */}
+            <Box data-pick sx={{ width: "100%", opacity: index === taken && isAnswered ? 0 : 1 }}>
               <CardBack />
             </Box>
           </ButtonBase>
