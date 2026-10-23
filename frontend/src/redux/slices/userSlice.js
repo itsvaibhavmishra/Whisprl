@@ -13,7 +13,7 @@ import {
 } from "@/redux/slices/actions/userActions";
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 import { BlockUser, GetBlocked, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
-import { ConfirmRecoveryKeySaved, ConfirmUsername, GetOnboarding, MarkWhatsNewSeen, SaveBirthdayStep, SkipSetupStep } from "@/redux/slices/actions/onboardingActions";
+import { ConfirmRecoveryKeySaved, ConfirmUsername, GetOnboarding, SaveBirthdayStep, SkipSetupStep } from "@/redux/slices/actions/onboardingActions";
 
 const initialState = {
   user: {
@@ -183,13 +183,13 @@ const slice = createSlice({
         state.onlineFriends = action.payload.onlineFriends;
       })
       .addMatcher(
-        isAnyOf(SaveBirthdayStep.pending, ConfirmUsername.pending, ConfirmRecoveryKeySaved.pending, SkipSetupStep.pending, MarkWhatsNewSeen.pending),
+        isAnyOf(SaveBirthdayStep.pending, ConfirmUsername.pending, ConfirmRecoveryKeySaved.pending, SkipSetupStep.pending),
         (state) => {
           state.latestOnboardingRead = null;
         }
       )
       .addMatcher(
-        isAnyOf(SaveBirthdayStep.fulfilled, ConfirmUsername.fulfilled, ConfirmRecoveryKeySaved.fulfilled, SkipSetupStep.fulfilled, MarkWhatsNewSeen.fulfilled),
+        isAnyOf(SaveBirthdayStep.fulfilled, ConfirmUsername.fulfilled, ConfirmRecoveryKeySaved.fulfilled, SkipSetupStep.fulfilled),
         (state, action) => {
           state.user = { ...state.user, ...action.payload.user };
         }

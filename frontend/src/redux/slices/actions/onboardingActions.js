@@ -18,6 +18,3 @@ export const SkipSetupStep = createApiThunk("onboarding/skip", async (step) => (
 
 // ------------- Username Kept -------------
 export const ConfirmUsername = createApiThunk("onboarding/username", async () => (await axios.put("/onboarding/username")).data);
-
-// ------------- What's New Seen -------------
-export const MarkWhatsNewSeen = createApiThunk("onboarding/whats-new", async (version) => (await axios.put("/onboarding/whats-new", { version })).data);

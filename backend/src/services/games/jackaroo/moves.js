@@ -56,13 +56,12 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
     const occupant = marbleAt(state, index);
     if (occupant && !sameMarble(occupant, marble)) {
       if (isOnOwnStart(state, occupant)) return null;
-      if (sweep) captured.push({ marble: occupant, step });
-      else if (step < steps) {
+      if (sweep || step === steps) captured.push({ marble: occupant, step });
+      else {
         // any marble may be jumped, your own too, but only one in a move
         jumped += 1;
         if (jumped > 1) return null;
-      } else if (occupant.owner === marble.owner) return null;
-      else captured.push({ marble: occupant, step });
+      }
     }
     place = { at: "track", index };
     path.push(place);
@@ -70,12 +69,12 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
   return { marble, from: placeOf(state, marble), path, to: place, captured };
 };
 
-// landing on a swirl always jumps to its twin, even past home, knocking out a rival there; a twin holding its own colour refuses the move
+// landing on a swirl always jumps to its twin, even past home, knocking out whatever marble waits there unless it sits on its own start
 const withTeleport = (state, move) => {
   const exit = move.to.at === "track" ? TELEPORTS[move.to.index] : undefined;
   if (exit === undefined) return move;
   const occupant = marbleAt(state, exit);
-  if (occupant?.owner === move.marble.owner) return null;
+  if (occupant && isOnOwnStart(state, occupant)) return null;
   const to = { at: "track", index: exit };
   const captured = occupant ? [...move.captured, { marble: occupant, step: move.path.length + 1 }] : move.captured;
   return { ...move, to, teleport: { from: move.to, to }, captured };

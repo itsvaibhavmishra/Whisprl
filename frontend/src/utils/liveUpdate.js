@@ -2,13 +2,18 @@ import { App } from "@capacitor/app";
 import { CapacitorHttp } from "@capacitor/core";
 import { LiveUpdate } from "@capawesome/capacitor-live-update";
 
+import { store } from "@/redux/store";
 import { isApp } from "@/utils/platform";
+import { carryOver } from "@/utils/updateCarryOver";
 
 // set only in builds people install, so a development build never swaps itself for production code
 const MANIFEST_URL = process.env.REACT_APP_UPDATE_URL;
 const RUNNING_VERSION = process.env.REACT_APP_VERSION;
+const CHECK_EVERY_MS = 60 * 60 * 1000;
 
 let checking = null;
+let staged = null;
+let isPicking = false;
 
 const isNewer = (candidate, current) => {
   const [next, now] = [candidate, current].map((version) => version.split(".").map(Number));
@@ -40,6 +45,20 @@ const stageUpdate = async () => {
     await LiveUpdate.downloadBundle({ bundleId: update.version, url: update.url, signature: update.signature });
   }
   await LiveUpdate.setNextBundle({ bundleId: update.version });
+  staged = update.version;
+};
+
+// switched in the moment the app is left, before the phone freezes it, so whoever comes back finds the same screen on the new version
+const applyWhileAway = () => {
+  // a picker the app opened sends it to the background too, and a reload then would lose what is being picked
+  if (!staged || isPicking || !store.getState().auth.isLoggedIn) return;
+  carryOver({
+    path: window.location.pathname + window.location.search,
+    drafts: store.getState().chat.drafts,
+    leftAt: Date.now(),
+    isLocked: Boolean(document.querySelector("[data-app-locked]")),
+  });
+  LiveUpdate.reload().catch(() => {});
 };
 
 const checkForUpdate = () => {
@@ -58,5 +77,11 @@ export const startLiveUpdates = async () => {
   if (!MANIFEST_URL) return;
 
   checkForUpdate();
-  App.addListener("resume", checkForUpdate);
+  setInterval(checkForUpdate, CHECK_EVERY_MS);
+  document.addEventListener("click", (event) => (isPicking ||= event.target instanceof HTMLInputElement && event.target.type === "file"), true);
+  App.addListener("pause", applyWhileAway);
+  App.addListener("resume", () => {
+    isPicking = false;
+    checkForUpdate();
+  });
 };

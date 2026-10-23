@@ -82,6 +82,15 @@ test("knocking out a rival earns one more card and keeps the turn", () => {
   assert.equal(after.lastPlay.bonus, true);
 });
 
+test("landing on a marble of your own knocks it out and earns a card", () => {
+  const state = gameWith({ mine: [track(3), track(6)], hand: [card(3)], theirHand: [card(5)] });
+  const landing = viewFor(state, 0).options.find((option) => option.kind === "move" && option.moves[0].marble.id === 0);
+  const after = play(state, 0, { key: landing.key });
+  assert.deepEqual(after.players[0].marbles[1], { at: "base", slot: 1 });
+  assert.equal(after.lastPlay.bonus, true);
+  assert.equal(turnOf(after), 0);
+});
+
 test("knocking out a marble of your own earns a card too", () => {
   const state = gameWith({ mine: [track(3), track(10)], hand: [card(13)], theirHand: [card(5)] });
   const sweep = viewFor(state, 0).options.find((option) => option.kind === "sweep" && option.moves[0].marble.id === 0);
@@ -138,6 +147,7 @@ test("a red queen takes the face-down card its player picked, and its victim los
   const after = play(state, 0, { key: option.key, taken: 1 });
   assert.deepEqual(after.players[1].hand, [card(5)]);
   assert.deepEqual(after.lastPlay.lost, card(13));
+  assert.equal(after.lastPlay.lostAt, 1);
   assert.equal(turnOf(after), 0);
 });
 

@@ -13,9 +13,11 @@ import SettingsProvider from "@/contexts/SettingsContext";
 // redux imports
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "@/redux/store";
+import { setDraft } from "@/redux/slices/chatSlice";
 
 import { startErrorReports } from "@/utils/errorReports";
 import { injectStore } from "@/utils/session";
+import { carriedOver } from "@/utils/updateCarryOver";
 
 // before anything renders, so a failure while starting is reported too
 startErrorReports();
@@ -23,6 +25,13 @@ startErrorReports();
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 injectStore(store);
+
+// a live update reloads while the app is away, so the screen and anything half typed come back as they were left
+const carried = carriedOver();
+if (carried) {
+  window.history.replaceState(null, "", carried.path);
+  Object.entries(carried.drafts ?? {}).forEach(([conversationId, text]) => store.dispatch(setDraft({ conversationId, text })));
+}
 
 root.render(
   <React.StrictMode>

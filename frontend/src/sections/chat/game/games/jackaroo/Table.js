@@ -62,7 +62,13 @@ export const Pile = forwardRef(({ pile, tonesOf }, topRef) =>
   })
 );
 
-const placesInFan = (fan) => [...(fan?.querySelectorAll("[data-back]") ?? [])].map((back) => back.getBoundingClientRect());
+// each card of a fan by where it sits, its own width and the tilt the fan gives it, since a tilted card's box is wider than the card
+const placesInFan = (fan) =>
+  [...(fan?.querySelectorAll("[data-back]") ?? [])].map((back) => {
+    const { a, b } = new DOMMatrix(getComputedStyle(back.closest("[data-glide]") ?? back).transform);
+    const box = back.getBoundingClientRect();
+    return { left: box.left, top: box.top, width: box.width, height: box.height, ownWidth: back.offsetWidth, tilt: (Math.atan2(b, a) * 180) / Math.PI };
+  });
 
 // the red queen's pick: each of the other player's cards grows out of its place in their fan to lie face down and large in the board's centre, and the cards not taken fly back
 export const TheirCards = ({ count, fan, taken, isAnswered, isStill, onTake, onBack }) => {
@@ -130,9 +136,10 @@ export const TheirCards = ({ count, fan, taken, isAnswered, isStill, onTake, onB
               mx: "1%",
               zIndex: index === taken ? 1 : "auto",
               borderRadius: "8%",
-              transform: index === taken ? `translate(${shift.x}px, ${shift.y}px) scale(1.04)` : tilt,
+              // once one is taken the rest straighten, so their flight back is measured and made in the screen's own frame
+              transform: index === taken ? `translate(${shift.x}px, ${shift.y}px) scale(1.04)` : taken === null ? tilt : "none",
               filter: index === taken ? "drop-shadow(0 0 10px rgba(255, 228, 140, 0.95))" : "drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5))",
-              transition: index === taken ? "transform 360ms cubic-bezier(0.2, 0.8, 0.3, 1)" : "transform 160ms ease",
+              transition: index === taken ? "transform 360ms cubic-bezier(0.2, 0.8, 0.3, 1)" : taken === null ? "transform 160ms ease" : "none",
               "&:hover, &.Mui-focusVisible": { transform: `${tilt} translateY(-8px)` },
             }}
           >
@@ -230,7 +237,8 @@ export const Fan = memo(
   forwardRef(({ count, arrival, shoeRef, isStill, isAway, size = 26 }, ref) => {
     const rowRef = useRef(null);
     const fanRef = useForkRef(rowRef, ref);
-    useGlide(rowRef, isStill);
+    // hidden behind the red queen's pick, the fan takes its new places at once, so the cards flying back aim at where they will stay
+    useGlide(rowRef, isStill || isAway);
     const lastCount = useRef(arrival?.isOpening ? 0 : count);
     useLayoutEffect(() => {
       const before = lastCount.current;

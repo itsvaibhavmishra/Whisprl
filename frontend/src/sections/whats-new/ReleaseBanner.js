@@ -12,7 +12,7 @@ const riseAbove = (width) => `${Math.round((width * 648) / 600) - CARD_HEIGHT}px
 const eachWidth = (toCss) => ({ xs: toCss(MASCOT_WIDTH.xs), sm: toCss(MASCOT_WIDTH.sm) });
 
 // the same doodles as a profile cover, in the accent the person picked
-const ReleaseBanner = ({ title, subtitle, titleId, pattern = "whispers" }) => {
+const ReleaseBanner = ({ title, subtitle, pattern = "whispers" }) => {
   const { themeColorPresets } = useSettings();
   const palette = (colorPresets.find((preset) => preset.name === themeColorPresets) ?? defaultPreset).label.toLowerCase();
 
@@ -34,7 +34,7 @@ const ReleaseBanner = ({ title, subtitle, titleId, pattern = "whispers" }) => {
       >
         <CoverArt pattern={pattern} palette={palette} tileSize={360} />
         <Box sx={{ position: "relative", minWidth: 0, textShadow: "0 1px 8px rgba(0, 0, 0, 0.35)" }}>
-          <Typography id={titleId} component="h2" sx={{ m: 0, fontSize: { xs: 21, sm: 24 }, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+          <Typography component="h2" sx={{ m: 0, fontSize: { xs: 21, sm: 24 }, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
             {title}
           </Typography>
           {subtitle && <Typography sx={{ mt: 0.5, fontSize: 14, fontWeight: 600, opacity: 0.9 }}>{subtitle}</Typography>}

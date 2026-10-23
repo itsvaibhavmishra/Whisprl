@@ -536,7 +536,8 @@ export const lookAtGame = (io, socket, isLooking) => {
 };
 
 // the emoji anyone at a game can throw; they are shown and gone, never saved
-const REACTIONS = ["😂", "😮", "😍", "👏", "🔥", "😢", "😡", "👍"];
+// the tray's nine, then the set before them, which apps not yet updated still throw
+const REACTIONS = ["😂", "😭", "😜", "😘", "😎", "😡", "😱", "🫠", "🥳", "😮", "😍", "👏", "🔥", "😢", "👍"];
 
 export const reactInGame = async (socket, emoji) => {
   const id = socket.data.watching;
