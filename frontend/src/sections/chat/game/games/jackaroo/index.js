@@ -51,7 +51,7 @@ const jackaroo = {
     },
     {
       heading: "Moving",
-      text: "A card moves a marble that many holes forward. You can't land on or jump your own marbles, and nobody can pass or land on a marble sitting on its own start.",
+      text: "A card moves a marble that many holes forward. On the way it can jump one marble, yours or theirs, but never two, and it can't land on your own. Nobody can pass or land on a marble sitting on its own start.",
       picture: "moving",
     },
     {

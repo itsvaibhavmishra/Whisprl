@@ -44,7 +44,10 @@ const SCENES = {
   },
   moving: {
     crop: { x: 225, y: 380, width: 230, height: 300 },
-    marbles: [[track(4), YOU]],
+    marbles: [
+      [track(4), YOU],
+      [track(7), THEM],
+    ],
     ghost: track(10),
     arrow: [track(4), track(10)],
     card: card(6, "S"),

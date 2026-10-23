@@ -129,6 +129,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     if (result?.meta?.requestStatus === "rejected") {
       setSentAt(null);
       setChoice({ plays: state.plays });
+      setPick(null);
       setRefusal(result.payload);
     }
   };
@@ -142,7 +143,6 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
 
   // a played card flies to the pile from its own place in the hand, measured before the hand hides it
   const playedFrom = useRef(null);
-  const tappedFrom = useRef(null);
   const flownId = useRef(null);
   const handRef = useRef(null);
   const playCard = () => {
@@ -151,8 +151,12 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     choose({ ...chosen, isPlayed: true });
   };
   // the card you take from them is sent at once and stays lifted until the server shows what it was
+  const [pick, setPick] = useState(null);
+  const onPickBack = useCallback(() => setPick((current) => current && { ...current, isBack: true }), []);
+  const tappedTo = useRef(null);
   const take = (index, rect) => {
-    tappedFrom.current = rect;
+    tappedTo.current = rect;
+    setPick({ plays: state.plays, count: state.hands[rival], taken: index, isBack: false });
     setChoice({ ...chosen, taken: index });
     send(step.play, { taken: index });
   };
@@ -199,6 +203,10 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const mustThrow = Boolean(state.pending) || isThrowing;
   const isAlarmed = isMyTurn && !chosen.isPlayed && mustThrow;
   const isPicking = chosen.isPlayed && (step?.play?.kind === "takeCard" || chosen.taken !== undefined);
+  // the pick stays until its card is answered and the others are back in their fan, so nothing in it vanishes mid-flight
+  const isPickAnswered = pick !== null && state.plays !== pick.plays;
+  const livePick = pick && !(pick.isBack && isPickAnswered) ? pick : null;
+  const isPickShown = isPicking || livePick !== null;
 
   // the moves the picked card could still make, drawn on the board until one is sent
   const previewed = chosen.card && isMyTurn ? narrowed(options, chosen).filter((option) => option.moves?.length === 1) : [];
@@ -277,7 +285,8 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
       pileCards: [...stage.querySelectorAll("[data-pile]")],
       // a card you played flew to the pile the moment you played it
       playedFrom: card?.id === flownId.current ? null : handOf(seat),
-      takenFrom: seat === mySeat ? tappedFrom.current : handOf(1 - seat),
+      // the card you took turns over from wherever it is on its way to the middle, or from the middle once the pick has gone
+      takenFrom: seat === mySeat ? (stage.querySelector("[data-taken]")?.getBoundingClientRect() ?? tappedTo.current) : handOf(1 - seat),
     });
   }, [state.plays, isStill, isTurned, mySeat]);
 
@@ -344,14 +353,24 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
             <Box ref={effectsRef} sx={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
             <Targets targets={targets} onPick={onTarget} />
             {crowded.length > 0 && <Crowd targets={crowded} onPick={onCrowdPick} />}
-            {isPicking && <TheirCards count={state.hands[rival]} fan={fanRefs.current[rival]} taken={chosen.taken ?? null} isStill={isStill} onTake={take} />}
+            {isPickShown && (
+              <TheirCards
+                count={livePick?.count ?? state.hands[rival]}
+                fan={fanRefs.current[rival]}
+                taken={livePick?.taken ?? null}
+                isAnswered={isPickAnswered}
+                isStill={isStill}
+                onTake={take}
+                onBack={onPickBack}
+              />
+            )}
           </Box>
           {/* the other player sits off the board's top right corner and you off its bottom left, over the rim, as the reference seats them */}
           <Box sx={{ position: "absolute", zIndex: 2, right: 0, bottom: `calc(100% - ${RIM_OVERLAP}px)` }}>
             <Player
               {...playerAt(top)}
               cardsHeld={state.hands[top] - (chosen.taken === undefined ? 0 : 1) - (bonusSeat === top ? 1 : 0)}
-              isHandAway={isPicking && chosen.taken === undefined}
+              isHandAway={isPickShown}
               arrival={arrivals[top]}
               shoeRef={shoeRef}
               isStill={isStill}
