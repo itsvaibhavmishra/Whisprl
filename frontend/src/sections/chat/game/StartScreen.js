@@ -33,7 +33,7 @@ const ACTIONS = { width: "min(70%, 290px)", alignItems: "stretch" };
 // the game's bar floats over the top of the start screen, so a title placed by the screen starts below it
 const BAR_ROOM = 64;
 
-const BotToggle = ({ label, onClick }) => (
+const BotToggle = ({ label, theme, onClick }) => (
   <Button
     variant="outlined"
     startIcon={<Robot size={18} weight="bold" />}
@@ -44,9 +44,9 @@ const BotToggle = ({ label, onClick }) => (
       fontSize: 13,
       fontWeight: 700,
       color: ON_SCRIM,
-      borderColor: alpha("#fff", 0.38),
+      borderColor: alpha(theme.outline ?? "#fff", theme.outline ? 0.85 : 0.38),
       borderWidth: 1.5,
-      "&:hover": { borderWidth: 1.5, borderColor: alpha("#fff", 0.7), bgcolor: alpha("#fff", 0.08) },
+      "&:hover": { borderWidth: 1.5, borderColor: alpha(theme.outline ?? "#fff", 0.9), bgcolor: alpha("#fff", 0.08) },
     }}
   >
     {label}
@@ -156,7 +156,7 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
               </StatusPill>
               <Stack spacing={0.85} sx={ACTIONS}>
                 {next && <GameButton theme={theme} label={next.label} onClick={next.onClick} isDisabled={!next.onClick} isQuiet={next.isQuiet} isSmall isFull />}
-                {bot && <BotToggle label={bot.label} onClick={bot.onClick} />}
+                {bot && <BotToggle label={bot.label} theme={theme} onClick={bot.onClick} />}
               </Stack>
               {bot && <PracticeNote />}
             </>

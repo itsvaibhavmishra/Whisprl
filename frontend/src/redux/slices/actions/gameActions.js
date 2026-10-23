@@ -1,6 +1,7 @@
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { seatSwitchOffered } from "@/redux/slices/gameSlice";
 import axios from "@/utils/axios";
+import { emitRoomEvent } from "@/utils/gameRoomEvents";
 import { firstNameIn } from "@/utils/groups";
 import { openNotifiedChat } from "@/utils/notifications";
 import { notify } from "@/utils/notify";
@@ -29,6 +30,24 @@ export const WatchGame = createApiThunk("game/watch", (conversationId) => emitGa
 export const UnwatchGame = createApiThunk("game/unwatch", () => emitGameEvent("game_unwatch"), { notifyErrors: false });
 
 export const ActInGame = createApiThunk("game/act", (action) => emitGameEvent("game_act", action));
+
+// a board that says its own refusals sends its moves this way, so no toast says them again
+export const ActInGameQuietly = createApiThunk("game/actQuietly", (action) => emitGameEvent("game_act", action), { notifyErrors: false });
+
+// tells the server whether this chat's game is on screen, which is what lets watchers' messages float across it
+export const LookAtGame = createApiThunk("game/look", (isLooking) => emitGameEvent("game_look", isLooking), { notifyErrors: false });
+
+// shown at once to whoever threw it, and sent on to everyone else at the game; never saved
+export const ReactInGame = createApiThunk("game/react", (emoji, { getState }) => {
+  const { game, user } = getState();
+  emitRoomEvent({ conversationId: game.watching, from: user.user._id, emoji });
+  return emitGameEvent("game_react", emoji);
+});
+
+export const ReceiveGameReaction = (reaction) => (_, getState) => {
+  if (reaction.conversationId !== getState().game.watching) return;
+  emitRoomEvent({ conversationId: reaction.conversationId, from: reaction.user, emoji: reaction.emoji });
+};
 
 // named by the game alone, so the panel can show which one is opening; it opens in the chat being watched
 export const OpenGame = createApiThunk("game/open", (game, { getState }) =>

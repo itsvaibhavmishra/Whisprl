@@ -6,6 +6,8 @@ const CENTRE_SNAP = 0.02;
 const QUARTER_TURN = Math.PI / 2;
 const RIGHT_ANGLE_SNAP = (5 * Math.PI) / 180;
 const TAP_SLOP = 5;
+// a finger lands with some drift, so extra fingers still count while the first has stayed this close
+const TAP_REACH = 24;
 const SWIPE = 60;
 const BIN_REACH = 44;
 export const BIN_LIFT = 48;
@@ -110,7 +112,7 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
   };
 
   // a second finger draws a straight line between the two and a third a circle, as long as the first has not started drawing
-  const canAddFinger = (event) => event.pointerType === "touch" && !gesture.current.hasMoved && pointers.current.size < 3;
+  const canAddFinger = (event) => event.pointerType === "touch" && gesture.current.reach <= TAP_REACH && pointers.current.size < 3;
 
   const onPointerDown = (event) => {
     if (event.button > 0 || (brush && gesture.current && !canAddFinger(event))) return;
@@ -119,7 +121,7 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
     pointers.current.set(event.pointerId, point);
     if (brush && gesture.current) return shapeUnderFingers();
     if (brush) {
-      gesture.current = { kind: "stroke", from: point, stroke: { brush: brush.name, color: brush.color, size: brush.size, points: [[point.x / size.width, point.y / size.height]] } };
+      gesture.current = { kind: "stroke", from: point, reach: 0, stroke: { brush: brush.name, color: brush.color, size: brush.size, points: [[point.x / size.width, point.y / size.height]] } };
       onLiveStroke(gesture.current.stroke);
       return;
     }
@@ -143,7 +145,8 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
     const current = gesture.current;
     if (current?.kind === "stroke" && pointers.current.size > 1) return shapeUnderFingers();
     if (current?.kind === "stroke") {
-      current.hasMoved ||= distance(current.from, point) > TAP_SLOP;
+      current.reach = Math.max(current.reach, distance(current.from, point));
+      current.hasMoved ||= current.reach > TAP_SLOP;
       // a resting finger still reports moves, often to the very spot it landed on, so a tap stays one point
       if (!current.hasMoved) return;
       current.stroke.points.push([point.x / size.width, point.y / size.height]);

@@ -82,6 +82,9 @@ const messageSchema = mongoose.Schema(
     // a change to a group, shown as a note in the chat rather than a bubble
     event: { type: eventSchema, default: undefined },
 
+    // the catalog id of the game it was typed in, so the chat can say where it came from
+    game: { type: String },
+
     // sealed to the sender alone until the recipient has a key, then re-encrypted by the sender's browser
     awaitingKey: { type: Boolean },
 

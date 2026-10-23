@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { Link, Navigate, Outlet, matchPath, useLocation } from "react-router-dom";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
+import { PageArea } from "@/components/LoadingScreen";
 import Wordmark from "@/components/Wordmark";
 import { ON_RAIL } from "@/layouts/dashboard/NavRail";
 import { PATH_ADMIN, PATH_DASHBOARD } from "@/routes/paths";
@@ -14,6 +15,8 @@ import getAvatar from "@/utils/avatars";
 import { can } from "@/utils/roles";
 
 const SIDEBAR_WIDTH = 248;
+// the top bar already sits below the status bar, so the page area starts clear of it
+const PAGE_AREA = { isUnderStatusBar: false };
 const DESTINATIONS = [
   { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUp, permission: "overview" },
   { path: PATH_ADMIN.people, label: "People", Icon: Users, permission: "people" },
@@ -204,8 +207,10 @@ const AdminLayout = () => {
   return (
     <Stack direction={{ xs: "column", md: "row" }} sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
       {isPhone ? <TopBar destinations={destinations} /> : <Sidebar destinations={destinations} />}
-      <Box component="main" sx={{ flex: 1, minWidth: 0 }}>
-        <AllowedContent destinations={destinations} />
+      <Box component="main" sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <PageArea.Provider value={PAGE_AREA}>
+          <AllowedContent destinations={destinations} />
+        </PageArea.Provider>
       </Box>
     </Stack>
   );

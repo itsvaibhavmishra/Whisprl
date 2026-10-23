@@ -12,6 +12,7 @@ import typography from '@/theme/typography';
 import breakpoints from '@/theme/breakpoints';
 import componentsOverride from '@/theme/overrides';
 import shadows, { customShadows } from '@/theme/shadows';
+import { matchSystemBars } from '@/utils/systemBars';
 
 ThemeProvider.propTypes = {
   children: PropTypes.node,
@@ -43,6 +44,8 @@ export default function ThemeProvider({ children }) {
   useEffect(() => {
     document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute('content', barColor));
   }, [barColor]);
+
+  useEffect(() => matchSystemBars(isLight), [isLight]);
 
   theme.components = componentsOverride(theme);
 

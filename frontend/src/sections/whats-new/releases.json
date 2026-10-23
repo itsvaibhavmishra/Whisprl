@@ -2,6 +2,27 @@
   "upcoming": [],
   "releases": [
     {
+      "version": "2.5.2",
+      "date": "2026-10-23",
+      "highlights": [
+        {
+          "emoji": "🃏",
+          "title": "Jackaroo",
+          "text": "A card-and-marble race for two: bring your four marbles home, knock theirs out and jump across the swirls, against a friend or the bot."
+        },
+        {
+          "emoji": "💬",
+          "title": "Talk at the table",
+          "text": "Say something or throw an emoji without leaving a game, and see each player's words beside their seat."
+        },
+        {
+          "emoji": "📖",
+          "title": "Rules and scores in the game",
+          "text": "A game's rules open as pages with pictures, and its leaderboard shows just that game, without leaving it."
+        }
+      ]
+    },
+    {
       "version": "2.5.0",
       "date": "2026-10-20",
       "highlights": [

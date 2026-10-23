@@ -104,6 +104,56 @@ const CUES = {
   },
 };
 
+// a game's own sound, built on the shared context and played at the effects level
+export const playBuilt = (build) => {
+  const volume = effectsVolume();
+  if (!volume) return;
+  try {
+    const ctx = audio();
+    const output = ctx.createGain();
+    output.gain.value = volume;
+    output.connect(ctx.destination);
+    build(ctx, output);
+  } catch {
+    // the game simply plays in silence
+  }
+};
+
+const recordings = new Map();
+
+// a recorded sound is fetched and decoded once, then played from memory every time after
+const recordingOf = (url) => {
+  if (!recordings.has(url)) {
+    const decoded = fetch(url)
+      .then((response) => response.arrayBuffer())
+      .then((data) => audio().decodeAudioData(data))
+      .catch(() => {
+        // a sound that failed to load, offline say, is tried again the next time it plays
+        recordings.delete(url);
+        return null;
+      });
+    recordings.set(url, decoded);
+  }
+  return recordings.get(url);
+};
+
+export const preloadRecordings = (urls) => urls.forEach(recordingOf);
+
+// rate changes the pitch a little, so a sound heard many times in a row never sounds like a loop
+export const playRecording = (url, { level = 1, rate = 1, delay = 0 } = {}) =>
+  recordingOf(url).then((buffer) =>
+    playBuilt((ctx, output) => {
+      if (!buffer) return;
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      source.buffer = buffer;
+      source.playbackRate.value = rate;
+      gain.gain.value = level;
+      source.connect(gain).connect(output);
+      source.start(ctx.currentTime + delay);
+    })
+  );
+
 export const playGameSound = (name, ...details) => {
   if (!effectsVolume() || !CUES[name]) return;
   try {

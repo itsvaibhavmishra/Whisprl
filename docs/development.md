@@ -145,6 +145,11 @@ and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
   signed with the release key from the `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD`
   secrets, with the production Firebase config from `GOOGLE_SERVICES_JSON`, which has to be
   `whisprl-prod`. A release with any of these secrets missing fails before it publishes anything.
+- **The Play bundle** is built only for an app release, from the same build and signing, and
+  attached as `whisprl-play.aab`. Play accepts each `versionCode` once, so a web release would
+  only repeat the last code. To put a release on Play, download the bundle from the release and
+  upload it under Testing or Production in the Play Console, where it shows as
+  `<versionCode> (<version>)`.
 - **`REACT_APP_UPDATE_URL`** is set only for builds people install. A development build leaves it
   out, so it never replaces itself with production code. A production APK must be built with it,
   or that APK never updates.
@@ -394,8 +399,9 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 
 - **A feature branch** publishes nothing. Push as often as you like.
 - **`rc`** publishes nothing either.
-- **An app release pull request** from `rc` into `production` publishes only a draft APK that only
-  the repository's owners can see (see Trying an app release on a phone).
+- **A release pull request** from `rc` into `production`, labelled `release: web` or
+  `release: app`, publishes only a draft APK that only the repository's owners can see (see Trying
+  a release on a phone).
 - **Merging into `production`** always redeploys the website and the backend, since Netlify and
   Northflank deploy from the branch itself. Whether it also publishes a version depends on the
   pull request's label:
@@ -403,15 +409,15 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 | Label | When | Publishes |
 |---|---|---|
 | `release: web` | the version went up, `versionCode` did not | a GitHub Release tagged `v<version>` with the changelog section as its notes, the live update and the APK. Installed apps update themselves |
-| `release: app` | the version and `versionCode` both went up | the same, with a note that Android users need the new APK, since their app skips this update |
+| `release: app` | the version and `versionCode` both went up | the same, with a note that Android users need the new APK, since their app skips this update, and the Play bundle `whisprl-play.aab` |
 | none | neither changed | nothing beyond the redeploy |
 
 `scripts/release.sh` picks the label from `versionCode`, and `release-ready.yml` fails a pull
 request whose label does not match what changed.
 
-Every release carries `app-update.zip`, `app-update.json` and `whisprl.apk`, and the workflow
-publishes it only once all three are built, so `releases/latest/download/` always has each of
-them. Installed apps read their update there (see Live updates under The Android app), and
+Every release carries `app-update.zip`, `app-update.json` and `whisprl.apk`, and an app release
+also carries `whisprl-play.aab` for the Play Console. The workflow publishes a release only once
+every file it carries is built, so `releases/latest/download/` always has the first three. Installed apps read their update there (see Live updates under The Android app), and
 `releases/latest/download/whisprl.apk` always downloads the newest app. A web release's APK keeps
 the same `versionCode`, so it serves new installs and changes nothing for existing ones. A release
 that fails to build publishes nothing, and running the Release workflow again from the Actions
@@ -458,23 +464,35 @@ release moves it.
 
 A version is published once. A mistake means burning a number rather than replacing it.
 
-## Trying an app release on a phone
+## Trying a release on a phone
 
-A `release: app` release changes native code, which no live update can fix afterwards, so it is
-tried on a phone before it ships. The Release workflow does this on its own for the `rc` into
-`production` pull request, once it is labelled `release: app` and `rc` is on a new version,
-which is the case once the prepare pull request has merged.
+Every release reaches the Android app, as a live update or a new APK, so it is tried on a phone
+before it ships. The Release workflow does this on its own for the `rc` into `production` pull
+request, once it is labelled `release: web` or `release: app` and `rc` is on a new version, which
+is the case once the prepare pull request has merged. A pull request with no release label builds
+nothing.
 
-It builds the same signed APK the release will, against the production backend, and publishes it
-as the draft release `test-v<version>`. Every push to `rc` while the pull request is open replaces
+It builds the same signed APK the release will, against the rc backend, and publishes it as the
+draft release `test-v<version>`. Every push to `rc` while the pull request is open replaces
 that draft, cancelling a build still running for an older commit, and publishing the real release
 deletes it. A draft is visible only to the repository's owners and never counts as the latest
 release, so no installed app reads it and nothing is tagged. Open it in GitHub on the phone and
 install `whisprl.apk` over the app: it carries the release's signature, so it keeps the account and
-its keys, and the real release later installs over it the same way.
+its keys. Once the release is out, install its own `whisprl.apk` over the test build the same way:
+the test build is already on that version, so it never takes the release's live update and would
+stay on the rc backend.
 
-It tests the app, not the backend: backend changes deploy only with the merge into `production`, so
-the test build talks to the backend that is live now.
+The rc backend is a Render service (`whisprl.onrender.com`) with auto-deploy off. The same workflow
+deploys it through its deploy hook, at the commit the APK is built from, so the test build runs
+against rc's backend changes too. Nothing else deploys it: a merge into `rc` or an `rc` into
+`production` pull request with no release label leaves it as it was. It needs the `RENDER_RC_DEPLOY_HOOK` secret and the
+`RC_API_ORIGIN` variable (`https://whisprl.onrender.com/api`), and the workflow refuses a test build
+without them rather than quietly building against production.
+
+It shares production's database and settings, so you sign in with your own account. Two servers
+on one database do not share their sockets, so live updates between the test build and the
+production app arrive only on the next fetch, and the production backend refuses a game it does not
+have yet: try a new game in a chat only test builds open.
 
 The scripts need `gh` (authenticated), `git` and `python3`. `scripts/changelog.py` holds the
 devlog-to-changelog text transforms as pure functions, so it can be read and tested on its own;

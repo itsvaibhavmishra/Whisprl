@@ -91,6 +91,13 @@ updates with them, all end-to-end encrypted. Free, open source, and right in you
 - See who viewed each one, and reply to a friend's update straight from it
 - Discover, for updates people have shared with everyone on Whisprl
 
+**Play**
+
+- Tic-tac-toe, Dots and Boxes, Chain Reaction and Jackaroo, beside the chat or across a phone's whole screen
+- Play a friend, a group of up to six, or the bot for practice
+- Talk while you play: your words pop up at your seat, and emoji fly across the table
+- Rules with pictures inside every game, and each game's own leaderboard in every chat
+
 **Stay in touch**
 
 - Find anyone by name or @username, and see people you may know
