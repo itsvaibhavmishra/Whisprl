@@ -1,4 +1,5 @@
 // Plays a move out after React has drawn where everything ends up, animating each piece back from where it was on transform and opacity.
+import art from "@/sections/chat/game/games/jackaroo/art";
 import { THROWS } from "@/sections/chat/game/games/jackaroo/choices";
 import { awesome, dust, glitter, goldBurst, goldWord, removedWhenDone, shake, spawn } from "@/sections/chat/game/games/jackaroo/effects";
 import { marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry";
@@ -18,7 +19,7 @@ const SWAP_MS = 1100;
 const TAKEN_MS = 1200;
 // a card the red queen takes is held this much larger in the middle, the size it was picked at
 const HELD = 1.4;
-const BACK_MS = 260;
+const BACK_MS = 420;
 const GROW_MS = 560;
 const BEAT_MS = 1200;
 // a deal, timed from its start: the deck shows, a card leaves it every gap, alternating from the leader, and the deck goes
@@ -238,15 +239,37 @@ export const flyToPile = (pileTop, from) => {
   );
 };
 
+// the back you picked turns away just where it lies, so the face turning in after it reads as the same card turning over
+const backTurnsAway = (layer, from, delay) => {
+  const stage = layer.getBoundingClientRect();
+  const back = document.createElement("img");
+  back.src = art.cardBack;
+  Object.assign(back.style, {
+    position: "absolute",
+    left: `${from.left - stage.left}px`,
+    top: `${from.top - stage.top}px`,
+    width: `${from.width}px`,
+    height: `${from.height}px`,
+    pointerEvents: "none",
+  });
+  layer.appendChild(back);
+  return removedWhenDone(
+    back.animate([{ transform: turnedTo(0) }, { transform: turnedTo(90, 6) }], { duration: FLIP_MS / 2, delay, easing: "ease-in", fill: "both" })
+  );
+};
+
 // the card a red queen takes leaves its owner, turning face up if it was hidden, holds in the middle so both players see it, then lands grey on the pile
-const takenToPile = (pileTop, from, delay, isFaceDown) => {
-  if (!pileTop) return null;
+const takenToPile = (pileTop, from, delay, { isFaceDown, layer }) => {
+  if (!pileTop) return [];
   const to = pileTop.getBoundingClientRect();
   const placed = from ? `${shiftBetween(from, to)} scale(${Math.min(from.height / to.height, HELD)})` : `translate(0px, 0px) scale(${HELD})`;
   const held = `translate(0px, 0px) scale(${HELD}) ${turnedTo(0)}`;
   const start = `${placed} ${turnedTo(isFaceDown ? -90 : 0)}`;
   const inColour = "grayscale(0) brightness(1)";
-  return pileTop.animate(
+  // the turn away comes out of the same time the server allows, so the play still ends when the next clock starts
+  const turnsAway = isFaceDown && from ? [backTurnsAway(layer, from, delay)] : [];
+  const faceAt = turnsAway.length ? FLIP_MS / 2 : 0;
+  const face = pileTop.animate(
     [
       { transform: start, filter: inColour, opacity: 0 },
       { transform: start, filter: inColour, opacity: 1, offset: 0.05, easing: "ease-out" },
@@ -254,8 +277,9 @@ const takenToPile = (pileTop, from, delay, isFaceDown) => {
       { transform: held, filter: inColour, offset: 0.7 },
       { transform: `translate(0px, 0px) scale(1) ${turnedTo(0)}`, filter: getComputedStyle(pileTop).filter },
     ],
-    { duration: TAKEN_MS, delay, easing: "ease-in-out", fill: "backwards" }
+    { duration: TAKEN_MS - faceAt, delay: delay + faceAt, easing: "ease-in-out", fill: "backwards" }
   );
+  return [...turnsAway, face];
 };
 
 // a player's card of a deal leaves the deck after every card dealt before it, the deal alternating from the leader
@@ -294,17 +318,14 @@ export const growFrom = (element, from, delay) => {
   });
 };
 
-// a card not taken by the red queen shrinks back into its place in their fan, from wherever its grow is when you tap
+// a card not taken by the red queen flies back into its place in their fan, from wherever its grow is when you tap, and stays there until the fan shows again
 export const flyBack = (element, to) => {
   const at = element.getBoundingClientRect();
-  return element.animate(
-    [
-      { transform: getComputedStyle(element).transform, opacity: 1 },
-      { transform: `${shiftBetween(to, at)} scale(${to.width / at.width})`, opacity: 1, offset: 0.85 },
-      { transform: `${shiftBetween(to, at)} scale(${to.width / at.width})`, opacity: 0 },
-    ],
-    { duration: BACK_MS, easing: "ease-in", fill: "forwards" }
-  );
+  return element.animate([{ transform: getComputedStyle(element).transform }, { transform: `${shiftBetween(to, at)} scale(${to.width / at.width})` }], {
+    duration: BACK_MS,
+    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+    fill: "forwards",
+  });
 };
 
 // the other player's bonus card swells into their hand with a gold flash
@@ -333,14 +354,14 @@ export const playOut = (lastPlay, view, { stage, effects, marbles, pileCards, pl
   // a red queen lies under the card it took
   const thrown = flyToPile(lastPlay.lost ? pileCards.at(-2) : pileCards.at(-1), playedFrom);
   const takenAt = thrown ? CARD_MS : 0;
-  const taken = lastPlay.lost ? takenToPile(pileCards.at(-1), takenFrom, takenAt, 1 - lastPlay.seat !== view.mySeat) : null;
-  animations.push(...[thrown, taken].filter(Boolean));
+  const taken = lastPlay.lost ? takenToPile(pileCards.at(-1), takenFrom, takenAt, { isFaceDown: 1 - lastPlay.seat !== view.mySeat, layer: effects }) : [];
+  animations.push(...[thrown, ...taken].filter(Boolean));
   // a card you played made its sound as it landed, so only a throw-away still owes one
   const isThrownAway = THROWS.includes(lastPlay.kind);
   if (thrown) at(CARD_MS, isThrownAway ? SOUNDS.trash : SOUNDS.cardDown);
   else if (isThrownAway) at(0, SOUNDS.trash);
   if (lastPlay.kind === "discardOther") at(CARD_MS, SOUNDS.stamp);
-  if (taken) {
+  if (taken.length) {
     at(takenAt, () => SOUNDS.cardIn());
     at(takenAt + TAKEN_MS * 0.85, SOUNDS.trash);
   }

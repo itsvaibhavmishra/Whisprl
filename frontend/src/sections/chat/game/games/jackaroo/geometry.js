@@ -1,10 +1,11 @@
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
 
-// the board is drawn for the seat at the bottom and turned half way round for the other, which its symmetry allows
+// the board is drawn for the seat at the bottom; turned for the other, each place shows on its partner across the board, since the hand-drawn art is not exactly symmetric
 export const pointOf = (place, owner, isTurned) => {
-  const { track, homes, bases, board } = layout;
-  const point = place.at === "track" ? track[place.index] : place.at === "home" ? homes[owner][place.slot] : bases[owner][place.slot];
-  return isTurned ? { x: board - point.x, y: board - point.y } : point;
+  const { track, homes, bases } = layout;
+  const seat = isTurned ? 1 - owner : owner;
+  if (place.at === "track") return track[isTurned ? (place.index + track.length / 2) % track.length : place.index];
+  return (place.at === "home" ? homes : bases)[seat][place.slot];
 };
 
 export const share = (units) => `${(units / layout.board) * 100}%`;
