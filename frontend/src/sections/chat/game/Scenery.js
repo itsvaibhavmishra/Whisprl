@@ -1,6 +1,14 @@
 import { Box } from "@mui/material";
 
 const EDGE = "linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%)";
+const FOOT = "linear-gradient(180deg, #000 82%, transparent 100%)";
+
+// a narrower scene fades at its sides and one that may end above the bottom at its foot; both need both masks at once
+const maskOf = (art, isNarrower) => {
+  const masks = [isNarrower && EDGE, art.fadesAtFoot && FOOT].filter(Boolean);
+  if (!masks.length) return {};
+  return { maskImage: masks.join(", "), WebkitMaskImage: masks.join(", "), maskComposite: "intersect", WebkitMaskComposite: "source-in" };
+};
 
 // art with pieces drawn into it, at the one width the pieces were placed for; a wider panel sees the scene blurred beside it
 const Scenery = ({ art, width, isNarrower }) => (
@@ -32,7 +40,7 @@ const Scenery = ({ art, width, isNarrower }) => (
         transform: "translateX(-50%)",
         backgroundImage: `url(${art.scene})`,
         backgroundSize: "100% auto",
-        ...(isNarrower && { maskImage: EDGE, WebkitMaskImage: EDGE }),
+        ...maskOf(art, isNarrower),
       }}
     />
   </>

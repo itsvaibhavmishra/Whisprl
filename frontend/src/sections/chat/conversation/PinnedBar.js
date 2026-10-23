@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { PushPinSlash } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -65,4 +65,4 @@ const PinnedBar = () => {
   );
 };
 
-export default PinnedBar;
+export default memo(PinnedBar);

@@ -10,6 +10,23 @@ const popIn = keyframes`
   to { transform: translate(-50%, 0) scale(1); opacity: 1; }
 `;
 
+const popOut = keyframes`
+  from { transform: translate(-6px, -50%) scale(0.6); opacity: 0; }
+  to { transform: translate(0, -50%) scale(1); opacity: 1; }
+`;
+
+// below the seat, its tail pointing up, or beside it, its tail pointing back at the name
+const PLACEMENTS = {
+  below: {
+    box: { top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", animation: `${popIn} 200ms ease-out` },
+    tail: (colour) => ({ top: -6, left: "50%", ml: "-6px", borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: `6px solid ${colour}` }),
+  },
+  beside: {
+    box: { top: "50%", left: "calc(100% + 10px)", transform: "translateY(-50%)", animation: `${popOut} 200ms ease-out` },
+    tail: (colour) => ({ left: -6, top: "50%", mt: "-6px", borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: `6px solid ${colour}` }),
+  },
+};
+
 // a layer as wide as the room crosses it, so the message inside travels the room's own width whatever that is
 const drift = keyframes`
   0% { transform: translateX(100%); opacity: 0; }
@@ -23,7 +40,8 @@ const STILL = { "@media (prefers-reduced-motion: reduce)": { animation: "none" }
 // what each player just said, by user id, given by the room to whichever seats it draws
 export const SayingsContext = createContext({});
 
-export const SeatSaying = ({ user, theme }) => {
+export const SeatSaying = ({ user, theme, placement = "below" }) => {
+  const { box, tail } = PLACEMENTS[placement];
   const saying = useContext(SayingsContext)[user];
   return saying ? (
     <Box
@@ -31,8 +49,6 @@ export const SeatSaying = ({ user, theme }) => {
       role="status"
       sx={{
         position: "absolute",
-        top: "calc(100% + 8px)",
-        left: "50%",
         zIndex: 3,
         maxWidth: 200,
         width: "max-content",
@@ -43,19 +59,9 @@ export const SeatSaying = ({ user, theme }) => {
         color: theme.ink,
         boxShadow: "0 6px 18px rgba(0, 0, 0, 0.28)",
         pointerEvents: "none",
-        transform: "translateX(-50%)",
-        animation: `${popIn} 200ms ease-out`,
+        ...box,
         ...STILL,
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: -6,
-          left: "50%",
-          ml: "-6px",
-          borderLeft: "6px solid transparent",
-          borderRight: "6px solid transparent",
-          borderBottom: `6px solid ${theme.card}`,
-        },
+        "&::before": { content: '""', position: "absolute", ...tail(theme.card) },
       }}
     >
       <Typography

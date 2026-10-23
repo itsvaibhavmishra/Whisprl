@@ -15,6 +15,7 @@
 
   - New:
     - Talk at the table: on a phone a game gets its own bar for saying something and throwing emoji, players' words show beside their seat and everyone else's drift across the game, and messages typed during a game say which game in the chat
+    - Jackaroo, the card-and-marble race: two players bring four marbles home with cards, knocking each other's out, jumping across swirls and taking a bonus card for every knock-out, against each other or the bot
 
   - Improvements:
     - A game's rules open as pages inside the game, each with a picture drawn in that game's own style

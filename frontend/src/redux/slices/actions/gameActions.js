@@ -31,6 +31,9 @@ export const UnwatchGame = createApiThunk("game/unwatch", () => emitGameEvent("g
 
 export const ActInGame = createApiThunk("game/act", (action) => emitGameEvent("game_act", action));
 
+// a board that says its own refusals sends its moves this way, so no toast says them again
+export const ActInGameQuietly = createApiThunk("game/actQuietly", (action) => emitGameEvent("game_act", action), { notifyErrors: false });
+
 // tells the server whether this chat's game is on screen, which is what lets watchers' messages float across it
 export const LookAtGame = createApiThunk("game/look", (isLooking) => emitGameEvent("game_look", isLooking), { notifyErrors: false });
 

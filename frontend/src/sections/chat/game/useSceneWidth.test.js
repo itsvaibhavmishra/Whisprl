@@ -22,6 +22,11 @@ test("a scene with no masthead to fit simply covers the panel", () => {
   expect(sceneWidthOf({ width: 400, height: 920, inset: 0 }, 300, ART)).toBe(460);
 });
 
+test("a scene that fades out at its foot stays at the masthead's width on a tall phone rather than spilling past the sides", () => {
+  expect(sceneWidthOf({ width: 390, height: 844, inset: 63 }, 300, { ...ART, fadesAtFoot: true }, MASTHEAD_RATIO)).toBe(390);
+  expect(sceneWidthOf({ width: 720, height: 810, inset: 0 }, 700, { ...ART, fadesAtFoot: true }, MASTHEAD_RATIO)).toBeCloseTo(132);
+});
+
 test("the scene never stops short of the bottom, even when the controls would want it narrower", () => {
   expect(sceneWidthOf({ width: 720, height: 810, inset: 0 }, 700, ART, MASTHEAD_RATIO)).toBe(405);
 });

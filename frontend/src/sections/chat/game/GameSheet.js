@@ -11,7 +11,7 @@ const GameSheet = ({ theme, title, onClose, children }) => {
 
   // a sheet whose content takes focus itself, such as pages that scroll by arrow key, keeps it
   useEffect(() => {
-    if (!cardRef.current?.contains(document.activeElement)) cardRef.current?.focus();
+    if (!cardRef.current?.contains(document.activeElement)) cardRef.current?.focus({ preventScroll: true });
   }, []);
 
   return (
@@ -27,7 +27,8 @@ const GameSheet = ({ theme, title, onClose, children }) => {
         zIndex: 6,
         display: "grid",
         placeItems: "center",
-        gridTemplateColumns: "minmax(0, 1fr)",
+        // a row sized to the sheet rather than to the card, so the card's maxHeight holds on a short screen
+        gridTemplate: "minmax(0, 1fr) / minmax(0, 1fr)",
         p: 2,
         // a phone's chat bar lies over the game's foot, so the sheet keeps above it
         pt: { xs: "calc(env(safe-area-inset-top) + 16px)", lg: 2 },
