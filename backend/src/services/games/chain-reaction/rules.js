@@ -35,7 +35,7 @@ export const criticalMassOf = (grid, cell) => neighboursOf(grid, cell).length;
 
 const fullCellsIn = (grid, orbs) => orbs.flatMap((count, cell) => (count >= criticalMassOf(grid, cell) ? [cell] : []));
 
-export const orbsHeldBy = ({ owners, orbs }, seat) => owners.reduce((held, owner, cell) => (owner === seat ? held + orbs[cell] : held), 0);
+const orbsHeldBy = ({ owners, orbs }, seat) => owners.reduce((held, owner, cell) => (owner === seat ? held + orbs[cell] : held), 0);
 
 // nobody holds anything before their first move, so only a seat that has played can be out
 export const isOut = (state, seat) => state.played[seat] && orbsHeldBy(state, seat) === 0;

@@ -7,6 +7,8 @@ export const assertText = (...values) => {
   if (!isText(...values)) throw createHttpError.BadRequest("Send text, not a list or an object");
 };
 
+export const trimmed = (value) => (typeof value === "string" ? value.trim() : value);
+
 export const assertValidName = (firstName, lastName) => {
   assertText(firstName, lastName);
   if (!validator.isLength(firstName, { min: 3, max: 16 }) || !validator.isLength(lastName, { min: 3, max: 16 })) {
@@ -18,7 +20,7 @@ export const assertValidName = (firstName, lastName) => {
 };
 
 export const assertStrongPassword = (password) => {
-  if (!isText(password) || !validator.isStrongPassword(password)) {
+  if (!isText(password) || !validator.isStrongPassword(password.trim())) {
     throw createHttpError.BadRequest(
       "Password must be at least 8 characters long, with a number, a lowercase letter, an uppercase letter and a symbol"
     );

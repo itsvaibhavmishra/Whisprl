@@ -1,8 +1,9 @@
-import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import cloudinary from "cloudinary";
+
+process.loadEnvFile();
 
 // the pictures an email points at, kept in the repo and pushed up under one stable name each
 const FOLDER = "email-media";

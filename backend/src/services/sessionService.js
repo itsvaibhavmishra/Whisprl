@@ -105,13 +105,6 @@ export const endOtherSessions = (user_id, keep_session_id) =>
 
 export const endAllSessions = (user_id) => SessionModel.deleteMany({ user: user_id });
 
-// sessions from before keys can never renew, and the unique index they relied on would refuse new ones
-export const dropKeylessSessions = async () => {
-  const { deletedCount } = await SessionModel.deleteMany({ publicKey: { $exists: false } });
-  await SessionModel.syncIndexes();
-  return deletedCount;
-};
-
 const disconnectSockets = async (io, user_id, shouldClose) => {
   const sockets = await io.in(String(user_id)).fetchSockets();
   sockets.filter((socket) => shouldClose(socket.data.sessionId)).forEach((socket) => socket.disconnect(true));

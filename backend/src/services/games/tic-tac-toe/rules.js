@@ -1,6 +1,6 @@
 import createHttpError from "http-errors";
 
-export const CELLS = 9;
+const CELLS = 9;
 
 const LINES = [
   [0, 1, 2],

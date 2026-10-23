@@ -36,7 +36,7 @@ const scoreMove = (state, seat, move) => {
 };
 
 // cards that rescue a stuck hand are worth keeping when one has to go
-export const cardValue = (card) => {
+const cardValue = (card) => {
   const special = { 1: 8, 2: 6, 4: 5, 5: 4, 7: 7, 10: 5, 11: isRed(card) ? 3 : 6, 12: isRed(card) ? 5 : 3, 13: 9 };
   return special[card.rank] ?? card.rank / 3;
 };

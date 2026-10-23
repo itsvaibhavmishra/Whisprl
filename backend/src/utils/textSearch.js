@@ -13,7 +13,7 @@ export const normalized = (text = "") =>
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 
-export const wordsOf = (text) => normalized(text).split(" ").filter(Boolean);
+const wordsOf = (text) => normalized(text).split(" ").filter(Boolean);
 
 // "Tic-Tac-Toe", "tic tac toe" and "The TicTacToe" are one game
 export const nameKeyOf = (name) => normalized(name).replace(/^the /, "").replaceAll(" ", "");

@@ -29,5 +29,9 @@
     - In Jackaroo, the cards a red queen leaves fly straight back into place in their fan, and when yours are taken your hand lays out over the board, the taken card leaves for the pile and the rest come home
 
   - Developers:
+    - The backend reads its .env and restarts on change through Node itself, so dotenv and nodemon are gone
+    - The backend and CI run on Node 24, and CI on the current majors of the checkout, setup-node and setup-java actions
 
   - Internal:
+    - The backend drops what nothing uses any more: the rebrand email, the What's new endpoint, the old status audience GET, vercel.json, the start-up backfills that had finished, and the axios, streamifier and trim-request packages
+    - Every backend package is on its latest version, among them Express 5, Mongoose 9, Multer 2, Nodemailer 10, bcrypt 6 and Sentry 11, and npm audit finds nothing

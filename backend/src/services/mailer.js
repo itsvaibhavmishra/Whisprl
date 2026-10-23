@@ -3,8 +3,8 @@ import nodemailer from "nodemailer";
 const config = {
   service: "gmail",
   auth: {
-    user: process.env.MAIL_USER, // gmail email
-    pass: process.env.MAIL_PASS, // gmail password
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
   },
 };
 
@@ -13,7 +13,6 @@ const transporter = nodemailer.createTransport(config);
 export const sendMail = (to, subject, { html, text }, headers) =>
   transporter.sendMail({ from: `Whisprl <${process.env.MAIL_USER}>`, to, subject, html, text, ...(headers && { headers }) });
 
-// Check time remaining before sending main
 export const formatRemainingTime = (timeInSeconds) => {
   const minutes = Math.floor(timeInSeconds / 60);
   const seconds = timeInSeconds % 60;

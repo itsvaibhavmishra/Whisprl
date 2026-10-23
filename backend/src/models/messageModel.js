@@ -129,7 +129,6 @@ messageSchema.index({ sender: 1, clientId: 1 }, { unique: true, partialFilterExp
 messageSchema.index({ sender: 1 }, { partialFilterExpression: { awaitingKey: true } });
 messageSchema.index({ expiresAt: 1 }, { partialFilterExpression: { expiresAt: { $exists: true } } });
 
-// creating model for schema
 const MessageModel = mongoose.model("Message", messageSchema);
 
 export default MessageModel;

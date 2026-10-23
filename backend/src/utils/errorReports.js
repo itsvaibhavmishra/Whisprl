@@ -21,7 +21,15 @@ export const startErrorReports = () => {
     dsn,
     release: `whisprl@${packageJson.version}`,
     environment: "production",
-    sendDefaultPii: false,
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false,
+      httpBodies: [],
+      urlQueryParams: false,
+      databaseQueryData: false,
+      stackFrameVariables: false,
+    },
     integrations: (defaults) => defaults.filter((integration) => !OWN_HANDLERS.includes(integration.name)),
     beforeSend: scrubbed,
   });

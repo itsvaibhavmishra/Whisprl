@@ -3,7 +3,7 @@ import { HOME_ENTRY, HOME_SLOTS, LOOP, START, TELEPORTS } from "#src/services/ga
 import { isRed } from "#src/services/games/jackaroo/cards.js";
 
 export const other = (seat) => 1 - seat;
-export const sameMarble = (one, two) => one.owner === two.owner && one.id === two.id;
+const sameMarble = (one, two) => one.owner === two.owner && one.id === two.id;
 export const placeOf = (state, marble) => state.players[marble.owner].marbles[marble.id];
 
 const marblesOf = (state, owner) => state.players[owner].marbles.map((_, id) => ({ owner, id }));
@@ -100,8 +100,6 @@ export const moveMarble = (state, move) => {
   for (const { marble } of move.captured) state.players[marble.owner].marbles[marble.id] = { at: "base", slot: marble.id };
   state.players[move.marble.owner].marbles[move.marble.id] = move.to;
 };
-
-// ---------- what each card can do ----------
 
 const asPlays = (card, kind, moves) => moves.filter(Boolean).map((move) => ({ card, kind, moves: [move] }));
 

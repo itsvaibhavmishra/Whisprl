@@ -1,9 +1,7 @@
 import cloudinary from "cloudinary";
 import crypto from "crypto";
-import streamifier from "streamifier";
 import createHttpError from "http-errors";
 
-// Configure Cloudinary
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -21,7 +19,7 @@ export const uploadFile = (folder, file) =>
     const stream = cloudinary.v2.uploader.upload_stream({ folder, ...storageOf(file) }, (error, result) =>
       error ? reject(createHttpError.InternalServerError("Error uploading file to Cloudinary")) : resolve(result.secure_url)
     );
-    streamifier.createReadStream(file.buffer).pipe(stream);
+    stream.end(file.buffer);
   });
 
 // Cloudinary names a file by the path after "/upload/", minus the version, and minus the extension for an image.
