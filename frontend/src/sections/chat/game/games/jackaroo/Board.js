@@ -7,11 +7,11 @@ import { selectViewReceivedAt } from "@/redux/slices/gameSlice";
 import art from "@/sections/chat/game/games/jackaroo/art";
 import Banner from "@/sections/chat/game/games/jackaroo/Banner";
 import { narrowed, nextStep, pillOf, THROWS } from "@/sections/chat/game/games/jackaroo/choices";
-import { marbleKey } from "@/sections/chat/game/games/jackaroo/geometry";
+import { marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry";
 import Hand from "@/sections/chat/game/games/jackaroo/Hand";
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
 import PALETTE, { toneOf } from "@/sections/chat/game/games/jackaroo/palette";
-import { Marbles, Marks, Preview, Swirls, Targets } from "@/sections/chat/game/games/jackaroo/Pieces";
+import { Crowd, Marbles, Marks, Preview, Swirls, Targets } from "@/sections/chat/game/games/jackaroo/Pieces";
 import Player from "@/sections/chat/game/games/jackaroo/Players";
 import { BONUS, DEAL, dealStartOf, flyToPile, lengthOf, playOut } from "@/sections/chat/game/games/jackaroo/playback";
 import Prompt from "@/sections/chat/game/games/jackaroo/Prompt";
@@ -23,8 +23,12 @@ import { firstNameIn } from "@/utils/groups";
 const SHADOW_SPILL = (layout.sprites.boardShadow / layout.board - 1) * 50;
 // the players sit just off two corners of the board, over its rim, so the board leaves them this much height
 const RIM_OVERLAP = 14;
+// the board's bottom left corner is empty past its scalloped edge, so your corner rises into it and stays clear of the prompt centred over your cards
+const CORNER_OVERLAP = 52;
 const PLAYERS_ROOM = 112;
 const REFUSAL_MS = 2500;
+// about a fingertip, so marbles nearer each other than this on screen are numbered before one is taken
+const CROWD_PX = 44;
 
 const nameOf = (seat, conversation, meId) => {
   if (seat?.bot) return "The bot";
@@ -153,9 +157,24 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     send(step.play, { taken: index });
   };
 
+  const pickMarble = (value) => {
+    const marble = parseMarble(value);
+    choose(step.marbles ? { ...chosen, marble } : { ...chosen, second: marble });
+  };
+  // the marbles the picked card could take next, where they sit on screen
+  const choosable = step?.marbles ?? step?.seconds ?? [];
+  const targets = choosable.map((marble) => ({
+    value: marbleKey(marble),
+    ...pointOf(state.marbles[marble.owner][marble.id], marble.owner, isTurned),
+    label: marble.owner === mySeat ? "Your marble" : "Their marble",
+  }));
+  // a tap among marbles too close to tell apart numbers them, and belongs to this one question, so any answer closes it
+  const [crowd, setCrowd] = useState(null);
+  const crowded = crowd?.chosen === chosen ? targets.filter((target) => crowd.values.includes(target.value)) : [];
+
   // handlers read the latest board from here, so they keep one identity and never redraw what they are passed to
   const latest = useRef();
-  latest.current = { chosen, step, playCard, choose, state };
+  latest.current = { chosen, step, playCard, choose, state, targets, pickMarble };
   const onCard = useCallback((id) => {
     const current = latest.current;
     if (current.chosen.card === id) current.playCard();
@@ -166,10 +185,14 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     if (latest.current.chosen.card === id) latest.current.playCard();
   }, []);
   const onTarget = useCallback((event) => {
-    const current = latest.current;
-    const marble = parseMarble(event.currentTarget.dataset.value);
-    current.choose(current.step.marbles ? { ...current.chosen, marble } : { ...current.chosen, second: marble });
+    const { targets: all, chosen: current, pickMarble: pick } = latest.current;
+    const tapped = all.find((target) => target.value === event.currentTarget.dataset.value);
+    const scale = stageRef.current.offsetWidth / layout.board;
+    const near = all.filter((target) => Math.hypot(target.x - tapped.x, target.y - tapped.y) * scale < CROWD_PX);
+    if (near.length > 1) setCrowd({ chosen: current, values: near.map((target) => target.value) });
+    else pick(tapped.value);
   }, []);
+  const onCrowdPick = useCallback((event) => latest.current.pickMarble(event.currentTarget.dataset.value), []);
 
   const playableIds = useMemo(() => new Set(chosen.isPlayed ? [] : options.map((option) => option.card)), [chosen.isPlayed, options]);
   const pills = useMemo(() => new Map(state.hand.map((card) => [card.id, pillOf(options, card.id)])), [state.hand, options]);
@@ -179,13 +202,6 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
 
   // the moves the picked card could still make, drawn on the board until one is sent
   const previewed = chosen.card && isMyTurn ? narrowed(options, chosen).filter((option) => option.moves?.length === 1) : [];
-  const choosable = step?.marbles ?? step?.seconds ?? [];
-  const targets = choosable.map((marble) => ({
-    value: marbleKey(marble),
-    place: state.marbles[marble.owner][marble.id],
-    owner: marble.owner,
-    label: marble.owner === mySeat ? "Your marble" : "Their marble",
-  }));
   // the pile holds this round's cards, the last round's until the deal clears them, and a card just played before the server has it
   const pileRound = dealAt !== null && !hasDealStarted ? state.round - 1 : state.round;
   const played = chosen.isPlayed && pickedCard ? [{ card: pickedCard, seat: mySeat, thrown: mustThrow, round: state.round }] : [];
@@ -205,6 +221,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
         buttons: step.actions.map((action) => ({ label: labels[action], look: "choice", onClick: () => choose({ ...chosen, action }) })),
       };
     }
+    if (crowded.length > 0) return { text: "Which marble? Tap its number" };
     if (step?.marbles) return { text: "Choose a marble" };
     if (step?.steps)
       return {
@@ -215,22 +232,6 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     if (step?.play?.kind === "takeCard") return { text: "Choose a card" };
     return null;
   })();
-
-  // the prompt over your hand keeps to the room beside your corner of the board, so it never covers your name
-  const cornerRef = useRef(null);
-  const handAreaRef = useRef(null);
-  const squareRef = useRef(null);
-  const [cornerWidth, setCornerWidth] = useState(0);
-  useLayoutEffect(() => {
-    const [corner, area, square] = [cornerRef.current, handAreaRef.current, squareRef.current];
-    if (!corner || !area || !square) return undefined;
-    const measure = () => setCornerWidth(Math.max(0, corner.getBoundingClientRect().right - area.getBoundingClientRect().left));
-    measure();
-    // the corner moves without resizing whenever the board does, so the board is watched as well
-    const observer = new ResizeObserver(measure);
-    [corner, area, square].forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  }, []);
 
   // ---------- playing each move out ----------
   const stageRef = useRef(null);
@@ -307,11 +308,15 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
       {isMyTurn && pickedCard && !chosen.isPlayed && <Banner key={pickedCard.id} card={pickedCard} tones={handTones} />}
       {/* the board is measured against both sides of the space it is given, keeping room for the players at its corners */}
       <Box sx={{ flex: 1, minHeight: 0, display: "grid", placeItems: "center", containerType: "size", px: 1 }}>
-        <Box ref={squareRef} sx={{ position: "relative", width: `min(100cqw, calc(100cqh - ${PLAYERS_ROOM}px))`, aspectRatio: "1" }}>
+        <Box sx={{ position: "relative", width: `min(100cqw, calc(100cqh - ${PLAYERS_ROOM}px))`, aspectRatio: "1" }}>
           <Box
             ref={stageRef}
             data-board
-            onClick={(event) => event.target === event.currentTarget && !chosen.isPlayed && setChoice({ plays: state.plays })}
+            onClick={(event) => {
+              if (event.target !== event.currentTarget) return;
+              setCrowd(null);
+              if (!chosen.isPlayed) setChoice({ plays: state.plays });
+            }}
             sx={{ position: "absolute", inset: 0, userSelect: "none" }}
           >
             <Box
@@ -337,7 +342,8 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
             />
             <Preview moves={previewed.map((option) => option.moves[0])} marbles={state.marbles} tones={tones} isTurned={isTurned} />
             <Box ref={effectsRef} sx={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
-            <Targets targets={targets} isTurned={isTurned} onPick={onTarget} />
+            <Targets targets={targets} onPick={onTarget} />
+            {crowded.length > 0 && <Crowd targets={crowded} onPick={onCrowdPick} />}
             {isPicking && <TheirCards count={state.hands[rival]} fan={fanRefs.current[rival]} taken={chosen.taken ?? null} isStill={isStill} onTake={take} />}
           </Box>
           {/* the other player sits off the board's top right corner and you off its bottom left, over the rim, as the reference seats them */}
@@ -353,14 +359,15 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
               ref={keepFan}
             />
           </Box>
-          <Box ref={cornerRef} sx={{ position: "absolute", zIndex: 2, left: 0, top: `calc(100% - ${RIM_OVERLAP}px)` }}>
+          {/* a board narrower than the room leaves space beside it, which your corner moves out into so your name stays off the rim */}
+          <Box sx={{ position: "absolute", zIndex: 2, left: "calc(-1 * min(48px, (100cqw - 100%) / 2))", top: `calc(100% - ${CORNER_OVERLAP}px)` }}>
             <Player {...playerAt(bottom)} onLeave={bottom === mySeat && isPlaying ? onLeave : null} />
           </Box>
         </Box>
       </Box>
 
-      <Box ref={handAreaRef} sx={{ position: "relative", flexShrink: 0, containerType: "inline-size" }}>
-        <Prompt {...prompt} isOverHand={mySeat !== -1} cornerWidth={cornerWidth} />
+      <Box sx={{ position: "relative", flexShrink: 0, containerType: "inline-size" }}>
+        <Prompt {...prompt} isOverHand={mySeat !== -1} />
         {mySeat !== -1 && (
           <Hand
             ref={handRef}

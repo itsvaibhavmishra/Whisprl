@@ -13,7 +13,7 @@ import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
 import { firstNameIn, memberOf } from "@/utils/groups";
 
-const FACE = 46;
+const FACE = 40;
 const INK = "#f6ebdd";
 
 const nameOf = (seat, conversation, meId) => {
@@ -38,7 +38,7 @@ const TurnClock = ({ startsAt, seconds, colour }) => {
           placeItems: "center",
           fontFamily: FONTS.display,
           fontWeight: 700,
-          fontSize: 24,
+          fontSize: 21,
           lineHeight: 1,
           background: "linear-gradient(180deg, #fff3b0 0%, #ffd34d 50%, #f0a21c 100%)",
           WebkitBackgroundClip: "text",
@@ -123,8 +123,8 @@ const HomeCount = ({ home, colour }) => (
         <Box
           key={slot}
           sx={{
-            width: 13,
-            height: 13,
+            width: 11,
+            height: 11,
             borderRadius: "50%",
             border: `1.5px solid ${slot < home ? colour : alpha(INK, 0.45)}`,
             bgcolor: slot < home ? colour : "transparent",
@@ -132,7 +132,7 @@ const HomeCount = ({ home, colour }) => (
         />
       ))}
     </Stack>
-    <Typography sx={{ fontSize: 12, fontWeight: 600, color: alpha(INK, 0.75), lineHeight: 1 }}>{`${home}/4 home`}</Typography>
+    <Typography sx={{ fontSize: 11, fontWeight: 600, color: alpha(INK, 0.75), lineHeight: 1 }}>{`${home}/4 home`}</Typography>
   </Stack>
 );
 
@@ -148,7 +148,7 @@ const Player = forwardRef(
           <Box sx={{ position: "relative", maxWidth: "100%" }}>
             <Typography
               noWrap
-              sx={{ fontFamily: FONTS.body, fontSize: 17, fontWeight: 600, color: INK, lineHeight: 1.1, textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)" }}
+              sx={{ fontFamily: FONTS.body, fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.1, textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)" }}
             >
               {nameOf(seat, conversation, meId)}
             </Typography>

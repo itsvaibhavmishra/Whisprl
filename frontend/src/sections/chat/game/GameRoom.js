@@ -2,7 +2,7 @@ import { memo, Suspense, useCallback, useEffect, useMemo, useState } from "react
 import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha, ThemeProvider } from "@mui/material/styles";
 import { m, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowsInSimple, BookOpen, Smiley, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
+import { ArrowsInSimple, BookOpen, Smiley, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -204,12 +204,7 @@ const GameRoom = ({ conversation, session }) => {
           ...(screen === "start" && { position: "absolute", top: { xs: "env(safe-area-inset-top)", lg: 0 }, left: 0, right: 0, zIndex: 2 }),
         }}
       >
-        {isLabelled && (
-          <BarButton label="Hide game" caption={null} theme={theme} onClick={() => dispatch(gameCollapsed(true))}>
-            <ArrowLeft size={20} weight="bold" />
-          </BarButton>
-        )}
-        <Box sx={{ flex: 1, minWidth: 0, display: "flex", justifyContent: isLabelled ? "center" : "flex-start" }}>
+        <Box sx={{ flex: 1, minWidth: 0, display: "flex" }}>
           {screen !== "start" &&
             (game.Wordmark ? (
               <Suspense fallback={null}>
@@ -240,11 +235,9 @@ const GameRoom = ({ conversation, session }) => {
               <Stop size={20} weight="bold" />
             </BarButton>
           )}
-          {!isLabelled && (
-            <BarButton label="Hide game" theme={theme} onClick={() => dispatch(gameCollapsed(true))}>
-              <ArrowsInSimple size={20} weight="bold" />
-            </BarButton>
-          )}
+          <BarButton label="Hide game" caption="Hide" theme={theme} onClick={() => dispatch(gameCollapsed(true))}>
+            <ArrowsInSimple size={20} weight="bold" />
+          </BarButton>
           {canClose && (
             <BarButton label="Close game" caption="Close" theme={theme} onClick={() => setConfirming("close")}>
               <X size={20} weight="bold" />

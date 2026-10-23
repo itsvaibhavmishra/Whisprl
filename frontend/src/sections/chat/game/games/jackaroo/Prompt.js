@@ -10,8 +10,8 @@ const LOOKS = {
   all: { ...BUTTON, px: 2.5, py: 0.6, borderRadius: 99, fontSize: 15, color: "#3b1d0e", background: "linear-gradient(180deg, #ffd889 0%, #f0b860 100%)" },
 };
 
-// what the turn still needs from you, floated just above your cards and centred over them, moved right only as far as it must to clear your corner; a watcher's line gets its own row
-const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand, cornerWidth = 0 }) => (
+// what the turn still needs from you, floated just above your cards and centred over them; a watcher's line gets its own row
+const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand }) => (
   <Stack
     alignItems="center"
     spacing={1}
@@ -23,8 +23,8 @@ const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand, cornerWidth =
             bottom: "calc(100% - 12px)",
             left: "50%",
             width: "max-content",
-            maxWidth: `calc(100cqw - ${cornerWidth + 16}px)`,
-            translate: `max(-50%, calc(${cornerWidth + 8}px - 50cqw)) 0`,
+            maxWidth: "calc(100cqw - 16px)",
+            translate: "-50% 0",
             pointerEvents: "none",
           }
         : { minHeight: 40, justifyContent: "center", px: 2, flexShrink: 0 }
