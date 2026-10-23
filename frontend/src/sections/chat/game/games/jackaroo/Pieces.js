@@ -3,6 +3,7 @@ import { Box, ButtonBase } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
 
 import art from "@/sections/chat/game/games/jackaroo/art";
+import FONTS from "@/sections/chat/game/games/jackaroo/fonts";
 import { centredAt, marbleKey, pointOf, SPRITES } from "@/sections/chat/game/games/jackaroo/geometry";
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
 import PALETTE from "@/sections/chat/game/games/jackaroo/palette";
@@ -169,11 +170,78 @@ const Target = memo(({ x, y, label, value, onPick }) => (
   />
 ));
 
-export const Targets = ({ targets, isTurned, onPick }) =>
-  targets.map(({ value, place, owner, label }) => {
-    const { x, y } = pointOf(place, owner, isTurned);
-    return <Target key={value} value={value} x={x} y={y} label={label} onPick={onPick} />;
-  });
+export const Targets = ({ targets, onPick }) =>
+  targets.map(({ value, x, y, label }) => <Target key={value} value={value} x={x} y={y} label={label} onPick={onPick} />);
+
+const BUBBLE = 28;
+const popIn = keyframes`from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); }`;
+
+// a numbered bubble just off its marble, turned to point back at it, with the number kept upright
+const CrowdChoice = ({ x, y, angle, number, value, label, onPick }) => (
+  <Box sx={{ ...centredAt({ x, y }, TARGET), transform: `rotate(${angle}deg)`, pointerEvents: "none" }}>
+    <ButtonBase
+      aria-label={`${number}: ${label}`}
+      data-value={value}
+      onClick={onPick}
+      sx={{
+        position: "absolute",
+        left: "calc(100% + 4px)",
+        top: "50%",
+        width: BUBBLE,
+        height: BUBBLE,
+        mt: `-${BUBBLE / 2}px`,
+        pointerEvents: "auto",
+        borderRadius: "50%",
+        bgcolor: "rgba(20, 12, 8, 0.92)",
+        border: "2px solid #f0b860",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.5)",
+        animation: `${popIn} 180ms ease-out both`,
+        "@media (prefers-reduced-motion: reduce)": { animation: "none" },
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          left: -6,
+          top: "50%",
+          width: 9,
+          height: 9,
+          mt: "-4.5px",
+          bgcolor: "rgba(20, 12, 8, 0.92)",
+          borderLeft: "2px solid #f0b860",
+          borderBottom: "2px solid #f0b860",
+          transform: "rotate(45deg)",
+        },
+      }}
+    >
+      <Box
+        component="span"
+        sx={{ transform: `rotate(${-angle}deg)`, fontFamily: FONTS.display, fontWeight: 700, fontSize: 16, lineHeight: 1, color: "#ffd34d" }}
+      >
+        {number}
+      </Box>
+    </ButtonBase>
+  </Box>
+);
+
+// marbles too close to tap apart are numbered in reading order, each bubble set off away from the rest so none sits over another marble's
+export const Crowd = ({ targets, onPick }) => {
+  const centre = {
+    x: targets.reduce((sum, target) => sum + target.x, 0) / targets.length,
+    y: targets.reduce((sum, target) => sum + target.y, 0) / targets.length,
+  };
+  const xs = targets.map((target) => target.x);
+  const ys = targets.map((target) => target.y);
+  const isAcross = Math.max(...xs) - Math.min(...xs) >= Math.max(...ys) - Math.min(...ys);
+  const ordered = [...targets].sort((one, two) => (isAcross ? one.x - two.x : one.y - two.y));
+  return ordered.map((target, index) => (
+    <CrowdChoice
+      key={target.value}
+      {...target}
+      number={index + 1}
+      angle={(Math.atan2(target.y - centre.y, target.x - centre.x) * 180) / Math.PI}
+      onPick={onPick}
+    />
+  ));
+};
 
 // the red cross marking a marble a move would knock out
 export const Cross = ({ x, y }) => (

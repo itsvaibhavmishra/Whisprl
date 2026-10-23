@@ -229,7 +229,8 @@ export const Fan = memo(
       const before = lastCount.current;
       lastCount.current = count;
       if (isStill || !arrival || count <= before) return;
-      const backs = [...rowRef.current.querySelectorAll("[data-back]")].slice(before);
+      // a deal fills hands the round emptied, so the card they last played never stays behind as one of the new ones
+      const backs = [...rowRef.current.querySelectorAll("[data-back]")].slice(arrival.kind === "deal" ? 0 : before);
       if (arrival.kind === "bonus") backs.forEach((back) => arriveAsBonus(back, arrival.at));
       const shoe = shoeRef?.current?.getBoundingClientRect();
       if (arrival.kind === "deal" && shoe) backs.forEach((back, index) => flyIn(back, shoe, arrival.at + dealOrder(index, arrival.isFirst)));
