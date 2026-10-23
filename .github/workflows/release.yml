@@ -5,7 +5,7 @@ name: Release
 on:
   push:
     branches: [production]
-  # an app release pull request is built ahead as a draft APK, so the release can be tried on a phone before it ships
+  # a release pull request is built ahead as a draft APK, so the release can be tried on a phone before it ships
   pull_request:
     branches: [production]
     types: [opened, synchronize, reopened, labeled]
@@ -24,7 +24,7 @@ jobs:
     if: >-
       github.ref_name == 'production' ||
       (github.event.pull_request.head.ref == 'rc' && github.event.pull_request.head.repo.full_name == github.repository &&
-      contains(github.event.pull_request.labels.*.name, 'release: app'))
+      (contains(github.event.pull_request.labels.*.name, 'release: app') || contains(github.event.pull_request.labels.*.name, 'release: web')))
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -92,7 +92,7 @@ jobs:
             fi
           done
 
-      # rc's backend deploys only for an app release's test build, at the commit the APK is built from
+      # rc's backend deploys only for a release's test build, at the commit the APK is built from
       - name: Deploy the rc backend
         if: steps.plan.outputs.kind == 'test'
         env:
@@ -198,5 +198,5 @@ jobs:
         run: |
           gh release delete "test-v$VERSION" --yes 2>/dev/null || true
           gh release create "test-v$VERSION" --draft --target "$SHA" --title "Whisprl $VERSION test build" \
-            --notes "The app release for v$VERSION as rc has it at ${SHA::7}, against the rc backend on Render. Install whisprl.apk over the app to try it before merging. Replaced on every push to rc, and deleted once v$VERSION is released." \
+            --notes "The release for v$VERSION as rc has it at ${SHA::7}, against the rc backend on Render. Install whisprl.apk over the app to try it before merging, and install v$VERSION's own whisprl.apk once it is out, since the app takes no live update at its own version. Replaced on every push to rc, and deleted once v$VERSION is released." \
             "$RUNNER_TEMP/release/whisprl.apk"

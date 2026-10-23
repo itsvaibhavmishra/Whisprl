@@ -20,5 +20,7 @@
   - Fixed:
 
   - Developers:
+    - An app release also attaches the Play bundle, whisprl-play.aab, ready to upload to the Play Console
+    - A web release now gets a test build too, like an app release, and every test build talks to the rc backend on Render, which deploys at the same commit only for that build
 
   - Internal:
