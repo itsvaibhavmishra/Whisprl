@@ -1,5 +1,5 @@
 import { CloseGame, WatchGame } from "@/redux/slices/actions/gameActions";
-import gameReducer, { gameStateReceived } from "@/redux/slices/gameSlice";
+import gameReducer, { gameCollapsed, gameStateReceived, lookersChanged, selectGameOnScreen } from "@/redux/slices/gameSlice";
 
 const CHAT = "chat-1";
 const viewAt = (revision, session) => gameStateReceived({ conversationId: CHAT, revision, session });
@@ -15,4 +15,18 @@ test("closing a game takes it off the screen before the server answers", () => {
 
   expect(state.view.session).toBeNull();
   expect(state.watching).toBe(CHAT);
+});
+
+test("who has the game on screen comes with each view and with each change, for the chat being watched only", () => {
+  const watched = [WatchGame.pending("watch", CHAT), gameStateReceived({ conversationId: CHAT, revision: 1, session: null, lookers: ["ava"] })].reduce(gameReducer, undefined);
+  expect(watched.lookers).toEqual(["ava"]);
+  expect(gameReducer(watched, lookersChanged({ conversationId: CHAT, users: ["ava", "ben"] })).lookers).toEqual(["ava", "ben"]);
+  expect(gameReducer(watched, lookersChanged({ conversationId: "elsewhere", users: [] })).lookers).toEqual(["ava"]);
+});
+
+test("a game counts as on screen until it is minimised", () => {
+  const playing = [WatchGame.pending("watch", CHAT), viewAt(1, { game: "tic-tac-toe", status: "playing" })].reduce(gameReducer, undefined);
+  expect(selectGameOnScreen({ game: playing }, CHAT)).toBe("tic-tac-toe");
+  expect(selectGameOnScreen({ game: playing }, "elsewhere")).toBeNull();
+  expect(selectGameOnScreen({ game: gameReducer(playing, gameCollapsed(true)) }, CHAT)).toBeNull();
 });

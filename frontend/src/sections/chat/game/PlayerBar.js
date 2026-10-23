@@ -3,6 +3,7 @@ import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
+import { SeatSaying } from "@/sections/chat/game/RoomChatter";
 import TurnRing from "@/sections/chat/game/TurnRing";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
@@ -92,6 +93,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
           )}
         </Stack>
       </Stack>
+      {seat.user && !seat.bot && <SeatSaying user={seat.user} theme={theme} />}
     </ButtonBase>
   );
 };

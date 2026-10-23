@@ -8,6 +8,7 @@ import { GetLeaderboard } from "@/redux/slices/actions/gameActions";
 import GameButton from "@/sections/chat/game/GameButton";
 import { PRACTICE_NOTE, resultLineOf } from "@/sections/chat/game/gameStatus";
 import { isChosenBot } from "@/sections/chat/game/seats";
+import { rivalColoursOf } from "@/sections/chat/game/standings";
 import usePending from "@/sections/chat/game/usePending";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import { firstNameIn } from "@/utils/groups";
@@ -24,18 +25,19 @@ const tallyOf = (colour) => ({ fontSize: 12, fontWeight: 800, color: colour, fon
 const Score = ({ rows, conversation, theme, meId }) => {
   const [first, second] = rows;
   const decided = first.won + second.won;
+  const colours = rivalColoursOf(theme.marks);
   const nameOf = (row) => firstNameIn(conversation, row.user, meId);
 
   return (
     <Stack alignItems="center" spacing={0.6}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ width: "100%" }}>
-        <Typography noWrap sx={tallyOf(theme.marks[0])}>{`${nameOf(first)} ${first.won}`}</Typography>
+        <Typography noWrap sx={tallyOf(colours[0])}>{`${nameOf(first)} ${first.won}`}</Typography>
         <Box sx={{ flex: 1, height: 7, display: "flex", borderRadius: 99, overflow: "hidden", bgcolor: alpha(theme.ink, 0.18) }}>
           {rows.map((row, index) => (
-            <Box key={row.user} sx={{ width: `${decided ? (row.won / decided) * 100 : 50}%`, bgcolor: theme.marks[index] }} />
+            <Box key={row.user} sx={{ width: `${decided ? (row.won / decided) * 100 : 50}%`, bgcolor: colours[index] }} />
           ))}
         </Box>
-        <Typography noWrap sx={tallyOf(theme.marks[1])}>{`${second.won} ${nameOf(second)}`}</Typography>
+        <Typography noWrap sx={tallyOf(colours[1])}>{`${second.won} ${nameOf(second)}`}</Typography>
       </Stack>
       {first.drawn > 0 && (
         <Typography sx={{ fontSize: 11, fontWeight: 700, color: alpha(theme.ink, 0.65) }}>

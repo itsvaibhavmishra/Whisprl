@@ -9,9 +9,9 @@ import { colourOf, toneOf } from "@/sections/chat/game/games/chain-reaction/pale
 import useCascade from "@/sections/chat/game/games/chain-reaction/useCascade";
 
 // the board's own units: a cell is a hundred across, so everything inside one is a share of that
-const CELL = 100;
+export const CELL = 100;
 const GAP = 4;
-const ORB = 17;
+export const ORB = 17;
 const SPREAD = 19;
 const MAX_WIDTH = 560;
 const CELL_ROUND = 14;
@@ -56,7 +56,30 @@ const cellOutline = (half, [topLeft, topRight, bottomRight, bottomLeft]) =>
     "Z",
   ].join(" ");
 
-const centreOf = ({ width }, cell) => ({ x: (cell % width) * CELL + CELL / 2, y: Math.floor(cell / width) * CELL + CELL / 2 });
+export const centreOf = ({ width }, cell) => ({ x: (cell % width) * CELL + CELL / 2, y: Math.floor(cell / width) * CELL + CELL / 2 });
+
+export const frameOf = ({ width, height }, colour) => ({
+  position: "relative",
+  aspectRatio: `${width} / ${height}`,
+  borderRadius: `${(BOARD_ROUND / (width * CELL)) * 100}% / ${(BOARD_ROUND / (height * CELL)) * 100}%`,
+  bgcolor: "rgba(10, 8, 36, 0.78)",
+  backdropFilter: "blur(6px)",
+  border: `1.5px solid ${alpha(colour, 0.6)}`,
+  boxShadow: `0 0 26px ${alpha(colour, 0.32)}, 0 12px 30px rgba(0, 0, 0, 0.45)`,
+});
+
+export const Cell = ({ grid, cell, colour, stroke, strokeWidth, children }) => {
+  const { x, y } = centreOf(grid, cell);
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <path d={cellOutline(CELL / 2 - GAP, cornersOf(grid, cell))} fill={colour ? alpha(colour, 0.1) : "rgba(255, 255, 255, 0.035)"} stroke={stroke} strokeWidth={strokeWidth} />
+      {children}
+    </g>
+  );
+};
+
+export const Orbs = ({ count, prefix, tone }) =>
+  spotsFor(count).map(([spotX, spotY], index) => <Orb key={index} prefix={prefix} tone={tone} radius={ORB} x={spotX} y={spotY} />);
 
 const Flight = ({ grid, flight, prefix, tone }) =>
   flight.burst.flatMap((cell) => {
@@ -103,42 +126,34 @@ const ChainReactionBoard = ({ state, onMove }) => {
     <Box sx={{ flex: 1, minHeight: 0, display: "grid", placeItems: "center", p: { xs: 1.5, sm: 2 }, containerType: "size" }}>
       <Box
         sx={{
-          position: "relative",
-          aspectRatio: `${width} / ${height}`,
-          width: `min(${MAX_WIDTH}px, 100cqw, 100cqh * ${width} / ${height})`,
-          borderRadius: `${(BOARD_ROUND / (width * CELL)) * 100}% / ${(BOARD_ROUND / (height * CELL)) * 100}%`,
-          bgcolor: "rgba(10, 8, 36, 0.78)",
-          backdropFilter: "blur(6px)",
           // the frame takes the colour of whoever is to move, so the board itself says whose turn it is
-          border: `1.5px solid ${alpha(turnColour, 0.6)}`,
-          boxShadow: `0 0 26px ${alpha(turnColour, 0.32)}, 0 12px 30px rgba(0, 0, 0, 0.45)`,
+          ...frameOf(state, turnColour),
+          width: `min(${MAX_WIDTH}px, 100cqw, 100cqh * ${width} / ${height})`,
           transition: "border-color 300ms ease, box-shadow 300ms ease",
         }}
       >
         <Box component="svg" viewBox={`0 0 ${width * CELL} ${height * CELL}`} aria-hidden sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}>
           <OrbDefs prefix={prefix} />
           {board.owners.map((owner, cell) => {
-            const { x, y } = centreOf(state, cell);
             const count = board.orbs[cell];
             const isTense = count > 0 && count === neighboursOf(state, cell).length - 1;
             const isLast = !sending && !flight && state.lastMove?.cell === cell && count > 0;
             const outline = sending?.cell === cell ? turnColour : isLast && colourOf(state, owner);
             return (
-              <g key={cell} transform={`translate(${x} ${y})`}>
-                <path
-                  d={cellOutline(CELL / 2 - GAP, cornersOf(state, cell))}
-                  fill={owner === null ? "rgba(255, 255, 255, 0.035)" : alpha(colourOf(state, owner), 0.1)}
-                  stroke={outline ? alpha(outline, 0.9) : alpha(turnColour, 0.28)}
-                  strokeWidth={outline ? 3.5 : 2}
-                />
+              <Cell
+                key={cell}
+                grid={state}
+                cell={cell}
+                colour={owner === null ? null : colourOf(state, owner)}
+                stroke={outline ? alpha(outline, 0.9) : alpha(turnColour, 0.28)}
+                strokeWidth={outline ? 3.5 : 2}
+              >
                 {count > 0 && (
                   <Box component="g" sx={isTense && !isStill ? { animation: `${tremble} 0.32s linear infinite` } : undefined}>
-                    {spotsFor(count).map(([spotX, spotY], index) => (
-                      <Orb key={index} prefix={prefix} tone={toneOf(state, owner)} radius={ORB} x={spotX} y={spotY} />
-                    ))}
+                    <Orbs count={count} prefix={prefix} tone={toneOf(state, owner)} />
                   </Box>
                 )}
-              </g>
+              </Cell>
             );
           })}
           {flight && <Flight grid={state} flight={flight} prefix={prefix} tone={toneOf(state, flight.seat)} />}

@@ -30,9 +30,9 @@ const ticTacToe = {
   // the room its panel takes beside the chat on a wide screen, which each person can resize between the bounds
   width: { min: 380, preferred: 560, max: 820 },
   rules: [
-    { heading: "The aim", text: "Get three of your marks in a row: across, down or corner to corner." },
-    { heading: "Your turn", text: "Tap any empty square to put your mark there. Players take turns, one mark each." },
-    { heading: "The end", text: "The first to make a row wins. If all nine squares fill with no row, it's a draw." },
+    { heading: "The aim", text: "Get three of your marks in a row: across, down or corner to corner.", picture: "aim" },
+    { heading: "Your turn", text: "Tap any empty square to put your mark there. Players take turns, one mark each.", picture: "turn" },
+    { heading: "The end", text: "The first to make a row wins. If all nine squares fill with no row, it's a draw.", picture: "end" },
   ],
   moveSound: "chalk",
   // Magic Puzzle In-Game 1 by MintoDog, CC0, from opengameart.org
@@ -42,6 +42,7 @@ const ticTacToe = {
   // below the cat asleep on its rock, which is right where a centred title would land
   cardTitleTop: "40%",
   Board: lazy(() => import("@/sections/chat/game/games/tic-tac-toe/Board")),
+  RulesArt: lazy(() => import("@/sections/chat/game/games/tic-tac-toe/RulesArt")),
 };
 
 export default ticTacToe;

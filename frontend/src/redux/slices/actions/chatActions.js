@@ -21,6 +21,7 @@ import {
   setReplyingTo,
   updateQueuedMessage,
 } from "@/redux/slices/chatSlice";
+import { selectGameOnScreen } from "@/redux/slices/gameSlice";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
 import axios from "@/utils/axios";
 import { socket } from "@/utils/socket";
@@ -32,6 +33,7 @@ import { batchKeyOf } from "@/utils/messageFiles";
 import { frankingKey, frankingOf } from "@/utils/crypto/franking";
 import { encodePayload } from "@/utils/messagePayload";
 import { isMuted } from "@/utils/chats";
+import { emitRoomEvent } from "@/utils/gameRoomEvents";
 import { feel } from "@/utils/haptics";
 import { notifyArrival } from "@/utils/notifications";
 import { playQueuedSound, playSound } from "@/utils/sounds";
@@ -226,6 +228,9 @@ export const SendTextMessage = ({ text, mentions, contact, statusQuote, emojiSca
   // a forward or a word about a status was not written in this chat, so it leaves a reply started here alone
   const takesReply = isHere && !forwardOf && !statusQuote;
   if (isHere && chat.hasNewerMessages) dispatch(GetMessages(targetId));
+  // words typed while this chat's game is on screen belong to it; something passed on or attached does not
+  const game = forwardOf || statusQuote || file ? null : selectGameOnScreen(getState(), targetId);
+  if (game && text) emitRoomEvent({ conversationId: targetId, from: user.user._id, text });
 
   dispatch(
     queueMessage({
@@ -242,6 +247,7 @@ export const SendTextMessage = ({ text, mentions, contact, statusQuote, emojiSca
       forwardOf,
       file,
       batch,
+      game,
       replyTo: takesReply ? quoteOf(chat.replyingTo) : null,
     })
   );
@@ -266,6 +272,7 @@ const sendOnce = (entry, cipher, franking) =>
       replyToAlbum: entry.replyTo?.isAlbum,
       forwardOf: entry.forwardOf,
       batch: entry.batch,
+      game: entry.game,
       ...(entry.file && !entry.forwardOf && { attachment: true, viewOnce: entry.viewOnce }),
     })
     .catch(() => null);
@@ -356,6 +363,10 @@ export const ReceiveMessage = (message) => async (dispatch, getState) => {
   if (!isFromSomeoneElse(message, getState)) return;
   dispatch(AcknowledgeMessages(conversation._id));
   if (message.event) return;
+  // said while this chat's game is on screen here, so the game shows it too
+  if (readable.message && selectGameOnScreen(getState(), conversation._id)) {
+    emitRoomEvent({ conversationId: conversation._id, from: message.sender._id, text: readable.message });
+  }
 
   const isWatched = isWatching(getState, conversation._id);
   if (!isWatched) dispatch(countUnread(conversation._id));

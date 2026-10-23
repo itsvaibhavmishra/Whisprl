@@ -16,6 +16,7 @@ import {
 } from "#src/services/messageService.js";
 import { findMemberConversation, memberRooms } from "#src/services/conversationService.js";
 import { expiryFor } from "#src/services/disappearingService.js";
+import { isGameId } from "#src/services/games/catalog.js";
 import { pushNewMessage } from "#src/services/pushService.js";
 
 // -------------------------- Attach Encrypted File --------------------------
@@ -71,7 +72,7 @@ export const resealWaitingMessage = async (req, res, next) => {
 
 // -------------------------- Socket Send Message --------------------------
 export const socketSendMessage = async (socket, payload, acknowledge) => {
-  const { convo_id, clientId, cipher, franking, attachment, batch, replyTo, replyToAlbum, forwardOf, viewOnce } = payload;
+  const { convo_id, clientId, cipher, franking, attachment, batch, replyTo, replyToAlbum, forwardOf, viewOnce, game } = payload;
   try {
     const user_id = socket.user._id;
     const conversation = await findSendableConversation(convo_id, user_id);
@@ -82,6 +83,7 @@ export const socketSendMessage = async (socket, payload, acknowledge) => {
       ...(isClientId(clientId) && { clientId }),
       cipher,
       ...(isFranking(franking) && { franking }),
+      ...(isGameId(game) && { game }),
       awaitingKey: !conversation.isGroup && !peerHasKey(conversation, user_id),
       ...(attachment === true && { attachment: { status: "uploading" }, ...(viewOnce === true && { viewOnce: true }) }),
       ...batchOf(batch),
