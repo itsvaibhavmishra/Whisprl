@@ -1,5 +1,5 @@
 import createHttpError from "http-errors";
-import sizeOf from "image-size";
+import { imageSize } from "image-size";
 import mongoose from "mongoose";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
@@ -9,7 +9,6 @@ import { presenceShownTo } from "#src/services/blockService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { QUICK_REACTION_COUNT, areQuickReactions } from "#src/utils/emoji.js";
 import { assertStrongPassword, normalizeUsername } from "#src/utils/accountRules.js";
-import { randomCoverStyle } from "#src/utils/coverStyles.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -38,7 +37,7 @@ export const validateProfileImage = (kind, file) => {
   if (file.size > maxSize) {
     throw createHttpError.BadRequest("That image is too large");
   }
-  if (!hasRightShape(sizeOf(file.buffer))) {
+  if (!hasRightShape(imageSize(file.buffer))) {
     throw createHttpError.BadRequest(`Crop the ${noun} before uploading it`);
   }
 };
@@ -63,22 +62,6 @@ export const saveProfile = async (user, fields, uploads, removals) => {
   await user.save();
   await Promise.allSettled(replaced.filter(isCloudinaryFile).map(deleteFile));
 };
-
-// accounts made before covers had styles are each given one when the server starts
-export const giveEveryoneACoverStyle = async () => {
-  const missing = await UserModel.find({ coverStyle: { $exists: false } }).select("_id").lean();
-  if (!missing.length) return 0;
-  await UserModel.bulkWrite(
-    missing.map(({ _id }) => ({ updateOne: { filter: { _id, coverStyle: { $exists: false } }, update: { coverStyle: randomCoverStyle() } } }))
-  );
-  return missing.length;
-};
-
-// the status accounts once started with, under the app's old and new names, said nothing about anyone
-const OLD_DEFAULT_STATUSES = ["Hey There! I ❤️ Using Whisprl 😸", "Hey There! I ❤️ Using TwinkChat 😸"];
-
-export const clearDefaultStatuses = async () =>
-  (await UserModel.updateMany({ activityStatus: { $in: OLD_DEFAULT_STATUSES } }, { activityStatus: "" })).modifiedCount;
 
 const MUTUAL_PREVIEW = 3;
 

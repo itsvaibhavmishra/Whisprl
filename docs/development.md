@@ -2,7 +2,7 @@
 
 ## What you need
 
-- Node 22 and npm 10. CI runs Node 22.
+- Node 24 and npm 11. CI runs Node 24.
 - To run the app, not to run the gate: `backend/.env` and `frontend/.env`. Each
   package has a `.env copy` listing every key and marking which are required.
 - To release: `gh` (authenticated), `git` and `python3`.
@@ -12,7 +12,7 @@
 ## Build and check
 
 ```sh
-cd backend && npm install && npm run dev     # the API under nodemon, reads backend/.env
+cd backend && npm install && npm run dev     # the API under node --watch, reads backend/.env
 cd frontend && npm install -f && npm start   # the app via react-app-rewired, reads frontend/.env
 scripts/check.sh                             # the gate
 ```
@@ -532,7 +532,6 @@ Whisprl/
 │   ├── server.js            HTTP server, MongoDB connection, Socket.io init
 │   ├── app.js               Express middleware stack and the /api router
 │   ├── socket.js            WebSocket event handlers
-│   ├── vercel.json
 │   └── src/                 routes, controllers, services, models, middlewares,
 │                            utils, templates/mail
 ├── frontend/                React 18 + MUI app

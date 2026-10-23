@@ -34,19 +34,6 @@ export const availableUsername = async (firstName, lastName) => {
   throw createHttpError.ServiceUnavailable("Could not find a free username, please try again");
 };
 
-// accounts made before usernames existed are given one when the server starts
-export const giveEveryoneAUsername = async () => {
-  const missing = await UserModel.find({ username: { $exists: false } }).select("firstName lastName");
-  for (const user of missing) {
-    const username = await availableUsername(user.firstName, user.lastName);
-    // a name taken in the meantime is left for the next start to settle
-    await UserModel.updateOne({ _id: user._id, username: { $exists: false } }, { username }).catch((error) => {
-      if (error.code !== 11000) throw error;
-    });
-  }
-  return missing.length;
-};
-
 export const checkUsername = async (user, wanted) => {
   const username = normalizeUsername(wanted);
   const problem = usernameProblemOf(username);

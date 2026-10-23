@@ -1,5 +1,4 @@
 import express from "express";
-import trimRequest from "trim-request";
 import {
   register,
   sendOtp,
@@ -24,47 +23,32 @@ import { codeLimit, emailLimit, loginLimit, sessionLimit, signupLimit, socialLim
 
 const authRouter = express.Router();
 
-// Login Route
-authRouter.route("/login").post(trimRequest.all, loginLimit(), requireSessionKey, requireRecaptcha, login);
+authRouter.route("/login").post(loginLimit(), requireSessionKey, requireRecaptcha, login);
 
-// Logout Route
 authRouter.route("/logout").post(sessionLimit(), protect, logout);
 
-// Register Route
-authRouter.route("/register").post(trimRequest.all, signupLimit(), requireRecaptcha, register);
+authRouter.route("/register").post(signupLimit(), requireRecaptcha, register);
 
-// Send OTP Route
-authRouter.route("/send-otp").post(trimRequest.all, emailLimit(), sendOtp);
+authRouter.route("/send-otp").post(emailLimit(), sendOtp);
 
-// Verify OTP Route
-authRouter.route("/verify-otp").post(trimRequest.all, codeLimit(), requireSessionKey, requireRecaptcha, verifyOTP);
+authRouter.route("/verify-otp").post(codeLimit(), requireSessionKey, requireRecaptcha, verifyOTP);
 
-// Forgot Password Route
-authRouter.route("/forgot-password").post(trimRequest.all, emailLimit(), requireRecaptcha, forgotPassword);
+authRouter.route("/forgot-password").post(emailLimit(), requireRecaptcha, forgotPassword);
 
-// Reset Password Route
-authRouter.route("/reset-password").post(trimRequest.all, codeLimit(), resetPassword);
+authRouter.route("/reset-password").post(codeLimit(), resetPassword);
 
-// Session Renewal Routes
 authRouter.route("/session/challenge").post(sessionLimit(), getChallenge);
 
 authRouter.route("/session/token").post(sessionLimit(), renewAccessToken);
-
-// ------------- Passkey Auth -------------
 
 authRouter.route("/passkeys/options").post(sessionLimit(), getLoginOptions);
 
 authRouter.route("/passkeys/login").post(sessionLimit(), requireSessionKey, passkeyLogin);
 
-// ------------- Social Auth -------------
-
-// Google Auth Route
 authRouter.route("/google").post(socialLimit(), requireSessionKey, googleAuth);
 
-// GitHub Auth Route
 authRouter.route("/github").post(socialLimit(), requireSessionKey, githubAuth);
 
-// LinkedIn Auth Route
 authRouter.route("/linkedin").post(socialLimit(), requireSessionKey, linkedinAuth);
 
 export default authRouter;

@@ -318,7 +318,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   ├── package.json
 │   ├── server.js
 │   ├── socket.js
-│   ├── vercel.json
 ```
 </details>
 

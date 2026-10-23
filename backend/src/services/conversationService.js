@@ -165,7 +165,7 @@ export const pinsOf = async (conversation) => (await conversation.populate(PINNE
 // a reaction stands in its chat's row like a message would, so it moves the chat up as one does
 export const noteReaction = async (conversation_id, reaction) => {
   const latestReaction = { ...reaction, at: new Date() };
-  const conversation = await ConversationModel.findByIdAndUpdate(conversation_id, { latestReaction }, { new: true }).populate(LATEST_REACTION);
+  const conversation = await ConversationModel.findByIdAndUpdate(conversation_id, { latestReaction }, { returnDocument: "after" }).populate(LATEST_REACTION);
   return { conversation: conversation_id, latestReaction: conversation.toJSON().latestReaction };
 };
 

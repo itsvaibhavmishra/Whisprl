@@ -19,7 +19,7 @@ export const PLACEHOLDER_PROFILE = { firstName: "Whisprl user", lastName: "", av
 
 export const profileOf = (user) => Object.fromEntries(HIDDEN_PROFILE_FIELDS.map((field) => [field, user[field]]).filter(([, value]) => value !== undefined));
 
-export const isSuspended = (user) => Boolean(user.suspendedUntil) && user.suspendedUntil > new Date();
+const isSuspended = (user) => Boolean(user.suspendedUntil) && user.suspendedUntil > new Date();
 
 export const isShutOut = (user) => Boolean(user.bannedAt) || isSuspended(user);
 

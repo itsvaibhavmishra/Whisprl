@@ -48,7 +48,6 @@ const tableOf = (session) => ({ ...session.options, players: session.seats.lengt
 // who is sitting where, so a game can tell the table changed without being told who anyone is
 const seatingOf = (seats) => seats.map((seat) => (seat.user ? String(seat.user) : seat.bot ? "bot" : "")).join("|");
 
-// -------------------------- Game rooms --------------------------
 // who is watching cannot outlive a restart, so game rooms live in memory while the session itself is saved
 const gameRooms = new Map();
 
@@ -106,7 +105,6 @@ const assertNotCoolingDown = (gameRoom, userId) => {
   if (until) throw createHttpError.BadRequest(`You can sit again in ${Math.ceil((until - Date.now()) / 1000)} seconds`);
 };
 
-// -------------------------- Views --------------------------
 const seatView = ({ user, ready, locked, invited, bot, away }) => ({
   user: user ? String(user) : null,
   ready: Boolean(ready),
@@ -154,7 +152,6 @@ const broadcast = async (io, gameRoom, conversation, session) => {
   sockets.forEach((socket) => socket.emit("game_state", viewFor(conversation, session, gameRoom, socket.data.userId)));
 };
 
-// -------------------------- Turns --------------------------
 const save = (session) => GameSessionModel.replaceOne({ conversation: session.conversation }, session, { upsert: true });
 
 const loadSession = (conversationId) => GameSessionModel.findOne({ conversation: conversationId }).lean();
@@ -248,7 +245,6 @@ const reachDeadline = (io, conversationId, deadline) =>
     await broadcast(io, gameRoom, await ConversationModel.findById(conversationId), next);
   });
 
-// -------------------------- Permissions --------------------------
 const assertGroupManager = (conversation, userId) => {
   if (!conversation.isGroup) throw createHttpError.BadRequest("Only groups manage their seats");
   assertManager(conversation, userId);
@@ -273,7 +269,6 @@ const requirePlaying = (session) => {
   return session;
 };
 
-// -------------------------- Actions --------------------------
 // someone already playing elsewhere chooses to leave that game first, so this only says where
 const assertNotSeatedElsewhere = async (conversation, userId) => {
   const elsewhere = await GameSessionModel.findOne({
@@ -452,7 +447,6 @@ const announceTable = async (io, conversation, userId, type, before, after) => {
   await pushGameInvite(members, members.users.find((member) => String(member._id) === userId), game.name);
 };
 
-// -------------------------- Entry points --------------------------
 const playableConversation = async (conversationId, userId) => {
   const conversation = await findMemberConversation(conversationId, userId);
   await assertCanMessage(conversation, userId);

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { botMove, DISTRACTED } from "#src/services/games/dots-and-boxes/bot.js";
-import { boxesTouching, openLinesOf, outcome, play, scoresOf, setup, sidesDrawnOn, sidesOfBox } from "#src/services/games/dots-and-boxes/rules.js";
+import { openLinesOf, outcome, play, scoresOf, setup, sidesOfBox } from "#src/services/games/dots-and-boxes/rules.js";
 
 const board = (size, players = 2) => setup(null, { size, players });
 

@@ -74,7 +74,7 @@ export const deleteForEveryone = async (message_id, user_id) => {
 export const hideForMe = async (message_id, user_id) => {
   const message = await findMessage(message_id, {});
   const conversation = await findMemberConversation(message.conversation, user_id);
-  const hidden = await MessageModel.findOneAndUpdate({ _id: message._id }, { $addToSet: { hiddenFor: user_id } }, { new: true });
+  const hidden = await MessageModel.findOneAndUpdate({ _id: message._id }, { $addToSet: { hiddenFor: user_id } }, { returnDocument: "after" });
   await deleteFileOnceSeen(hidden, conversation);
   return { _id: message._id, conversation: message.conversation };
 };
@@ -136,7 +136,7 @@ export const markOpened = async (message_id, user_id) => {
   const opened = await MessageModel.findOneAndUpdate(
     { _id: message._id, viewedBy: { $ne: user_id } },
     { $addToSet: { viewedBy: user_id } },
-    { new: true }
+    { returnDocument: "after" }
   );
   if (!opened) throw createHttpError.Gone("You have already opened this photo");
 

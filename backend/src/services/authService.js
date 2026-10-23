@@ -4,7 +4,7 @@ import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
 import { isDisposableEmail } from "#src/utils/checkDispose.js";
-import { assertStrongPassword, assertValidName, normalizeEmail, normalizeUsername, oldEnoughBirthdayFrom } from "#src/utils/accountRules.js";
+import { assertStrongPassword, assertValidName, normalizeEmail, normalizeUsername, oldEnoughBirthdayFrom, trimmed } from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
 import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import otpMail from "#src/templates/mail/otp.js";
@@ -38,7 +38,6 @@ export const toSessionUser = async (user) => ({
   suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,
   blocked: user.blocked,
   onboarding: await onboardingOf(user),
-  whatsNewSeen: user.whatsNewSeen ?? null,
   createdAt: user.createdAt,
   role: roleOf(user),
   permissions: permissionsOf(user),
@@ -65,7 +64,6 @@ export const mailOrFail = async (to, subject, html) => {
   }
 };
 
-// -------------------------- Access tokens --------------------------
 export const findSessionUser = async (user_id) => {
   const user = await UserModel.findOne({ _id: user_id, verified: true });
   if (!user) throw sessionEnded();
@@ -82,7 +80,6 @@ export const authenticate = async (token) => {
   return { user, sessionId: sid };
 };
 
-// -------------------------- Log in and sign up --------------------------
 // a username never holds an @, and only verified accounts log in by one, so an account still verifying goes by its email
 const accountFilterOf = (identifier) => {
   const value = String(identifier).trim();
@@ -103,7 +100,8 @@ export const loginWithPassword = async (identifier, password) => {
   return user;
 };
 
-export const registerUser = async ({ firstName, lastName, email, password, birthday }) => {
+export const registerUser = async ({ email, password, ...typed }) => {
+  const [firstName, lastName, birthday] = [typed.firstName, typed.lastName, typed.birthday].map(trimmed);
   if (!firstName || !lastName || !email || !password || !birthday) {
     throw createHttpError.BadRequest("Required fields: firstName, lastName, email, password & birthday");
   }
@@ -129,7 +127,6 @@ export const registerUser = async ({ firstName, lastName, email, password, birth
   return user;
 };
 
-// -------------------------- Email verification --------------------------
 export const sendVerificationCode = async (user) => {
   assertCooledDown(user.verification?.sentAt, "code");
 
@@ -168,7 +165,8 @@ const whyCodeWasRefused = async (email) => {
 };
 
 // counting the attempt in the same write that checks the limit, so parallel guesses cannot slip past it
-export const verifyEmail = async (email, code) => {
+export const verifyEmail = async (email, typedCode) => {
+  const code = trimmed(typedCode);
   if (!email || !code) throw createHttpError.BadRequest("Required fields: email & otp");
 
   const address = normalizeEmail(email);
@@ -180,7 +178,7 @@ export const verifyEmail = async (email, code) => {
       "verification.attempts": { $lt: MAX_CODE_ATTEMPTS },
     },
     { $inc: { "verification.attempts": 1 } },
-    { new: true }
+    { returnDocument: "after" }
   ).select("+verification");
 
   if (!user) throw await whyCodeWasRefused(address);
@@ -193,7 +191,6 @@ export const verifyEmail = async (email, code) => {
   return user;
 };
 
-// -------------------------- Password reset --------------------------
 export const sendPasswordReset = async (email) => {
   const user = await UserModel.findOne({ email: normalizeEmail(email) }).select("+passwordReset");
   if (!user) throw createHttpError.NotFound("Email is not registered");
@@ -224,7 +221,7 @@ export const resetPasswordWithToken = async ({ token, password, passwordConfirm 
   }).select("+passwordReset");
 
   if (!user) throw createHttpError.BadRequest("That reset link expired, please request a new one");
-  if (password !== passwordConfirm) throw createHttpError.BadRequest("Password and Confirm Password do not match");
+  if (trimmed(password) !== trimmed(passwordConfirm)) throw createHttpError.BadRequest("Password and Confirm Password do not match");
   assertStrongPassword(password);
 
   user.password = password;

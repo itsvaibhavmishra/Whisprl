@@ -18,6 +18,7 @@ import { sendMail } from "#src/services/mailer.js";
 import { PLACEHOLDER_PROFILE, endsOn, profileOf } from "#src/services/moderationService.js";
 import { isStaff } from "#src/services/roleService.js";
 import { endAllSessions, signOutEverywhere } from "#src/services/sessionService.js";
+import { trimmed } from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
 import deletionCodeMail from "#src/templates/mail/deletionCode.js";
 import deletionScheduledMail from "#src/templates/mail/deletionScheduled.js";
@@ -42,7 +43,6 @@ const FORGOTTEN_FIELDS = [
   "socialsConnected",
   "quickReactions",
   "skippedSteps",
-  "whatsNewSeen",
   "notificationsAllowedAt",
   "agePausedUntil",
 ];
@@ -83,12 +83,13 @@ const whyCodeWasRefused = async (user_id) => {
 };
 
 // counting the attempt in the same write that checks the limit, so parallel guesses cannot slip past it
-const assertCodeMatches = async (user_id, code) => {
+const assertCodeMatches = async (user_id, typedCode) => {
+  const code = trimmed(typedCode);
   if (!code) throw createHttpError.BadRequest("Enter the code we emailed you");
   const user = await UserModel.findOneAndUpdate(
     { _id: user_id, "deletionCode.expiresAt": { $gt: new Date() }, "deletionCode.attempts": { $lt: MAX_CODE_ATTEMPTS } },
     { $inc: { "deletionCode.attempts": 1 } },
-    { new: true }
+    { returnDocument: "after" }
   ).select("+deletionCode");
 
   if (!user) throw await whyCodeWasRefused(user_id);

@@ -1,13 +1,14 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import createHttpError from "http-errors";
 
 import { normalizeEmail } from "#src/utils/accountRules.js";
 
 const MINUTE = 60 * 1000;
 
-const byIp = (req) => req.ip;
-const byIpAndEmail = (req) => `${req.ip}:${normalizeEmail(req.body.email)}`;
-const byIpAndAccount = (req) => `${req.ip}:${normalizeEmail(req.body.identifier ?? req.body.email)}`;
+// one IPv6 visitor holds a whole block of addresses, so the block counts as one
+const byIp = (req) => ipKeyGenerator(req.ip);
+const byIpAndEmail = (req) => `${byIp(req)}:${normalizeEmail(req.body.email)}`;
+const byIpAndAccount = (req) => `${byIp(req)}:${normalizeEmail(req.body.identifier)}`;
 const byUser = (req) => String(req.user._id);
 
 const tooManyRequests = (req, res, next) => {

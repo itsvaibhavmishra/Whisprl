@@ -84,14 +84,6 @@ export const allowNotificationsStep = async (user) => {
   return user;
 };
 
-// "next" is the preview a development build shows before the highlights belong to a release
-export const markWhatsNewSeen = async (user, version) => {
-  if (typeof version !== "string" || !/^(\d+\.\d+\.\d+|next)$/.test(version)) throw createHttpError.BadRequest("Send the version you saw");
-  user.whatsNewSeen = version;
-  await user.save();
-  return user;
-};
-
 export const skipStep = async (user, stepId) => {
   const step = STEPS.find(({ id }) => id === stepId);
   if (!step) throw createHttpError.NotFound("No such step");
