@@ -1,5 +1,5 @@
 import { Box, Button, Container, IconButton, Link, Stack, Typography } from "@mui/material";
-import { GithubLogo, InstagramLogo, LinkedinLogo } from "phosphor-react";
+import { GithubLogoIcon, InstagramLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -9,9 +9,9 @@ import { DEFAULT_PATH, PORTFOLIO_URL, SOURCE_URL } from "@/config";
 import { PATH_AUTH, PATH_DOCS } from "@/routes/paths";
 
 const SOCIALS = [
-  { label: "Vaibhaw Mishra on GitHub", href: "https://github.com/itsvaibhavmishra", Icon: GithubLogo },
-  { label: "Vaibhaw Mishra on Instagram", href: "https://instagram.com/itsvaibhavmishra", Icon: InstagramLogo },
-  { label: "Vaibhaw Mishra on LinkedIn", href: "https://www.linkedin.com/in/itsvaibhavmishra", Icon: LinkedinLogo },
+  { label: "Vaibhaw Mishra on GitHub", href: "https://github.com/itsvaibhavmishra", Icon: GithubLogoIcon },
+  { label: "Vaibhaw Mishra on Instagram", href: "https://instagram.com/itsvaibhavmishra", Icon: InstagramLogoIcon },
+  { label: "Vaibhaw Mishra on LinkedIn", href: "https://www.linkedin.com/in/itsvaibhavmishra", Icon: LinkedinLogoIcon },
 ];
 
 const DOCS = [
@@ -37,14 +37,12 @@ const SiteHeader = () => {
     <Stack
       component="header"
       direction="row"
-      alignItems="center"
-      justifyContent="space-between"
-      sx={{ pt: { xs: "calc(16px + env(safe-area-inset-top))", md: 3 }, pb: { xs: 2, md: 3 } }}
+      sx={{ alignItems: "center", justifyContent: "space-between", pt: { xs: "calc(16px + env(safe-area-inset-top))", md: 3 }, pb: { xs: 2, md: 3 } }}
     >
       <Box component={RouterLink} to={isLoggedIn ? DEFAULT_PATH : PATH_AUTH.general.welcome} sx={{ display: "flex" }}>
         <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
       </Box>
-      <Stack component="nav" aria-label="Account" direction="row" spacing={1} alignItems="center">
+      <Stack component="nav" aria-label="Account" direction="row" spacing={1} sx={{ alignItems: "center" }}>
         {isLoggedIn ? (
           <Button component={RouterLink} to={DEFAULT_PATH} variant="contained">
             Open Whisprl
@@ -63,18 +61,16 @@ const SiteFooter = () => (
     component="footer"
     direction={{ xs: "column", md: "row" }}
     spacing={3}
-    justifyContent="space-between"
-    alignItems={{ md: "center" }}
-    sx={{ mt: { xs: 6, md: 8 }, py: 4, borderTop: 1, borderColor: "divider" }}
+    sx={{ justifyContent: "space-between", alignItems: { md: "center" }, mt: { xs: 6, md: 8 }, py: 4, borderTop: 1, borderColor: "divider" }}
   >
-    <Typography variant="body2" color="text.secondary">
+    <Typography variant="body2" sx={{ color: "text.secondary" }}>
       © {new Date().getFullYear()} Whisprl. Built by{" "}
       <Link href={PORTFOLIO_URL} target="_blank" rel="noopener" color="text.primary">
         Vaibhaw Mishra
       </Link>
       .
     </Typography>
-    <Stack direction="row" spacing={3} alignItems="center" flexWrap="wrap" useFlexGap>
+    <Stack direction="row" spacing={3} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
       {DOCS.map(({ label, to }) => (
         <Link key={to} component={RouterLink} to={to} color="text.secondary" variant="body2">
           {label}

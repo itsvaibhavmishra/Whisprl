@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, CircularProgress, Dialog, IconButton, Stack, Typography } from "@mui/material";
-import { X } from "phosphor-react";
+import { XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useDarkSystemBars from "@/hooks/useDarkSystemBars";
@@ -84,14 +84,14 @@ const ViewOnceViewer = ({ message, onClose }) => {
       onClose={onClose}
       aria-labelledby="view-once-title"
       onContextMenu={(event) => event.preventDefault()}
-      PaperProps={{ sx: { bgcolor: "#000", userSelect: "none", "@media print": { display: "none" } } }}
+      slotProps={{ paper: { sx: { bgcolor: "#000", userSelect: "none", "@media print": { display: "none" } } } }}
     >
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.5, color: "#fff" }}>
+      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", px: 2, py: 1.5, color: "#fff" }}>
         <Typography id="view-once-title" variant="body2" sx={{ opacity: 0.8 }}>
           View once {isVideo ? "video" : "photo"}. It can't be opened again after you close it.
         </Typography>
         <IconButton aria-label="Close" onClick={onClose} sx={{ color: "#fff" }}>
-          <X size={22} />
+          <XIcon size={22} />
         </IconButton>
       </Stack>
       <Box sx={{ flex: 1, minHeight: 0, display: "grid", placeItems: "center", p: 2 }}>

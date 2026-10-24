@@ -219,9 +219,11 @@ export const markSeen = async (conversation_id, reader_id) => {
   if (conversation?.isGroup) return markGroupSeen(conversation, reader_id);
 
   const now = new Date();
-  const { modifiedCount } = await MessageModel.updateMany({ ...fromOthers([conversation_id], reader_id), seenAt: null }, [
-    { $set: { seenAt: now, deliveredAt: { $ifNull: ["$deliveredAt", now] } } },
-  ]);
+  const { modifiedCount } = await MessageModel.updateMany(
+    { ...fromOthers([conversation_id], reader_id), seenAt: null },
+    [{ $set: { seenAt: now, deliveredAt: { $ifNull: ["$deliveredAt", now] } } }],
+    { updatePipeline: true }
+  );
   return modifiedCount ? {} : null;
 };
 

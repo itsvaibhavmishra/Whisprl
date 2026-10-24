@@ -1,6 +1,6 @@
 import { ButtonBase, Typography } from "@mui/material";
-import { m } from "framer-motion";
-import { GameController } from "phosphor-react";
+import { m } from "motion/react";
+import { GameControllerIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import { gameCollapsed } from "@/redux/slices/gameSlice";
@@ -19,6 +19,7 @@ const GamePill = ({ session, meId }) => {
   return (
     <ButtonBase
       component={m.button}
+      nativeButton
       initial={{ opacity: 0, y: -12, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -12, scale: 0.9 }}
@@ -38,7 +39,7 @@ const GamePill = ({ session, meId }) => {
         boxShadow: 3,
       }}
     >
-      <GameController size={18} weight="fill" color={theme.marks[0]} />
+      <GameControllerIcon size={18} weight="fill" color={theme.marks[0]} />
       <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{labelOf(session, meId, name)}</Typography>
     </ButtonBase>
   );

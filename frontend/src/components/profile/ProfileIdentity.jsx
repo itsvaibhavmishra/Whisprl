@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Avatar, Box, Skeleton, Stack, Typography, useMediaQuery } from "@mui/material";
-import { ImageSquare } from "phosphor-react";
+import { ImageSquareIcon } from "@phosphor-icons/react";
 
 import ProfileCover from "@/components/ProfileCover";
 import StatusArcs from "@/components/StatusArcs";
@@ -120,7 +120,7 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
   const fullName = `${person.firstName} ${person.lastName}`.trim();
   const photoAt = { xs: { x: look.gutter + RING + look.photo / 2, radius: look.photo / 2 + RING } };
   const photoView = person.avatar
-    ? { noun: "profile picture", label: "View profile picture", icon: ImageSquare, onChoose: () => setIsViewingPhoto(true) }
+    ? { noun: "profile picture", label: "View profile picture", icon: ImageSquareIcon, onChoose: () => setIsViewingPhoto(true) }
     : null;
 
   return (
@@ -141,7 +141,7 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
         <Typography component="h2" sx={{ m: 0, overflowWrap: "anywhere" }}>
           <Wordmark name={fullName} fontSize={look.name} />
         </Typography>
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 0.75, color: "text.secondary", fontWeight: 600 }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mt: 0.75, color: "text.secondary", fontWeight: 600 }}>
           {person.username && <Typography sx={{ fontWeight: "inherit" }}>@{person.username}</Typography>}
           {isOnline && <Typography sx={{ fontWeight: "inherit", fontSize: 14 }}>Online</Typography>}
         </Stack>

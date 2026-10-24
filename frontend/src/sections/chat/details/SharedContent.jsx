@@ -15,7 +15,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { ChatCircleText } from "phosphor-react";
+import { ChatCircleTextIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -131,7 +131,7 @@ const SharedContent = ({ conversation }) => {
           secondaryAction={
             <Tooltip title="Show in chat">
               <IconButton edge="end" aria-label="Show in chat" onClick={() => dispatch(focusMessage(messageId))}>
-                <ChatCircleText size={18} />
+                <ChatCircleTextIcon size={18} />
               </IconButton>
             </Tooltip>
           }
@@ -196,15 +196,17 @@ const SharedContent = ({ conversation }) => {
           value={tab}
           onChange={(_, value) => setTab(value)}
           variant="fullWidth"
-          TabIndicatorProps={{
-            sx: {
-              height: "100%",
-              borderRadius: 99,
-              bgcolor: "chat.raised",
-              boxShadow: (theme) => `0 1px 3px ${theme.palette.chat.shade}, inset 0 0 0 1px ${theme.palette.chat.edge}`,
+          sx={{ minHeight: 40, p: 0.5, borderRadius: 99, bgcolor: "chat.field" }}
+          slotProps={{
+            indicator: {
+              sx: {
+                height: "100%",
+                borderRadius: 99,
+                bgcolor: "chat.raised",
+                boxShadow: (theme) => `0 1px 3px ${theme.palette.chat.shade}, inset 0 0 0 1px ${theme.palette.chat.edge}`,
+              },
             },
           }}
-          sx={{ minHeight: 40, p: 0.5, borderRadius: 99, bgcolor: "chat.field" }}
         >
           {TABS.map(({ value, label }) => (
             <Tab

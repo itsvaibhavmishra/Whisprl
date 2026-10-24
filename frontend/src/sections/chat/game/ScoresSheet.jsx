@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Box, CircularProgress, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { m, useReducedMotion } from "framer-motion";
-import { GameController } from "phosphor-react";
+import { m, useReducedMotion } from "motion/react";
+import { GameControllerIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -23,7 +23,7 @@ const PODIUM = [
 const Person = ({ conversation, row, meId, size, theme }) => {
   const member = memberOf(conversation, row.user);
   return (
-    <Stack alignItems="center" spacing={0.5} sx={{ minWidth: 0, maxWidth: "100%" }}>
+    <Stack spacing={0.5} sx={{ alignItems: "center", minWidth: 0, maxWidth: "100%" }}>
       {getAvatar(member?.avatar, member?.firstName, size)}
       <Typography noWrap sx={{ maxWidth: "100%", fontSize: 14, fontWeight: 800, color: theme.ink }}>
         {firstNameIn(conversation, row.user, meId)}
@@ -45,7 +45,7 @@ const HeadToHead = ({ game, conversation, standings, meId }) => {
     <Stack spacing={2} sx={{ px: 3 }}>
       <Box sx={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", alignItems: "end", columnGap: 1 }}>
         {standings.map((row, index) => (
-          <Stack key={row.user} alignItems="center" spacing={1} sx={{ gridColumn: index === 0 ? 1 : 3, minWidth: 0 }}>
+          <Stack key={row.user} spacing={1} sx={{ alignItems: "center", gridColumn: index === 0 ? 1 : 3, minWidth: 0 }}>
             <Person conversation={conversation} row={row} meId={meId} size={52} theme={theme} />
             <Typography sx={{ fontSize: 40, lineHeight: 1, fontWeight: 900, color: colours[index], fontVariantNumeric: "tabular-nums" }}>{row.won}</Typography>
           </Stack>
@@ -66,11 +66,11 @@ const Podium = ({ game, conversation, standings, meId }) => {
   const { theme } = game;
   const isStill = useReducedMotion();
   return (
-    <Stack direction="row" alignItems="flex-end" spacing={1} sx={{ px: 3 }}>
+    <Stack direction="row" spacing={1} sx={{ alignItems: "flex-end", px: 3 }}>
       {PODIUM.map(({ index, height, delay }) => {
         const row = standings[index];
         return (
-          <Stack key={row.user} alignItems="center" spacing={0.75} sx={{ flex: 1, minWidth: 0 }}>
+          <Stack key={row.user} spacing={0.75} sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
             <Person conversation={conversation} row={row} meId={meId} size={row.place === 1 ? 44 : 36} theme={theme} />
             <Typography sx={{ fontSize: 12, fontWeight: 700, color: alpha(theme.ink, 0.7) }}>{countOf(row.won, "win")}</Typography>
             <Box
@@ -139,7 +139,7 @@ const Standings = ({ game, conversation, standings, meId }) => {
             }}
           >
             <Typography sx={{ fontSize: 13, fontWeight: 800, color: alpha(theme.ink, 0.6) }}>{row.place}</Typography>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
               {getAvatar(member?.avatar, member?.firstName, 28)}
               <Typography noWrap sx={{ fontSize: 14, fontWeight: isMe ? 800 : 600 }}>
                 {firstNameIn(conversation, row.user, meId)}
@@ -158,8 +158,8 @@ const Standings = ({ game, conversation, standings, meId }) => {
 };
 
 const NoScores = ({ game }) => (
-  <Stack alignItems="center" spacing={1.25} sx={{ px: 3, py: 2, textAlign: "center" }}>
-    <GameController size={56} weight="duotone" color={game.theme.accent} />
+  <Stack spacing={1.25} sx={{ alignItems: "center", px: 3, py: 2, textAlign: "center" }}>
+    <GameControllerIcon size={56} weight="duotone" color={game.theme.accent} />
     <Typography sx={{ fontSize: 17, fontWeight: 800, color: game.theme.ink }}>No games finished here yet</Typography>
     <Typography sx={{ fontSize: 14, lineHeight: 1.5, color: alpha(game.theme.ink, 0.7) }}>
       {`Finish a game of ${game.name} against someone in this chat and the scores start. ${PRACTICE_NOTE}.`}

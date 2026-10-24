@@ -83,7 +83,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
             {nameOf(seat, conversation, meId)}
           </Typography>
           {/* the same height whoever's turn it is, so the board below never shifts as turns pass */}
-          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minHeight: 21 }}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minHeight: 21 }}>
             {game.Mark && (
               <Box sx={{ width: 21, height: 21 }}>
                 <game.Mark seat={index} state={state} />
@@ -103,7 +103,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
 
 // who is playing, and whose turn it is; two players face each other, more simply sit in a row
 const PlayerBar = ({ conversation, session, game, meId, onLeave }) => (
-  <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2, pt: 1, flexShrink: 0 }}>
+  <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: 2, pt: 1, flexShrink: 0 }}>
     {session.seats.map((seat, index) => (
       <Fragment key={index}>
         {index > 0 && session.seats.length === 2 && (

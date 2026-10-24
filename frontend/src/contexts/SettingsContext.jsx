@@ -74,7 +74,7 @@ const SettingsProvider = ({ children }) => {
   };
 
   return (
-    <SettingsContext.Provider
+    <SettingsContext
       value={{
         ...settings,
         onToggleMode,
@@ -90,7 +90,7 @@ const SettingsProvider = ({ children }) => {
       }}
     >
       {children}
-    </SettingsContext.Provider>
+    </SettingsContext>
   );
 };
 

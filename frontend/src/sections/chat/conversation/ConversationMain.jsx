@@ -1,7 +1,7 @@
 import { Fragment, memo, useCallback, useEffect, useRef, useState } from "react";
 import { Box, CircularProgress, Divider, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { LockSimple } from "phosphor-react";
+import { LockSimpleIcon } from "@phosphor-icons/react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import MessageContainer from "@/sections/chat/messages/MessageContainer";
@@ -229,10 +229,10 @@ const ConversationMain = () => {
   return (
     <Box sx={{ position: "relative", flex: "1 1 0", minHeight: 0, display: "flex" }}>
       <Box
-        width="100%"
         ref={scrollRef}
         onScroll={handleScroll}
         sx={{
+          width: "100%",
           display: "flex",
           flexDirection: "column",
           overflowY: "scroll",
@@ -251,7 +251,7 @@ const ConversationMain = () => {
             {isLoadingOlder && <CircularProgress size={20} aria-label="Loading older messages" />}
             {!hasOlderMessages && messages.length > 0 && (
               <ChatNote sx={{ maxWidth: 340, px: 1.75, py: 1.25, borderRadius: 1.5, fontSize: 12.5, lineHeight: 1.5 }}>
-                <LockSimple size={14} weight="bold" aria-hidden style={{ verticalAlign: "-2px", marginRight: 6 }} />
+                <LockSimpleIcon size={14} weight="bold" aria-hidden style={{ verticalAlign: "-2px", marginRight: 6 }} />
                 Messages here are end-to-end encrypted. Only the people in this chat can read them.
               </ChatNote>
             )}

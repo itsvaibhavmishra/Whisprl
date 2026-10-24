@@ -8,11 +8,11 @@ const TYPING_BUBBLE_HEIGHT = 40;
 const TypingBubble = ({ names, isGroup }) => (
   <Stack
     direction="row"
-    alignItems="center"
     spacing={1}
     role="status"
     aria-label={`${listOf(names)} ${names.length === 1 ? "is" : "are"} typing`}
     sx={{
+      alignItems: "center",
       width: "fit-content",
       height: TYPING_BUBBLE_HEIGHT,
       px: 1.75,

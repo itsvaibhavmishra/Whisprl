@@ -65,9 +65,11 @@ const UsernameDialog = ({ current, onClose }) => {
             onChange={(event) => setDraft(event.target.value)}
             error={isChecked && Boolean(check.problem)}
             helperText={helperText()}
-            FormHelperTextProps={{ sx: { color: isFree ? "success.main" : undefined } }}
-            inputProps={{ maxLength: 21, autoCapitalize: "none", spellCheck: false }}
-            InputProps={{ startAdornment: <InputAdornment position="start">@</InputAdornment> }}
+            slotProps={{
+              input: { startAdornment: <InputAdornment position="start">@</InputAdornment> },
+              htmlInput: { maxLength: 21, autoCapitalize: "none", spellCheck: false },
+              formHelperText: { sx: { color: isFree ? "success.main" : undefined } },
+            }}
           />
         </DialogContent>
         <DialogActions>

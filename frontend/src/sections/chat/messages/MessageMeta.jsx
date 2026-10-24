@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { Check, Checks, Clock } from "phosphor-react";
+import { CheckIcon, ChecksIcon, ClockIcon } from "@phosphor-icons/react";
 
 import useSettings from "@/hooks/useSettings";
 import { formatClock } from "@/utils/formatMessageTime";
@@ -10,10 +10,10 @@ const DIM_ON_GRADIENT = "rgba(255, 255, 255, 0.6)";
 // on the gradient, seen is the one bright tick, so it stands apart from sent and delivered at a glance
 const Tick = ({ message, isQueued, isOnBubble }) => {
   const dim = isOnBubble ? DIM_ON_GRADIENT : "currentColor";
-  if (isQueued) return <Clock size={12} weight="bold" role="img" aria-label="Sending" color={dim} />;
-  if (message.seenAt) return <Checks size={15} weight="bold" role="img" aria-label="Seen" color={isOnBubble ? SEEN_ON_GRADIENT : "currentColor"} />;
-  if (message.deliveredAt) return <Checks size={15} role="img" aria-label="Delivered" color={dim} />;
-  return <Check size={14} role="img" aria-label="Sent" color={dim} />;
+  if (isQueued) return <ClockIcon size={12} weight="bold" role="img" aria-label="Sending" color={dim} />;
+  if (message.seenAt) return <ChecksIcon size={15} weight="bold" role="img" aria-label="Seen" color={isOnBubble ? SEEN_ON_GRADIENT : "currentColor"} />;
+  if (message.deliveredAt) return <ChecksIcon size={15} role="img" aria-label="Delivered" color={dim} />;
+  return <CheckIcon size={14} role="img" aria-label="Sent" color={dim} />;
 };
 
 const Stamp = ({ message, hasTick, isQueued, isOnBubble }) => {

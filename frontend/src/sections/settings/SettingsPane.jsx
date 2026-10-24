@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, Stack, Switch, Typography } from "@mui/material";
-import { ArrowUpRight } from "phosphor-react";
+import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -36,7 +36,7 @@ import { isStaff } from "@/utils/roles";
 import { feel } from "@/utils/haptics";
 import { previewSound } from "@/utils/sounds";
 
-const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRight };
+const externalLink = { component: "a", target: "_blank", rel: "noopener", icon: ArrowUpRightIcon };
 
 const VibrationSetting = () => {
   const { haptics, onToggleHaptics } = useSettings();
@@ -49,7 +49,7 @@ const VibrationSetting = () => {
 
   return (
     <SettingRow label="Vibration" description="A light buzz when you send, react, hold a message or play a game.">
-      <Switch checked={haptics} onChange={toggle} inputProps={{ "aria-label": "Vibration" }} />
+      <Switch checked={haptics} onChange={toggle} slotProps={{ input: { "aria-label": "Vibration" } }} />
     </SettingRow>
   );
 };
@@ -64,7 +64,7 @@ const SoundSetting = () => {
 
   return (
     <SettingRow label="Message sounds" description="A sound when you send a message, and when one arrives.">
-      <Switch checked={sounds} onChange={toggle} inputProps={{ "aria-label": "Message sounds" }} />
+      <Switch checked={sounds} onChange={toggle} slotProps={{ input: { "aria-label": "Message sounds" } }} />
     </SettingRow>
   );
 };
@@ -73,7 +73,7 @@ const ClockSetting = () => {
   const { use24Hour, onToggle24Hour } = useSettings();
   return (
     <SettingRow label="24-hour time" description="Show times like 15:05 instead of 3:05 PM.">
-      <Switch checked={Boolean(use24Hour)} onChange={onToggle24Hour} inputProps={{ "aria-label": "24-hour time" }} />
+      <Switch checked={Boolean(use24Hour)} onChange={onToggle24Hour} slotProps={{ input: { "aria-label": "24-hour time" } }} />
     </SettingRow>
   );
 };
@@ -108,7 +108,7 @@ const NotificationSetting = () => {
 
   return (
     <SettingRow label="Notifications" description={description}>
-      <Switch checked={notifications && permission === "granted"} onChange={toggle} inputProps={{ "aria-label": "Notifications" }} />
+      <Switch checked={notifications && permission === "granted"} onChange={toggle} slotProps={{ input: { "aria-label": "Notifications" } }} />
     </SettingRow>
   );
 };

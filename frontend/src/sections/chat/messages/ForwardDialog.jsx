@@ -55,7 +55,7 @@ const ForwardDialog = ({ messages, open, onClose }) => {
                 <ListItemButton onClick={() => toggle(conversation._id)} disabled={!isChosen && chosen.length >= MAX_TARGETS}>
                   <ListItemAvatar>{getAvatar(avatar, name, 36)}</ListItemAvatar>
                   <ListItemText primary={name} />
-                  <Checkbox edge="end" checked={isChosen} tabIndex={-1} disableRipple inputProps={{ "aria-label": `Forward to ${name}` }} />
+                  <Checkbox edge="end" checked={isChosen} tabIndex={-1} disableRipple slotProps={{ input: { "aria-label": `Forward to ${name}` } }} />
                 </ListItemButton>
               </ListItem>
             );

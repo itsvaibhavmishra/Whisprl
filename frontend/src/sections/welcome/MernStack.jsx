@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
-import { GithubLogo } from "phosphor-react";
+import { GithubLogoIcon } from "@phosphor-icons/react";
 
 import { STACK } from "@/sections/welcome/content";
 import { SOURCE_URL } from "@/config";
@@ -55,7 +55,7 @@ const MernStack = () => (
       variant="outlined"
       color="inherit"
       size="large"
-      startIcon={<GithubLogo weight="duotone" />}
+      startIcon={<GithubLogoIcon weight="duotone" />}
       sx={{ mt: { xs: 5, md: 7 } }}
     >
       Read the source on GitHub

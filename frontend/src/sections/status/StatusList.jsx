@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, ButtonBase, CircularProgress, IconButton, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { CaretRight, Compass, LockSimple, X } from "phosphor-react";
+import { CaretRightIcon, CompassIcon, LockSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Wordmark from "@/components/Wordmark";
@@ -116,7 +116,7 @@ const MyStatusRow = ({ group, isSelected, onOpen, onCreate }) => {
             onClick={() => dispatch(CancelPosting())}
             sx={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)" }}
           >
-            <X size={20} />
+            <XIcon size={20} />
           </IconButton>
         </Tooltip>
       )}
@@ -139,7 +139,7 @@ const DiscoverRow = ({ unseenCount, isSelected, isWide, onOpen }) => (
           bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
         }}
       >
-        <Compass size={24} weight="duotone" />
+        <CompassIcon size={24} weight="duotone" />
       </Box>
       <RowText title="Discover" detail="Updates shared with everyone" />
       {unseenCount > 0 && (
@@ -166,7 +166,7 @@ const DiscoverRow = ({ unseenCount, isSelected, isWide, onOpen }) => (
           </Box>
         </>
       )}
-      {!isWide && <CaretRight size={16} weight="bold" />}
+      {!isWide && <CaretRightIcon size={16} weight="bold" />}
     </ButtonBase>
   </Box>
 );
@@ -174,7 +174,7 @@ const DiscoverRow = ({ unseenCount, isSelected, isWide, onOpen }) => (
 const SkeletonRows = () => (
   <Stack spacing={0.5} sx={{ px: 1.25, pt: 2.5 }} aria-hidden>
     {[0, 1, 2, 3].map((index) => (
-      <Stack key={index} direction="row" spacing={1.5} alignItems="center" sx={{ py: 1 }}>
+      <Stack key={index} direction="row" spacing={1.5} sx={{ alignItems: "center", py: 1 }}>
         <Skeleton variant="circular" width={AVATAR_SIZE} height={AVATAR_SIZE} />
         <Box sx={{ flex: 1 }}>
           <Skeleton width={`${45 + ((index * 13) % 30)}%`} sx={{ borderRadius: 2 }} />
@@ -195,9 +195,7 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
     <Stack component="nav" aria-label="Status updates" sx={{ height: "100%", bgcolor: "chat.list" }}>
       <Stack
         direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ minHeight: 64, px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}
+        sx={{ alignItems: "center", justifyContent: "space-between", minHeight: 64, px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}
       >
         <Typography component="h1" sx={{ m: 0 }}>
           <Wordmark name="Status" fontSize={30} />
@@ -226,7 +224,7 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
         )}
 
         <Typography sx={{ mt: "auto", px: 3, pt: 3, fontSize: 12, fontWeight: 500, color: "text.secondary", textAlign: "center", textWrap: "balance" }}>
-          <LockSimple size={12} weight="bold" aria-hidden style={{ verticalAlign: "-1px", marginRight: 6 }} />
+          <LockSimpleIcon size={12} weight="bold" aria-hidden style={{ verticalAlign: "-1px", marginRight: 6 }} />
           Updates you share with friends are end-to-end encrypted
         </Typography>
       </Box>

@@ -1,18 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Box, IconButton, InputBase, Popover, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Box, Collapse, IconButton, InputBase, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { AnimatePresence, m } from "framer-motion";
-import { ArrowBendUpLeft, CaretRight, Keyboard, PaperPlaneTilt, PencilSimple, Smiley, X } from "phosphor-react";
+import { AnimatePresence, m } from "motion/react";
+import { ArrowBendUpLeftIcon, CaretRightIcon, KeyboardIcon, PaperPlaneTiltIcon, PencilSimpleIcon, SmileyIcon, XIcon } from "@phosphor-icons/react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
-import EmojiPicker from "@/components/EmojiPicker";
 import { ChooseAttachments } from "@/redux/slices/actions/attachmentActions";
 import { SendTextMessage } from "@/redux/slices/actions/chatActions";
 import { EditMessage } from "@/redux/slices/actions/messageActions";
 import { setEditing, setReplyingTo } from "@/redux/slices/chatSlice";
 import { gameCollapsed, selectGameSession } from "@/redux/slices/gameSlice";
 import AttachMenu from "@/sections/chat/conversation/AttachMenu";
-import EmojiPanel from "@/sections/chat/conversation/EmojiPanel";
+import EmojiPanel, { DESKTOP_PANEL_HEIGHT } from "@/sections/chat/conversation/EmojiPanel";
 import { MESSAGE_COLUMN_WIDTH } from "@/sections/chat/conversation/ConversationMain";
 import MentionSuggestions from "@/sections/chat/conversation/MentionSuggestions";
 import QuickEmojiButton from "@/sections/chat/conversation/QuickEmojiButton";
@@ -67,9 +66,10 @@ const ROW_PAD = 4;
 const TOOL_SIZE = 40;
 const TOOL_BUTTON = { width: TOOL_SIZE, height: TOOL_SIZE, color: "text.secondary" };
 
-// the bar ends where the quick emoji was, and that spot takes the held microphone and then the send button
+// the bar ends where the quick emoji was, and that spot takes the send button once a recording is locked
 const RECORDING_BAR = { right: ROUND_BUTTON.width + 8 };
-const MIC_TO_SEND_SPOT = ROUND_BUTTON.width / 2 + 8 + ROW_PAD + TOOL_SIZE / 2;
+// a held microphone stays in view over the bar's start, beside the attach button, so what the bar says begins past it
+const PAST_THE_MIC = ROW_PAD + 2 * TOOL_SIZE + 8;
 
 // the quick emoji stands on its own, so only sending gets a filled circle
 const QUICK_EMOJI_BUTTON = {
@@ -91,9 +91,9 @@ const SWAP = {
 const Banner = ({ icon: Icon, leading, title, text, thumbnail, onClose }) => (
   <Stack
     direction="row"
-    alignItems="center"
     spacing={1.5}
     sx={{
+      alignItems: "center",
       m: 0.75,
       mb: 0,
       px: 1.25,
@@ -119,7 +119,7 @@ const Banner = ({ icon: Icon, leading, title, text, thumbnail, onClose }) => (
       </Box>
     )}
     <IconButton size="small" aria-label={`Cancel ${title.toLowerCase()}`} onClick={onClose}>
-      <X size={16} />
+      <XIcon size={16} />
     </IconButton>
   </Stack>
 );
@@ -142,17 +142,24 @@ const Composer = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [showsTools, setShowsTools] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(0);
-  const [emojiAnchor, setEmojiAnchor] = useState(null);
   // a phone's panel waits for the keyboard to go before it shows, and goes once the keyboard is back, so the field never jumps
   const [isPanelWanted, setIsPanelWanted] = useState(false);
   const panelHeight = useRef(0);
   const keyboard = useKeyboardHeight();
-  const isPanelShown = isSmallScreen && isPanelWanted && keyboard === 0;
+  const isPanelShown = isPanelWanted && (!isSmallScreen || keyboard === 0);
   const keyboardBefore = useRef(keyboard);
   useEffect(() => {
     if (keyboard && !keyboardBefore.current) setIsPanelWanted(false);
     keyboardBefore.current = keyboard;
   }, [keyboard]);
+  // a press inside, even in a popover the composer opened, reaches the composer through React first, so only one that never did closes the panel
+  const insidePress = useRef(null);
+  useEffect(() => {
+    if (!isPanelShown) return undefined;
+    const closeOnOutsidePress = (event) => event !== insidePress.current && setIsPanelWanted(false);
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePress);
+  }, [isPanelShown]);
   const [isSharingContact, setIsSharingContact] = useState(false);
   const [isPickingGame, setIsPickingGame] = useState(false);
   const gameSession = useSelector(selectGameSession);
@@ -205,10 +212,10 @@ const Composer = () => {
   useLayoutEffect(() => {
     if (pendingCaret.current === null) return;
     // an emoji picked from the phone's panel keeps the keyboard down
-    if (!isPanelWanted) inputRef.current?.focus();
+    if (!isPanelWanted || !isSmallScreen) inputRef.current?.focus();
     inputRef.current?.setSelectionRange(pendingCaret.current, pendingCaret.current);
     pendingCaret.current = null;
-  }, [value, isPanelWanted]);
+  }, [value, isPanelWanted, isSmallScreen]);
 
   const pickMention = (person) => {
     insertAtCaret(`@${person.username} `, mentionQuery.length + 1);
@@ -259,6 +266,7 @@ const Composer = () => {
     }
     if (event.key === "Escape") {
       if (mentionQuery !== null) setMentionQuery(null);
+      else if (isPanelShown) closePanel();
       else if (editing) cancelEdit();
       else if (replyingTo) dispatch(setReplyingTo(null));
       return;
@@ -270,36 +278,42 @@ const Composer = () => {
   const replyAuthor = isReplyToSelf ? "yourself" : (replyingTo?.sender?.firstName ?? "message");
   const replyPerson = isReplyToSelf ? user : replyingTo?.sender;
 
-  const toggleEmoji = (event) => {
-    if (!isSmallScreen) return setEmojiAnchor(event.currentTarget);
-    if (isPanelShown) return inputRef.current?.focus();
-    panelHeight.current = keyboard || lastKeyboardHeight();
-    inputRef.current?.blur();
+  // a computer goes back to typing, while a phone keeps its keyboard down until the field is tapped
+  const closePanel = () => {
+    setIsPanelWanted(false);
+    if (!isSmallScreen) inputRef.current?.focus();
+  };
+
+  const toggleEmoji = () => {
+    if (isPanelShown) return isSmallScreen ? inputRef.current?.focus() : closePanel();
+    panelHeight.current = isSmallScreen ? keyboard || lastKeyboardHeight() : DESKTOP_PANEL_HEIGHT;
+    if (isSmallScreen) inputRef.current?.blur();
     return setIsPanelWanted(true);
   };
 
-  const emojiButton = (
-    <Tooltip title={isPanelShown ? "Keyboard" : "Emoji"}>
-      <IconButton aria-label={isPanelShown ? "Keyboard" : "Emoji"} disabled={isRecording} onClick={toggleEmoji} sx={TOOL_BUTTON}>
-        {isPanelShown ? <Keyboard size={22} /> : <Smiley size={22} />}
-      </IconButton>
-    </Tooltip>
+  const emojiLabel = isPanelShown ? "Keyboard" : "Emoji";
+  const emojiToggle = (
+    <IconButton aria-label={emojiLabel} disabled={isRecording} onClick={toggleEmoji} sx={TOOL_BUTTON}>
+      {isPanelShown ? <KeyboardIcon size={22} /> : <SmileyIcon size={22} />}
+    </IconButton>
   );
+  // a tap on a phone would leave the tooltip hanging over the panel it just opened
+  const emojiButton = isSmallScreen ? emojiToggle : <Tooltip title={emojiLabel}>{emojiToggle}</Tooltip>;
 
   // a chat has one game at a time, so with one open the menu brings it back into view
   const chooseGames = () => (gameSession ? dispatch(gameCollapsed(false)) : setIsPickingGame(true));
 
   return (
-    <>
+    <div onPointerDownCapture={(event) => (insidePress.current = event.nativeEvent)}>
       {/* the panel stands where the keyboard was, over the gesture bar as the keyboard is, so the field keeps the gap it had above it */}
       <Box component="form" onSubmit={submit} sx={{ ...COMPOSER_GUTTER, pt: 0.5, ...(isPanelShown && { pb: "10px" }) }}>
-        <Stack direction="row" alignItems="flex-end" sx={{ position: "relative", gap: 1, maxWidth: COLUMN_WIDTH, mx: "auto" }}>
+        <Stack direction="row" sx={{ alignItems: "flex-end", position: "relative", gap: 1, maxWidth: COLUMN_WIDTH, mx: "auto" }}>
           <Box sx={FIELD_PILL}>
-            <Box inert={isRecording ? "" : undefined}>
-              {editing && <Banner icon={PencilSimple} title="Editing" text={summaryOf(editing)} onClose={cancelEdit} />}
+            <Box inert={isRecording}>
+              {editing && <Banner icon={PencilSimpleIcon} title="Editing" text={summaryOf(editing)} onClose={cancelEdit} />}
               {replyingTo && (
                 <Banner
-                  icon={ArrowBendUpLeft}
+                  icon={ArrowBendUpLeftIcon}
                   leading={conversation.isGroup && replyPerson ? getAvatar(replyPerson.avatar, replyPerson.firstName, 24) : undefined}
                   title={`Replying to ${replyAuthor}`}
                   text={quoteSummaryOf(replyingTo, meId)}
@@ -308,16 +322,16 @@ const Composer = () => {
                 />
               )}
             </Box>
-            <Stack direction="row" alignItems="flex-end" sx={{ minHeight: 48, px: `${ROW_PAD}px` }}>
+            <Stack direction="row" sx={{ alignItems: "flex-end", minHeight: 48, px: `${ROW_PAD}px` }}>
               {!editing &&
                 (isCompact ? (
                   <Tooltip title="More">
                     <IconButton aria-label="Show attach and voice" onClick={() => setShowsTools(true)} sx={{ ...TOOL_BUTTON, mb: "4px" }}>
-                      <CaretRight size={22} weight="bold" />
+                      <CaretRightIcon size={22} weight="bold" />
                     </IconButton>
                   </Tooltip>
                 ) : (
-                  <Stack direction="row" alignItems="center" sx={{ pb: "4px" }}>
+                  <Stack direction="row" sx={{ alignItems: "center", pb: "4px" }}>
                     <AttachMenu
                       disabled={isRecording}
                       buttonSx={TOOL_BUTTON}
@@ -326,10 +340,16 @@ const Composer = () => {
                       onContact={() => setIsSharingContact(true)}
                       onGames={chooseGames}
                     />
-                    {!isSmallScreen && emojiButton}
+                    <VoiceRecorder
+                      buttonSx={TOOL_BUTTON}
+                      sendSx={ROUND_BUTTON}
+                      overlaySx={RECORDING_BAR}
+                      holdInset={PAST_THE_MIC}
+                      onRecordingChange={setIsRecording}
+                    />
                   </Stack>
                 ))}
-              <Box inert={isRecording ? "" : undefined} sx={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-end" }}>
+              <Box inert={isRecording} sx={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-end" }}>
                 <InputBase
                   ref={fieldRef}
                   inputRef={inputRef}
@@ -341,8 +361,8 @@ const Composer = () => {
                   onKeyDown={handleKeyDown}
                   onFocus={() => {
                     setIsFocused(true);
-                    // a browser's keyboard lies over the page rather than shrinking it, so the panel goes as soon as typing starts
-                    if (!isApp) setIsPanelWanted(false);
+                    // a phone browser's keyboard lies over the page rather than shrinking it, so the panel goes as soon as typing starts
+                    if (!isApp && isSmallScreen) setIsPanelWanted(false);
                   }}
                   onBlur={() => {
                     setIsFocused(false);
@@ -367,17 +387,8 @@ const Composer = () => {
                   }}
                 />
               </Box>
-              {/* a phone keeps it at the field's end whatever is typed, so the keyboard and the emoji swap in one tap */}
-              {isSmallScreen && !editing && <Box sx={{ pb: "4px" }}>{emojiButton}</Box>}
-              {!showsSend && (
-                <VoiceRecorder
-                  buttonSx={{ ...TOOL_BUTTON, mb: "4px" }}
-                  sendSx={ROUND_BUTTON}
-                  overlaySx={RECORDING_BAR}
-                  sendSpotShift={MIC_TO_SEND_SPOT}
-                  onRecordingChange={setIsRecording}
-                />
-              )}
+              {/* it stays at the field's end whatever is typed, so on a phone the keyboard and the emoji swap in one tap */}
+              {!editing && <Box sx={{ pb: "4px" }}>{emojiButton}</Box>}
             </Stack>
           </Box>
 
@@ -389,7 +400,7 @@ const Composer = () => {
                     <Tooltip title={editing ? "Save" : "Send"}>
                       <span>
                         <IconButton type="submit" aria-label={editing ? "Save edit" : "Send"} disabled={!value.trim()} sx={ROUND_BUTTON}>
-                          <PaperPlaneTilt size={21} weight="fill" />
+                          <PaperPlaneTiltIcon size={21} weight="fill" />
                         </IconButton>
                       </span>
                     </Tooltip>
@@ -406,21 +417,14 @@ const Composer = () => {
 
         <MentionSuggestions anchorEl={fieldRef.current} people={suggestions} activeIndex={activeSuggestion} onPick={pickMention} />
 
-        <Popover
-          open={Boolean(emojiAnchor)}
-          anchorEl={emojiAnchor}
-          onClose={() => setEmojiAnchor(null)}
-          anchorOrigin={{ vertical: "top", horizontal: "left" }}
-          transformOrigin={{ vertical: "bottom", horizontal: "left" }}
-        >
-          <EmojiPicker onSelect={(emoji) => insertAtCaret(emoji)} />
-        </Popover>
-
         {isSharingContact && <ShareContactDialog open onClose={() => setIsSharingContact(false)} />}
         {isPickingGame && <GamesDialog conversation={conversation} onClose={() => setIsPickingGame(false)} />}
       </Box>
-      {isPanelShown && <EmojiPanel baseHeight={panelHeight.current} onSelect={(emoji) => insertAtCaret(emoji)} onClose={() => setIsPanelWanted(false)} />}
-    </>
+      {/* it slides away when closed, except on a phone making way for its keyboard, where it goes at once so the field never moves twice */}
+      <Collapse in={isPanelShown} enter={false} exit={keyboard === 0} unmountOnExit>
+        <EmojiPanel baseHeight={panelHeight.current} autoFocus={!isSmallScreen} onSelect={(emoji) => insertAtCaret(emoji)} onClose={closePanel} />
+      </Collapse>
+    </div>
   );
 };
 

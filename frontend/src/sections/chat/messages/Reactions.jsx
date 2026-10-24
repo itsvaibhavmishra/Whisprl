@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ButtonBase, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, m } from "motion/react";
 import { useSelector } from "react-redux";
 
 import ReactionList from "@/sections/chat/messages/ReactionList";
@@ -57,6 +57,7 @@ const Reactions = ({ reactions, conversation, mine, side = "left", inset = 0, on
           <ButtonBase
             key="pill"
             component={m.button}
+            nativeButton
             {...POP}
             whileTap={{ scale: 0.94 }}
             onClick={(event) => setListAnchor(event.currentTarget)}

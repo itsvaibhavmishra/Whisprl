@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ButtonBase, ListItemIcon, Menu, MenuItem } from "@mui/material";
-import { useReducedMotion } from "framer-motion";
-import { CircleDashed } from "phosphor-react";
+import { useReducedMotion } from "motion/react";
+import { CircleDashedIcon } from "@phosphor-icons/react";
 
 import StatusViewer from "@/sections/status/StatusViewer";
 
@@ -65,7 +65,7 @@ const AvatarChoices = ({ name, ownerId, hasStatus, other, menuAlign = "left", sx
           slotProps={{ paper: { sx: { mt: 0.75, minWidth: 190 } } }}
         >
           <MenuItem onClick={() => pick(() => setIsViewingStatus(true))}>
-            <ChoiceIcon icon={CircleDashed} />
+            <ChoiceIcon icon={CircleDashedIcon} />
             View status
           </MenuItem>
           <MenuItem onClick={() => pick(other.onChoose)}>

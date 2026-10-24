@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { GameController } from "phosphor-react";
+import { GameControllerIcon } from "@phosphor-icons/react";
 
 import GameTitle from "@/sections/chat/game/GameTitle";
 import useArtReady from "@/sections/chat/game/useArtReady";
@@ -66,9 +66,8 @@ const GameCard = ({ game, isDisabled, onClick }) => {
       <Box aria-hidden sx={{ position: "absolute", inset: 0, background: FOOT_SHADE, pointerEvents: "none" }} />
       <Stack
         direction={{ xs: "row", sm: "column" }}
-        alignItems={{ xs: "flex-end", sm: "flex-start" }}
         spacing={{ xs: 1.5, sm: 1.25 }}
-        sx={{ position: "absolute", left: 16, right: 16, bottom: 16, color: "#fff" }}
+        sx={{ alignItems: { xs: "flex-end", sm: "flex-start" }, position: "absolute", left: 16, right: 16, bottom: 16, color: "#fff" }}
       >
         <Typography
           sx={{
@@ -90,9 +89,9 @@ const GameCard = ({ game, isDisabled, onClick }) => {
           aria-hidden
           className="game-play"
           direction="row"
-          alignItems="center"
           spacing={0.75}
           sx={{
+            alignItems: "center",
             px: 2,
             py: 0.8,
             borderRadius: 99,
@@ -105,7 +104,7 @@ const GameCard = ({ game, isDisabled, onClick }) => {
             transition: "transform 160ms ease, box-shadow 160ms ease",
           }}
         >
-          <GameController size={16} weight="fill" />
+          <GameControllerIcon size={16} weight="fill" />
           <span>Play</span>
         </Stack>
       </Stack>

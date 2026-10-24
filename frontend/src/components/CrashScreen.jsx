@@ -19,7 +19,7 @@ const CrashScreen = ({ error }) => {
 
 // a full reload rather than a route change, since whatever broke may still be in memory
 const Crashed = () => (
-  <Stack alignItems="center" justifyContent="center" sx={{ minHeight: "100dvh", px: 3, textAlign: "center", bgcolor: "background.default" }}>
+  <Stack sx={{ alignItems: "center", justifyContent: "center", minHeight: "100dvh", px: 3, textAlign: "center", bgcolor: "background.default" }}>
     <MascotHalo />
     <Typography component="h1" sx={{ m: 0, mt: 1 }}>
       <Wordmark name="Oops" fontSize={{ xs: "2.75rem", md: "3.5rem" }} />

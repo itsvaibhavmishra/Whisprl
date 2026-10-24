@@ -13,7 +13,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -52,12 +51,12 @@ const ReasonStep = ({ reason, onReason, note, onNote }) => (
         label="Tell us why"
         value={note}
         onChange={(event) => onNote(event.target.value)}
-        inputProps={{ maxLength: MAX_NOTE }}
         multiline
         minRows={2}
         fullWidth
         autoFocus
         sx={{ mt: 1.5 }}
+        slotProps={{ htmlInput: { maxLength: MAX_NOTE } }}
       />
     )}
   </>
@@ -72,14 +71,16 @@ const CodeStep = ({ email, code, onCode, onResend, isResending }) => (
       label="Code"
       value={code}
       onChange={(event) => onCode(event.target.value.replace(/\D/g, "").slice(0, CODE_LENGTH))}
-      inputProps={{ inputMode: "numeric", autoComplete: "one-time-code", maxLength: CODE_LENGTH, sx: { letterSpacing: "0.4em", fontWeight: 700 } }}
       fullWidth
       autoFocus
       sx={{ mt: 2.5 }}
+      slotProps={{
+        htmlInput: { inputMode: "numeric", autoComplete: "one-time-code", maxLength: CODE_LENGTH, sx: { letterSpacing: "0.4em", fontWeight: 700 } },
+      }}
     />
-    <LoadingButton size="small" color="inherit" loading={isResending} onClick={onResend} sx={{ mt: 1, ml: -1 }}>
+    <Button size="small" color="inherit" loading={isResending} onClick={onResend} sx={{ mt: 1, ml: -1 }}>
       Send a new code
-    </LoadingButton>
+    </Button>
     <Alert severity="warning" sx={{ mt: 2 }}>
       You&apos;ll be logged out everywhere and your account hidden now, then deleted in 14 days unless you log in again.
     </Alert>
@@ -125,13 +126,13 @@ const DeleteAccountDialog = ({ onClose }) => {
             {hasCode ? "Back" : "Cancel"}
           </Button>
           {hasCode ? (
-            <LoadingButton type="submit" variant="contained" color="error" loading={isDeleting} disabled={code.length !== CODE_LENGTH}>
+            <Button type="submit" variant="contained" color="error" loading={isDeleting} disabled={code.length !== CODE_LENGTH}>
               Delete my account
-            </LoadingButton>
+            </Button>
           ) : (
-            <LoadingButton type="submit" variant="contained" color="error" loading={isSending} disabled={!isExplained}>
+            <Button type="submit" variant="contained" color="error" loading={isSending} disabled={!isExplained}>
               Email me a code
-            </LoadingButton>
+            </Button>
           )}
         </DialogActions>
       </form>

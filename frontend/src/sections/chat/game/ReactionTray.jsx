@@ -39,7 +39,7 @@ const ReactionTray = ({ anchor, onClose }) => {
       onClose={onClose}
       anchorOrigin={{ vertical: isLow ? "top" : "bottom", horizontal: "center" }}
       transformOrigin={{ vertical: isLow ? "bottom" : "top", horizontal: "center" }}
-      PaperProps={{ sx: { my: 1, p: 1, borderRadius: 4, bgcolor: "rgba(20, 24, 40, 0.94)", boxShadow: "0 12px 32px rgba(0, 0, 0, 0.45)" } }}
+      slotProps={{ paper: { sx: { my: 1, p: 1, borderRadius: 4, bgcolor: "rgba(20, 24, 40, 0.94)", boxShadow: "0 12px 32px rgba(0, 0, 0, 0.45)" } } }}
     >
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 80px)", gap: 0.5 }}>
         {REACTIONS.map(({ emoji, name }, index) => {

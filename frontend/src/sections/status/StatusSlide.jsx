@@ -151,10 +151,10 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
   useEffect(() => () => clearTimeout(holdTimer.current), []);
 
   return (
-    <Stack direction="row" justifyContent="center" spacing={2} sx={{ height: { xs: "100%", md: "auto" }, width: { xs: "100%", md: "auto" } }}>
+    <Stack direction="row" spacing={2} sx={{ justifyContent: "center", height: { xs: "100%", md: "auto" }, width: { xs: "100%", md: "auto" } }}>
       <Stack
-        justifyContent="center"
         sx={{
+          justifyContent: "center",
           width: { xs: `min(100%, calc((100dvh - ${FOOTER_HEIGHT}px) * 9 / 16))`, md: CARD_WIDTH },
           height: { xs: "100%", md: "auto" },
           ...(direction && { animation: `${ENTER[direction].name} 460ms cubic-bezier(0.22, 1, 0.36, 1)`, transformOrigin: ENTER[direction].origin }),
@@ -292,9 +292,11 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
           onClose={() => setIsListingViewers(false)}
           onKeyDown={keepKeys}
           sx={{ zIndex: "modal" }}
-          PaperProps={{
-            "aria-label": "Who saw this update",
-            sx: { maxHeight: "70dvh", borderTopLeftRadius: 20, borderTopRightRadius: 20, bgcolor: SHEET, backgroundImage: "none" },
+          slotProps={{
+            paper: {
+              "aria-label": "Who saw this update",
+              sx: { maxHeight: "70dvh", borderTopLeftRadius: 20, borderTopRightRadius: 20, bgcolor: SHEET, backgroundImage: "none" },
+            },
           }}
         >
           <SeenBy views={status.views} onClose={closeViewers} />

@@ -40,9 +40,9 @@ const CreateGroupDialog = ({ open, onClose }) => {
               label="Group name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              inputProps={{ maxLength: MAX_GROUP_NAME }}
               autoFocus
               fullWidth
+              slotProps={{ htmlInput: { maxLength: MAX_GROUP_NAME } }}
             />
             <FriendPicker selected={memberIds} onChange={setMemberIds} />
           </Stack>

@@ -1,5 +1,5 @@
 import { IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { X } from "phosphor-react";
+import { XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ClearAttachments } from "@/redux/slices/actions/attachmentActions";
@@ -12,14 +12,14 @@ const FileUploadCont = () => {
 
   return (
     <Stack sx={{ flex: 1, minHeight: 0 }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: { xs: 1, md: 2 }, py: 1 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: { xs: 1, md: 2 }, py: 1 }}>
         <Tooltip title="Discard">
           <IconButton
             aria-label="Discard attachments"
             onClick={() => dispatch(ClearAttachments())}
             sx={{ bgcolor: "chat.pill", "&:hover": { bgcolor: "chat.raised" } }}
           >
-            <X size={20} weight="bold" />
+            <XIcon size={20} weight="bold" />
           </IconButton>
         </Tooltip>
         <Typography sx={{ px: 1.5, py: 0.5, borderRadius: 99, fontSize: 13, fontWeight: 700, bgcolor: "chat.pill" }}>

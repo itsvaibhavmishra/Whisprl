@@ -12,7 +12,7 @@ const BirthdaySetting = () => {
 
   return (
     <SettingRow label={LABEL} description="Friends see the day and month on your profile and in Birthdays this week. Nobody sees the year.">
-      <Switch checked={isOn} onChange={(event) => dispatch(UpdateBirthdaySetting(event.target.checked))} inputProps={{ "aria-label": LABEL }} />
+      <Switch checked={isOn} onChange={(event) => dispatch(UpdateBirthdaySetting(event.target.checked))} slotProps={{ input: { "aria-label": LABEL } }} />
     </SettingRow>
   );
 };

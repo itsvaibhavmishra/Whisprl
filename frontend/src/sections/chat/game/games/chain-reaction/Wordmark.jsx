@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { m, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "motion/react";
 
 import art from "@/sections/chat/game/games/chain-reaction/art";
 import EnergyOrb, { EnergyDefs } from "@/sections/chat/game/games/chain-reaction/EnergyOrb";

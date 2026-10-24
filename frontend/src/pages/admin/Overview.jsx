@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, CircularProgress, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -52,9 +51,9 @@ const Overview = () => {
       return (
         <Box>
           <Notice title="The overview didn't load">Check your connection and try again.</Notice>
-          <LoadingButton variant="contained" loading={isLoading} onClick={read} sx={{ mt: 2 }}>
+          <Button variant="contained" loading={isLoading} onClick={read} sx={{ mt: 2 }}>
             Try again
-          </LoadingButton>
+          </Button>
         </Box>
       );
     }
@@ -64,7 +63,7 @@ const Overview = () => {
       <>
         <OverviewFigures totals={overview.totals} active={overview.active} />
 
-        <Stack direction="row" alignItems="flex-end" justifyContent="space-between" flexWrap="wrap" sx={{ mt: 6, gap: 1.5 }}>
+        <Stack direction="row" sx={{ alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", mt: 6, gap: 1.5 }}>
           <Box>
             <Typography component="h2" sx={{ m: 0, fontSize: 20, fontWeight: 800 }}>
               Day by day
@@ -73,9 +72,7 @@ const Overview = () => {
           </Box>
           <Stack
             direction={{ xs: "column", sm: "row" }}
-            alignItems={{ xs: "stretch", sm: "center" }}
-            flexWrap="wrap"
-            sx={{ gap: 1, width: { xs: "100%", sm: "auto" } }}
+            sx={{ alignItems: { xs: "stretch", sm: "center" }, flexWrap: "wrap", gap: 1, width: { xs: "100%", sm: "auto" } }}
           >
             <PillGroup
               label="Days shown"

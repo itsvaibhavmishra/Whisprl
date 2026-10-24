@@ -1,7 +1,6 @@
 import { Box, Button, ButtonBase, Collapse, Link, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { alpha } from "@mui/material/styles";
-import { ArrowUpRight, CaretDown } from "phosphor-react";
+import { ArrowUpRightIcon, CaretDownIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 import TimeAgo from "react-timeago";
 
@@ -43,9 +42,18 @@ const KindChip = ({ value }) => {
     <Stack
       component="span"
       direction="row"
-      alignItems="center"
       spacing={0.5}
-      sx={{ flexShrink: 0, px: 1, py: 0.25, borderRadius: 99, fontSize: 12, fontWeight: 700, color: "text.primary", bgcolor: alpha(kind.color, 0.16) }}
+      sx={{
+        alignItems: "center",
+        flexShrink: 0,
+        px: 1,
+        py: 0.25,
+        borderRadius: 99,
+        fontSize: 12,
+        fontWeight: 700,
+        color: "text.primary",
+        bgcolor: alpha(kind.color, 0.16),
+      }}
     >
       <kind.Icon size={12} weight="fill" color={kind.color} />
       <span>{kind.label}</span>
@@ -99,13 +107,13 @@ const RequestLink = ({ link }) => (
     <Box component="span" sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
       {addressOf(link)}
     </Box>
-    <ArrowUpRight size={13} weight="bold" />
+    <ArrowUpRightIcon size={13} weight="bold" />
   </Link>
 );
 
 const OneRequest = ({ request, groupKind }) => (
   <Box component="li" sx={{ py: 2, "& + li": { borderTop: 1, borderColor: "divider" } }}>
-    <Stack direction="row" alignItems="center" spacing={1.25}>
+    <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
       {getAvatar(request.user?.avatar, fullNameOf(request.user), 32)}
       <Box sx={{ minWidth: 0, flex: 1 }}>
         <Typography noWrap sx={{ fontSize: 14, fontWeight: 700 }}>
@@ -124,7 +132,7 @@ const OneRequest = ({ request, groupKind }) => (
       </Typography>
     )}
     {Boolean(request.links.length) && (
-      <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1} sx={{ mt: 1.25, ml: { sm: 5.5 } }}>
+      <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: "wrap", mt: 1.25, ml: { sm: 5.5 } }}>
         {request.links.map((link) => (
           <RequestLink key={link} link={link} />
         ))}
@@ -152,9 +160,9 @@ const Decision = ({ group, status, onChanged }) => {
 
   return (
     <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-      <LoadingButton variant="contained" loading={isClosing} onClick={() => close("added")}>
+      <Button variant="contained" loading={isClosing} onClick={() => close("added")}>
         Mark as added
-      </LoadingButton>
+      </Button>
       <Button color="inherit" disabled={isClosing} onClick={() => close("dismissed")}>
         Dismiss
       </Button>
@@ -191,7 +199,7 @@ const RequestGroup = ({ group, mostAsked, search, status, isOpen, onToggle, onCh
         <Box component="span" sx={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 16.5, fontWeight: 800 }}>
           <Highlighted text={group.name} search={search} />
         </Box>
-        <Stack component="span" direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5, minWidth: 0 }}>
+        <Stack component="span" direction="row" spacing={1} sx={{ alignItems: "center", mt: 0.5, minWidth: 0 }}>
           <KindChip value={group.kind} />
           <Box component="span" sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12.5, color: "text.secondary" }}>
             Last asked <TimeAgo date={group.latestAt} />
@@ -199,7 +207,7 @@ const RequestGroup = ({ group, mostAsked, search, status, isOpen, onToggle, onCh
         </Stack>
         <DemandBar share={mostAsked ? group.count / mostAsked : 0} />
       </Box>
-      <Stack component="span" direction="row" alignItems="center" justifyContent="flex-end" spacing={1.5}>
+      <Stack component="span" direction="row" spacing={1.5} sx={{ alignItems: "center", justifyContent: "flex-end" }}>
         <Askers requests={group.requests} />
         <Box component="span" sx={{ textAlign: "right" }}>
           <Box component="span" sx={{ display: "block", fontSize: 20, fontWeight: 800, lineHeight: 1.1, fontVariantNumeric: "tabular-nums" }}>
@@ -213,7 +221,7 @@ const RequestGroup = ({ group, mostAsked, search, status, isOpen, onToggle, onCh
           component="span"
           sx={{ display: "flex", color: "text.secondary", transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 200ms ease" }}
         >
-          <CaretDown size={16} weight="bold" />
+          <CaretDownIcon size={16} weight="bold" />
         </Box>
       </Stack>
     </ButtonBase>

@@ -13,7 +13,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { PencilSimple, SignOut, UserPlus } from "phosphor-react";
+import { PencilSimpleIcon, SignOutIcon, UserPlusIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ImageMenu from "@/components/ImageMenu";
@@ -50,13 +50,13 @@ const GroupName = ({ group, canRename }) => {
 
   if (draft === null) {
     return (
-      <Stack direction="row" alignItems="center" spacing={0.5}>
+      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
         <Typography sx={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.25, wordBreak: "break-word", textAlign: "center" }}>
           {group.name}
         </Typography>
         {canRename && (
           <IconButton size="small" aria-label="Rename group" onClick={() => setDraft(group.name)}>
-            <PencilSimple />
+            <PencilSimpleIcon />
           </IconButton>
         )}
       </Stack>
@@ -70,11 +70,11 @@ const GroupName = ({ group, canRename }) => {
         label="Group name"
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
-        inputProps={{ maxLength: MAX_GROUP_NAME }}
         autoFocus
         fullWidth
+        slotProps={{ htmlInput: { maxLength: MAX_GROUP_NAME } }}
       />
-      <Stack direction="row" spacing={1} justifyContent="flex-end">
+      <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
         <Button size="small" color="inherit" onClick={() => setDraft(null)}>
           Cancel
         </Button>
@@ -105,7 +105,7 @@ const GroupDetails = ({ group, sharedContent, quickActions }) => {
 
   return (
     <>
-      <Stack alignItems="center" spacing={0.5} sx={{ px: 3, pt: 3.5, pb: 2.5 }}>
+      <Stack spacing={0.5} sx={{ alignItems: "center", px: 3, pt: 3.5, pb: 2.5 }}>
         <Box sx={{ mb: 1.5 }}>
           <HaloAvatar src={group.picture} name={group.name}>
             {isManager && (
@@ -127,7 +127,7 @@ const GroupDetails = ({ group, sharedContent, quickActions }) => {
         action={
           isManager &&
           group.users.length < MAX_GROUP_SIZE && (
-            <Button size="small" startIcon={<UserPlus weight="bold" />} onClick={() => setIsAdding(true)} sx={{ borderRadius: 99 }}>
+            <Button size="small" startIcon={<UserPlusIcon weight="bold" />} onClick={() => setIsAdding(true)} sx={{ borderRadius: 99 }}>
               Add people
             </Button>
           )
@@ -141,7 +141,7 @@ const GroupDetails = ({ group, sharedContent, quickActions }) => {
       </DetailsSection>
 
       <Box sx={{ px: 1, pt: 1.5 }}>
-        <ControlRow icon={SignOut} label="Leave group" isDanger onClick={() => setIsConfirmingLeave(true)} />
+        <ControlRow icon={SignOutIcon} label="Leave group" isDanger onClick={() => setIsConfirmingLeave(true)} />
       </Box>
 
       {isManager && <AddMembersDialog group={group} open={isAdding} onClose={() => setIsAdding(false)} />}

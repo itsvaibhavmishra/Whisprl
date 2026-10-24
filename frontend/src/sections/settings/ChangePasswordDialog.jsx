@@ -2,8 +2,7 @@ import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { Info } from "phosphor-react";
+import { InfoIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import FormProvider, { PasswordChecklist, RHFPasswordField } from "@/components/hook-form";
@@ -43,7 +42,7 @@ const ChangePasswordDialog = ({ onClose }) => {
       maxWidth="xs"
       aria-labelledby="change-password-title"
       aria-describedby="change-password-description"
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
     >
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle id="change-password-title" sx={{ pb: 0.5 }}>
@@ -62,7 +61,7 @@ const ChangePasswordDialog = ({ onClose }) => {
             <RHFPasswordField name="confirmPassword" label="Confirm new password" autoComplete="new-password" />
           </Stack>
           <Box sx={{ mt: 3, p: 1.5, display: "flex", gap: 1.25, borderRadius: 2, bgcolor: "action.hover", color: "text.secondary" }}>
-            <Box component={Info} size={18} aria-hidden="true" sx={{ flexShrink: 0, mt: 0.25 }} />
+            <Box component={InfoIcon} size={18} aria-hidden="true" sx={{ flexShrink: 0, mt: 0.25 }} />
             <Typography variant="body2" sx={{ fontWeight: 400 }}>
               Signed up with Google, GitHub or LinkedIn? You have no password yet. Log out and use “Forgot your password?” to set one.
             </Typography>
@@ -72,9 +71,9 @@ const ChangePasswordDialog = ({ onClose }) => {
           <Button color="inherit" onClick={onClose}>
             Cancel
           </Button>
-          <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+          <Button type="submit" variant="contained" loading={isSubmitting}>
             Change password
-          </LoadingButton>
+          </Button>
         </DialogActions>
       </FormProvider>
     </Dialog>

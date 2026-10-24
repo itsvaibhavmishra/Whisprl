@@ -64,7 +64,7 @@ const ReplyQuote = ({ quote, isAlbum, author, authorName, isMine, conversation, 
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0, pl: 1.5, pr: 1.25, py: 0.75 }}>
-          <Stack direction="row" alignItems="center" spacing={0.75}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
             {author && getAvatar(author.avatar, author.firstName, 16)}
             <Typography component="p" noWrap sx={{ m: 0, fontSize: 12.5, fontWeight: 800, color: isMine ? "inherit" : "primary.main" }}>
               {authorName}

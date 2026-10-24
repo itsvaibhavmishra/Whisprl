@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, IconButton, ListItem, ListItemAvatar, ListItemText, Menu, MenuItem } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { DotsThreeVertical } from "phosphor-react";
+import { DotsThreeVerticalIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import { RemoveGroupMember, SetGroupAdmin } from "@/redux/slices/actions/groupActions";
@@ -37,7 +37,7 @@ const GroupMemberRow = ({ group, member, meId }) => {
       secondaryAction={
         actions.length > 0 && (
           <IconButton aria-label={`Options for ${member.firstName}`} onClick={(event) => setAnchor(event.currentTarget)}>
-            <DotsThreeVertical />
+            <DotsThreeVerticalIcon />
           </IconButton>
         )
       }
@@ -69,7 +69,7 @@ const GroupMemberRow = ({ group, member, meId }) => {
             )}
           </>
         }
-        primaryTypographyProps={{ fontSize: 14, fontWeight: 700 }}
+        slotProps={{ primary: { sx: { fontSize: 14, fontWeight: 700 } } }}
       />
 
       <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>

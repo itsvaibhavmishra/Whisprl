@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, ButtonBase, CircularProgress, Typography } from "@mui/material";
-import { Play } from "phosphor-react";
+import { PlayIcon } from "@phosphor-icons/react";
 
 import TransferRing, { useTransfer } from "@/sections/chat/messages/TransferRing";
 import { openedFileUrl, ownUrlOf } from "@/utils/attachments";
@@ -69,7 +69,7 @@ export const VideoPlayer = ({ file, sx }) => {
               aria-label={`Play video, ${formatDuration(file.duration)}`}
               sx={{ width: 56, height: 56, borderRadius: "50%", bgcolor: "rgba(0, 0, 0, 0.55)" }}
             >
-              <Play size={26} weight="fill" />
+              <PlayIcon size={26} weight="fill" />
             </ButtonBase>
           )}
         </VideoPoster>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Box, Button, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
 import UsernameDialog from "@/components/UsernameDialog";
@@ -37,9 +36,9 @@ const UsernameStep = () => {
         </Typography>
       </Box>
       <Stack spacing={1}>
-        <LoadingButton size="large" variant="contained" fullWidth loading={isKeeping} onClick={() => dispatch(ConfirmUsername())}>
+        <Button size="large" variant="contained" fullWidth loading={isKeeping} onClick={() => dispatch(ConfirmUsername())}>
           Keep @{user.username}
-        </LoadingButton>
+        </Button>
         <Button size="large" variant="outlined" color="inherit" fullWidth onClick={() => setIsChanging(true)}>
           Change it
         </Button>

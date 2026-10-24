@@ -15,7 +15,7 @@ const SuggestionsSetting = () => {
       label={LABEL}
       description="They can find you in People you may know, and see the friends you share on your profile. People in your groups can still find you there."
     >
-      <Switch checked={isOn} onChange={(event) => dispatch(UpdateSuggestionSetting(event.target.checked))} inputProps={{ "aria-label": LABEL }} />
+      <Switch checked={isOn} onChange={(event) => dispatch(UpdateSuggestionSetting(event.target.checked))} slotProps={{ input: { "aria-label": LABEL } }} />
     </SettingRow>
   );
 };

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack, Typography } from "@mui/material";
-import { Check, Copy } from "phosphor-react";
+import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ConfirmRecoveryKeySaved } from "@/redux/slices/actions/onboardingActions";
@@ -30,7 +30,7 @@ const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDo
       maxWidth="xs"
       aria-labelledby="recovery-key-title"
       aria-describedby="recovery-key-description"
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
     >
       <DialogTitle id="recovery-key-title" sx={{ pb: 0.5 }}>
         {title}
@@ -46,7 +46,7 @@ const RecoveryKeyDialog = ({ recoveryKey, title = "Save your recovery key", onDo
         </Box>
 
         <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
-          <Button color="inherit" startIcon={copied ? <Check /> : <Copy />} onClick={copy}>
+          <Button color="inherit" startIcon={copied ? <CheckIcon /> : <CopyIcon />} onClick={copy}>
             {copied ? "Copied" : "Copy"}
           </Button>
           <Button color="inherit" startIcon={<KEEP_RECOVERY_KEY.Icon />} onClick={() => keepRecoveryKey(recoveryKey, username)}>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack, TextField, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch } from "react-redux";
 import dayjs from "dayjs";
 
@@ -38,9 +37,9 @@ const DismissDialog = ({ report, onClose, onDone }) => {
         <Button color="inherit" onClick={onClose}>
           Cancel
         </Button>
-        <LoadingButton variant="contained" loading={isWorking} onClick={dismiss}>
+        <Button variant="contained" loading={isWorking} onClick={dismiss}>
           Dismiss
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -52,7 +51,7 @@ const ReportCard = ({ report, onChanged }) => {
 
   return (
     <Box component="li" sx={{ py: 2.5, borderTop: 1, borderColor: "divider" }}>
-      <Stack direction="row" alignItems="baseline" spacing={1.5} flexWrap="wrap" sx={{ gap: 0.75 }}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "baseline", flexWrap: "wrap", gap: 0.75 }}>
         <Typography sx={{ fontSize: 15.5, fontWeight: 800, textTransform: "capitalize" }}>{report.reason}</Typography>
         <Typography sx={{ fontSize: 13.5, color: "text.secondary" }}>{`about ${ABOUT[report.subject.kind]}`}</Typography>
         <Box sx={{ flex: 1 }} />
@@ -61,7 +60,7 @@ const ReportCard = ({ report, onChanged }) => {
         </Typography>
       </Stack>
 
-      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 1, color: "text.secondary" }}>
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mt: 1, color: "text.secondary" }}>
         {getAvatar(report.reporter?.avatar, nameOf(report.reporter), 20)}
         <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{`Reported by ${nameOf(report.reporter)}`}</Typography>
       </Stack>
@@ -89,7 +88,7 @@ const ReportCard = ({ report, onChanged }) => {
       )}
 
       {isOpen ? (
-        <Stack direction="row" alignItems="center" flexWrap="wrap" sx={{ mt: 2, gap: 1 }}>
+        <Stack direction="row" sx={{ alignItems: "center", flexWrap: "wrap", mt: 2, gap: 1 }}>
           <Button size="small" variant="outlined" color="inherit" onClick={() => setIsDismissing(true)}>
             Dismiss
           </Button>

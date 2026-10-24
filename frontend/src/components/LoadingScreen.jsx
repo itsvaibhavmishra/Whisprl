@@ -12,22 +12,19 @@ const sizeOf = ({ fromChat, isAuthRoute, pageArea }) => {
 };
 
 const LoadingScreen = ({ fromChat }) => {
-  // using theme
   const theme = useTheme();
-
-  // Check if /auth is present in the URL
   const isAuthRoute = window.location.pathname.includes("/auth");
 
   const pageArea = useContext(PageArea);
 
   return (
-    <Stack width={"100%"} sx={sizeOf({ fromChat, isAuthRoute, pageArea })} direction={"row"} justifyContent={"center"} alignItems={"center"}>
+    <Stack direction={"row"} sx={[{ width: "100%", justifyContent: "center", alignItems: "center" }, sizeOf({ fromChat, isAuthRoute, pageArea })]}>
       <Stack
-        justifyContent={"center"}
-        alignItems={"center"}
-        position={"relative"}
         direction={"row"}
         sx={{
+          justifyContent: "center",
+          alignItems: "center",
+          position: "relative",
           width: "100px",
           height: "100px",
           borderRadius: "50%",

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography } from "@mui/material";
-import { Key, Password } from "phosphor-react";
-import { LoadingButton } from "@mui/lab";
+import { KeyIcon, PasswordIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FormProvider, { RHFTextField } from "@/components/hook-form";
@@ -66,23 +65,23 @@ const UnlockForm = ({ onLater, onLostKey }) => {
                   variant="outlined"
                   color="inherit"
                   disabled={isSubmitting}
-                  startIcon={<Password weight="bold" />}
+                  startIcon={<PasswordIcon weight="bold" />}
                   onClick={unlockWithSavedKey}
                 >
                   Use my saved recovery key
                 </Button>
               )}
               {canUsePasskeys() && (
-                <LoadingButton
+                <Button
                   fullWidth
                   variant="outlined"
                   color="inherit"
                   loading={isUsingPasskey}
-                  startIcon={<Key weight="bold" />}
+                  startIcon={<KeyIcon weight="bold" />}
                   onClick={() => dispatch(UnlockWithPasskey())}
                 >
                   Unlock with a passkey
-                </LoadingButton>
+                </Button>
               )}
             </Stack>
             <Divider sx={{ my: 2.5, typography: "body2", color: "text.secondary" }}>or</Divider>
@@ -94,7 +93,7 @@ const UnlockForm = ({ onLater, onLostKey }) => {
           placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
           autoComplete="off"
           autoFocus
-          inputProps={{ spellCheck: false, autoCapitalize: "characters" }}
+          slotProps={{ htmlInput: { spellCheck: false, autoCapitalize: "characters" } }}
         />
         <Button color="inherit" size="small" onClick={onLostKey} sx={{ mt: 1.5, ml: -1 }}>
           I don&apos;t have my recovery key
@@ -106,9 +105,9 @@ const UnlockForm = ({ onLater, onLostKey }) => {
             Not now
           </Button>
         )}
-        <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+        <Button type="submit" variant="contained" loading={isSubmitting}>
           Unlock
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </FormProvider>
   );
@@ -138,9 +137,9 @@ const StartFresh = ({ onBack, onStartFresh }) => {
         <Button color="inherit" onClick={onBack}>
           Go back
         </Button>
-        <LoadingButton variant="contained" color="error" loading={starting} onClick={startFresh}>
+        <Button variant="contained" color="error" loading={starting} onClick={startFresh}>
           Start fresh
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </>
   );
@@ -157,7 +156,7 @@ const UnlockDialog = ({ onLater, onStartFresh }) => {
       maxWidth="xs"
       aria-labelledby="unlock-title"
       aria-describedby="unlock-description"
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
     >
       {lostKey ? (
         <StartFresh onBack={() => setLostKey(false)} onStartFresh={onStartFresh} />

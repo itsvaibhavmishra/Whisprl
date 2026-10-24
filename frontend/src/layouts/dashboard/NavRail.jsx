@@ -1,7 +1,7 @@
 import { Badge, Box, ButtonBase, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { AnimatePresence, m } from "framer-motion";
-import { AddressBook, ChatCircleDots, CircleDashed, MoonStars, SunDim } from "phosphor-react";
+import { AnimatePresence, m } from "motion/react";
+import { AddressBookIcon, ChatCircleDotsIcon, CircleDashedIcon, MoonStarsIcon, SunDimIcon } from "@phosphor-icons/react";
 import { Link, matchPath, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -17,9 +17,9 @@ import { NIGHT_INK } from "@/utils/colorPresets";
 const { chat, status, contacts, settings, profile } = PATH_DASHBOARD.general;
 // settings sits behind your photo, so the rail and the bar keep only the places you move between
 const DESTINATIONS = [
-  { path: chat, label: "Chats", Icon: ChatCircleDots, badgeWord: "unread" },
-  { path: status, label: "Status", Icon: CircleDashed },
-  { path: contacts, label: "Contacts", Icon: AddressBook, badgeWord: "waiting" },
+  { path: chat, label: "Chats", Icon: ChatCircleDotsIcon, badgeWord: "unread" },
+  { path: status, label: "Status", Icon: CircleDashedIcon },
+  { path: contacts, label: "Contacts", Icon: AddressBookIcon, badgeWord: "waiting" },
 ];
 const RAIL_WIDTH = 76;
 const TAB_BAR_HEIGHT = 65;
@@ -102,7 +102,7 @@ const ThemeToggle = () => {
             transition={{ duration: 0.22 }}
             style={{ display: "grid" }}
           >
-            {isDark ? <SunDim size={24} /> : <MoonStars size={24} />}
+            {isDark ? <SunDimIcon size={24} /> : <MoonStarsIcon size={24} />}
           </m.span>
         </AnimatePresence>
       </ButtonBase>
@@ -140,8 +140,18 @@ const SideRail = () => {
     <Stack
       component="nav"
       aria-label="Main"
-      alignItems="center"
-      sx={{ position: "sticky", top: 0, width: RAIL_WIDTH, height: "100dvh", flexShrink: 0, pt: 1.25, pb: 2.5, bgcolor: "chat.rail", zIndex: 2 }}
+      sx={{
+        alignItems: "center",
+        position: "sticky",
+        top: 0,
+        width: RAIL_WIDTH,
+        height: "100dvh",
+        flexShrink: 0,
+        pt: 1.25,
+        pb: 2.5,
+        bgcolor: "chat.rail",
+        zIndex: 2,
+      }}
     >
       <Tooltip title="Whisprl" placement="right">
         <ButtonBase component={Link} to={chatsLink} onClick={stayIfHere(chatsLink)} aria-label="Whisprl, go to chats" sx={{ borderRadius: "50%" }}>
@@ -164,7 +174,7 @@ const SideRail = () => {
         })}
       </Stack>
 
-      <Stack spacing={1.5} alignItems="center">
+      <Stack spacing={1.5} sx={{ alignItems: "center" }}>
         <ThemeToggle />
         <RailItem component={Link} to={settings} label="Profile and settings" isActive={isAtYou(pathname)}>
           {getAvatar(avatar, `${firstName} ${lastName}`, 36)}

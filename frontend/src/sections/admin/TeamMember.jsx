@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack, TextField, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -43,9 +42,9 @@ const RemoveDialog = ({ member, onClose, onDone }) => {
         <Button color="inherit" onClick={onClose}>
           Cancel
         </Button>
-        <LoadingButton variant="contained" color="error" loading={isWorking} disabled={!reason.trim()} onClick={remove}>
+        <Button variant="contained" color="error" loading={isWorking} disabled={!reason.trim()} onClick={remove}>
           Remove
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -61,12 +60,12 @@ const TeamMember = ({ member, onChanged }) => {
       <Stack direction="row" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
         {getAvatar(member.avatar, name, 40)}
         <Box sx={{ minWidth: 0 }}>
-          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ gap: 0.75 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap", gap: 0.75 }}>
             <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{name}</Typography>
             <PersonStatus person={member} />
           </Stack>
           <Typography sx={{ fontSize: 13, color: "text.secondary", overflowWrap: "anywhere" }}>{member.email}</Typography>
-          <Stack direction="row" flexWrap="wrap" aria-label={`What ${member.firstName} can use`} sx={{ mt: 1, gap: 0.75 }}>
+          <Stack direction="row" aria-label={`What ${member.firstName} can use`} sx={{ flexWrap: "wrap", mt: 1, gap: 0.75 }}>
             {isOwner ? (
               <Chip size="small" color="primary" variant="outlined" label="Everything, and the team" />
             ) : (

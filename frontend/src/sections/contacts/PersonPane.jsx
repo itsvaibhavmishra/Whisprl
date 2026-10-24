@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Button, IconButton } from "@mui/material";
-import { ArrowLeft } from "phosphor-react";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -50,12 +50,12 @@ const BackBar = ({ backLabel, onBack }) => {
   return (
     <Box sx={{ display: "flex", alignItems: "center", minHeight: 44, mb: 1.5 }}>
       {backLabel ? (
-        <Button onClick={() => navigate(-1)} startIcon={<ArrowLeft weight="bold" />} sx={SOFT}>
+        <Button onClick={() => navigate(-1)} startIcon={<ArrowLeftIcon weight="bold" />} sx={SOFT}>
           {backLabel}
         </Button>
       ) : (
         <IconButton aria-label="Back to contacts" onClick={onBack} sx={{ ml: -1 }}>
-          <ArrowLeft size={22} />
+          <ArrowLeftIcon size={22} />
         </IconButton>
       )}
     </Box>

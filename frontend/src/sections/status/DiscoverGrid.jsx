@@ -1,5 +1,5 @@
 import { Box, ButtonBase, Skeleton, Stack, Typography } from "@mui/material";
-import { Play } from "phosphor-react";
+import { PlayIcon } from "@phosphor-icons/react";
 
 import { PaneEmpty } from "@/components/Pane";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
@@ -70,11 +70,11 @@ const DiscoverTile = ({ group, onOpen }) => {
                 bgcolor: "rgba(0, 0, 0, 0.5)",
               }}
             >
-              <Play size={14} weight="fill" />
+              <PlayIcon size={14} weight="fill" />
             </Box>
           )}
         </Box>
-        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ px: 0.25 }}>
+        <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", px: 0.25 }}>
           <ChatAvatar src={owner.avatar} name={owner.firstName} size={28} statuses={group.statuses} />
           <Box sx={{ minWidth: 0 }}>
             <Typography noWrap sx={{ fontSize: 14, fontWeight: 700 }}>

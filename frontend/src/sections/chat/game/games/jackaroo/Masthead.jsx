@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { m, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "motion/react";
 
 import GameTitle from "@/sections/chat/game/GameTitle";
 import art from "@/sections/chat/game/games/jackaroo/art";

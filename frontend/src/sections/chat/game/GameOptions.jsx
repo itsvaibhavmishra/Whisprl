@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Check, LockSimple } from "phosphor-react";
+import { CheckIcon, LockSimpleIcon } from "@phosphor-icons/react";
 
 import { ON_SCRIM, ON_SCRIM_SOFT } from "@/sections/chat/game/scrim";
 import usePending from "@/sections/chat/game/usePending";
@@ -12,7 +12,7 @@ const PAPER = "#FBF4E8";
 const PAPER_INK = "#2E2440";
 
 const Heading = ({ children }) => (
-  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
+  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", width: "100%" }}>
     <Box sx={{ flex: 1, height: "1px", bgcolor: alpha("#fff", 0.28) }} />
     <Typography sx={{ fontSize: 13, fontWeight: 700, color: ON_SCRIM }}>{children}</Typography>
     <Box sx={{ flex: 1, height: "1px", bgcolor: alpha("#fff", 0.28) }} />
@@ -23,7 +23,7 @@ const Choice = ({ option, choice, theme, isChosen, reason, onChoose }) => {
   const colour = (isChosen && PICKED) || (reason && alpha("#fff", 0.45)) || theme.accent;
 
   return (
-    <Stack spacing={0.6} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+    <Stack spacing={0.6} sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
       <ButtonBase
         disabled={Boolean(reason) || !onChoose}
         onClick={onChoose}
@@ -60,12 +60,12 @@ const Choice = ({ option, choice, theme, isChosen, reason, onChoose }) => {
               color: "#fff",
             }}
           >
-            <Check size={11} weight="bold" />
+            <CheckIcon size={11} weight="bold" />
           </Box>
         )}
         {reason && (
           <Box sx={{ position: "absolute", top: 7, right: 8, color: alpha("#fff", 0.55) }}>
-            <LockSimple size={13} weight="fill" />
+            <LockSimpleIcon size={13} weight="fill" />
           </Box>
         )}
         {option.Preview && <option.Preview value={choice.value} colour={colour} />}
@@ -83,9 +83,9 @@ const Setting = ({ option, theme, confirmed, players, canChange, onChange }) => 
   const [chosen, choose] = usePending(confirmed, (value) => onChange({ [option.key]: value }));
 
   return (
-    <Stack spacing={1} alignItems="center">
+    <Stack spacing={1} sx={{ alignItems: "center" }}>
       <Heading>{option.label}</Heading>
-      <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ width: "100%" }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start", width: "100%" }}>
         {option.choices.map((choice) => (
           <Choice
             key={choice.value}

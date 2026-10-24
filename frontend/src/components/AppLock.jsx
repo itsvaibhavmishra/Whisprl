@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Stack, Typography } from "@mui/material";
 import { App } from "@capacitor/app";
-import { LockSimpleOpen } from "phosphor-react";
+import { LockSimpleOpenIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 
 import MascotHalo from "@/components/MascotHalo";
@@ -68,10 +68,10 @@ const AppLock = () => {
       role="dialog"
       aria-modal="true"
       aria-label="Whisprl is locked"
-      alignItems="center"
-      justifyContent="center"
       spacing={2}
       sx={{
+        alignItems: "center",
+        justifyContent: "center",
         position: "fixed",
         inset: 0,
         zIndex: (theme) => theme.zIndex.tooltip + 1,
@@ -90,7 +90,7 @@ const AppLock = () => {
       <Button
         variant="contained"
         size="large"
-        startIcon={<LockSimpleOpen size={20} weight="bold" />}
+        startIcon={<LockSimpleOpenIcon size={20} weight="bold" />}
         onClick={unlock}
         disabled={isAsking}
         sx={{ borderRadius: 99, px: 3 }}

@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { m, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "motion/react";
 
 const DROP = { type: "spring", stiffness: 420, damping: 26 };
 

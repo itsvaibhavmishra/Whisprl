@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
-import { m, useReducedMotion } from "framer-motion";
-import { ArrowBendUpRight, GameController, Prohibit } from "phosphor-react";
+import { m, useReducedMotion } from "motion/react";
+import { ArrowBendUpRightIcon, GameControllerIcon, ProhibitIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useMessageTime from "@/hooks/useMessageTime";
@@ -259,9 +259,9 @@ const MessageContainer = ({
       {showTime && !isDeleted && <ChatNote sx={{ my: 0, px: 1.25, py: 0.25 }}>{messageTime(message.createdAt)}</ChatNote>}
       <Stack
         direction="row"
-        justifyContent={isMine ? "flex-end" : "flex-start"}
-        alignItems="center"
         sx={{
+          justifyContent: isMine ? "flex-end" : "flex-start",
+          alignItems: "center",
           position: "relative",
           mb: hasReactions ? `${REACTIONS_DROP}px` : 0,
           opacity: isQueued ? 0.75 : 1,
@@ -289,11 +289,11 @@ const MessageContainer = ({
         >
           {statusQuote && <StatusQuote quote={statusQuote} isMine={isMine} />}
           <Box
-            p={paddingOf()}
             data-own={isMine || undefined}
             {...toggleProps}
             {...interactions}
             sx={{
+              p: paddingOf(),
               "--flash": alpha(theme.palette.primary.main, 0.55),
               position: "relative",
               cursor: toggleProps ? "pointer" : "default",
@@ -329,16 +329,16 @@ const MessageContainer = ({
                   </Typography>
                 )}
                 {isForwarded && (
-                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ opacity: 0.75 }}>
-                    <ArrowBendUpRight size={12} />
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", opacity: 0.75 }}>
+                    <ArrowBendUpRightIcon size={12} />
                     <Typography variant="caption" sx={{ fontStyle: "italic" }}>
                       Forwarded
                     </Typography>
                   </Stack>
                 )}
                 {gameName && (
-                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ opacity: 0.75 }}>
-                    <GameController size={12} weight="fill" />
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", opacity: 0.75 }}>
+                    <GameControllerIcon size={12} weight="fill" />
                     <Typography variant="caption">{`In ${gameName}`}</Typography>
                   </Stack>
                 )}
@@ -357,8 +357,8 @@ const MessageContainer = ({
             )}
 
             {isDeleted ? (
-              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ px: 1.5, py: 0.75, color: "text.secondary" }}>
-                <Prohibit size={15} />
+              <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", px: 1.5, py: 0.75, color: "text.secondary" }}>
+                <ProhibitIcon size={15} />
                 <Typography sx={{ fontSize: 14, fontStyle: "italic" }}>{isMine ? "You deleted this message" : "This message was deleted"}</Typography>
               </Stack>
             ) : (

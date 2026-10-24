@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Box, Button, IconButton, Popover, Stack, Tooltip, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
-import EmojiPicker from "@/components/EmojiPicker";
+import EmojiPicker from "@/components/emoji-picker/EmojiPicker";
 import QuickReactionSlots from "@/components/QuickReactionSlots";
 import { UpdateChatPreferences } from "@/redux/slices/actions/chatSettingsActions";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
@@ -35,7 +35,7 @@ const EmojiSettings = ({ conversation }) => {
     <DetailsSection title="Emoji and reactions">
       <Stack spacing={2.5} sx={{ px: 1.5, pb: 3 }}>
         <Field label="Quick emoji" description="Tap the button beside the message box to send it, or hold to send it bigger.">
-          <Stack direction="row" alignItems="center" spacing={0.5}>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
             <Tooltip title="Change">
               <IconButton
                 aria-label={`Change the quick emoji, now ${quickEmoji}`}

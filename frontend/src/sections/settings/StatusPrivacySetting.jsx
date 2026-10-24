@@ -72,7 +72,7 @@ const HiddenFromDialog = ({ onClose }) => {
                   edge="end"
                   checked={hiddenIds.has(friend._id)}
                   tabIndex={-1}
-                  inputProps={{ "aria-label": `Hide from ${friend.firstName} ${friend.lastName}` }}
+                  slotProps={{ input: { "aria-label": `Hide from ${friend.firstName} ${friend.lastName}` } }}
                 />
               </ListItemButton>
             </ListItem>

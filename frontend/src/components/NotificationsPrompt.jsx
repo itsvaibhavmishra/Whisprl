@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
-import { BellRinging } from "phosphor-react";
+import { BellRingingIcon } from "@phosphor-icons/react";
 
 import useSettings from "@/hooks/useSettings";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
@@ -49,10 +49,17 @@ const NotificationsPrompt = () => {
   };
 
   return (
-    <Dialog open={isOpen} onClose={close} fullWidth maxWidth="xs" aria-labelledby="notifications-prompt-title" PaperProps={{ sx: { borderRadius: 3 } }}>
+    <Dialog
+      open={isOpen}
+      onClose={close}
+      fullWidth
+      maxWidth="xs"
+      aria-labelledby="notifications-prompt-title"
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+    >
       <DialogTitle id="notifications-prompt-title" sx={{ pb: 0.5 }}>
         <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <BellRinging size={24} weight="duotone" />
+          <BellRingingIcon size={24} weight="duotone" />
           Turn on notifications
         </Box>
       </DialogTitle>

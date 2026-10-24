@@ -1,4 +1,4 @@
-import { forwardRef, memo, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
 import { useForkRef } from "@mui/material/utils";
@@ -35,10 +35,10 @@ const popIn = keyframes`from { transform: scale(0.8); opacity: 0; } to { transfo
 const tiltOf = (id) => ([...id].reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % 13) - 6;
 
 // where new cards are dealt from: the design has no deck on the table, so it is a point in the board's centre
-export const Shoe = memo(forwardRef((_, ref) => <Box ref={ref} sx={{ ...cardAt(SHOE), height: share(CARD_HEIGHT) }} />));
+export const Shoe = memo(({ ref }) => <Box ref={ref} sx={{ ...cardAt(SHOE), height: share(CARD_HEIGHT) }} />);
 
 // the cards played so far, the last one on top; the tilt sits on an inner layer, so one flying in can be animated without undoing it
-export const Pile = forwardRef(({ pile, tonesOf }, topRef) =>
+export const Pile = ({ pile, tonesOf, ref: topRef }) =>
   pile.slice(-SHOWN).map((played, index, shown) => {
     const isTop = index === shown.length - 1;
     return (
@@ -59,8 +59,7 @@ export const Pile = forwardRef(({ pile, tonesOf }, topRef) =>
         </Box>
       </Box>
     );
-  })
-);
+  });
 
 // each card of a fan by where it sits, its own width and the tilt the fan gives it, since a tilted card's box is wider than the card
 const placesInFan = (fan) =>
@@ -111,9 +110,9 @@ export const TheirCards = ({ count, fan, taken, isAnswered, isStill, onTake, onB
     <Stack
       ref={rowRef}
       direction="row"
-      alignItems="center"
-      justifyContent="center"
       sx={{
+        alignItems: "center",
+        justifyContent: "center",
         position: "absolute",
         zIndex: 4,
         left: "6%",
@@ -233,45 +232,43 @@ export const Deck = ({ left, dealt }) => {
 };
 
 // someone else's hand, face down, so the cards they hold can be counted but not read; new ones fly in from the deck or swell in as a bonus
-export const Fan = memo(
-  forwardRef(({ count, arrival, shoeRef, isStill, isAway, size = 26 }, ref) => {
-    const rowRef = useRef(null);
-    const fanRef = useForkRef(rowRef, ref);
-    // hidden behind the red queen's pick, the fan takes its new places at once, so the cards flying back aim at where they will stay
-    useGlide(rowRef, isStill || isAway);
-    const lastCount = useRef(arrival?.isOpening ? 0 : count);
-    useLayoutEffect(() => {
-      const before = lastCount.current;
-      lastCount.current = count;
-      if (isStill || !arrival || count <= before) return;
-      // a deal fills hands the round emptied, so the card they last played never stays behind as one of the new ones
-      const backs = [...rowRef.current.querySelectorAll("[data-back]")].slice(arrival.kind === "deal" ? 0 : before);
-      if (arrival.kind === "bonus") backs.forEach((back) => arriveAsBonus(back, arrival.at));
-      const shoe = shoeRef?.current?.getBoundingClientRect();
-      if (arrival.kind === "deal" && shoe) backs.forEach((back, index) => flyIn(back, shoe, arrival.at + dealOrder(index, arrival.isFirst)));
-    }, [count, arrival, shoeRef, isStill]);
-    return (
-      <Box ref={fanRef} sx={{ display: "flex", alignItems: "flex-end", height: size / 0.6, pl: `${size * 0.3}px`, visibility: isAway ? "hidden" : "visible" }}>
-        {Array.from({ length: count }, (_, index) => {
-          const spread = index - (count - 1) / 2;
-          return (
-            <Box
-              key={index}
-              data-glide={index}
-              sx={{
-                width: size,
-                ml: `${-size * 0.3}px`,
-                transform: `rotate(${spread * 6}deg) translateY(${Math.abs(spread) * 1.5}px)`,
-                filter: "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45))",
-              }}
-            >
-              <Box data-back>
-                <CardBack />
-              </Box>
+export const Fan = memo(({ count, arrival, shoeRef, isStill, isAway, size = 26, ref }) => {
+  const rowRef = useRef(null);
+  const fanRef = useForkRef(rowRef, ref);
+  // hidden behind the red queen's pick, the fan takes its new places at once, so the cards flying back aim at where they will stay
+  useGlide(rowRef, isStill || isAway);
+  const lastCount = useRef(arrival?.isOpening ? 0 : count);
+  useLayoutEffect(() => {
+    const before = lastCount.current;
+    lastCount.current = count;
+    if (isStill || !arrival || count <= before) return;
+    // a deal fills hands the round emptied, so the card they last played never stays behind as one of the new ones
+    const backs = [...rowRef.current.querySelectorAll("[data-back]")].slice(arrival.kind === "deal" ? 0 : before);
+    if (arrival.kind === "bonus") backs.forEach((back) => arriveAsBonus(back, arrival.at));
+    const shoe = shoeRef?.current?.getBoundingClientRect();
+    if (arrival.kind === "deal" && shoe) backs.forEach((back, index) => flyIn(back, shoe, arrival.at + dealOrder(index, arrival.isFirst)));
+  }, [count, arrival, shoeRef, isStill]);
+  return (
+    <Box ref={fanRef} sx={{ display: "flex", alignItems: "flex-end", height: size / 0.6, pl: `${size * 0.3}px`, visibility: isAway ? "hidden" : "visible" }}>
+      {Array.from({ length: count }, (_, index) => {
+        const spread = index - (count - 1) / 2;
+        return (
+          <Box
+            key={index}
+            data-glide={index}
+            sx={{
+              width: size,
+              ml: `${-size * 0.3}px`,
+              transform: `rotate(${spread * 6}deg) translateY(${Math.abs(spread) * 1.5}px)`,
+              filter: "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45))",
+            }}
+          >
+            <Box data-back>
+              <CardBack />
             </Box>
-          );
-        })}
-      </Box>
-    );
-  })
-);
+          </Box>
+        );
+      })}
+    </Box>
+  );
+});

@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { Box, ButtonBase } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
-import { m, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "motion/react";
 
 import { neighboursOf, totalOf } from "@/sections/chat/game/games/chain-reaction/cascade";
 import Orb, { OrbDefs } from "@/sections/chat/game/games/chain-reaction/Orb";

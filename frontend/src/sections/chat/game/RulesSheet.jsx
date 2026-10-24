@@ -92,7 +92,7 @@ const RulesSheet = ({ game, turnSeconds, onClose }) => {
           <Page key={rule.heading} rule={rule} game={game} />
         ))}
       </Box>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 3, pt: 2 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: 3, pt: 2 }}>
         <Stack direction="row" spacing={0.75} sx={{ flex: 1 }}>
           {pages.map((rule, index) => (
             <ButtonBase

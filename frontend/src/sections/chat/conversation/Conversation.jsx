@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, Button, GlobalStyles, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "motion/react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { AcknowledgeMessages, GetMessages } from "@/redux/slices/actions/chatActions";
@@ -31,9 +31,9 @@ import { peerOf } from "@/utils/chats";
 const ComposerNotice = ({ children, action }) => (
   <Box sx={{ ...COMPOSER_GUTTER, pt: 0.5 }}>
     <Stack
-      alignItems="center"
       spacing={1.25}
       sx={{
+        alignItems: "center",
         maxWidth: COLUMN_WIDTH,
         mx: "auto",
         px: 3,
@@ -145,7 +145,7 @@ const Conversation = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [sheetDrag, setSheetDrag] = useState(0);
   const composerRef = useRef(null);
-  const [composerHeight, setComposerHeight] = useState(0);
+  const stageRef = useRef(null);
   useGameSounds(gameSession, meId);
 
   const conversationId = activeConversation._id;
@@ -165,7 +165,8 @@ const Conversation = () => {
   useEffect(() => {
     const composer = composerRef.current;
     if (!composer) return undefined;
-    const observer = new ResizeObserver(([entry]) => setComposerHeight(Math.round(entry.contentRect.height)));
+    // the game keeps its controls clear of this; set on the element, not in state, so a resizing emoji panel never redraws every message
+    const observer = new ResizeObserver(([entry]) => stageRef.current?.style.setProperty("--chat-overlay", `${Math.round(entry.contentRect.height)}px`));
     observer.observe(composer);
     return () => observer.disconnect();
   }, [files.length]);
@@ -266,7 +267,7 @@ const Conversation = () => {
           )}
           <ConversationMain />
         </Box>
-        <Box ref={composerRef} sx={{ position: "relative" }}>
+        <Box ref={composerRef} data-composer-column sx={{ position: "relative" }}>
           {layer === "behind" && !isWide
             ? (noticeOf() ?? <RoomBar theme={GAMES[shownSession.game].theme} onOpenChat={() => setIsChatOpen(true)} />)
             : composer()}
@@ -283,17 +284,7 @@ const Conversation = () => {
         {!isSearching && <PinnedBar />}
       </Box>
       <GlobalStyles styles={EDGE_PROPERTIES} />
-      <Box
-        sx={{
-          position: "relative",
-          flex: 1,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: { xs: "column", lg: "row-reverse" },
-          // how much of a phone's foot the chat covers, read by the game so its controls stay clear of it
-          "--chat-overlay": `${composerHeight}px`,
-        }}
-      >
+      <Box ref={stageRef} sx={{ position: "relative", flex: 1, minHeight: 0, display: "flex", flexDirection: { xs: "column", lg: "row-reverse" } }}>
         {/* over the chat rather than above it, so hiding the game moves nothing the reader is looking at */}
         <Box
           sx={{

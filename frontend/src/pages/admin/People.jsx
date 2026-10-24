@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, CircularProgress, InputAdornment, Stack, TextField, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { MagnifyingGlass } from "phosphor-react";
+import { Box, Button, CircularProgress, InputAdornment, Stack, TextField, Typography } from "@mui/material";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -43,9 +42,9 @@ const People = () => {
       return (
         <Box>
           <Notice title="The list didn't load">Check your connection and try again.</Notice>
-          <LoadingButton variant="contained" loading={isLoading} onClick={() => read()} sx={{ mt: 2 }}>
+          <Button variant="contained" loading={isLoading} onClick={() => read()} sx={{ mt: 2 }}>
             Try again
-          </LoadingButton>
+          </Button>
         </Box>
       );
     }
@@ -63,9 +62,9 @@ const People = () => {
           ))}
         </Box>
         {hasMore && (
-          <LoadingButton variant="outlined" color="inherit" loading={isLoading} onClick={() => read(Math.ceil(list.length / 30))} sx={{ mt: 2 }}>
+          <Button variant="outlined" color="inherit" loading={isLoading} onClick={() => read(Math.ceil(list.length / 30))} sx={{ mt: 2 }}>
             Show more
-          </LoadingButton>
+          </Button>
         )}
       </>
     );
@@ -80,21 +79,23 @@ const People = () => {
         Everyone with an account. Suspending or banning closes their sessions at once, and always asks why.
       </Typography>
 
-      <Stack direction={{ xs: "column", md: "row" }} alignItems={{ md: "center" }} sx={{ mt: 4, gap: 1.5 }}>
+      <Stack direction={{ xs: "column", md: "row" }} sx={{ alignItems: { md: "center" }, mt: 4, gap: 1.5 }}>
         <TextField
           size="small"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Name, username or email"
-          inputProps={{ "aria-label": "Search people" }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <MagnifyingGlass size={18} />
-              </InputAdornment>
-            ),
-          }}
           sx={{ flex: 1, maxWidth: { md: 320 } }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MagnifyingGlassIcon size={18} />
+                </InputAdornment>
+              ),
+            },
+            htmlInput: { "aria-label": "Search people" },
+          }}
         />
         <PillGroup label="Show" options={FILTERS} value={filter} onChange={setFilter} />
       </Stack>

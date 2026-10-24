@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, ButtonBase, IconButton, ListItemIcon, Menu, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
-import { DotsThree, Flag, PaperPlaneTilt, Pause, Play, Trash, X } from "phosphor-react";
+import { DotsThreeIcon, FlagIcon, PaperPlaneTiltIcon, PauseIcon, PlayIcon, TrashIcon, XIcon } from "@phosphor-icons/react";
 
 import useMessageTime from "@/hooks/useMessageTime";
 import EveryonePill from "@/sections/status/EveryonePill";
@@ -35,9 +35,9 @@ const StatusHeader = ({ status, isOwn, isPaused, hasClose, onTogglePause, onMore
   const { owner } = status;
   const name = isOwn ? "My status" : `${owner.firstName} ${owner.lastName}`;
   const items = [
-    status.isPublic && { key: "share", icon: PaperPlaneTilt, label: "Send to friends", onClick: onShare },
-    status.isPublic && !isOwn && { key: "report", icon: Flag, label: "Report this update", onClick: onReport, isDanger: true },
-    isOwn && { key: "delete", icon: Trash, label: "Delete update", onClick: onDelete, isDanger: true },
+    status.isPublic && { key: "share", icon: PaperPlaneTiltIcon, label: "Send to friends", onClick: onShare },
+    status.isPublic && !isOwn && { key: "report", icon: FlagIcon, label: "Report this update", onClick: onReport, isDanger: true },
+    isOwn && { key: "delete", icon: TrashIcon, label: "Delete update", onClick: onDelete, isDanger: true },
   ].filter(Boolean);
 
   const showMore = (anchor) => {
@@ -57,7 +57,7 @@ const StatusHeader = ({ status, isOwn, isPaused, hasClose, onTogglePause, onMore
         <Typography noWrap sx={{ fontSize: 14, fontWeight: 700, lineHeight: 1.35, mb: 0.375 }}>
           {name}
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Tooltip title={messageTime(status.createdAt)}>
             <Typography component="span" sx={{ flexShrink: 0, whiteSpace: "nowrap", fontSize: 12, fontWeight: 600, opacity: 0.85 }}>
               {ageOf(status.createdAt)}
@@ -70,9 +70,9 @@ const StatusHeader = ({ status, isOwn, isPaused, hasClose, onTogglePause, onMore
   );
 
   return (
-    <Stack direction="row" alignItems="center" spacing={0.25} sx={{ px: 1, py: 0.75, color: "#fff", textShadow: "0 1px 3px rgba(0, 0, 0, 0.45)" }}>
+    <Stack direction="row" spacing={0.25} sx={{ alignItems: "center", px: 1, py: 0.75, color: "#fff", textShadow: "0 1px 3px rgba(0, 0, 0, 0.45)" }}>
       {isOwn ? (
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flex: 1, minWidth: 0, pl: 0.5 }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flex: 1, minWidth: 0, pl: 0.5 }}>
           {who}
         </Stack>
       ) : (
@@ -96,16 +96,16 @@ const StatusHeader = ({ status, isOwn, isPaused, hasClose, onTogglePause, onMore
       )}
       <Box sx={{ flexShrink: 0, display: "flex" }}>
         <HeaderButton label={isPaused ? "Play" : "Pause"} onClick={onTogglePause} sx={{ "@container (max-width: 260px)": { display: "none" } }}>
-          {isPaused ? <Play size={20} weight="fill" /> : <Pause size={20} weight="fill" />}
+          {isPaused ? <PlayIcon size={20} weight="fill" /> : <PauseIcon size={20} weight="fill" />}
         </HeaderButton>
         {items.length > 0 && (
           <HeaderButton label="More options" aria-haspopup="menu" onClick={(event) => showMore(event.currentTarget)}>
-            <DotsThree size={22} weight="bold" />
+            <DotsThreeIcon size={22} weight="bold" />
           </HeaderButton>
         )}
         {hasClose && (
           <HeaderButton label="Close" onClick={onClose}>
-            <X size={20} weight="bold" />
+            <XIcon size={20} weight="bold" />
           </HeaderButton>
         )}
       </Box>

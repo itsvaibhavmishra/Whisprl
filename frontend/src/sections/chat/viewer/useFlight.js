@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { animate, useMotionValue, useReducedMotion } from "framer-motion";
+import { animate, useMotionValue, useReducedMotion } from "motion/react";
 
 const FLIGHT = { type: "spring", stiffness: 380, damping: 36 };
 const STILL = { duration: 0 };

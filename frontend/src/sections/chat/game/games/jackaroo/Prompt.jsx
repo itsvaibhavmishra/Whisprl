@@ -13,9 +13,9 @@ const LOOKS = {
 // what the turn still needs from you, floated just above your cards and centred over them; a watcher's line gets its own row
 const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand }) => (
   <Stack
-    alignItems="center"
     spacing={1}
-    sx={
+    sx={[
+      { alignItems: "center" },
       isOverHand
         ? {
             position: "absolute",
@@ -27,8 +27,8 @@ const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand }) => (
             translate: "-50% 0",
             pointerEvents: "none",
           }
-        : { minHeight: 40, justifyContent: "center", px: 2, flexShrink: 0 }
-    }
+        : { minHeight: 40, justifyContent: "center", px: 2, flexShrink: 0 },
+    ]}
   >
     {text && (
       <Typography
@@ -50,7 +50,7 @@ const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand }) => (
       </Typography>
     )}
     {buttons.length > 0 && (
-      <Stack direction="row" justifyContent="center" flexWrap="wrap" useFlexGap gap={1}>
+      <Stack direction="row" sx={{ justifyContent: "center", flexWrap: "wrap", gap: 1 }}>
         {buttons.map(({ label, look, onClick }) => (
           <ButtonBase key={label} onClick={onClick} sx={LOOKS[look]}>
             {label}

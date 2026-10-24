@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { CheckCircle, Circle } from "phosphor-react";
+import { CheckCircleIcon, CircleIcon } from "@phosphor-icons/react";
 import { useWatch } from "react-hook-form";
 
 import { PASSWORD_RULES } from "@/utils/formRules";
@@ -17,8 +17,8 @@ const PasswordChecklist = ({ name }) => {
       {PASSWORD_RULES.map(({ label, isMet }) => {
         const met = isMet(password);
         return (
-          <Stack component="li" key={label} direction="row" spacing={1} alignItems="center" sx={{ color: met ? "success.main" : "text.secondary" }}>
-            {met ? <CheckCircle size={16} weight="fill" aria-hidden="true" /> : <Circle size={16} aria-hidden="true" />}
+          <Stack component="li" key={label} direction="row" spacing={1} sx={{ alignItems: "center", color: met ? "success.main" : "text.secondary" }}>
+            {met ? <CheckCircleIcon size={16} weight="fill" aria-hidden="true" /> : <CircleIcon size={16} aria-hidden="true" />}
             <Typography variant="body2" component="span" sx={{ fontWeight: 400 }}>
               {label}
               <Box component="span" sx={SPOKEN_ONLY}>

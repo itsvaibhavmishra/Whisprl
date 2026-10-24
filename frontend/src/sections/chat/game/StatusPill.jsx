@@ -5,10 +5,10 @@ import { alpha } from "@mui/material/styles";
 const StatusPill = ({ theme, isLive = false, isWide = false, icon = null, children }) => (
   <Stack
     direction="row"
-    alignItems="center"
-    justifyContent="center"
     spacing={1}
     sx={{
+      alignItems: "center",
+      justifyContent: "center",
       alignSelf: isWide ? "stretch" : "center",
       flexShrink: 0,
       maxWidth: "100%",

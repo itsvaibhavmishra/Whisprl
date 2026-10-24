@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Stack, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Plus } from "phosphor-react";
+import { PlusIcon } from "@phosphor-icons/react";
 
 import MascotHalo from "@/components/MascotHalo";
 
@@ -37,7 +37,7 @@ const RequestGameCard = ({ onClick }) => {
       }}
     >
       <MascotHalo size={isPhone ? 88 : 112} />
-      <Stack component="span" spacing={{ xs: 0.75, sm: 1.25 }} alignItems={{ xs: "flex-start", sm: "center" }}>
+      <Stack component="span" spacing={{ xs: 0.75, sm: 1.25 }} sx={{ alignItems: { xs: "flex-start", sm: "center" } }}>
         <Typography component="span" sx={{ fontSize: { xs: 16, sm: 18 }, fontWeight: 800, letterSpacing: "-0.01em" }}>
           Missing a game?
         </Typography>
@@ -48,9 +48,9 @@ const RequestGameCard = ({ onClick }) => {
           aria-hidden
           className="request-pill"
           direction="row"
-          alignItems="center"
           spacing={0.75}
           sx={{
+            alignItems: "center",
             mt: { xs: 0.5, sm: 1 },
             px: 2,
             py: 0.8,
@@ -63,7 +63,7 @@ const RequestGameCard = ({ onClick }) => {
             transition: "background-color 160ms ease, color 160ms ease",
           }}
         >
-          <Plus size={15} weight="bold" />
+          <PlusIcon size={15} weight="bold" />
           <Box component="span">Request a game</Box>
         </Stack>
       </Stack>

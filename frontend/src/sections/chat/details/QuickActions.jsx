@@ -1,7 +1,7 @@
-import { forwardRef, useState } from "react";
+import { useState } from "react";
 import { Box, ButtonBase, Menu, MenuItem, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { BellSimple, BellSlash, Image, Star } from "phosphor-react";
+import { BellSimpleIcon, BellSlashIcon, ImageIcon, StarIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import useSettings from "@/hooks/useSettings";
@@ -23,7 +23,7 @@ const muteLabelOf = (conversation, use24Hour) => {
   return `Until ${until.toLocaleString(undefined, { weekday: "short", ...clockOptions(use24Hour) })}`;
 };
 
-const Tile = forwardRef(({ icon: Icon, label, isOn, ...button }, ref) => (
+const Tile = ({ icon: Icon, label, isOn, ref, ...button }) => (
   <ButtonBase
     ref={ref}
     {...button}
@@ -45,7 +45,7 @@ const Tile = forwardRef(({ icon: Icon, label, isOn, ...button }, ref) => (
       {label}
     </Typography>
   </ButtonBase>
-));
+);
 
 const QuickActions = ({ conversation, name }) => {
   const dispatch = useDispatch();
@@ -67,7 +67,7 @@ const QuickActions = ({ conversation, name }) => {
       <Stack direction="row" spacing={1}>
         <Tooltip title={isQuiet ? muteLabel : ""}>
           <Tile
-            icon={isQuiet ? BellSlash : BellSimple}
+            icon={isQuiet ? BellSlashIcon : BellSimpleIcon}
             label={isQuiet ? "Muted" : "Mute"}
             isOn={isQuiet}
             aria-label={`Mute notifications, ${muteLabel}`}
@@ -75,8 +75,8 @@ const QuickActions = ({ conversation, name }) => {
             onClick={(event) => setMuteAnchor(event.currentTarget)}
           />
         </Tooltip>
-        <Tile icon={Star} label="Favourite" isOn={isFavourite} aria-pressed={isFavourite} onClick={() => update({ isFavourite: !isFavourite })} />
-        <Tile icon={Image} label="Wallpaper" aria-haspopup="dialog" onClick={() => setIsChoosingWallpaper(true)} />
+        <Tile icon={StarIcon} label="Favourite" isOn={isFavourite} aria-pressed={isFavourite} onClick={() => update({ isFavourite: !isFavourite })} />
+        <Tile icon={ImageIcon} label="Wallpaper" aria-haspopup="dialog" onClick={() => setIsChoosingWallpaper(true)} />
       </Stack>
 
       <Menu anchorEl={muteAnchor} open={Boolean(muteAnchor)} onClose={() => setMuteAnchor(null)}>

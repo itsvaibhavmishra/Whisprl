@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Box, Button, ButtonBase, InputBase, Stack } from "@mui/material";
-import { TextAlignCenter, TextAlignLeft, TextAlignRight, TextT } from "phosphor-react";
+import { TextAlignCenterIcon, TextAlignLeftIcon, TextAlignRightIcon, TextTIcon } from "@phosphor-icons/react";
 
 import { ColorRow, SizeSlider, ToolButton } from "@/components/media-editor/ToolControls";
 import { TEXT_FONTS, fontNamed } from "@/utils/media-editor/fonts";
@@ -9,7 +9,7 @@ import { inkOn } from "@/utils/media-editor/palette";
 
 const MAX_TEXT = 300;
 const TEXT_SIZES = { min: 0.04, max: 0.16 };
-const ALIGNMENTS = { center: TextAlignCenter, left: TextAlignLeft, right: TextAlignRight };
+const ALIGNMENTS = { center: TextAlignCenterIcon, left: TextAlignLeftIcon, right: TextAlignRightIcon };
 const BACKGROUNDS = { none: "regular", solid: "fill", soft: "duotone" };
 
 const following = (options, current) => {
@@ -78,12 +78,12 @@ const TextEditor = ({ layer, stageWidth, onDone }) => {
         color: "#fff",
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ px: 1, height: 56, flexShrink: 0 }}>
+      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", px: 1, height: 56, flexShrink: 0 }}>
         <ToolButton label="Align text" onClick={() => change({ align: following(ALIGNMENTS, draft.align) })}>
           <AlignIcon size={24} />
         </ToolButton>
         <ToolButton label="Text background" isPressed={draft.style !== "none"} onClick={() => change({ style: following(BACKGROUNDS, draft.style) })}>
-          <TextT size={24} weight={BACKGROUNDS[draft.style]} />
+          <TextTIcon size={24} weight={BACKGROUNDS[draft.style]} />
         </ToolButton>
         <Box sx={{ flex: 1 }} />
         <Button onClick={finish} sx={{ color: "#fff", fontWeight: 800 }}>

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { Key, Trash } from "phosphor-react";
+import { KeyIcon, TrashIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -16,7 +15,7 @@ const ConfirmRemove = ({ onCancel, onConfirm }) => {
   const isRemoving = useIsLoading(RemovePasskey);
 
   return (
-    <Dialog open onClose={onCancel} fullWidth maxWidth="xs" aria-labelledby="remove-passkey-title" PaperProps={{ sx: { borderRadius: 3 } }}>
+    <Dialog open onClose={onCancel} fullWidth maxWidth="xs" aria-labelledby="remove-passkey-title" slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
       <DialogTitle id="remove-passkey-title" sx={{ pb: 0.5 }}>
         Remove this passkey?
       </DialogTitle>
@@ -29,9 +28,9 @@ const ConfirmRemove = ({ onCancel, onConfirm }) => {
         <Button color="inherit" onClick={onCancel}>
           Cancel
         </Button>
-        <LoadingButton color="error" variant="contained" loading={isRemoving} onClick={onConfirm}>
+        <Button color="error" variant="contained" loading={isRemoving} onClick={onConfirm}>
           Remove
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -43,8 +42,8 @@ const PasskeyRow = ({ passkey, canLink, onRemove }) => {
   const lastUsed = passkey.lastUsedAt ? `, last used ${dateOf(passkey.lastUsedAt)}` : "";
 
   return (
-    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ py: 1 }}>
-      <Key size={20} aria-hidden="true" />
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", py: 1 }}>
+      <KeyIcon size={20} aria-hidden="true" />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
           {passkey.backedUp ? "Synced passkey" : "Passkey on one device"}
@@ -55,13 +54,13 @@ const PasskeyRow = ({ passkey, canLink, onRemove }) => {
         </Typography>
       </Box>
       {!passkey.unlocksMessages && canLink && (
-        <LoadingButton size="small" loading={isLinking} onClick={() => dispatch(LinkPasskey(passkey.credentialId))}>
+        <Button size="small" loading={isLinking} onClick={() => dispatch(LinkPasskey(passkey.credentialId))}>
           Unlock messages too
-        </LoadingButton>
+        </Button>
       )}
       <Tooltip title="Remove passkey">
         <IconButton aria-label="Remove passkey" onClick={() => onRemove(passkey)}>
-          <Trash size={18} />
+          <TrashIcon size={18} />
         </IconButton>
       </Tooltip>
     </Stack>
@@ -93,9 +92,9 @@ const PasskeySetting = () => {
     <Box>
       <SettingRow label="Passkeys" description={description}>
         {isSupported && (
-          <LoadingButton variant="outlined" color="inherit" loading={isAdding} onClick={() => dispatch(AddPasskey())}>
+          <Button variant="outlined" color="inherit" loading={isAdding} onClick={() => dispatch(AddPasskey())}>
             Add a passkey
-          </LoadingButton>
+          </Button>
         )}
       </SettingRow>
       {passkeys.length > 0 && (

@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef } from "react";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { HourglassMedium, Info, Robot } from "phosphor-react";
+import { HourglassMediumIcon, InfoIcon, RobotIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import { TakeSeatOrOfferSwitch } from "@/redux/slices/actions/gameActions";
@@ -38,7 +38,7 @@ const BAR_ROOM = 64;
 const BotToggle = ({ label, theme, onClick }) => (
   <Button
     variant="outlined"
-    startIcon={<Robot size={18} weight="bold" />}
+    startIcon={<RobotIcon size={18} weight="bold" />}
     onClick={onClick}
     sx={{
       py: 0.55,
@@ -56,8 +56,8 @@ const BotToggle = ({ label, theme, onClick }) => (
 );
 
 const PracticeNote = () => (
-  <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.6} sx={{ color: ON_SCRIM_SOFT }}>
-    <Info size={14} weight="bold" />
+  <Stack direction="row" spacing={0.6} sx={{ alignItems: "center", justifyContent: "center", color: ON_SCRIM_SOFT }}>
+    <InfoIcon size={14} weight="bold" />
     <Typography sx={{ fontSize: 11, fontWeight: 600 }}>{PRACTICE_NOTE}</Typography>
   </Stack>
 );
@@ -131,7 +131,7 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
       <Box ref={controlsRef} sx={scrimOf(theme.shade, Boolean(game.Masthead))}>
         <Stack spacing={0.9} sx={CONTROLS}>
           {isOpening ? (
-            <StatusPill theme={theme} isWide icon={<HourglassMedium size={16} weight="fill" />}>
+            <StatusPill theme={theme} isWide icon={<HourglassMediumIcon size={16} weight="fill" />}>
               Setting the table
             </StatusPill>
           ) : (
@@ -154,7 +154,7 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
                 canChange={canChangeTable && !secondsToStart}
                 onChange={(options) => act({ type: "settings", options })}
               />
-              <StatusPill theme={theme} isLive={Boolean(secondsToStart)} isWide icon={<HourglassMedium size={16} weight="fill" />}>
+              <StatusPill theme={theme} isLive={Boolean(secondsToStart)} isWide icon={<HourglassMediumIcon size={16} weight="fill" />}>
                 {secondsToStart ? `Starting in ${secondsToStart}` : lobbyLineOf(session, conversation, meId)}
               </StatusPill>
               <Stack spacing={0.85} sx={ACTIONS}>

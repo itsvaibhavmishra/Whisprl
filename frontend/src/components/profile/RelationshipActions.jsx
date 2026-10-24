@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ChatCircleDots, PencilSimple, ShareNetwork, UserPlus } from "phosphor-react";
+import { ChatCircleDotsIcon, PencilSimpleIcon, ShareNetworkIcon, UserPlusIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -24,7 +24,7 @@ export const SOFT = {
 const ShareButton = ({ person }) => (
   <Tooltip title="Share profile">
     <IconButton aria-label="Share profile" onClick={() => shareProfile(person)} sx={{ ...SOFT, width: 40, height: 40 }}>
-      <ShareNetwork size={18} weight="bold" />
+      <ShareNetworkIcon size={18} weight="bold" />
     </IconButton>
   </Tooltip>
 );
@@ -44,7 +44,7 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
     case "self":
       return (
         <Stack direction="row" spacing={1}>
-          <Button component={Link} to={PATH_DASHBOARD.general.profile} variant="contained" startIcon={<PencilSimple weight="bold" />}>
+          <Button component={Link} to={PATH_DASHBOARD.general.profile} variant="contained" startIcon={<PencilSimpleIcon weight="bold" />}>
             Edit profile
           </Button>
           <ShareButton person={person} />
@@ -53,7 +53,7 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
     case "friend":
       return (
         <Stack direction="row" spacing={1}>
-          <Button variant="contained" startIcon={<ChatCircleDots weight="bold" />} onClick={message}>
+          <Button variant="contained" startIcon={<ChatCircleDotsIcon weight="bold" />} onClick={message}>
             Message
           </Button>
           <ShareButton person={person} />
@@ -96,7 +96,7 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
       return isComposing ? (
         <RequestComposer person={person} onSent={() => setIsComposing(false)} onCancel={() => setIsComposing(false)} />
       ) : (
-        <Button variant="contained" startIcon={<UserPlus weight="bold" />} onClick={() => setIsComposing(true)} sx={{ alignSelf: "start" }}>
+        <Button variant="contained" startIcon={<UserPlusIcon weight="bold" />} onClick={() => setIsComposing(true)} sx={{ alignSelf: "start" }}>
           Add friend
         </Button>
       );

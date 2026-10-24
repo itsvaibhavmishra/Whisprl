@@ -1,11 +1,11 @@
 import { Box, IconButton, Stack, Typography } from "@mui/material";
-import { ArrowLeft } from "phosphor-react";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
 
 import MascotHalo from "@/components/MascotHalo";
 import useScreenBack from "@/hooks/useScreenBack";
 
 export const PaneEmpty = ({ text, children }) => (
-  <Stack alignItems="center" spacing={2} sx={{ px: 3, py: 8, textAlign: "center" }}>
+  <Stack spacing={2} sx={{ alignItems: "center", px: 3, py: 8, textAlign: "center" }}>
     <MascotHalo size={120} />
     <Typography sx={{ maxWidth: 300, fontSize: 14, fontWeight: 500, color: "text.secondary" }}>{text}</Typography>
     {children}
@@ -51,7 +51,7 @@ const Pane = ({ title, subtitle, onBack, action, width = 1040, children }) => {
         >
           {onBack && (
             <IconButton aria-label="Back" onClick={onBack} sx={{ gridArea: "back", ml: -1, mr: 1 }}>
-              <ArrowLeft size={22} />
+              <ArrowLeftIcon size={22} />
             </IconButton>
           )}
           <Typography component="h2" sx={{ gridArea: "title", m: 0, fontSize: 20, fontWeight: 800, letterSpacing: "-0.01em" }}>

@@ -30,7 +30,7 @@ Frontend tests run on Vitest in a simulated browser (jsdom): `cd frontend && npm
 `*.test.js` and `*.test.jsx`, with `vi` in place of Jest's `jest`.
 
 Both packages share one Prettier config, `.prettierrc.json` at the root, and each has its own
-`eslint.config.js`. Lint enforces the house rules a review would otherwise have to catch: imports
+ESLint config. Lint enforces the house rules a review would otherwise have to catch: imports
 go through `@/` or `#`, never a relative path, and no name is a single letter. The gate fails on
 any lint warning or unformatted file. A file containing JSX ends in `.jsx`, the rest in `.js`.
 
@@ -544,12 +544,12 @@ Whisprl/
 │   ├── socket.js            WebSocket event handlers
 │   └── src/                 routes, controllers, services, models, middlewares,
 │                            utils, templates/mail
-├── frontend/                React 18 + MUI app, built with Vite
+├── frontend/                React 19 + MUI app, built with Vite
 │   ├── android/             the Android app's Capacitor shell and its native key vault
 │   ├── capacitor.config.json
 │   ├── index.html           the page Vite builds around src/index.jsx
-│   ├── vite.config.js       the build, the dev server, the tests and the @ alias
-│   ├── eslint.config.js
+│   ├── vite.config.mjs      the build, the dev server, the tests and the @ alias
+│   ├── eslint.config.mjs
 │   ├── public/              includes _redirects for SPA routing on Netlify
 │   └── src/                 pages, sections, components, layouts, redux, routes,
 │                            theme, contexts, hooks, utils

@@ -1,13 +1,12 @@
-import { forwardRef } from "react";
 import { IconButton, InputBase, Stack } from "@mui/material";
-import { MagnifyingGlass, X } from "phosphor-react";
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 
-const SearchPill = forwardRef(({ value, onChange, label, sx }, ref) => (
+const SearchPill = ({ value, onChange, label, sx, ref }) => (
   <Stack
     direction="row"
-    alignItems="center"
     spacing={1}
     sx={{
+      alignItems: "center",
       height: 42,
       px: 1.5,
       borderRadius: 99,
@@ -20,7 +19,7 @@ const SearchPill = forwardRef(({ value, onChange, label, sx }, ref) => (
       ...sx,
     }}
   >
-    <MagnifyingGlass size={18} weight="bold" />
+    <MagnifyingGlassIcon size={18} weight="bold" />
     <InputBase
       inputRef={ref}
       value={value}
@@ -31,10 +30,10 @@ const SearchPill = forwardRef(({ value, onChange, label, sx }, ref) => (
     />
     {value && (
       <IconButton size="small" aria-label="Clear search" onClick={() => onChange("")} sx={{ mr: -0.75 }}>
-        <X size={14} weight="bold" />
+        <XIcon size={14} weight="bold" />
       </IconButton>
     )}
   </Stack>
-));
+);
 
 export default SearchPill;

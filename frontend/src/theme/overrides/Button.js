@@ -7,45 +7,18 @@ export default function Button(theme) {
           "&:hover": {
             boxShadow: "none",
           },
+          variants: [
+            { props: { variant: "contained", color: "primary" }, style: { boxShadow: theme.customShadows.primary } },
+            { props: { variant: "contained", color: "error" }, style: { boxShadow: theme.customShadows.error } },
+            {
+              props: { variant: "outlined", color: "inherit" },
+              style: { border: `1px solid ${theme.palette.grey[500_32]}`, "&:hover": { backgroundColor: theme.palette.action.hover } },
+            },
+            { props: { variant: "text", color: "inherit" }, style: { "&:hover": { backgroundColor: theme.palette.action.hover } } },
+          ],
         },
         sizeLarge: {
           height: 48,
-        },
-        containedInherit: {
-          color: theme.palette.grey[800],
-          boxShadow: theme.customShadows.z8,
-          "&:hover": {
-            backgroundColor: theme.palette.grey[400],
-          },
-        },
-        containedPrimary: {
-          boxShadow: theme.customShadows.primary,
-        },
-        containedSecondary: {
-          boxShadow: theme.customShadows.secondary,
-        },
-        containedInfo: {
-          boxShadow: theme.customShadows.info,
-        },
-        containedSuccess: {
-          boxShadow: theme.customShadows.success,
-        },
-        containedWarning: {
-          boxShadow: theme.customShadows.warning,
-        },
-        containedError: {
-          boxShadow: theme.customShadows.error,
-        },
-        outlinedInherit: {
-          border: `1px solid ${theme.palette.grey[500_32]}`,
-          "&:hover": {
-            backgroundColor: theme.palette.action.hover,
-          },
-        },
-        textInherit: {
-          "&:hover": {
-            backgroundColor: theme.palette.action.hover,
-          },
         },
       },
     },

@@ -7,7 +7,7 @@ import { PATH_AUTH } from "@/routes/paths";
 import { TOUR } from "@/sections/tour/content";
 
 const TourDots = ({ shown }) => (
-  <Stack direction="row" spacing={1} justifyContent="center" aria-hidden sx={{ py: 2.5 }}>
+  <Stack direction="row" spacing={1} aria-hidden sx={{ justifyContent: "center", py: 2.5 }}>
     {TOUR.map(({ title }, stop) => (
       <Box
         key={title}

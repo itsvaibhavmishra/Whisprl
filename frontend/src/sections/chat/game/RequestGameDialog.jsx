@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, IconButton, Stack, TextField, Typography, useMediaQuery } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { alpha } from "@mui/material/styles";
-import { Plus, X } from "phosphor-react";
+import { PlusIcon, XIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -57,18 +56,20 @@ const LinkFields = ({ links, onChange }) => (
         value={link}
         onChange={(event) => onChange(links.map((each, index) => (index === position ? event.target.value : each)))}
         placeholder="https://"
-        inputProps={{ "aria-label": `Link ${position + 1}`, inputMode: "url" }}
-        InputProps={{
-          endAdornment: links.length > 1 && (
-            <IconButton
-              size="small"
-              aria-label={`Remove link ${position + 1}`}
-              onClick={() => onChange(links.filter((_, index) => index !== position))}
-              sx={{ mr: -0.75 }}
-            >
-              <X size={14} weight="bold" />
-            </IconButton>
-          ),
+        slotProps={{
+          input: {
+            endAdornment: links.length > 1 && (
+              <IconButton
+                size="small"
+                aria-label={`Remove link ${position + 1}`}
+                onClick={() => onChange(links.filter((_, index) => index !== position))}
+                sx={{ mr: -0.75 }}
+              >
+                <XIcon size={14} weight="bold" />
+              </IconButton>
+            ),
+          },
+          htmlInput: { "aria-label": `Link ${position + 1}`, inputMode: "url" },
         }}
       />
     ))}
@@ -76,7 +77,7 @@ const LinkFields = ({ links, onChange }) => (
       <Button
         size="small"
         color="inherit"
-        startIcon={<Plus size={14} weight="bold" />}
+        startIcon={<PlusIcon size={14} weight="bold" />}
         onClick={() => onChange([...links, ""])}
         sx={{ alignSelf: "flex-start" }}
       >
@@ -109,7 +110,7 @@ const RequestGameDialog = ({ initialName = "", onClose }) => {
       fullScreen={isPhone}
       fullWidth
       maxWidth="sm"
-      PaperProps={{ "aria-label": "Request a game", sx: { pt: "env(safe-area-inset-top)", pb: "env(safe-area-inset-bottom)" } }}
+      slotProps={{ paper: { "aria-label": "Request a game", sx: { pt: "env(safe-area-inset-top)", pb: "env(safe-area-inset-bottom)" } } }}
     >
       <Box component="form" onSubmit={send} sx={{ display: "flex", flexDirection: "column", height: isPhone ? "100%" : "auto" }}>
         <ClosableTitle title="Request a game" onClose={onClose} sx={{ pb: 0 }} />
@@ -135,10 +136,10 @@ const RequestGameDialog = ({ initialName = "", onClose }) => {
             label={isOwnIdea ? "What's it called?" : "Which game?"}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            inputProps={{ maxLength: MAX_NAME }}
             required
             fullWidth
             sx={{ mt: 3 }}
+            slotProps={{ htmlInput: { maxLength: MAX_NAME } }}
           />
 
           <Typography sx={{ mt: 3, fontSize: 14, fontWeight: 800 }}>Links (optional)</Typography>
@@ -151,22 +152,21 @@ const RequestGameDialog = ({ initialName = "", onClose }) => {
             label={isOwnIdea ? "How is it played? (optional)" : "Anything else? (optional)"}
             value={details}
             onChange={(event) => setDetails(event.target.value)}
-            inputProps={{ maxLength: MAX_DETAILS }}
             helperText={`${details.length}/${MAX_DETAILS}`}
-            FormHelperTextProps={{ sx: { textAlign: "right" } }}
             multiline
             minRows={3}
             fullWidth
             sx={{ mt: 3 }}
+            slotProps={{ htmlInput: { maxLength: MAX_DETAILS }, formHelperText: { sx: { textAlign: "right" } } }}
           />
         </DialogContent>
         <DialogActions sx={{ mt: "auto", px: 3, pb: 2.5 }}>
           <Button color="inherit" onClick={onClose}>
             Cancel
           </Button>
-          <LoadingButton type="submit" variant="contained" loading={isSending} disabled={!kind || !name.trim()}>
+          <Button type="submit" variant="contained" loading={isSending} disabled={!kind || !name.trim()}>
             Send request
-          </LoadingButton>
+          </Button>
         </DialogActions>
       </Box>
     </Dialog>

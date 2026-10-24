@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ButtonBase, CircularProgress, IconButton, Stack, Typography, useTheme } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Pause, Play } from "phosphor-react";
+import { PauseIcon, PlayIcon } from "@phosphor-icons/react";
 
 import TransferRing, { useTransfer } from "@/sections/chat/messages/TransferRing";
 import Waveform from "@/sections/chat/messages/Waveform";
@@ -113,13 +113,13 @@ const VoiceMessage = ({ file, isMine, stamp }) => {
         disabled={file.isLost}
         sx={{ width: CONTROL_SIZE, height: CONTROL_SIZE, color: ink, bgcolor: alpha(ink, isMine ? 0.2 : 0.12) }}
       >
-        {status === "playing" ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" />}
+        {status === "playing" ? <PauseIcon size={18} weight="fill" /> : <PlayIcon size={18} weight="fill" />}
       </IconButton>
     );
   };
 
   return (
-    <Stack direction="row" alignItems="center" spacing={1.25} sx={{ width: { xs: 220, md: 250 }, maxWidth: "100%", p: 0.5 }}>
+    <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", width: { xs: 220, md: 250 }, maxWidth: "100%", p: 0.5 }}>
       {control()}
       <Stack spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
         <Waveform
@@ -130,7 +130,7 @@ const VoiceMessage = ({ file, isMine, stamp }) => {
           onSeek={transfer || file.isLost || isWaiting ? undefined : seek}
           valueText={`${formatDuration(progress * duration)} of ${formatDuration(duration)}`}
         />
-        <Stack direction="row" alignItems="center" spacing={0.75} useFlexGap>
+        <Stack direction="row" spacing={0.75} useFlexGap sx={{ alignItems: "center" }}>
           <Typography
             variant="caption"
             sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", color: isMine ? "rgba(255, 255, 255, 0.9)" : "text.secondary" }}

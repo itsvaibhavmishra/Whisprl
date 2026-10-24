@@ -1,6 +1,6 @@
 import { Box, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { m } from "framer-motion";
+import { m } from "motion/react";
 
 import chatDoodles from "@/assets/backgrounds/chatDoodles.svg";
 import { useWallpaper } from "@/sections/chat/wallpaper/wallpapers";

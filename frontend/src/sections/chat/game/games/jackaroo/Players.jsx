@@ -1,4 +1,4 @@
-import { forwardRef, memo } from "react";
+import { memo } from "react";
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
@@ -137,34 +137,48 @@ const HomeCount = ({ home, colour }) => (
 );
 
 // one player in a corner of the board, face outermost: their name, and under it their hidden cards or how many marbles are home
-const Player = forwardRef(
-  ({ seat, conversation, meId, colour, clock, tag, home, cardsHeld, isHandAway, arrival, shoeRef, isStill, isOnRight = false, onLeave }, fanRef) => {
-    const onlineFriends = useSelector((store) => store.user.onlineFriends);
-    const member = seat.user && !seat.bot ? memberOf(conversation, seat.user) : null;
-    return (
-      <Stack direction={isOnRight ? "row-reverse" : "row"} alignItems="center" spacing={1.25} sx={{ px: 1.5, py: 0.75 }}>
-        <Face seat={seat} member={member} colour={colour} clock={clock} tag={tag} isHere={isHere(seat, member, meId, onlineFriends)} onLeave={onLeave} />
-        <Stack spacing={0.6} alignItems={isOnRight ? "flex-end" : "flex-start"} sx={{ minWidth: 0 }}>
-          <Box sx={{ position: "relative", maxWidth: "100%" }}>
-            <Typography
-              noWrap
-              sx={{ fontFamily: FONTS.body, fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.1, textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)" }}
-            >
-              {nameOf(seat, conversation, meId)}
-            </Typography>
-            {seat.user && !seat.bot && (
-              <SeatSaying user={seat.user} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "below" : "beside"} />
-            )}
-          </Box>
-          {cardsHeld === undefined ? (
-            <HomeCount home={home} colour={colour} />
-          ) : (
-            <Fan ref={fanRef} count={cardsHeld} arrival={arrival} shoeRef={shoeRef} isStill={isStill} isAway={isHandAway} />
+const Player = ({
+  seat,
+  conversation,
+  meId,
+  colour,
+  clock,
+  tag,
+  home,
+  cardsHeld,
+  isHandAway,
+  arrival,
+  shoeRef,
+  isStill,
+  isOnRight = false,
+  onLeave,
+  ref: fanRef,
+}) => {
+  const onlineFriends = useSelector((store) => store.user.onlineFriends);
+  const member = seat.user && !seat.bot ? memberOf(conversation, seat.user) : null;
+  return (
+    <Stack direction={isOnRight ? "row-reverse" : "row"} spacing={1.25} sx={{ alignItems: "center", px: 1.5, py: 0.75 }}>
+      <Face seat={seat} member={member} colour={colour} clock={clock} tag={tag} isHere={isHere(seat, member, meId, onlineFriends)} onLeave={onLeave} />
+      <Stack spacing={0.6} sx={{ alignItems: isOnRight ? "flex-end" : "flex-start", minWidth: 0 }}>
+        <Box sx={{ position: "relative", maxWidth: "100%" }}>
+          <Typography
+            noWrap
+            sx={{ fontFamily: FONTS.body, fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.1, textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)" }}
+          >
+            {nameOf(seat, conversation, meId)}
+          </Typography>
+          {seat.user && !seat.bot && (
+            <SeatSaying user={seat.user} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "below" : "beside"} />
           )}
-        </Stack>
+        </Box>
+        {cardsHeld === undefined ? (
+          <HomeCount home={home} colour={colour} />
+        ) : (
+          <Fan ref={fanRef} count={cardsHeld} arrival={arrival} shoeRef={shoeRef} isStill={isStill} isAway={isHandAway} />
+        )}
       </Stack>
-    );
-  }
-);
+    </Stack>
+  );
+};
 
 export default memo(Player);

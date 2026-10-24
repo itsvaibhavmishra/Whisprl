@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { Divider, IconButton, ListItemIcon, MenuItem, MenuList, Popover, Stack, Tooltip } from "@mui/material";
-import { ArrowBendUpLeft, Copy, DotsThreeVertical, Flag, PencilSimple, PushPin, ArrowBendUpRight, Smiley, Trash } from "phosphor-react";
+import {
+  ArrowBendUpLeftIcon,
+  CopyIcon,
+  DotsThreeVerticalIcon,
+  FlagIcon,
+  PencilSimpleIcon,
+  PushPinIcon,
+  ArrowBendUpRightIcon,
+  SmileyIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ReportDialog from "@/components/ReportDialog";
@@ -61,15 +71,15 @@ const MessageActions = ({ message, members, conversation, isMine, menuAnchor, on
       .catch(() => notify({ severity: "error", message: "Could not copy that message" }));
 
   const items = isDeleted
-    ? [{ label: "Delete for me", icon: Trash, run: () => setDialog("delete"), isDanger: true }]
+    ? [{ label: "Delete for me", icon: TrashIcon, run: () => setDialog("delete"), isDanger: true }]
     : [
-        { label: "Reply", icon: ArrowBendUpLeft, run: () => dispatch(setReplyingTo(message)) },
-        canForward && { label: "Forward", icon: ArrowBendUpRight, run: () => setDialog("forward") },
-        message.message && { label: "Copy", icon: Copy, run: copy },
-        isEditable(message, meId) && { label: "Edit", icon: PencilSimple, run: () => dispatch(setEditing(message)) },
-        { label: isPinned ? "Unpin" : "Pin", icon: PushPin, run: () => dispatch((isPinned ? UnpinMessage : PinMessage)(message)) },
-        !isMine && { label: "Report", icon: Flag, run: () => setDialog("report"), isDanger: true },
-        !hasUnsent && { label: "Delete", icon: Trash, run: () => setDialog("delete"), isDanger: true },
+        { label: "Reply", icon: ArrowBendUpLeftIcon, run: () => dispatch(setReplyingTo(message)) },
+        canForward && { label: "Forward", icon: ArrowBendUpRightIcon, run: () => setDialog("forward") },
+        message.message && { label: "Copy", icon: CopyIcon, run: copy },
+        isEditable(message, meId) && { label: "Edit", icon: PencilSimpleIcon, run: () => dispatch(setEditing(message)) },
+        { label: isPinned ? "Unpin" : "Pin", icon: PushPinIcon, run: () => dispatch((isPinned ? UnpinMessage : PinMessage)(message)) },
+        !isMine && { label: "Report", icon: FlagIcon, run: () => setDialog("report"), isDanger: true },
+        !hasUnsent && { label: "Delete", icon: TrashIcon, run: () => setDialog("delete"), isDanger: true },
       ].filter(Boolean);
 
   return (
@@ -95,15 +105,15 @@ const MessageActions = ({ message, members, conversation, isMine, menuAnchor, on
         {!isDeleted && (
           <>
             <ToolButton label="React" onClick={(event) => setPicker({ anchorEl: event.currentTarget, startsBrowsing: false })}>
-              <Smiley size={18} />
+              <SmileyIcon size={18} />
             </ToolButton>
             <ToolButton label="Reply" onClick={() => dispatch(setReplyingTo(message))}>
-              <ArrowBendUpLeft size={18} />
+              <ArrowBendUpLeftIcon size={18} />
             </ToolButton>
           </>
         )}
         <ToolButton label="More actions" onClick={(event) => setMoreAnchor(event.currentTarget)}>
-          <DotsThreeVertical size={18} weight="bold" />
+          <DotsThreeVerticalIcon size={18} weight="bold" />
         </ToolButton>
       </Stack>
 

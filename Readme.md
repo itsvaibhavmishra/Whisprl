@@ -159,10 +159,10 @@ own CC BY-SA 4.0 licence.
 ![Cloudinary](https://img.shields.io/static/v1?style=for-the-badge&message=Cloudinary&color=3448C5&logo=Cloudinary&logoColor=FFFFFF&label=)
 ![React Hook Form](https://img.shields.io/badge/React%20Hook%20Form-%23EC5990.svg?style=for-the-badge&logo=reacthookform&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
-![Framer Motion](https://img.shields.io/static/v1?style=for-the-badge&message=Framer+Motion&color=242424&logo=Framer&logoColor=FFFFFF&label=)
+![Motion](https://img.shields.io/static/v1?style=for-the-badge&message=Motion&color=242424&label=)
 ![NodeMailer](https://img.shields.io/static/v1?style=for-the-badge&message=NodeMailer&color=1CB674&logo=Node.js&logoColor=FFFFFF&label=)
 
-Two packages, not a workspace: `frontend/` (React 18, MUI, Redux Toolkit) and `backend/`
+Two packages, not a workspace: `frontend/` (React 19, MUI, Redux Toolkit) and `backend/`
 (Express, Socket.io, MongoDB). Each has its own `package.json`.
 
 ### Running it
@@ -456,6 +456,13 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── animate/
 │   │   │   │   ├── features.js
 │   │   │   │   ├── MotionLazyContainer.jsx
+│   │   │   ├── emoji-picker/
+│   │   │   │   ├── CategoryBar.jsx
+│   │   │   │   ├── EmojiPicker.jsx
+│   │   │   │   ├── emojiPreferences.js
+│   │   │   │   ├── emojiPreferences.test.js
+│   │   │   │   ├── emojiStyles.js
+│   │   │   │   ├── SkinTonePicker.jsx
 │   │   │   ├── hook-form/
 │   │   │   │   ├── FormProvider.jsx
 │   │   │   │   ├── index.js
@@ -501,7 +508,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── ControlRow.jsx
 │   │   │   ├── CrashScreen.jsx
 │   │   │   ├── DocPage.jsx
-│   │   │   ├── EmojiPicker.jsx
 │   │   │   ├── FriendPicker.jsx
 │   │   │   ├── ImageMenu.jsx
 │   │   │   ├── LoadingScreen.jsx
@@ -970,12 +976,10 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── Input.js
 │   │   │   │   ├── Link.js
 │   │   │   │   ├── List.js
-│   │   │   │   ├── LoadingButton.js
 │   │   │   │   ├── Menu.js
 │   │   │   │   ├── Paper.js
 │   │   │   │   ├── Popover.js
 │   │   │   │   ├── Radio.js
-│   │   │   │   ├── Select.js
 │   │   │   │   ├── Skeleton.js
 │   │   │   │   ├── Slider.js
 │   │   │   │   ├── SvgIcon.js
@@ -983,7 +987,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── Table.js
 │   │   │   │   ├── Tabs.js
 │   │   │   │   ├── Tooltip.js
-│   │   │   │   ├── Typography.js
 │   │   │   ├── breakpoints.js
 │   │   │   ├── index.jsx
 │   │   │   ├── palette.js

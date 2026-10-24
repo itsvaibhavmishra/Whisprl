@@ -35,7 +35,7 @@ const ProfileFacts = ({ person }) => {
         {birthday && <Fact label="Birthday">{isBirthdayToday(birthday) ? "Today 🎂" : birthdayLabel(birthday)}</Fact>}
         {mutualFriends?.count > 0 && (
           <Fact label="Mutual friends">
-            <Stack direction="row" spacing={1.25} alignItems="center">
+            <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
               <AvatarGroup sx={{ "& .MuiAvatar-root": { width: 28, height: 28, fontSize: 13, borderColor: "background.paper" } }}>
                 {mutualFriends.people.map(({ _id, firstName, avatar }) => (
                   <Avatar key={_id} src={avatar || undefined} alt="" sx={{ background: avatarLookOf(firstName).background, color: "common.white" }}>

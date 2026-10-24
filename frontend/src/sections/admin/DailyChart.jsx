@@ -28,7 +28,7 @@ const DailyChart = ({ title, total, totalLabel, emptyLabel, data, dataKey, unit,
       <Typography component="h3" sx={{ m: 0, fontSize: 16, fontWeight: 800 }}>
         {title}
       </Typography>
-      <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mt: 0.5 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", mt: 0.5 }}>
         <Typography sx={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{total.toLocaleString()}</Typography>
         <Typography sx={{ fontSize: 13.5, color: "text.secondary" }}>{totalLabel}</Typography>
       </Stack>

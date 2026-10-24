@@ -1,5 +1,5 @@
 import { Box, Link, Typography } from "@mui/material";
-import { CaretLeft } from "phosphor-react";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 import { Link as RouterLink } from "react-router-dom";
 
 import { PATH_AUTH } from "@/routes/paths";
@@ -22,7 +22,7 @@ export const BackToLogin = ({ sx }) => (
     underline="hover"
     sx={{ mt: 4, display: "inline-flex", alignItems: "center", gap: 0.5, ...sx }}
   >
-    <CaretLeft size={16} />
+    <CaretLeftIcon size={16} />
     Back to log in
   </Link>
 );

@@ -11,10 +11,10 @@ const dropIn = keyframes`from { transform: translateY(-12px); opacity: 0; } to {
 const Banner = ({ card, tones }) => (
   <Stack
     direction="row"
-    alignItems="center"
     spacing={1.25}
     aria-live="polite"
     sx={{
+      alignItems: "center",
       position: "absolute",
       zIndex: 5,
       top: 8,

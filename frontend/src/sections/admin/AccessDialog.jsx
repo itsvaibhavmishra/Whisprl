@@ -15,7 +15,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -95,9 +94,9 @@ const AccessDialog = ({ member, onClose, onDone }) => {
         <Button color="inherit" onClick={onClose}>
           Cancel
         </Button>
-        <LoadingButton variant="contained" loading={isWorking} disabled={!isReady} onClick={save}>
+        <Button variant="contained" loading={isWorking} disabled={!isReady} onClick={save}>
           {member ? "Save" : "Add"}
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );

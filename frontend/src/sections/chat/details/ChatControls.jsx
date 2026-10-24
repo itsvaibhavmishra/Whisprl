@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { List, Menu, MenuItem } from "@mui/material";
-import { Archive, Eraser, Flag, Timer, Trash } from "phosphor-react";
+import { ArchiveIcon, EraserIcon, FlagIcon, TimerIcon, TrashIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ClearChat, DeleteChat, ReportChat, SetDisappearing, UpdateChatPreferences } from "@/redux/slices/actions/chatSettingsActions";
@@ -39,7 +39,7 @@ const ChatControls = ({ conversation }) => {
       <DetailsSection title="Chat settings">
         <List aria-label="Chat settings" disablePadding sx={{ pb: 3 }}>
           <ControlRow
-            icon={Timer}
+            icon={TimerIcon}
             label="Disappearing messages"
             detail={
               canSetDisappearing
@@ -50,14 +50,14 @@ const ChatControls = ({ conversation }) => {
             onClick={(event) => setDisappearAnchor(event.currentTarget)}
           />
           <ControlRow
-            icon={Archive}
+            icon={ArchiveIcon}
             label={conversation.isArchived ? "Unarchive chat" : "Archive chat"}
             onClick={() => dispatch(UpdateChatPreferences({ conversationId, isArchived: !conversation.isArchived }))}
           />
-          <ControlRow icon={Eraser} label="Clear chat" isDanger onClick={() => setDialog("clear")} />
-          {!conversation.isGroup && <ControlRow icon={Trash} label="Delete chat" isDanger onClick={() => setDialog("delete")} />}
+          <ControlRow icon={EraserIcon} label="Clear chat" isDanger onClick={() => setDialog("clear")} />
+          {!conversation.isGroup && <ControlRow icon={TrashIcon} label="Delete chat" isDanger onClick={() => setDialog("delete")} />}
           {person && <SafetyRows person={person} conversationId={conversationId} />}
-          {conversation.isGroup && <ControlRow icon={Flag} label="Report group" isDanger onClick={() => setDialog("report")} />}
+          {conversation.isGroup && <ControlRow icon={FlagIcon} label="Report group" isDanger onClick={() => setDialog("report")} />}
         </List>
       </DetailsSection>
 

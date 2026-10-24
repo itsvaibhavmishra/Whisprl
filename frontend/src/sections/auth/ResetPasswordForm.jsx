@@ -1,8 +1,7 @@
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Stack } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Button, Stack } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useDispatch } from "react-redux";
@@ -52,9 +51,9 @@ const ResetPasswordForm = () => {
         <RHFPasswordField name="password" label="New password" autoComplete="new-password" />
         <PasswordChecklist name="password" />
         <RHFPasswordField name="passwordConfirm" label="Confirm new password" autoComplete="new-password" />
-        <LoadingButton loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
+        <Button loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
           Set new password
-        </LoadingButton>
+        </Button>
       </Stack>
     </FormProvider>
   );

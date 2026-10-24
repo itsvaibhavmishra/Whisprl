@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Box } from "@mui/material";
-import { ArrowBendUpLeft } from "phosphor-react";
+import { ArrowBendUpLeftIcon } from "@phosphor-icons/react";
 
 import { TICK, feel } from "@/utils/haptics";
 import { isApp } from "@/utils/platform";
@@ -75,7 +75,7 @@ export const SwipeReplyHint = ({ progress, side }) => (
       transform: `translateY(-50%) scale(${0.6 + 0.4 * progress})`,
     }}
   >
-    <ArrowBendUpLeft size={16} />
+    <ArrowBendUpLeftIcon size={16} />
   </Box>
 );
 

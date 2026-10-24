@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Button, ButtonBase, IconButton, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { CaretRight, HandWaving, UserPlus } from "phosphor-react";
+import { CaretRightIcon, HandWavingIcon, UserPlusIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -94,7 +94,7 @@ const RequestsRow = ({ isSelected, isWide }) => {
           bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
         }}
       >
-        <HandWaving size={24} weight="duotone" />
+        <HandWavingIcon size={24} weight="duotone" />
       </Box>
       <Box sx={{ minWidth: 0, flex: 1 }}>
         <Typography sx={{ fontSize: 15, fontWeight: waiting ? 800 : 700, letterSpacing: "-0.01em" }}>Requests</Typography>
@@ -124,7 +124,7 @@ const RequestsRow = ({ isSelected, isWide }) => {
           <Box component="span" sx={SPOKEN_ONLY}>{`, ${waiting} waiting`}</Box>
         </>
       )}
-      {!isWide && <CaretRight size={16} weight="bold" />}
+      {!isWide && <CaretRightIcon size={16} weight="bold" />}
     </ButtonBase>
   );
 };
@@ -157,7 +157,7 @@ const BirthdaysThisWeek = ({ people, onlineFriends }) => (
 
 // the list finds friends only, so a search that misses carries its words over to Find people, which looks through everyone
 const NoFriendMatches = ({ query, onLeave }) => (
-  <Stack alignItems="center" spacing={2} sx={{ px: 3, py: 5, textAlign: "center" }}>
+  <Stack spacing={2} sx={{ alignItems: "center", px: 3, py: 5, textAlign: "center" }}>
     <Typography sx={{ maxWidth: 280, fontSize: 14, fontWeight: 500, color: "text.secondary" }}>{`No friends match "${query}".`}</Typography>
     <Button component={Link} to={`${FIND_PATH}?q=${encodeURIComponent(query)}`} state={{ focusSearch: true }} onClick={onLeave} variant="contained">
       Search everyone
@@ -223,7 +223,7 @@ const ContactsList = ({ isWide }) => {
   return (
     <Stack component="nav" aria-label="Contacts" sx={{ height: "100%", bgcolor: "chat.list" }}>
       <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 44 }}>
+        <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
           <Typography component="h1" sx={{ m: 0 }}>
             <Wordmark name="Contacts" fontSize={30} />
           </Typography>
@@ -242,7 +242,7 @@ const ContactsList = ({ isWide }) => {
                 "&:hover": { bgcolor: (theme) => (isFinding ? theme.palette.primary.dark : alpha(theme.palette.primary.main, 0.18)) },
               }}
             >
-              <UserPlus size={20} weight="bold" />
+              <UserPlusIcon size={20} weight="bold" />
             </IconButton>
           </Tooltip>
         </Stack>

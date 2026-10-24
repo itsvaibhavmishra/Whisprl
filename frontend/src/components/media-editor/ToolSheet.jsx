@@ -12,7 +12,7 @@ const ToolSheet = ({ anchor, label, onClose, children }) => {
         onClose={onClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        PaperProps={{ ...paper, sx: { mt: 1, borderRadius: 3, overflow: "hidden" } }}
+        slotProps={{ paper: { ...paper, sx: { mt: 1, borderRadius: 3, overflow: "hidden" } } }}
       >
         {children}
       </Popover>
@@ -25,11 +25,9 @@ const ToolSheet = ({ anchor, label, onClose, children }) => {
       open
       onClose={onClose}
       sx={{ zIndex: "modal" }}
-      PaperProps={{ ...paper, sx: { maxHeight: "85dvh", borderTopLeftRadius: 20, borderTopRightRadius: 20 } }}
+      slotProps={{ paper: { ...paper, sx: { maxHeight: "85dvh", borderTopLeftRadius: 20, borderTopRightRadius: 20 } } }}
     >
-      <Stack alignItems="center" sx={{ py: 1 }}>
-        {children}
-      </Stack>
+      <Stack sx={{ alignItems: "center", py: 1 }}>{children}</Stack>
     </Drawer>
   );
 };

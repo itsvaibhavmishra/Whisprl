@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { DownloadSimple, Key } from "phosphor-react";
+import { DownloadSimpleIcon, KeyIcon } from "@phosphor-icons/react";
 
 import { saveToPasswordManager } from "@/utils/crypto/keyVault";
 import { notify } from "@/utils/notify";
@@ -15,7 +15,7 @@ const downloadRecoveryKey = (recoveryKey) => {
 };
 
 // the app's web view drops downloads without a word, so there the key goes to the phone's password manager
-export const KEEP_RECOVERY_KEY = isApp ? { label: "Save to password manager", Icon: Key } : { label: "Download", Icon: DownloadSimple };
+export const KEEP_RECOVERY_KEY = isApp ? { label: "Save to password manager", Icon: KeyIcon } : { label: "Download", Icon: DownloadSimpleIcon };
 
 const NO_PASSWORD_MANAGER = "This phone has nowhere to save passwords. Copy your recovery key instead, or write it down.";
 

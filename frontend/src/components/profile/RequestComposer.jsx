@@ -48,7 +48,7 @@ const RequestComposer = ({ person, onSent, onCancel }) => {
         fullWidth
         inputRef={field}
       />
-      <Stack direction="row" alignItems="center" spacing={1}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <Typography aria-live="polite" sx={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: "text.secondary", fontVariantNumeric: "tabular-nums" }}>
           {length >= COUNT_FROM && `${length} / ${NOTE_LIMIT}`}
         </Typography>

@@ -8,9 +8,15 @@ import { PATH_DASHBOARD } from "@/routes/paths";
 
 const Page404 = () => (
   <Stack
-    alignItems="center"
-    justifyContent="center"
-    sx={{ flexGrow: 1, minHeight: { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100dvh" }, px: 3, textAlign: "center", bgcolor: "chat.list" }}
+    sx={{
+      alignItems: "center",
+      justifyContent: "center",
+      flexGrow: 1,
+      minHeight: { xs: PAGE_HEIGHT_WITH_TAB_BAR, md: "100dvh" },
+      px: 3,
+      textAlign: "center",
+      bgcolor: "chat.list",
+    }}
   >
     <MascotHalo />
     <Typography component="h1" sx={{ m: 0, mt: 1 }}>

@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { Box, Button, Drawer, IconButton, Popover, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Palette, Shuffle, Trash, UploadSimple } from "phosphor-react";
+import { PaletteIcon, ShuffleIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 
 import { useCroppedImage } from "@/components/ImageMenu";
 import { CoverArt, onCover } from "@/components/ProfileCover";
@@ -61,14 +61,14 @@ const CoverChoices = ({ coverStyle, photo, onStyleChange, onPick, onRemovePhoto 
 
   return (
     <Stack spacing={2.5}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
+      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
         <Typography component="h2" sx={{ m: 0, fontSize: 16, fontWeight: 800 }}>
           Cover
         </Typography>
         {!photo && (
           <Tooltip title="Surprise me">
             <IconButton aria-label="Surprise me" onClick={surprise} sx={{ width: 36, height: 36, bgcolor: "chat.field" }}>
-              <Shuffle size={18} weight="bold" />
+              <ShuffleIcon size={18} weight="bold" />
             </IconButton>
           </Tooltip>
         )}
@@ -111,11 +111,11 @@ const CoverChoices = ({ coverStyle, photo, onStyleChange, onPick, onRemovePhoto 
       )}
 
       <Stack direction="row" spacing={1}>
-        <Button fullWidth color="inherit" startIcon={<UploadSimple />} onClick={onPick} sx={{ bgcolor: "chat.field" }}>
+        <Button fullWidth color="inherit" startIcon={<UploadSimpleIcon />} onClick={onPick} sx={{ bgcolor: "chat.field" }}>
           {photo ? "Change photo" : "Upload a photo"}
         </Button>
         {photo && (
-          <Button fullWidth color="error" startIcon={<Trash />} onClick={onRemovePhoto} sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, 0.1) }}>
+          <Button fullWidth color="error" startIcon={<TrashIcon />} onClick={onRemovePhoto} sx={{ bgcolor: (theme) => alpha(theme.palette.error.main, 0.1) }}>
             Remove photo
           </Button>
         )}
@@ -148,10 +148,10 @@ const CoverPicker = ({ coverStyle, photo, onStyleChange, onPhotoChange }) => {
     <>
       {isPhone ? (
         <IconButton aria-label="Edit cover" onClick={(event) => setAnchor(event.currentTarget)} sx={(theme) => ({ ...onCover(theme), width: 40, height: 40 })}>
-          <Palette size={20} weight="bold" />
+          <PaletteIcon size={20} weight="bold" />
         </IconButton>
       ) : (
-        <Button startIcon={<Palette weight="bold" />} onClick={(event) => setAnchor(event.currentTarget)} sx={onCover}>
+        <Button startIcon={<PaletteIcon weight="bold" />} onClick={(event) => setAnchor(event.currentTarget)} sx={onCover}>
           Edit cover
         </Button>
       )}
@@ -161,10 +161,12 @@ const CoverPicker = ({ coverStyle, photo, onStyleChange, onPhotoChange }) => {
           anchor="bottom"
           open={Boolean(anchor)}
           onClose={close}
-          ModalProps={{ slotProps: { backdrop: { invisible: true } } }}
-          PaperProps={{
-            "aria-label": "Cover",
-            sx: { maxHeight: "70dvh", p: 2.5, pb: 3, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundImage: "none" },
+          slotProps={{
+            backdrop: { invisible: true },
+            paper: {
+              "aria-label": "Cover",
+              sx: { maxHeight: "70dvh", p: 2.5, pb: 3, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundImage: "none" },
+            },
           }}
         >
           {choices}
@@ -176,7 +178,7 @@ const CoverPicker = ({ coverStyle, photo, onStyleChange, onPhotoChange }) => {
           onClose={close}
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           transformOrigin={{ vertical: "top", horizontal: "right" }}
-          PaperProps={{ "aria-label": "Cover", sx: { width: 360, mt: 1, p: 2, borderRadius: 2, backgroundImage: "none" } }}
+          slotProps={{ paper: { "aria-label": "Cover", sx: { width: 360, mt: 1, p: 2, borderRadius: 2, backgroundImage: "none" } } }}
         >
           {choices}
         </Popover>

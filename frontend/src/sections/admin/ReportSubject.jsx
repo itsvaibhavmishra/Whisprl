@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { UsersThree } from "phosphor-react";
+import { UsersThreeIcon } from "@phosphor-icons/react";
 
 import getAvatar from "@/utils/avatars";
 
@@ -36,12 +36,12 @@ const StatusEvidence = ({ status }) => {
 
 const GroupEvidence = ({ group }) => (
   <Frame>
-    <Stack direction="row" alignItems="center" spacing={1.5}>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
       {group.picture ? (
         <Box component="img" src={group.picture} alt="" sx={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }} />
       ) : (
         <Box sx={{ width: 44, height: 44, borderRadius: "50%", display: "grid", placeItems: "center", bgcolor: "action.selected" }}>
-          <UsersThree size={22} aria-hidden />
+          <UsersThreeIcon size={22} aria-hidden />
         </Box>
       )}
       <Box>
@@ -54,7 +54,7 @@ const GroupEvidence = ({ group }) => (
 
 const PersonEvidence = ({ person }) => (
   <Frame>
-    <Stack direction="row" alignItems="center" spacing={1.5}>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
       {getAvatar(person?.avatar, `${person?.firstName ?? ""} ${person?.lastName ?? ""}`, 44)}
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{ fontSize: 14.5, fontWeight: 700 }}>{person ? `${person.firstName} ${person.lastName}` : "A deleted account"}</Typography>

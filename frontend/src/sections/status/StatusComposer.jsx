@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@mui/material";
-import { CaretDown, Globe, UsersThree } from "phosphor-react";
+import { CaretDownIcon, GlobeIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import MediaEditor from "@/components/media-editor/MediaEditor";
@@ -47,8 +47,8 @@ const StatusComposer = ({ draft, onClose }) => {
         footer={
           <Button
             onClick={() => setIsChoosingAudience(true)}
-            startIcon={audience.everyone ? <Globe size={18} /> : <UsersThree size={18} />}
-            endIcon={<CaretDown size={14} />}
+            startIcon={audience.everyone ? <GlobeIcon size={18} /> : <UsersThreeIcon size={18} />}
+            endIcon={<CaretDownIcon size={14} />}
             aria-label={`Who can see this update: ${audienceLabelOf(audience)}`}
             sx={{ color: "#fff", borderRadius: 99, px: 1.5, bgcolor: "rgba(255, 255, 255, 0.14)", "&:hover": { bgcolor: "rgba(255, 255, 255, 0.22)" } }}
           >

@@ -3,8 +3,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Stack } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Button, Stack } from "@mui/material";
 
 import { useDispatch } from "react-redux";
 import { ForgotPassword } from "@/redux/slices/actions/authActions";
@@ -49,9 +48,9 @@ const ForgotPasswordForm = () => {
 
         <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={import.meta.env.REACT_APP_RECAPTCHA_CLIENT} theme="dark" />
 
-        <LoadingButton loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
+        <Button loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
           Send reset link
-        </LoadingButton>
+        </Button>
       </Stack>
     </FormProvider>
   );

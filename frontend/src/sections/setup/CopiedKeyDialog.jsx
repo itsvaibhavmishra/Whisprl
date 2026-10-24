@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 
 import { deviceNoun } from "@/utils/platform";
 
@@ -24,7 +23,7 @@ const CopiedKeyDialog = ({ isContinuing, onBack, onContinue }) => {
       maxWidth="xs"
       aria-labelledby="copied-key-title"
       aria-describedby="copied-key-description"
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
     >
       <DialogTitle id="copied-key-title" sx={{ pb: 0.5 }}>
         Is your recovery key saved?
@@ -44,9 +43,9 @@ const CopiedKeyDialog = ({ isContinuing, onBack, onContinue }) => {
         <Button color="inherit" onClick={onBack}>
           Go back
         </Button>
-        <LoadingButton variant="contained" disabled={!isSaved || secondsLeft > 0} loading={isContinuing} onClick={onContinue}>
+        <Button variant="contained" disabled={!isSaved || secondsLeft > 0} loading={isContinuing} onClick={onContinue}>
           {secondsLeft ? `Continue in ${secondsLeft}` : "Continue"}
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );

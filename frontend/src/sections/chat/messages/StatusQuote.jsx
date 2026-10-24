@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
-import { Globe } from "phosphor-react";
+import { GlobeIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { GetDiscover } from "@/redux/slices/actions/statusActions";
@@ -42,11 +42,11 @@ const StatusQuote = ({ quote, isMine }) => {
   };
 
   return (
-    <Stack alignItems={isMine ? "flex-end" : "flex-start"} spacing={0.75} sx={{ mb: 0.75 }}>
+    <Stack spacing={0.75} sx={{ alignItems: isMine ? "flex-end" : "flex-start", mb: 0.75 }}>
       <Typography component="p" sx={quiet}>
         {label}
       </Typography>
-      <Stack direction={isMine ? "row" : "row-reverse"} spacing={1} alignItems="stretch">
+      <Stack direction={isMine ? "row" : "row-reverse"} spacing={1} sx={{ alignItems: "stretch" }}>
         {isAvailable ? (
           <ButtonBase
             onClick={open}
@@ -66,7 +66,7 @@ const StatusQuote = ({ quote, isMine }) => {
             {preview ? (
               <Box component="img" src={preview} alt="" sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             ) : (
-              <Globe size={28} aria-hidden />
+              <GlobeIcon size={28} aria-hidden />
             )}
           </ButtonBase>
         ) : (

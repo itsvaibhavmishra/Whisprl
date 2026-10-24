@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { Check } from "phosphor-react";
+import { CheckIcon } from "@phosphor-icons/react";
 
 import useSettings from "@/hooks/useSettings";
 import palette from "@/theme/palette";
@@ -35,12 +35,12 @@ const INCOMING_BUBBLE = {
 };
 
 const PickerLabel = ({ id, children, detail }) => (
-  <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mb: 1.5 }}>
+  <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", mb: 1.5 }}>
     <Typography id={id} sx={{ fontWeight: 600 }}>
       {children}
     </Typography>
     {detail && (
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" sx={{ color: "text.secondary" }}>
         {detail}
       </Typography>
     )}
@@ -61,8 +61,8 @@ export const ThemeModePicker = () => {
               <Box component="input" type="radio" name="theme-mode" value={value} checked={checked} onChange={onChangeMode} sx={hiddenInput} />
               <Stack
                 spacing={0.75}
-                justifyContent="center"
                 sx={{
+                  justifyContent: "center",
                   ...focusRing,
                   height: 72,
                   px: 1.5,
@@ -96,7 +96,7 @@ export const AccentPicker = () => {
       <PickerLabel id="accent-label" detail={ACCENT_NAMES[themeColorPresets]}>
         Accent colour
       </PickerLabel>
-      <Stack role="radiogroup" aria-labelledby="accent-label" direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+      <Stack role="radiogroup" aria-labelledby="accent-label" direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap" }}>
         {colorPresets.map(({ name, label, main, bubble }) => {
           const checked = themeColorPresets === name;
           return (
@@ -124,7 +124,7 @@ export const AccentPicker = () => {
                   boxShadow: (theme) => (checked ? `0 0 0 3px ${theme.palette.background.default}, 0 0 0 5px ${main}` : "none"),
                 }}
               >
-                {checked && <Check size={18} weight="bold" />}
+                {checked && <CheckIcon size={18} weight="bold" />}
               </Box>
             </Box>
           );

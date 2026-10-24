@@ -29,7 +29,7 @@ const AppLockSetting = () => {
 
   return (
     <SettingRow label="App lock" description={description}>
-      <Switch checked={appLock && hasScreenLock !== false} disabled={!hasScreenLock} onChange={toggle} inputProps={{ "aria-label": "App lock" }} />
+      <Switch checked={appLock && hasScreenLock !== false} disabled={!hasScreenLock} onChange={toggle} slotProps={{ input: { "aria-label": "App lock" } }} />
     </SettingRow>
   );
 };

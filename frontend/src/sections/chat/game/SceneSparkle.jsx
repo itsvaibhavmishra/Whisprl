@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "motion/react";
 
 const twinkle = keyframes`
   0%, 100% { opacity: 0.15; transform: scale(0.7); }
