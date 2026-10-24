@@ -3,14 +3,7 @@ import multer from "multer";
 
 import { protect } from "#src/middlewares/authMiddleware.js";
 import { uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
-import {
-  addGroupMembers,
-  createNewGroup,
-  dropAdmin,
-  makeAdmin,
-  removeGroupMember,
-  updateGroup,
-} from "#src/controllers/groupController.js";
+import { addGroupMembers, createNewGroup, dropAdmin, makeAdmin, removeGroupMember, updateGroup } from "#src/controllers/groupController.js";
 
 const upload = multer({ limits: { fileSize: 3 * 1024 * 1024, files: 1 } });
 const groupRouter = express.Router();

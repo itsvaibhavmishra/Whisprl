@@ -7,7 +7,11 @@ const decodedWithin = async (file) => {
   const image = await createImageBitmap(file);
   const scale = LONG_EDGE / Math.max(image.width, image.height);
   if (scale >= 1) return image;
-  const scaled = await createImageBitmap(image, { resizeWidth: Math.round(image.width * scale), resizeHeight: Math.round(image.height * scale), resizeQuality: "high" });
+  const scaled = await createImageBitmap(image, {
+    resizeWidth: Math.round(image.width * scale),
+    resizeHeight: Math.round(image.height * scale),
+    resizeQuality: "high",
+  });
   image.close();
   return scaled;
 };

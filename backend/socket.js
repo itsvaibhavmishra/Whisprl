@@ -3,7 +3,14 @@ import { Server } from "socket.io";
 import { socketMiddleware } from "#src/middlewares/socketMiddleware.js";
 import { emitFriendStatus } from "#src/controllers/friendsController.js";
 import { joinConvo } from "#src/controllers/conversationController.js";
-import { leaveGameOnDisconnect, socketActInGame, socketLookAtGame, socketReactInGame, socketUnwatchGame, socketWatchGame } from "#src/controllers/gameController.js";
+import {
+  leaveGameOnDisconnect,
+  socketActInGame,
+  socketLookAtGame,
+  socketReactInGame,
+  socketUnwatchGame,
+  socketWatchGame,
+} from "#src/controllers/gameController.js";
 import { socketMarkDelivered, socketMarkSeen, socketSendMessage } from "#src/controllers/messageController.js";
 import { canMessageIn } from "#src/services/messageService.js";
 import { setOnlineStatus } from "#src/services/userService.js";
@@ -40,12 +47,27 @@ export const initializeSocket = (server) => {
     const inWatchOrder = (work) => {
       watching = watching.then(work);
     };
-    socket.on("game_watch", withinBudget(20, (conversation_id, acknowledge) => inWatchOrder(() => socketWatchGame(io, socket, conversation_id, acknowledge))));
-    socket.on("game_unwatch", withinBudget(20, (acknowledge) => inWatchOrder(() => socketUnwatchGame(io, socket, acknowledge))));
+    socket.on(
+      "game_watch",
+      withinBudget(20, (conversation_id, acknowledge) => inWatchOrder(() => socketWatchGame(io, socket, conversation_id, acknowledge)))
+    );
+    socket.on(
+      "game_unwatch",
+      withinBudget(20, (acknowledge) => inWatchOrder(() => socketUnwatchGame(io, socket, acknowledge)))
+    );
     // in watch order too, so looking always applies to the game this socket is watching at that moment
-    socket.on("game_look", withinBudget(30, (isLooking, acknowledge) => inWatchOrder(() => socketLookAtGame(io, socket, isLooking, acknowledge))));
-    socket.on("game_act", withinBudget(30, (payload, acknowledge) => socketActInGame(io, socket, payload, acknowledge)));
-    socket.on("game_react", withinBudget(20, (emoji, acknowledge) => socketReactInGame(socket, emoji, acknowledge)));
+    socket.on(
+      "game_look",
+      withinBudget(30, (isLooking, acknowledge) => inWatchOrder(() => socketLookAtGame(io, socket, isLooking, acknowledge)))
+    );
+    socket.on(
+      "game_act",
+      withinBudget(30, (payload, acknowledge) => socketActInGame(io, socket, payload, acknowledge))
+    );
+    socket.on(
+      "game_react",
+      withinBudget(20, (emoji, acknowledge) => socketReactInGame(socket, emoji, acknowledge))
+    );
 
     // closing one tab must not show someone offline while another tab is still open
     socket.on("disconnect", async () => {

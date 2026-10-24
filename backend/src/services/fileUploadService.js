@@ -30,8 +30,7 @@ const storedFileOf = (fileUrl) => {
   return { resource_type, publicId: resource_type === "raw" ? withoutVersion : withoutVersion.replace(/\.[^/.]+$/, "") };
 };
 
-export const isCloudinaryFile = (fileUrl) =>
-  typeof fileUrl === "string" && fileUrl.includes("res.cloudinary.com") && fileUrl.includes("/upload/");
+export const isCloudinaryFile = (fileUrl) => typeof fileUrl === "string" && fileUrl.includes("res.cloudinary.com") && fileUrl.includes("/upload/");
 
 export const deleteFile = async (fileUrl) => {
   const { resource_type, publicId } = storedFileOf(fileUrl);

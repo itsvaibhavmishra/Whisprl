@@ -4,7 +4,10 @@ const echoed = [{ user: "them", emoji: "😂" }];
 
 test("an echo leaves your reaction alone while its request is out", () => {
   const release = holdReaction("message-1", "❤️");
-  expect(withHeldReaction("message-1", echoed, "me")).toEqual([{ user: "them", emoji: "😂" }, { user: "me", emoji: "❤️" }]);
+  expect(withHeldReaction("message-1", echoed, "me")).toEqual([
+    { user: "them", emoji: "😂" },
+    { user: "me", emoji: "❤️" },
+  ]);
   release();
   expect(withHeldReaction("message-1", echoed, "me")).toBe(echoed);
 });

@@ -50,7 +50,10 @@ const transformOf = ({ base, start, isHandle }, pointers, size) => {
   }
   if (isHandle) {
     const centre = { x: base.x * size.width, y: base.y * size.height };
-    return { scale: scaled(base.scale, distance(centre, to[0]) / distance(centre, from[0])), rotation: snappedToRightAngle(base.rotation + angle(centre, to[0]) - angle(centre, from[0])) };
+    return {
+      scale: scaled(base.scale, distance(centre, to[0]) / distance(centre, from[0])),
+      rotation: snappedToRightAngle(base.rotation + angle(centre, to[0]) - angle(centre, from[0])),
+    };
   }
   return { x: snappedToCentre(base.x + (to[0].x - from[0].x) / size.width), y: snappedToCentre(base.y + (to[0].y - from[0].y) / size.height) };
 };
@@ -94,7 +97,19 @@ const pointOf = (event) => {
   return { x: event.clientX - rect.left, y: event.clientY - rect.top };
 };
 
-const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLiveStroke, onStrokeEnd, onLayerChange, onLayerRemove, onLayerTap, onSwipe, onPhotoChange }) => {
+const useStageGestures = ({
+  size,
+  layers,
+  photo = CONTAINED_PHOTO,
+  brush,
+  onLiveStroke,
+  onStrokeEnd,
+  onLayerChange,
+  onLayerRemove,
+  onLayerTap,
+  onSwipe,
+  onPhotoChange,
+}) => {
   const pointers = useRef(new Map());
   const gesture = useRef(null);
   const [drag, setDrag] = useState(null);
@@ -121,7 +136,12 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
     pointers.current.set(event.pointerId, point);
     if (brush && gesture.current) return shapeUnderFingers();
     if (brush) {
-      gesture.current = { kind: "stroke", from: point, reach: 0, stroke: { brush: brush.name, color: brush.color, size: brush.size, points: [[point.x / size.width, point.y / size.height]] } };
+      gesture.current = {
+        kind: "stroke",
+        from: point,
+        reach: 0,
+        stroke: { brush: brush.name, color: brush.color, size: brush.size, points: [[point.x / size.width, point.y / size.height]] },
+      };
       onLiveStroke(gesture.current.stroke);
       return;
     }
@@ -165,7 +185,12 @@ const useStageGestures = ({ size, layers, photo = CONTAINED_PHOTO, brush, onLive
     const patch = transformOf(current, pointers.current, size);
     onLayerChange(current.id, patch);
     current.isOverBin = pointers.current.size === 1 && !current.isHandle && distance(point, binOf(size)) < BIN_REACH;
-    setDrag({ id: current.id, canBin: !current.isHandle, isOverBin: current.isOverBin, guides: { x: patch.x === 0.5, y: patch.y === 0.5, turn: "rotation" in patch && isRightAngle(patch.rotation) } });
+    setDrag({
+      id: current.id,
+      canBin: !current.isHandle,
+      isOverBin: current.isOverBin,
+      guides: { x: patch.x === 0.5, y: patch.y === 0.5, turn: "rotation" in patch && isRightAngle(patch.rotation) },
+    });
   };
 
   const finish = (event, isCancelled) => {

@@ -235,7 +235,8 @@ const isDeepestFree = (state, owner, slot) => {
 };
 
 // read on the board after the play: going home earns a card only for a marble that reached the deepest hole still free
-export const settlesHome = (state, play, seat) => (play.moves ?? []).some((move) => move.marble.owner === seat && move.to.at === "home" && isDeepestFree(state, seat, move.to.slot));
+export const settlesHome = (state, play, seat) =>
+  (play.moves ?? []).some((move) => move.marble.owner === seat && move.to.at === "home" && isDeepestFree(state, seat, move.to.slot));
 
 // how far round a marble has come, from its start to the last home slot
 export const progressOf = (owner, place) => {

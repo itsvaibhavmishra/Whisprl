@@ -12,7 +12,12 @@ const isOnScreen = (rect) => Boolean(rect?.width) && rect.bottom > 0 && rect.top
 const restingBoxOf = (frame) => {
   const slide = frame.offsetParent;
   const { left, top } = slide.offsetParent.getBoundingClientRect();
-  return { left: left + slide.offsetLeft + frame.offsetLeft, top: top + slide.offsetTop + frame.offsetTop, width: frame.offsetWidth, height: frame.offsetHeight };
+  return {
+    left: left + slide.offsetLeft + frame.offsetLeft,
+    top: top + slide.offsetTop + frame.offsetTop,
+    width: frame.offsetWidth,
+    height: frame.offsetHeight,
+  };
 };
 
 const offsetsOver = (tile, box) => ({

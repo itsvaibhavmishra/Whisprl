@@ -172,7 +172,10 @@ const deleteAccount = async (io, user_id) => {
 
 // runs whenever the server is up, so an account due while it slept goes as soon as it wakes
 export const deleteDueAccounts = async (io) => {
-  const due = await UserModel.find({ "deletion.dueAt": { $lte: new Date() }, deletedAt: { $exists: false } }).select("_id").limit(SWEEP_BATCH).lean();
+  const due = await UserModel.find({ "deletion.dueAt": { $lte: new Date() }, deletedAt: { $exists: false } })
+    .select("_id")
+    .limit(SWEEP_BATCH)
+    .lean();
   for (const { _id } of due) await deleteAccount(io, _id);
   return due.length;
 };

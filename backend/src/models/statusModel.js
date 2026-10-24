@@ -24,7 +24,12 @@ const statusSchema = mongoose.Schema(
   {
     owner: { type: mongoose.Schema.ObjectId, ref: "User", required: true, index: true },
     isPublic: { type: Boolean, default: false },
-    cipher: { type: cipherSchema, required() { return !this.isPublic; } },
+    cipher: {
+      type: cipherSchema,
+      required() {
+        return !this.isPublic;
+      },
+    },
     content: { type: mongoose.Schema.Types.Mixed, default: undefined },
     file: { type: statusFileSchema, default: undefined },
     audience: [{ type: mongoose.Schema.ObjectId, ref: "User" }],

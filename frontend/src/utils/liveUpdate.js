@@ -7,8 +7,8 @@ import { isApp } from "@/utils/platform";
 import { carryOver } from "@/utils/updateCarryOver";
 
 // set only in builds people install, so a development build never swaps itself for production code
-const MANIFEST_URL = process.env.REACT_APP_UPDATE_URL;
-const RUNNING_VERSION = process.env.REACT_APP_VERSION;
+const MANIFEST_URL = import.meta.env.REACT_APP_UPDATE_URL;
+const RUNNING_VERSION = import.meta.env.REACT_APP_VERSION;
 const CHECK_EVERY_MS = 60 * 60 * 1000;
 
 let checking = null;

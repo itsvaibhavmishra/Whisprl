@@ -90,7 +90,10 @@ test("a burst that fills a neighbour sets off the next round, and each round is 
   const state = midGame({ 0: [0, 1], 1: [0, 2], [LAST_CELL]: [1, 1] });
   const after = play(state, 0, 0);
   assert.deepEqual(after.bursts, [[0], [1]]);
-  assert.deepEqual([0, 2, 6].map((cell) => after.owners[cell]), [0, 0, 0]);
+  assert.deepEqual(
+    [0, 2, 6].map((cell) => after.owners[cell]),
+    [0, 0, 0]
+  );
 });
 
 test("a burst converts every neighbour it lands on, whoever held it", () => {

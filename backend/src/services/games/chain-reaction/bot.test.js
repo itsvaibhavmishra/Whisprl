@@ -41,25 +41,37 @@ const timesOver = (count, run) => Array.from({ length: count }, run);
 
 test("a winning burst is always taken, even by a bot that is looking away", () => {
   const state = midGame({ 0: [0, 1], 1: [1, 1] });
-  assert.equal(withLuck(DISTRACTED_ROLL, () => botMove(state, 0)), 0);
+  assert.equal(
+    withLuck(DISTRACTED_ROLL, () => botMove(state, 0)),
+    0
+  );
 });
 
 test("an attentive bot never places beside an enemy cell that is one orb from bursting, even on a corner it would like", () => {
   // the enemy edge cell beside corner 0 is one orb from bursting, so the corner the bot would otherwise favour is a trap
   const state = midGame({ 1: [1, 2], 17: [0, 1] });
   const picks = timesOver(40, () => withLuck(ATTENTIVE, () => botMove(state, 0)));
-  assert.ok(picks.every((cell) => ![0, 2, 6].includes(cell)), `placed beside the full cell: ${picks}`);
+  assert.ok(
+    picks.every((cell) => ![0, 2, 6].includes(cell)),
+    `placed beside the full cell: ${picks}`
+  );
 });
 
 test("an attentive bot takes the burst that captures the most", () => {
   const state = midGame({ 0: [0, 1], 1: [1, 1], 5: [1, 1], 34: [0, 1], 33: [1, 1], 17: [1, 1] });
-  assert.equal(withLuck(ATTENTIVE, () => botMove(state, 0)), 0);
+  assert.equal(
+    withLuck(ATTENTIVE, () => botMove(state, 0)),
+    0
+  );
 });
 
 test("with nothing to take and nothing to avoid, an attentive bot opens in a corner", () => {
   const state = setup(null, { size: "quick", players: 2 });
   const picks = timesOver(20, () => withLuck(ATTENTIVE, () => botMove(state, 0)));
-  assert.ok(picks.every((cell) => CORNERS.includes(cell)), `opened off the corners: ${picks}`);
+  assert.ok(
+    picks.every((cell) => CORNERS.includes(cell)),
+    `opened off the corners: ${picks}`
+  );
 });
 
 test("a bot looking away still plays a legal cell, and a stand-in looks away more often than an opponent", () => {

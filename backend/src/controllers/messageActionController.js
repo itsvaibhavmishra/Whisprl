@@ -23,9 +23,7 @@ const announceAlbumReaction = (io, result) => {
   announcePreview(io, result);
 };
 
-export const edit = handle(async (req, io) =>
-  announceUpdate(io, await editMessage(req.params.message_id, req.user._id, req.body.cipher, req.body.franking))
-);
+export const edit = handle(async (req, io) => announceUpdate(io, await editMessage(req.params.message_id, req.user._id, req.body.cipher, req.body.franking)));
 
 export const removeForEveryone = handle(async (req, io) => {
   const { conversation, message, isGone, wasPinned, preview } = await deleteForEveryone(req.params.message_id, req.user._id);
@@ -38,24 +36,14 @@ export const removeForEveryone = handle(async (req, io) => {
 });
 
 // only this person's other tabs hear about it, since nobody else's chat changes
-export const removeForMe = handle(async (req, io) =>
-  io.to(String(req.user._id)).emit("message_removed", await hideForMe(req.params.message_id, req.user._id))
-);
+export const removeForMe = handle(async (req, io) => io.to(String(req.user._id)).emit("message_removed", await hideForMe(req.params.message_id, req.user._id)));
 
-export const react = handle(async (req, io) =>
-  announceReaction(io, await setReaction(req.params.message_id, req.user._id, req.body.cipher))
-);
+export const react = handle(async (req, io) => announceReaction(io, await setReaction(req.params.message_id, req.user._id, req.body.cipher)));
 
-export const unreact = handle(async (req, io) =>
-  announceReaction(io, await setReaction(req.params.message_id, req.user._id, null))
-);
+export const unreact = handle(async (req, io) => announceReaction(io, await setReaction(req.params.message_id, req.user._id, null)));
 
-export const reactToAlbum = handle(async (req, io) =>
-  announceAlbumReaction(io, await setAlbumReaction(req.params.message_id, req.user._id, req.body.cipher))
-);
+export const reactToAlbum = handle(async (req, io) => announceAlbumReaction(io, await setAlbumReaction(req.params.message_id, req.user._id, req.body.cipher)));
 
-export const unreactToAlbum = handle(async (req, io) =>
-  announceAlbumReaction(io, await setAlbumReaction(req.params.message_id, req.user._id, null))
-);
+export const unreactToAlbum = handle(async (req, io) => announceAlbumReaction(io, await setAlbumReaction(req.params.message_id, req.user._id, null)));
 
 export const open = handle(async (req, io) => announceUpdate(io, await markOpened(req.params.message_id, req.user._id)));

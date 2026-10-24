@@ -10,7 +10,7 @@ const store = configureStore({
       immutableCheck: false,
       serializableCheck: { ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER] },
     }),
-  devTools: process.env.REACT_APP_NODE === "local",
+  devTools: import.meta.env.REACT_APP_NODE === "local",
 });
 
 const persistor = persistStore(store);

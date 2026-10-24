@@ -227,10 +227,13 @@ const syncClock = (io, gameRoom, conversationId, session) => {
   const deadline = deadlineOf(session);
   if (!deadline) return;
 
-  gameRoom.clock = setTimeout(() => {
-    gameRoom.clock = null;
-    reachDeadline(io, conversationId, deadline).catch((error) => console.error(`[games] ${error.message}`));
-  }, Math.max(0, deadline - Date.now()));
+  gameRoom.clock = setTimeout(
+    () => {
+      gameRoom.clock = null;
+      reachDeadline(io, conversationId, deadline).catch((error) => console.error(`[games] ${error.message}`));
+    },
+    Math.max(0, deadline - Date.now())
+  );
 };
 
 const reachDeadline = (io, conversationId, deadline) =>
@@ -305,7 +308,15 @@ const close = ({ conversation, session, userId }) => {
 const cancel = ({ conversation, session, userId }) => {
   assertGroupManager(conversation, userId);
   requirePlaying(session);
-  return { ...session, status: "lobby", state: undefined, turnStartsAt: undefined, turnEndsAt: undefined, result: undefined, seats: backToLobby(session.seats) };
+  return {
+    ...session,
+    status: "lobby",
+    state: undefined,
+    turnStartsAt: undefined,
+    turnEndsAt: undefined,
+    result: undefined,
+    seats: backToLobby(session.seats),
+  };
 };
 
 const sitDown = async ({ conversation, session, gameRoom, userId, details }) => {
@@ -444,7 +455,11 @@ const announceTable = async (io, conversation, userId, type, before, after) => {
   // between two people, opening a game is asking the other to play
   const [guest] = memberRooms(members, userId);
   io.to(guest).emit("game_invited", { conversationId: String(members._id), game: game.id, from: userId });
-  await pushGameInvite(members, members.users.find((member) => String(member._id) === userId), game.name);
+  await pushGameInvite(
+    members,
+    members.users.find((member) => String(member._id) === userId),
+    game.name
+  );
 };
 
 const playableConversation = async (conversationId, userId) => {
@@ -499,7 +514,8 @@ export const watchGame = async (io, socket, conversationId) => {
   });
 };
 
-const announceLookers = (io, conversationId, gameRoom) => io.to(audienceOf(conversationId)).emit("game_lookers", { conversationId, users: lookersOf(gameRoom) });
+const announceLookers = (io, conversationId, gameRoom) =>
+  io.to(audienceOf(conversationId)).emit("game_lookers", { conversationId, users: lookersOf(gameRoom) });
 
 export const stopWatching = (io, socket) => {
   const id = socket.data.watching;
@@ -529,9 +545,8 @@ export const lookAtGame = (io, socket, isLooking) => {
   });
 };
 
-// the emoji anyone at a game can throw; they are shown and gone, never saved
-// the tray's nine, then the set before them, which apps not yet updated still throw
-const REACTIONS = ["😂", "😭", "😜", "😘", "😎", "😡", "😱", "🫠", "🥳", "😮", "😍", "👏", "🔥", "😢", "👍"];
+// the emoji anyone at a game can throw, the same nine the tray offers; they are shown and gone, never saved
+const REACTIONS = ["😂", "😭", "😜", "😘", "😎", "😡", "😱", "🫠", "🥳"];
 
 export const reactInGame = async (socket, emoji) => {
   const id = socket.data.watching;

@@ -3,12 +3,12 @@ export default function Accordion(theme) {
     MuiAccordion: {
       styleOverrides: {
         root: {
-          '&.Mui-expanded': {
+          "&.Mui-expanded": {
             boxShadow: theme.customShadows.z8,
             borderRadius: theme.shape.borderRadius,
           },
-          '&.Mui-disabled': {
-            backgroundColor: 'transparent',
+          "&.Mui-disabled": {
+            backgroundColor: "transparent",
           },
         },
       },
@@ -18,16 +18,16 @@ export default function Accordion(theme) {
         root: {
           paddingLeft: theme.spacing(2),
           paddingRight: theme.spacing(1),
-          '&.Mui-disabled': {
+          "&.Mui-disabled": {
             opacity: 1,
             color: theme.palette.action.disabled,
-            '& .MuiTypography-root': {
-              color: 'inherit',
+            "& .MuiTypography-root": {
+              color: "inherit",
             },
           },
         },
         expandIconWrapper: {
-          color: 'inherit',
+          color: "inherit",
         },
       },
     },

@@ -21,13 +21,10 @@ export const setDeviceKeys = (keys) => {
 
 const currentKeyOf = (user) => user?.publicKeys?.at(-1) ?? null;
 
-const peerOf = (conversation, userId) =>
-  conversation.users.find((member) => member._id !== userId) ?? conversation.users[0];
+const peerOf = (conversation, userId) => conversation.users.find((member) => member._id !== userId) ?? conversation.users[0];
 
 const findPublicKey = (conversation, keyId) =>
-  [...conversation.users, ...(conversation.formerUsers ?? [])]
-    .flatMap((member) => member.publicKeys ?? [])
-    .find((entry) => entry.keyId === keyId);
+  [...conversation.users, ...(conversation.formerUsers ?? [])].flatMap((member) => member.publicKeys ?? []).find((entry) => entry.keyId === keyId);
 
 const conversationKeyFor = (conversation, peerKey) => {
   const cacheKey = `${conversation._id}:${deviceKeys.keyId}:${peerKey.keyId}`;

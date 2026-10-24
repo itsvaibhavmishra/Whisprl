@@ -10,14 +10,7 @@ import {
   ReceiveReactionPreview,
   ReceiveReceipt,
 } from "@/redux/slices/actions/chatActions";
-import {
-  chatCleared,
-  disappearingChanged,
-  preferencesChanged,
-  setConnection,
-  updateMemberKeys,
-  updateTypingConvo,
-} from "@/redux/slices/chatSlice";
+import { chatCleared, disappearingChanged, preferencesChanged, setConnection, updateMemberKeys, updateTypingConvo } from "@/redux/slices/chatSlice";
 import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
@@ -112,7 +105,6 @@ const listen = (dispatch, getState) => {
   });
 };
 
-// ------------- Connect Socket -------------
 export const ConnectSocket = () => (dispatch, getState) => {
   if (!isListening) {
     listen(dispatch, getState);
@@ -124,7 +116,6 @@ export const ConnectSocket = () => (dispatch, getState) => {
   socket.connect();
 };
 
-// ------------- Disconnect Socket -------------
 export const DisconnectSocket = () => () => {
   hasConnected = false;
   socket.disconnect();

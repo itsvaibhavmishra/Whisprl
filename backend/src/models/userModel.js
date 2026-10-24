@@ -80,7 +80,10 @@ const deletionSchema = mongoose.Schema(
 
 export const HIDDEN_PROFILE_FIELDS = ["firstName", "lastName", "username", "avatar", "cover", "activityStatus"];
 
-const profileSchema = mongoose.Schema({ firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String }, { _id: false });
+const profileSchema = mongoose.Schema(
+  { firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String },
+  { _id: false }
+);
 
 const userSchema = mongoose.Schema(
   {

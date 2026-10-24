@@ -35,7 +35,6 @@ const initialState = {
   onlineFriends: [],
 
   searchResults: [],
-  searchCount: null,
 };
 
 const slice = createSlice({
@@ -50,9 +49,7 @@ const slice = createSlice({
     // update online users
     updateOnlineUsers: (state, action) => {
       const { _id, firstName, lastName, avatar, onlineStatus } = action.payload;
-      const index = state.onlineFriends.findIndex(
-        (friend) => friend._id === _id
-      );
+      const index = state.onlineFriends.findIndex((friend) => friend._id === _id);
 
       if (index !== -1) {
         // If user is already in onlineFriends array, update onlineStatus
@@ -74,18 +71,15 @@ const slice = createSlice({
       const { friend_id } = action.payload;
 
       // Find index of friend to remove
-      const index = state.friends.findIndex(
-        (friend) => friend._id === friend_id
-      );
+      const index = state.friends.findIndex((friend) => friend._id === friend_id);
       if (index !== -1) {
         // Remove friend from friends array
         state.friends.splice(index, 1);
       }
     },
 
-    clearSearch: (state, action) => {
+    clearSearch: (state) => {
       state.searchResults = [];
-      state.searchCount = null;
     },
 
     // logout reducer | being handled from auth
@@ -174,7 +168,6 @@ const slice = createSlice({
       .addCase(SearchFriends.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;
         state.searchResults = found ? action.payload.friends : null;
-        state.searchCount = found ? action.payload.usersFound : null;
       })
       .addCase(GetFriends.fulfilled, (state, action) => {
         state.friends = action.payload.friends;
@@ -182,24 +175,18 @@ const slice = createSlice({
       .addCase(GetOnlineFriends.fulfilled, (state, action) => {
         state.onlineFriends = action.payload.onlineFriends;
       })
-      .addMatcher(
-        isAnyOf(SaveBirthdayStep.pending, ConfirmUsername.pending, ConfirmRecoveryKeySaved.pending, SkipSetupStep.pending),
-        (state) => {
-          state.latestOnboardingRead = null;
-        }
-      )
+      .addMatcher(isAnyOf(SaveBirthdayStep.pending, ConfirmUsername.pending, ConfirmRecoveryKeySaved.pending, SkipSetupStep.pending), (state) => {
+        state.latestOnboardingRead = null;
+      })
       .addMatcher(
         isAnyOf(SaveBirthdayStep.fulfilled, ConfirmUsername.fulfilled, ConfirmRecoveryKeySaved.fulfilled, SkipSetupStep.fulfilled),
         (state, action) => {
           state.user = { ...state.user, ...action.payload.user };
         }
       )
-      .addMatcher(
-        isAnyOf(GetPasskeys.fulfilled, AddPasskey.fulfilled, LinkPasskey.fulfilled, RemovePasskey.fulfilled),
-        (state, action) => {
-          state.passkeys = action.payload.passkeys;
-        }
-      );
+      .addMatcher(isAnyOf(GetPasskeys.fulfilled, AddPasskey.fulfilled, LinkPasskey.fulfilled, RemovePasskey.fulfilled), (state, action) => {
+        state.passkeys = action.payload.passkeys;
+      });
   },
 });
 

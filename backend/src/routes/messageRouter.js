@@ -10,9 +10,7 @@ import { MAX_SEALED_FILE_SIZE } from "#src/services/messageService.js";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_SEALED_FILE_SIZE, files: 1 } });
 const messageRouter = express.Router();
 
-messageRouter
-  .route("/get-messages/:convo_id")
-  .get(protect, readLimit(), getMessages);
+messageRouter.route("/get-messages/:convo_id").get(protect, readLimit(), getMessages);
 
 messageRouter.route("/deliverable").get(protect, readLimit(), getDeliverableMessages);
 

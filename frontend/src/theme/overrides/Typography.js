@@ -8,9 +8,6 @@ export default function Typography(theme) {
         gutterBottom: {
           marginBottom: theme.spacing(1),
         },
-        article: {
-          fontWeight: 700,
-        },
       },
     },
   };

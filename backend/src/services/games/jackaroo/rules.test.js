@@ -16,7 +16,8 @@ const gameWith = ({ mine = [], theirs = [], hand, theirHand }) => {
   return { ...state, turn: 0, leader: 0 };
 };
 
-const optionOf = (state, kind, cardRank) => viewFor(state, turnOf(state)).options.find((option) => option.kind === kind && (!cardRank || option.card.endsWith(`-${cardRank}S`)));
+const optionOf = (state, kind, cardRank) =>
+  viewFor(state, turnOf(state)).options.find((option) => option.kind === kind && (!cardRank || option.card.endsWith(`-${cardRank}S`)));
 
 test("a new game deals four cards each, deals out the colours and starts one marble each on its start", () => {
   const state = setup(null, { players: 2, seating: "a|b" });

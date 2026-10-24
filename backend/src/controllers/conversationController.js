@@ -59,7 +59,7 @@ export const joinConvo = async (socket, user_id) => {
     socket.join(conversation_ids);
 
     return conversation_ids;
-  } catch (error) {
+  } catch {
     socket.errorHandler("Join convo error");
   }
 };

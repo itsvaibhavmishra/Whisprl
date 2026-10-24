@@ -43,7 +43,8 @@ const cardValue = (card) => {
 
 const homeCount = (state, seat) => state.players[seat].marbles.filter((place) => place.at === "home").length;
 
-const finishes = (state, seat, play) => homeCount(state, seat) + (play.moves ?? []).filter((move) => move.marble.owner === seat && move.to.at === "home" && move.from.at !== "home").length === 4;
+const finishes = (state, seat, play) =>
+  homeCount(state, seat) + (play.moves ?? []).filter((move) => move.marble.owner === seat && move.to.at === "home" && move.from.at !== "home").length === 4;
 
 const scorePlay = (state, seat, play) => {
   if (play.kind === "discard") return -cardValue(play.card);
@@ -59,7 +60,8 @@ const scorePlay = (state, seat, play) => {
   return play.moves.reduce((total, move) => total + scoreMove(state, seat, move), 0);
 };
 
-const moveFor = (state, seat, play) => (play.kind === "takeCard" ? { key: keyOf(play), taken: Math.floor(Math.random() * state.players[other(seat)].hand.length) } : { key: keyOf(play) });
+const moveFor = (state, seat, play) =>
+  play.kind === "takeCard" ? { key: keyOf(play), taken: Math.floor(Math.random() * state.players[other(seat)].hand.length) } : { key: keyOf(play) };
 
 // an ordinary player: it weighs each play on its own and never plans a turn ahead, so it can be outplayed
 export const botMove = (state, seat, level = "opponent") => {

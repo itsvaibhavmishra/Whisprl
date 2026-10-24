@@ -46,7 +46,7 @@ const messageOf = (error, status) => {
   return "Something went wrong, please try again";
 };
 
-app.use((error, req, res, next) => {
+app.use((error, req, res, _) => {
   const status = statusOf(error);
   if (status >= 500) {
     console.error(error);

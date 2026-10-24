@@ -102,9 +102,7 @@ export const updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    throw createHttpError.BadRequest(
-      "Required fields: currentPassword, newPassword"
-    );
+    throw createHttpError.BadRequest("Required fields: currentPassword, newPassword");
   }
 
   await changePassword(req.user._id, currentPassword, newPassword);

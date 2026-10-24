@@ -14,7 +14,8 @@ export const PRESETS = [
   { label: "This month", rangeOf: () => ({ from: keyOf(dayjs(todayKey()).startOf("month")), to: todayKey() }) },
 ];
 
-export const presetOf = (range) => PRESETS.find((preset) => {
-  const { from, to } = preset.rangeOf();
-  return from === range.from && to === range.to;
-});
+export const presetOf = (range) =>
+  PRESETS.find((preset) => {
+    const { from, to } = preset.rangeOf();
+    return from === range.from && to === range.to;
+  });

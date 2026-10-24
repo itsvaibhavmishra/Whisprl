@@ -31,13 +31,9 @@ const cropImage = async (imageUrl, crop, rotation, maxWidth) => {
   const cropped = document.createElement("canvas");
   cropped.width = width;
   cropped.height = height;
-  cropped
-    .getContext("2d")
-    .drawImage(rotated, crop.x, crop.y, crop.width, crop.height, 0, 0, width, height);
+  cropped.getContext("2d").drawImage(rotated, crop.x, crop.y, crop.width, crop.height, 0, 0, width, height);
 
-  return new Promise((resolve) =>
-    cropped.toBlob((blob) => resolve(URL.createObjectURL(blob)), "image/jpeg", 0.9)
-  );
+  return new Promise((resolve) => cropped.toBlob((blob) => resolve(URL.createObjectURL(blob)), "image/jpeg", 0.9));
 };
 
 export default cropImage;

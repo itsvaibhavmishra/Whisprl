@@ -5,7 +5,7 @@ import { canReloadForNewVersion, isMissingCode } from "@/utils/newVersion";
 import { isApp } from "@/utils/platform";
 
 // set only in builds people use, so errors met while developing stay in the console and never count against the month
-const DSN = process.env.REACT_APP_SENTRY_DSN;
+const DSN = import.meta.env.REACT_APP_SENTRY_DSN;
 
 // a parse error quotes the text it failed on in double quotes, and that text may be a decrypted message
 const withoutQuotes = (text) => (typeof text === "string" ? text.replace(/"[^"\n]*"/g, '"…"') : text);
@@ -40,7 +40,7 @@ export const startErrorReports = () => {
   Sentry.init(
     {
       dsn: DSN,
-      release: `whisprl@${process.env.REACT_APP_VERSION}`,
+      release: `whisprl@${import.meta.env.REACT_APP_VERSION}`,
       environment: "production",
       sendDefaultPii: false,
       integrations: [SentryReact.breadcrumbsIntegration({ console: false, dom: false })],

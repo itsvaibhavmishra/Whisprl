@@ -8,9 +8,7 @@ const openDatabase = () =>
     const request = indexedDB.open(DATABASE, VERSION);
     request.onupgradeneeded = () => {
       const database = request.result;
-      [DEVICE_KEYS, SESSION_KEYS]
-        .filter((name) => !database.objectStoreNames.contains(name))
-        .forEach((name) => database.createObjectStore(name));
+      [DEVICE_KEYS, SESSION_KEYS].filter((name) => !database.objectStoreNames.contains(name)).forEach((name) => database.createObjectStore(name));
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);

@@ -10,7 +10,8 @@ import { saveMessage, validateCipher } from "#src/services/messageService.js";
 import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requestCooldownService.js";
 import { forgetSuggestionsBetween } from "#src/services/suggestionService.js";
 
-const FRIEND_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
+const FRIEND_FIELDS =
+  "firstName lastName username avatar cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
 // every key they ever had, so a note still opens after its sender moves to a new one
 const REQUESTER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
 
@@ -32,8 +33,7 @@ const isFriendOf = (user, other_id) => user.friends.some((friend_id) => friend_i
 
 const pairOf = (one_id, other_id) => [String(one_id), String(other_id)].sort().join(":");
 
-const theyAskedFirst = () =>
-  createHttpError(409, "They already sent you a request, accept it from your requests", { code: "request_incoming" });
+const theyAskedFirst = () => createHttpError(409, "They already sent you a request, accept it from your requests", { code: "request_incoming" });
 
 const assertReceiverHasKey = (receiver) => {
   if (!currentKeyIdOf(receiver)) {
@@ -74,8 +74,7 @@ export const noteTargetFor = async (sender, receiver_id) => {
   return { conversationId, publicKeys: receiver.publicKeys };
 };
 
-const isUnusedId = async (conversationId) =>
-  mongoose.isValidObjectId(conversationId) && !(await ConversationModel.exists({ _id: conversationId }));
+const isUnusedId = async (conversationId) => mongoose.isValidObjectId(conversationId) && !(await ConversationModel.exists({ _id: conversationId }));
 
 const checkedNote = async (sender, receiver, { conversationId, cipher } = {}) => {
   assertReceiverHasKey(receiver);
@@ -176,7 +175,9 @@ const withBirthdayIfShown = ({ showBirthdayToFriends, birthday, ...friend }) =>
   birthday && showBirthdayToFriends !== false ? { ...friend, birthday } : friend;
 
 export const listFriends = async (user) => {
-  const friends = await UserModel.find({ _id: { $in: user.friends } }).select(FRIEND_FIELDS).lean();
+  const friends = await UserModel.find({ _id: { $in: user.friends } })
+    .select(FRIEND_FIELDS)
+    .lean();
   return presenceShownTo(user, friends.map(withBirthdayIfShown));
 };
 

@@ -19,7 +19,10 @@ import { assertText, trimmed } from "#src/utils/accountRules.js";
 const summaryOf = ({ _id, firstName, lastName, avatar }) => ({ _id, firstName, lastName, avatar });
 
 export const announceRequests = (req, user_id, kind, details = {}) =>
-  req.app.get("io").to(String(user_id)).emit("friend_requests_changed", { kind, ...details });
+  req.app
+    .get("io")
+    .to(String(user_id))
+    .emit("friend_requests_changed", { kind, ...details });
 
 export const sendRequest = async (req, res) => {
   const receiver = await sendFriendRequest(req.user, req.body.receiver_id, req.body.note);
@@ -50,7 +53,11 @@ export const acceptRejectRequest = async (req, res) => {
   const conversationId = conversation?._id;
 
   if (action === "accept") {
-    if (conversationId) req.app.get("io").in([String(sender_id), String(req.user._id)]).socketsJoin(String(conversationId));
+    if (conversationId)
+      req.app
+        .get("io")
+        .in([String(sender_id), String(req.user._id)])
+        .socketsJoin(String(conversationId));
     announceRequests(req, sender_id, "accepted", { person: summaryOf(req.user), conversationId });
     announceRequests(req, req.user._id, "answered", { conversationId });
   } else {
@@ -58,17 +65,22 @@ export const acceptRejectRequest = async (req, res) => {
     announceRequests(req, req.user._id, "declined");
   }
 
-  res.status(200).json(
-    action === "accept"
-      ? { status: "success", message: "Friend request accepted", sender_id, conversationId }
-      : { status: "info", message: "Friend request declined", sender_id }
-  );
+  res
+    .status(200)
+    .json(
+      action === "accept"
+        ? { status: "success", message: "Friend request accepted", sender_id, conversationId }
+        : { status: "info", message: "Friend request declined", sender_id }
+    );
 };
 
 export const removeFriend = async (req, res) => {
   const { friend_id } = req.body;
   await unfriend(req.user, friend_id);
-  req.app.get("io").to([String(req.user._id), String(friend_id)]).emit("friends_changed");
+  req.app
+    .get("io")
+    .to([String(req.user._id), String(friend_id)])
+    .emit("friends_changed");
 
   res.status(200).json({ status: "success", message: "Friend removed successfully", friend_id });
 };

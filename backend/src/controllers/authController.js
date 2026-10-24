@@ -9,15 +9,7 @@ import {
   toSessionUser,
   verifyEmail,
 } from "#src/services/authService.js";
-import {
-  endSession,
-  issueAccessToken,
-  issueChallenge,
-  renewSession,
-  signOutEverywhere,
-  signOutSession,
-  startSession,
-} from "#src/services/sessionService.js";
+import { endSession, issueAccessToken, issueChallenge, renewSession, signOutEverywhere, signOutSession, startSession } from "#src/services/sessionService.js";
 import { platformOf } from "#src/services/activityService.js";
 import { settleOnboarding } from "#src/services/onboardingService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";

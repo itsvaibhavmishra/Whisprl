@@ -50,9 +50,7 @@ export const matchesHash = (value, hash) => crypto.timingSafeEqual(Buffer.from(s
 export const assertCooledDown = (sentAt, what) => {
   const waitMs = sentAt ? RESEND_COOLDOWN - (Date.now() - sentAt.getTime()) : 0;
   if (waitMs > 0) {
-    throw createHttpError.TooManyRequests(
-      `Please wait ${formatRemainingTime(Math.ceil(waitMs / 1000))} before requesting a new ${what}`
-    );
+    throw createHttpError.TooManyRequests(`Please wait ${formatRemainingTime(Math.ceil(waitMs / 1000))} before requesting a new ${what}`);
   }
 };
 

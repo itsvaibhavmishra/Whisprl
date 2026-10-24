@@ -37,7 +37,8 @@ const paintLine = (context, points, width, height) => {
   context.stroke();
 };
 
-const paint = (context, points, width, height) => (points.length === 1 ? paintDot(context, points[0], width, height) : paintLine(context, points, width, height));
+const paint = (context, points, width, height) =>
+  points.length === 1 ? paintDot(context, points[0], width, height) : paintLine(context, points, width, height);
 
 const drawStroke = (context, { brush, color, size, points }, width, height) => {
   const lineWidth = lineWidthOf(brush, size, width);

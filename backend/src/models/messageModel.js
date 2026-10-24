@@ -36,7 +36,21 @@ const eventSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner", "pinned", "disappearing", "game_opened", "game_closed"],
+      enum: [
+        "created",
+        "added",
+        "removed",
+        "left",
+        "renamed",
+        "photo",
+        "admin_added",
+        "admin_removed",
+        "owner",
+        "pinned",
+        "disappearing",
+        "game_opened",
+        "game_closed",
+      ],
       required: true,
     },
     users: [{ type: mongoose.Schema.ObjectId, ref: "User" }],

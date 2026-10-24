@@ -1,14 +1,4 @@
-import {
-  ChatCircleDots,
-  CircleDashed,
-  ImageSquare,
-  Lightning,
-  LockSimple,
-  Palette,
-  ShieldCheck,
-  UserPlus,
-  UsersThree,
-} from "phosphor-react";
+import { ChatCircleDots, CircleDashed, ImageSquare, Lightning, LockSimple, Palette, ShieldCheck, UserPlus, UsersThree } from "phosphor-react";
 
 import { COMMUNITY } from "@/config";
 
@@ -122,17 +112,14 @@ export const FAQS = [
   },
   {
     question: "Is Whisprl open source?",
-    answer:
-      "Yes. The full source code is on GitHub under the CC0 licence, so you can read it, run your own copy or build on it.",
+    answer: "Yes. The full source code is on GitHub under the CC0 licence, so you can read it, run your own copy or build on it.",
   },
   {
     question: "Does Whisprl work on my phone?",
-    answer:
-      "Yes. Whisprl works in any modern browser and fits phones, tablets and desktops alike.",
+    answer: "Yes. Whisprl works in any modern browser and fits phones, tablets and desktops alike.",
   },
   {
     question: "How do I start chatting?",
-    answer:
-      "Sign up with your email, or with Google, GitHub or LinkedIn. Then add your friends and start a conversation with any of them.",
+    answer: "Sign up with your email, or with Google, GitHub or LinkedIn. Then add your friends and start a conversation with any of them.",
   },
 ];

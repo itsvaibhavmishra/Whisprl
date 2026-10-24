@@ -57,7 +57,10 @@ export const reportStatusUpdate = async (req, res) => {
 
 export const deleteStatus = async (req, res) => {
   const status = await removeStatus(req.user, req.params.status_id);
-  req.app.get("io").to([req.user._id, ...status.audience].map(String)).emit("status_removed", { _id: status._id });
+  req.app
+    .get("io")
+    .to([req.user._id, ...status.audience].map(String))
+    .emit("status_removed", { _id: status._id });
   res.status(200).json({ status: "success" });
 };
 

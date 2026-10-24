@@ -3,7 +3,7 @@ import { summaryOf } from "@/utils/messageSummary";
 import { isApp } from "@/utils/platform";
 import { askForPush, pushPermission } from "@/utils/push";
 
-const APP_ICON = `${process.env.PUBLIC_URL}/icon-192.png`;
+const APP_ICON = `${import.meta.env.BASE_URL}icon-192.png`;
 
 const webPermission = () => ("Notification" in window ? Notification.permission : "unsupported");
 

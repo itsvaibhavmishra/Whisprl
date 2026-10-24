@@ -1,20 +1,6 @@
 import express from "express";
-import {
-  register,
-  sendOtp,
-  verifyOTP,
-  getChallenge,
-  renewAccessToken,
-  login,
-  logout,
-  forgotPassword,
-  resetPassword,
-} from "#src/controllers/authController.js";
-import {
-  githubAuth,
-  googleAuth,
-  linkedinAuth,
-} from "#src/controllers/socialController.js";
+import { register, sendOtp, verifyOTP, getChallenge, renewAccessToken, login, logout, forgotPassword, resetPassword } from "#src/controllers/authController.js";
+import { githubAuth, googleAuth, linkedinAuth } from "#src/controllers/socialController.js";
 import { getLoginOptions, passkeyLogin } from "#src/controllers/passkeyController.js";
 import { protect } from "#src/middlewares/authMiddleware.js";
 import { requireRecaptcha } from "#src/middlewares/recaptchaMiddleware.js";

@@ -41,8 +41,7 @@ const sizeWithin = (width, height, longEdge) => {
   return { width: even(width), height: even(height) };
 };
 
-const bitrateFor = (duration) =>
-  Math.floor(Math.min(MAX_VIDEO_BITRATE, (MAX_VIDEO_BYTES * SIZE_TARGET * 8) / duration - AUDIO_BITRATE));
+const bitrateFor = (duration) => Math.floor(Math.min(MAX_VIDEO_BITRATE, (MAX_VIDEO_BYTES * SIZE_TARGET * 8) / duration - AUDIO_BITRATE));
 
 const posterFrom = (source, width, height) => {
   const size = sizeWithin(width, height, POSTER_EDGE);

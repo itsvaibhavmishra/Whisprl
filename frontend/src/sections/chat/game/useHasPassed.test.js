@@ -2,18 +2,18 @@ import { act, renderHook } from "@testing-library/react";
 
 import useHasPassed from "@/sections/chat/game/useHasPassed";
 
-beforeEach(() => jest.useFakeTimers());
-afterEach(() => jest.useRealTimers());
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 test("a moment still to come reads as not passed until it arrives", () => {
   const moment = new Date(Date.now() + 2000).toISOString();
   const { result } = renderHook(() => useHasPassed(moment));
   expect(result.current).toBe(false);
 
-  act(() => jest.advanceTimersByTime(1900));
+  act(() => vi.advanceTimersByTime(1900));
   expect(result.current).toBe(false);
 
-  act(() => jest.advanceTimersByTime(200));
+  act(() => vi.advanceTimersByTime(200));
   expect(result.current).toBe(true);
 });
 
