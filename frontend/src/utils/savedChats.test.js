@@ -1,4 +1,4 @@
-import { forgetChats, readSavedChats, restoredFrom, saveChats, snapshotOf } from "@/utils/savedChats";
+import { forgetChats, readSavedChats, restoredFrom, saveChats, snapshotOf, withArrivals } from "@/utils/savedChats";
 
 const stored = new Map();
 
@@ -53,6 +53,48 @@ describe("restoredFrom", () => {
     const restored = restoredFrom(snapshot);
     expect(restored.cache.c1.messages.map((message) => message._id)).toEqual(["m001"]);
     expect(restored.conversations[0].latestMessage).toBeNull();
+  });
+});
+
+describe("withArrivals", () => {
+  const ava = { _id: "ava", firstName: "Ava", lastName: "Stone", avatar: "ava.png", publicKeys: [] };
+  const snapshot = {
+    conversations: [
+      { _id: "c1", users: [ava], latestMessage: messageOf(5), unread: 0 },
+      { _id: "c2", users: [ava], latestMessage: messageOf(3), unread: 2 },
+    ],
+    chats: { c2: [messageOf(2), messageOf(3)] },
+  };
+  const arrivalOf = (number, conversationId) => ({
+    messageId: messageOf(number)._id,
+    conversationId,
+    senderId: "ava",
+    createdAt: "2026-10-25T09:30:00.000Z",
+    plaintext: `pushed ${number}`,
+  });
+
+  it("adds a pushed message to its chat, and brings the chat to the top as unread", () => {
+    const { conversations, chats } = withArrivals(snapshot, [arrivalOf(4, "c2")]);
+    expect(conversations.map((conversation) => conversation._id)).toEqual(["c2", "c1"]);
+    expect(conversations[0].unread).toBe(3);
+    expect(conversations[0].latestMessage).toMatchObject({ _id: "m004", message: "pushed 4", sender: { _id: "ava", firstName: "Ava" } });
+    expect(chats.c2.map((message) => message._id)).toEqual(["m002", "m003", "m004"]);
+  });
+
+  it("puts the chat with the newest pushed message on top, whatever order the pushes came in", () => {
+    const { conversations } = withArrivals(snapshot, [arrivalOf(7, "c2"), arrivalOf(6, "c1")]);
+    expect(conversations.map((conversation) => conversation._id)).toEqual(["c2", "c1"]);
+  });
+
+  it("counts a message the saved chat already holds only once", () => {
+    expect(withArrivals(snapshot, [arrivalOf(3, "c2")])).toEqual(snapshot);
+  });
+
+  it("updates only the list for a chat with no saved messages, and skips a chat it does not list", () => {
+    const { conversations, chats } = withArrivals(snapshot, [arrivalOf(6, "c1"), arrivalOf(8, "c9")]);
+    expect(conversations[0]).toMatchObject({ _id: "c1", unread: 1, latestMessage: { _id: "m006" } });
+    expect(conversations).toHaveLength(2);
+    expect(chats).toEqual(snapshot.chats);
   });
 });
 

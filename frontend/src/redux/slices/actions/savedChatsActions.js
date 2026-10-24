@@ -1,9 +1,11 @@
 import { savedChatsDropped, savedChatsRestored } from "@/redux/slices/chatSlice";
-import { forgetChats, readSavedChats, restoredFrom } from "@/utils/savedChats";
+import { takeArrivedMessages } from "@/utils/arrivedMessages";
+import { forgetChats, readSavedChats, restoredFrom, withArrivals } from "@/utils/savedChats";
 
 export const RestoreSavedChats = () => async (dispatch, getState) => {
-  const snapshot = await readSavedChats(getState().user.user._id).catch(() => null);
-  if (snapshot) dispatch(savedChatsRestored(restoredFrom(snapshot)));
+  const userId = getState().user.user._id;
+  const [snapshot, arrivals] = await Promise.all([readSavedChats(userId).catch(() => null), takeArrivedMessages(userId).catch(() => [])]);
+  if (snapshot) dispatch(savedChatsRestored(restoredFrom(withArrivals(snapshot, arrivals))));
 };
 
 // chats saved under keys this device no longer holds are neither shown nor kept

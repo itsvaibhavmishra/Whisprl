@@ -109,6 +109,14 @@ so a change to one that the other misses fails a test. Run the Java side with
 the phone cannot open, shows as "New message". Pushes are data only and high priority, so the app
 decides what is shown, and shows nothing while it is on screen.
 
+A text message pushed while the app is not running is also kept, still sealed as it came, by
+`ArrivedMessages.java`, up to the newest 200. On the next launch `ArrivedMessagesPlugin.java` opens
+them with the Block Store key and `utils/savedChats.js` adds them to the saved chats before they
+show, so a chat opened from its notification already holds the message. A running app hears every
+message over its own connection and keeps nothing this way. Photos and videos are still uploading
+when their push is sent, and messages from this account's other devices are never pushed to it, so
+both arrive with the server's pages.
+
 **Signing in with Google.** Google refuses its sign-in page inside a web view, so the app asks
 Android for the token instead, through Credential Manager in `GoogleSignInPlugin.java`. That
 returns an ID token rather than the access token the website gets, and `socialAuthService.js`

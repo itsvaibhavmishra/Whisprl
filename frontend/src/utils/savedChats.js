@@ -1,4 +1,5 @@
 import { forgetSavedChats, loadSavedChats, saveSavedChats } from "@/utils/crypto/keyStore";
+import { readableText } from "@/utils/crypto/messageCipher";
 
 // a chat opens on its newest page, so that is as far back as a saved chat needs to reach
 const SAVED_MESSAGES = 60;
@@ -24,6 +25,42 @@ export const snapshotOf = (chat) => {
     albumReactions: chat.albumReactions,
   };
 };
+
+const ascendingBy = (field) => (one, other) => (one[field] < other[field] ? -1 : 1);
+
+const arrivedMessageOf = ({ messageId, conversationId, senderId, createdAt, expiresAt, plaintext }, conversation) => {
+  const { firstName, lastName, avatar } = conversation.users.find((member) => member._id === senderId) ?? {};
+  return {
+    _id: messageId,
+    conversation: conversationId,
+    sender: { _id: senderId, firstName, lastName, avatar },
+    createdAt,
+    expiresAt,
+    ...readableText(plaintext),
+  };
+};
+
+const withArrival = (snapshot, arrival) => {
+  const conversation = snapshot.conversations.find((listed) => listed._id === arrival.conversationId);
+  if (!conversation) return snapshot;
+  const message = arrivedMessageOf(arrival, conversation);
+  const isLatest = !conversation.latestMessage || conversation.latestMessage._id < message._id;
+  const saved = snapshot.chats[conversation._id];
+  const isMissing = saved && !saved.some((kept) => kept._id === message._id);
+  return {
+    ...snapshot,
+    conversations: isLatest
+      ? [
+          { ...conversation, latestMessage: message, unread: (conversation.unread ?? 0) + 1 },
+          ...snapshot.conversations.filter((listed) => listed !== conversation),
+        ]
+      : snapshot.conversations,
+    chats: isMissing ? { ...snapshot.chats, [conversation._id]: [...saved, message].sort(ascendingBy("_id")) } : snapshot.chats,
+  };
+};
+
+// messages that reached the phone while the app was closed join the saved chats, oldest first so the newest chat ends on top
+export const withArrivals = (snapshot, arrivals) => [...arrivals].sort(ascendingBy("messageId")).reduce(withArrival, snapshot);
 
 // saved messages are marked, so the first fresh page replaces them instead of keeping one deleted in the meantime
 export const restoredFrom = (snapshot, now = Date.now()) => ({

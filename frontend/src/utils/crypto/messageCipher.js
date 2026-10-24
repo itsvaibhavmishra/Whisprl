@@ -110,11 +110,13 @@ export const openMessage = async (message, conversation, bind) => {
 export const encryptReaction = (emoji, message, conversation, userId, isForAlbum = false) =>
   encryptMessage(emoji, conversation, userId, reactionBinding(message, isForAlbum));
 
+export const readableText = (plaintext) => {
+  const { text, mentions, contact, statusQuote, emojiScale } = decodePayload(plaintext);
+  return { message: text, mentions, contact, statusQuote, emojiScale, plaintext };
+};
+
 const readableOf = (message, plaintext) => {
-  if (!message.attachment) {
-    const { text, mentions, contact, statusQuote, emojiScale } = decodePayload(plaintext);
-    return { message: text, mentions, contact, statusQuote, emojiScale, plaintext };
-  }
+  if (!message.attachment) return readableText(plaintext);
   const { caption, file } = JSON.parse(plaintext);
   return { message: caption ?? "", file, plaintext };
 };
