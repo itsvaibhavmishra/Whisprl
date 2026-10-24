@@ -120,9 +120,10 @@ jobs:
         working-directory: frontend
 
       # built with the production settings the website uses, and signed with the key whose public half every APK carries
-      - name: Build the live update
+      - name: Build the web app and its live update
         if: steps.plan.outputs.version
         env:
+          KIND: ${{ steps.plan.outputs.kind }}
           LIVE_UPDATE_KEY: ${{ secrets.LIVE_UPDATE_KEY }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           REACT_APP_SENTRY_DSN: ${{ vars.REACT_APP_SENTRY_DSN }}
@@ -136,6 +137,12 @@ jobs:
           # a test build takes no live update, so the next release can never swap it onto production code
           REACT_APP_UPDATE_URL: ${{ steps.plan.outputs.kind != 'test' && format('https://github.com/{0}/releases/latest/download/app-update.json', github.repository) || '' }}
         run: |
+          # a test build ships only its APK, so it builds the web app without packaging a live update
+          if [ "$KIND" = test ]; then
+            mkdir -p "$RUNNER_TEMP/release"
+            (cd frontend && npm run build)
+            exit 0
+          fi
           umask 077
           printf '%s\n' "$LIVE_UPDATE_KEY" > "$RUNNER_TEMP/live-update-key.pem"
           scripts/app-update.sh "$RUNNER_TEMP/live-update-key.pem" "$RUNNER_TEMP/release"
