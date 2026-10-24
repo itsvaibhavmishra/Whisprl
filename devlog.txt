@@ -45,6 +45,7 @@
     - The Android app's live update plugin is on 8.7.1, which pauses its rollback timer while the app is in the background, so an update taken while away is no longer at risk of being rolled back; versionCode goes to 5, so this release needs the new APK
 
   - Internal:
+    - The What's new highlights for the next release are written
     - The backend drops what nothing uses any more: the rebrand email, the What's new endpoint, the old status audience GET, vercel.json, the start-up backfills that had finished, and the axios, streamifier and trim-request packages
     - Every backend package is on its latest version, among them Express 5, Mongoose 9, Multer 2, Nodemailer 10, bcrypt 6 and Sentry 11, and npm audit finds nothing
     - The frontend drops what nothing uses any more: translations that were never set up, the right-to-left layout, theme styles for components the app never shows, unused animations, components and helpers, and 13 packages including swiper
