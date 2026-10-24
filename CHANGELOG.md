@@ -6,6 +6,53 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.3] - 2026-10-24
+
+### Improvements
+
+- The app takes an update while you use it and switches to it the moment you leave, so you come back to the same screen and anything half typed, already on the new version
+- Games throw a new set of emoji from a bigger tray that moves: laugh, cry, taunt, kiss, cool, angry, shocked, melt and party
+- What's new no longer pops up; every release's highlights stay in Settings
+- On a phone the emoji button swaps the keyboard for an emoji panel just as tall, with recent emoji first and its sections along the foot; its grip, or a quick flick down the list, opens it to most of the screen, and scrolling back past the top brings it down again; on a computer the same panel opens below the message field
+- The emoji picker has the newest emoji, keeps your recent ones, lets you pick a skin tone from a row of them, and loads its emoji from Whisprl itself, so it works offline in the app
+- More reactions slides up from below on every screen, with your six quick reactions on top to react with or edit right there
+- Loading shows a paw print filling in toe by toe, in place of the old spinner
+- While someone types, a cat peeks over their typing bubble, blinks, ducks and peeks again from the corner
+- The microphone sits beside the attach button and the emoji button beside the message field on every screen; a held microphone slides right to cancel, and an emoji panel closes by sliding down whenever you press outside it
+
+### Fixed
+
+- The admin pages' rows of tags no longer space their items twice over
+- Opening the keyboard over a game no longer squeezes the game; the keyboard covers its foot instead
+- What a knocked-out player says in a game no longer fades with their seat or slips behind the board
+- Jackaroo's result no longer leaves the board squeezed to the top over an empty hand
+- In Jackaroo a marble may land on one of your own and knock it back to base, earning a card as any knock-out does, so the marble behind is no longer stuck
+- In Jackaroo, the cards a red queen leaves fly straight back into place in their fan, and when yours are taken your hand lays out over the board, the taken card leaves for the pile and the rest come home
+- Taking a seat in a game while already playing in another chat asks whether to switch games again, instead of being refused
+- Signing in with GitHub or LinkedIn no longer writes the sign-in code to the browser console
+
+### Developers
+
+- A release pull request's test build installs beside the app as Whisprl Test, as whisprl-test-<version>.apk, signs in with Google, and goes without push notifications and live updates
+- The backend reads its .env and restarts on change through Node itself, so dotenv and nodemon are gone
+- Both packages and CI run on Node 24, and CI on the current majors of the checkout, setup-node and setup-java actions
+- The frontend builds and serves with Vite instead of Create React App, so a build takes under a second and the frontend no longer needs npm install -f; its tests run on Vitest, and every file holding JSX ends in .jsx
+- Both packages lint with ESLint and format with Prettier from one shared config, and the gate fails on a lint warning or an unformatted file; lint also holds the rules on imports through @/ or # and on names longer than one letter
+- The Android app's live update plugin is on 8.7.1, which pauses its rollback timer while the app is in the background, so an update taken while away is no longer at risk of being rolled back; versionCode goes to 5, so this release needs the new APK
+
+### Internal
+
+- The What's new highlights for the next release are written
+- The backend drops what nothing uses any more: the rebrand email, the What's new endpoint, the old status audience GET, vercel.json, the start-up backfills that had finished, and the axios, streamifier and trim-request packages
+- Every backend package is on its latest version, among them Express 5, Mongoose 9, Multer 2, Nodemailer 10, bcrypt 6 and Sentry 11, and npm audit finds nothing
+- The frontend drops what nothing uses any more: translations that were never set up, the right-to-left layout, theme styles for components the app never shows, unused animations, components and helpers, and 13 packages including swiper
+- Analytics starts only when its ID is set
+- The frontend's Redux Toolkit, react-redux, react-router, axios, socket.io-client, react-hook-form, yup and the smaller libraries are on their latest versions, with sonner 2, react-easy-crop 6, react-helmet-async 3, react-timeago 8, react-ga4 3 and @react-oauth/google 0.13
+- Games accept only the nine emoji the tray offers
+- The frontend runs on React 19 without prop-types
+- The frontend runs on MUI 9 and its date pickers 9, so @mui/lab is gone with LoadingButton, layout props live in sx, and the theme drops styles for button and alert variants the app never shows
+- Icons come from @phosphor-icons/react under their current Icon names, and animation from motion, the new name of framer-motion
+
 ## [2.5.2] - 2026-10-23
 
 ### New
@@ -456,6 +503,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.3]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.3
 [2.5.2]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.2
 [2.5.1]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.1
 [2.5.0]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.0
