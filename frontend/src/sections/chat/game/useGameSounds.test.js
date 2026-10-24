@@ -4,8 +4,8 @@ import { playGameSound } from "@/sections/chat/game/gameSounds";
 import useGameSounds from "@/sections/chat/game/useGameSounds";
 import { feel, TAP } from "@/utils/haptics";
 
-jest.mock("@/sections/chat/game/gameSounds", () => ({ playGameSound: jest.fn() }));
-jest.mock("@/utils/haptics", () => ({ ...jest.requireActual("@/utils/haptics"), feel: jest.fn() }));
+vi.mock("@/sections/chat/game/gameSounds", () => ({ playGameSound: vi.fn() }));
+vi.mock("@/utils/haptics", async (importOriginal) => ({ ...(await importOriginal()), feel: vi.fn() }));
 
 const ME = "me";
 const PEER = "peer";
@@ -16,15 +16,15 @@ const playing = (turn, marks) => ({ game: "tic-tac-toe", status: "playing", seat
 const heardAfter = (...sessions) => {
   const { rerender } = renderHook(({ session }) => useGameSounds(session, ME), { initialProps: { session: sessions[0] } });
   sessions.slice(1).forEach((session) => rerender({ session }));
-  act(() => jest.runOnlyPendingTimers());
+  act(() => vi.runOnlyPendingTimers());
   return playGameSound.mock.calls.map(([name]) => name);
 };
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
   playGameSound.mockClear();
 });
-afterEach(() => jest.useRealTimers());
+afterEach(() => vi.useRealTimers());
 
 test("a game starting, a move landing and the turn coming back each sound once", () => {
   const lobby = { game: "tic-tac-toe", status: "lobby", seats, state: null };

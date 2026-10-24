@@ -36,9 +36,7 @@ export const memberRooms = (conversation, exceptUserId) =>
 
 // one answer for "missing" and "not yours", so ids cannot be probed
 export const findMemberConversation = async (convo_id, user_id) => {
-  const conversation = mongoose.isValidObjectId(convo_id)
-    ? await ConversationModel.findOne({ _id: convo_id, users: user_id, ...CURRENT })
-    : null;
+  const conversation = mongoose.isValidObjectId(convo_id) ? await ConversationModel.findOne({ _id: convo_id, users: user_id, ...CURRENT }) : null;
 
   if (!conversation) {
     throw createHttpError.NotFound("Conversation does not exist");
@@ -47,14 +45,16 @@ export const findMemberConversation = async (convo_id, user_id) => {
   return conversation;
 };
 
-const withLatestSender = (conversations) =>
-  UserModel.populate(conversations, { path: "latestMessage.sender", select: MEMBER_FIELDS });
+const withLatestSender = (conversations) => UserModel.populate(conversations, { path: "latestMessage.sender", select: MEMBER_FIELDS });
 
-const membersOf = (sender_id, receiver_id) =>
-  String(sender_id) === String(receiver_id) ? [sender_id] : [sender_id, receiver_id];
+const membersOf = (sender_id, receiver_id) => (String(sender_id) === String(receiver_id) ? [sender_id] : [sender_id, receiver_id]);
 
 export const directConversationIdOf = async (one_id, other_id) =>
-  (await ConversationModel.findOne({ ...DIRECT, users: { $all: [one_id, other_id], $size: 2 } }).select("_id").lean())?._id ?? null;
+  (
+    await ConversationModel.findOne({ ...DIRECT, users: { $all: [one_id, other_id], $size: 2 } })
+      .select("_id")
+      .lean()
+  )?._id ?? null;
 
 // a note to yourself has one member, so the match is on the exact set rather than on containing both
 const findDirectConversation = async (members) => {
@@ -137,7 +137,10 @@ export const getUserConversations = async (user) => {
     .sort({ updatedAt: -1 });
 
   await withLatestSender(conversations);
-  const preferences = await preferencesOf(user._id, conversations.map((conversation) => conversation._id));
+  const preferences = await preferencesOf(
+    user._id,
+    conversations.map((conversation) => conversation._id)
+  );
   const preferenceOf = (conversation) => preferences.get(String(conversation._id)) ?? {};
   const [{ reachable, blocked }, unreadCounts] = await Promise.all([
     peerAccessOf(user, conversations),
@@ -165,7 +168,7 @@ export const pinsOf = async (conversation) => (await conversation.populate(PINNE
 // a reaction stands in its chat's row like a message would, so it moves the chat up as one does
 export const noteReaction = async (conversation_id, reaction) => {
   const latestReaction = { ...reaction, at: new Date() };
-  const conversation = await ConversationModel.findByIdAndUpdate(conversation_id, { latestReaction }, { new: true }).populate(LATEST_REACTION);
+  const conversation = await ConversationModel.findByIdAndUpdate(conversation_id, { latestReaction }, { returnDocument: "after" }).populate(LATEST_REACTION);
   return { conversation: conversation_id, latestReaction: conversation.toJSON().latestReaction };
 };
 
@@ -206,5 +209,4 @@ export const findCommonGroups = async (user_id, other_id) => {
   return groups.map(({ _id, name, picture, users }) => ({ _id, name, picture, memberCount: users.length }));
 };
 
-export const getUserConversationIds = async (user_id) =>
-  (await ConversationModel.find({ users: user_id, ...CURRENT }).distinct("_id")).map(String);
+export const getUserConversationIds = async (user_id) => (await ConversationModel.find({ users: user_id, ...CURRENT }).distinct("_id")).map(String);

@@ -1,6 +1,13 @@
 import { quoteSummaryOf, summaryOf } from "@/utils/messageSummary";
 
-const viewOnce = (viewedBy = [], extra = {}) => ({ sender: { _id: "sender" }, viewOnce: true, viewedBy, file: { kind: "image" }, attachment: { status: "ready" }, ...extra });
+const viewOnce = (viewedBy = [], extra = {}) => ({
+  sender: { _id: "sender" },
+  viewOnce: true,
+  viewedBy,
+  file: { kind: "image" },
+  attachment: { status: "ready" },
+  ...extra,
+});
 
 test("a quoted view-once photo says what it is until it is opened", () => {
   expect(quoteSummaryOf(viewOnce(), "sender")).toBe("View once photo");

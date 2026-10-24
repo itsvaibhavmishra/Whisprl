@@ -38,7 +38,7 @@ const PREFERENCE_FIELDS = "mutedUntil isFavourite isArchived clearedAt deletedAt
 const save = async (user_id, conversation_id, changes) => {
   const { _id, ...preferences } = await ChatPreferenceModel.findOneAndUpdate({ user: user_id, conversation: conversation_id }, changes, {
     upsert: true,
-    new: true,
+    returnDocument: "after",
     projection: PREFERENCE_FIELDS,
   }).lean();
   return preferences;

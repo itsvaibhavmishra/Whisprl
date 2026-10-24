@@ -55,12 +55,23 @@ describe("searchScore", () => {
 
   it("needs every word to match somewhere", () => {
     assert.equal(searchScore("ludo chess", nameOnly("Ludo")), 0);
-    assert.ok(searchScore("ludo sunday", [{ text: "Ludo", weight: 3 }, { text: "We play it every Sunday", weight: 1 }]) > 0);
+    assert.ok(
+      searchScore("ludo sunday", [
+        { text: "Ludo", weight: 3 },
+        { text: "We play it every Sunday", weight: 1 },
+      ]) > 0
+    );
   });
 
   it("weighs a match in the name above one in the details", () => {
-    const inName = searchScore("cards", [{ text: "Cards", weight: 3 }, { text: "", weight: 1 }]);
-    const inDetails = searchScore("cards", [{ text: "Uno", weight: 3 }, { text: "a game of cards", weight: 1 }]);
+    const inName = searchScore("cards", [
+      { text: "Cards", weight: 3 },
+      { text: "", weight: 1 },
+    ]);
+    const inDetails = searchScore("cards", [
+      { text: "Uno", weight: 3 },
+      { text: "a game of cards", weight: 1 },
+    ]);
     assert.ok(inName > inDetails);
   });
 

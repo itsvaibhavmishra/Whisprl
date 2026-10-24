@@ -2,7 +2,6 @@ import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import axios from "@/utils/axios";
 import { pushPermission, registerForPush, stopPush } from "@/utils/push";
 
-// ------------- Register This Phone -------------
 export const RegisterPushDevice = createApiThunk(
   "push/register",
   async () => {
@@ -12,7 +11,6 @@ export const RegisterPushDevice = createApiThunk(
   { notifyErrors: false }
 );
 
-// ------------- Forget This Phone -------------
 export const ForgetPushDevice = createApiThunk(
   "push/forget",
   async () => {

@@ -6,7 +6,7 @@ const players = {};
 const lastHeardAt = {};
 
 const playerFor = (name) => {
-  players[name] ??= Object.assign(new Audio(`${process.env.PUBLIC_URL}/sounds/${name}.mp3`), { preload: "auto" });
+  players[name] ??= Object.assign(new Audio(`${import.meta.env.BASE_URL}sounds/${name}.mp3`), { preload: "auto" });
   return players[name];
 };
 

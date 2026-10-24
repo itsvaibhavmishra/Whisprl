@@ -14,18 +14,14 @@ export const exportPrivateKey = (privateKey) => crypto.subtle.exportKey("pkcs8",
 
 export const importPrivateKey = (pkcs8) => crypto.subtle.importKey("pkcs8", pkcs8, CURVE, true, ["deriveBits"]);
 
-export const keyIdOf = async (encodedPublicKey) =>
-  toHex(await crypto.subtle.digest("SHA-256", fromBase64(encodedPublicKey))).slice(0, 16);
+export const keyIdOf = async (encodedPublicKey) => toHex(await crypto.subtle.digest("SHA-256", fromBase64(encodedPublicKey))).slice(0, 16);
 
 const hkdfKey = async (secret, salt, info) => {
   const material = await crypto.subtle.importKey("raw", secret, "HKDF", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey(
-    { name: "HKDF", hash: "SHA-256", salt: encodeText(salt), info: encodeText(info) },
-    material,
-    MESSAGE_KEY,
-    false,
-    ["encrypt", "decrypt"]
-  );
+  return crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt: encodeText(salt), info: encodeText(info) }, material, MESSAGE_KEY, false, [
+    "encrypt",
+    "decrypt",
+  ]);
 };
 
 export const deriveSecretKey = (secret, purpose) => hkdfKey(secret, "", purpose);

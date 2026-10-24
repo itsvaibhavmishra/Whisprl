@@ -45,8 +45,16 @@ const chainReaction = {
   rules: [
     { heading: "The aim", text: "Be the last player with orbs on the board.", picture: "aim" },
     { heading: "Your turn", text: "Add one orb to an empty cell or to one of your own. You can never add to someone else's.", picture: "turn" },
-    { heading: "Bursting", text: "A cell bursts when it holds as many orbs as it has neighbours: two in a corner, three on an edge, four in the middle.", picture: "burst" },
-    { heading: "Chain reactions", text: "A burst sends one orb into each neighbouring cell and turns those cells your colour, which can make them burst too.", picture: "chain" },
+    {
+      heading: "Bursting",
+      text: "A cell bursts when it holds as many orbs as it has neighbours: two in a corner, three on an edge, four in the middle.",
+      picture: "burst",
+    },
+    {
+      heading: "Chain reactions",
+      text: "A burst sends one orb into each neighbouring cell and turns those cells your colour, which can make them burst too.",
+      picture: "chain",
+    },
     { heading: "The end", text: "Lose all your orbs after your first turn and you're out. The last player left wins, and there are no draws.", picture: "end" },
   ],
   // Lodestar by Centurion_of_war, CC0, from opengameart.org

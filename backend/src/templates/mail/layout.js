@@ -9,10 +9,7 @@ const FONTS = "'Manrope','Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const BAND = "#0F1A2B";
 
 // each letter a weight lighter than the last, the way the app draws the name
-const wordmark = (name) =>
-  [...name]
-    .map((letter, position) => `<span style="font-weight:${Math.max(200, 800 - position * 100)};">${letter}</span>`)
-    .join("");
+const wordmark = (name) => [...name].map((letter, position) => `<span style="font-weight:${Math.max(200, 800 - position * 100)};">${letter}</span>`).join("");
 
 export const button = (href, label) => `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
@@ -32,15 +29,17 @@ export const button = (href, label) => `
 
 // names and reasons are typed by people, so they go into the HTML as text and never as markup
 export const escapeHtml = (text) =>
-  String(text ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  String(text ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 
 export const paragraph = (content) => `
 <p class="text" style="margin:0 0 16px;font-family:${FONTS};font-size:16px;line-height:1.65;color:#1E2A3D;">${content}</p>`;
 
 export const greeting = (name) => paragraph(`Hey ${escapeHtml(name)},`);
-
-export const lead = (content) => `
-<p class="text" style="margin:0 0 18px;font-family:${FONTS};font-size:21px;font-weight:800;line-height:1.35;letter-spacing:-0.02em;color:#0F1A2B;">${content}</p>`;
 
 export const heading = (content) => `
 <p class="text" style="margin:0 0 20px;font-family:${FONTS};font-size:17px;font-weight:800;letter-spacing:-0.01em;line-height:1.4;color:#0F1A2B;">${content}</p>`;
@@ -56,34 +55,6 @@ export const panel = (label, content) => `
     <td class="panel" style="padding:18px 20px;background-color:#F1F4F9;border-left:3px solid #0979C2;border-radius:0 12px 12px 0;">
       <p class="muted" style="margin:0 0 6px;font-family:${FONTS};font-size:12px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#5F6E86;">${label}</p>
       <div class="text" style="font-family:${FONTS};font-size:15px;line-height:1.6;color:#1E2A3D;">${content}</div>
-    </td>
-  </tr>
-</table>`;
-
-// the emoji sits in a tile the size of an app icon, so five of these read as a list rather than a wall
-export const highlight = (emoji, title, body) => `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 20px;">
-  <tr>
-    <td width="44" valign="top">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-        <tr><td class="tile" width="40" height="40" align="center" style="width:40px;height:40px;background-color:#EEF3F9;border-radius:11px;font-size:19px;line-height:40px;">${emoji}</td></tr>
-      </table>
-    </td>
-    <td valign="top" style="padding-left:14px;">
-      <p class="text" style="margin:0 0 4px;font-family:${FONTS};font-size:16px;font-weight:800;line-height:1.4;letter-spacing:-0.01em;color:#0F1A2B;">${title}</p>
-      <p class="muted" style="margin:0;font-family:${FONTS};font-size:14.5px;line-height:1.6;color:#5F6E86;">${body}</p>
-    </td>
-  </tr>
-</table>`;
-
-// stills of the app itself, because no inbox plays a video and a heavy animation only slows the mail down
-export const shot = (src, alt, href) => `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 26px;">
-  <tr>
-    <td align="center" style="padding:0;">
-      <a href="${href}" style="display:block;text-decoration:none;">
-        <img src="${src}" width="528" alt="${alt}" style="display:block;width:528px;max-width:100%;height:auto;border-radius:14px;" />
-      </a>
     </td>
   </tr>
 </table>`;
@@ -115,7 +86,6 @@ const head = (title) => `
     .text { color:#E9EEF6 !important; }
     .muted { color:#93A1B8 !important; }
     .panel { background-color:#0E1626 !important; }
-    .tile, .shot { background-color:#1C2639 !important; }
     .divider { border-color:#273349 !important; }
     a { color:#4CC3F0 !important; }
     .cta a { color:#ffffff !important; }
@@ -125,7 +95,6 @@ const head = (title) => `
   [data-ogsc] .text { color:#E9EEF6 !important; }
   [data-ogsc] .muted { color:#93A1B8 !important; }
   [data-ogsc] .panel { background-color:#0E1626 !important; }
-  [data-ogsc] .tile, [data-ogsc] .shot { background-color:#1C2639 !important; }
   [data-ogsc] .cta a { color:#ffffff !important; }
 </style>`;
 

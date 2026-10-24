@@ -53,11 +53,9 @@ export const canMessageIn = async (convo_id, user_id) => {
   }
 };
 
-const senderOf = (conversation, sender_id) =>
-  [...conversation.users, ...(conversation.formerUsers ?? [])].find((member) => member._id.equals(sender_id));
+const senderOf = (conversation, sender_id) => [...conversation.users, ...(conversation.formerUsers ?? [])].find((member) => member._id.equals(sender_id));
 
-const peerOf = (conversation, sender_id) =>
-  conversation.users.find((member) => !member._id.equals(sender_id)) ?? senderOf(conversation, sender_id);
+const peerOf = (conversation, sender_id) => conversation.users.find((member) => !member._id.equals(sender_id)) ?? senderOf(conversation, sender_id);
 
 export const peerHasKey = (conversation, sender_id) => Boolean(currentKeyIdOf(peerOf(conversation, sender_id)));
 
@@ -86,9 +84,7 @@ export const validateCipher = (cipher, conversation, sender_id) => {
     throw createHttpError.BadRequest("Messages must be encrypted. Reload Whisprl to get the latest version.");
   }
 
-  const isSealedRight = conversation.isGroup
-    ? sealsForEveryMember(cipher, conversation, sender_id)
-    : namesBothKeys(cipher, conversation, sender_id);
+  const isSealedRight = conversation.isGroup ? sealsForEveryMember(cipher, conversation, sender_id) : namesBothKeys(cipher, conversation, sender_id);
   if (!isSealedRight) throw createHttpError.Conflict("Encryption keys changed. Reload Whisprl to keep chatting.");
 };
 
@@ -132,8 +128,7 @@ export const linksOf = async (conversation, user_id, { replyTo, replyToAlbum, fo
   return links;
 };
 
-const findSentMessage = (sender_id, clientId) =>
-  isClientId(clientId) ? MessageModel.findOne({ sender: sender_id, clientId }) : null;
+const findSentMessage = (sender_id, clientId) => (isClientId(clientId) ? MessageModel.findOne({ sender: sender_id, clientId }) : null);
 
 // takes the conversation with its members loaded, so naming the sender needs no further query
 export const saveMessage = async (conversation, msgData) => {
@@ -178,9 +173,7 @@ export const findDeliverableMessages = async (user_id) => {
 };
 
 export const resealMessage = async (message_id, user_id, cipher) => {
-  const message = mongoose.isValidObjectId(message_id)
-    ? await MessageModel.findOne({ _id: message_id, sender: user_id, awaitingKey: true })
-    : null;
+  const message = mongoose.isValidObjectId(message_id) ? await MessageModel.findOne({ _id: message_id, sender: user_id, awaitingKey: true }) : null;
 
   if (!message) {
     throw createHttpError.NotFound("Message does not exist");
@@ -206,9 +199,7 @@ const fromOthers = (conversation_ids, reader_id) => ({
 });
 
 export const markDelivered = async (conversation_ids, reader_id) => {
-  const undelivered = await MessageModel.find({ ...fromOthers(conversation_ids, reader_id), deliveredAt: null }).select(
-    "conversation"
-  );
+  const undelivered = await MessageModel.find({ ...fromOthers(conversation_ids, reader_id), deliveredAt: null }).select("conversation");
   if (!undelivered.length) return [];
 
   await MessageModel.updateMany({ _id: { $in: undelivered.map(({ _id }) => _id) } }, { deliveredAt: new Date() });
@@ -230,15 +221,14 @@ export const markSeen = async (conversation_id, reader_id) => {
   const now = new Date();
   const { modifiedCount } = await MessageModel.updateMany(
     { ...fromOthers([conversation_id], reader_id), seenAt: null },
-    [{ $set: { seenAt: now, deliveredAt: { $ifNull: ["$deliveredAt", now] } } }]
+    [{ $set: { seenAt: now, deliveredAt: { $ifNull: ["$deliveredAt", now] } } }],
+    { updatePipeline: true }
   );
   return modifiedCount ? {} : null;
 };
 
 const ownAttachmentMessage = (message_id, user_id, filter = {}) =>
-  mongoose.isValidObjectId(message_id)
-    ? MessageModel.findOne({ _id: message_id, sender: user_id, attachment: { $exists: true }, ...filter })
-    : null;
+  mongoose.isValidObjectId(message_id) ? MessageModel.findOne({ _id: message_id, sender: user_id, attachment: { $exists: true }, ...filter }) : null;
 
 // a retried upload of a file already attached answers with the message as it is
 export const attachSealedFile = async (message_id, user_id, file) => {

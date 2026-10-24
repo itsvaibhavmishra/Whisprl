@@ -14,5 +14,5 @@ cd "$(dirname "$0")/../frontend"
 RELEASE="whisprl@$(node -p "require('./package.json').version")"
 export SENTRY_ORG=whisprl SENTRY_PROJECT=whisprl-web
 
-npx sentry-cli sourcemaps inject build/static/js
-npx sentry-cli sourcemaps upload --release "$RELEASE" build/static/js
+npx sentry-cli sourcemaps inject build/assets
+npx sentry-cli sourcemaps upload --release "$RELEASE" build/assets

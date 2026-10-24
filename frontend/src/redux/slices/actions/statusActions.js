@@ -32,9 +32,9 @@ const readable = async (statuses, meId) =>
     .filter((result) => result.status === "fulfilled")
     .map((result) => result.value);
 
-// ------------- Statuses -------------
-export const GetStatuses = createApiThunk("status/list", async (_, { getState }) =>
-  readable((await axios.get("/status")).data.statuses, getState().user.user._id),
+export const GetStatuses = createApiThunk(
+  "status/list",
+  async (_, { getState }) => readable((await axios.get("/status")).data.statuses, getState().user.user._id),
   { notifyErrors: false }
 );
 
@@ -45,7 +45,8 @@ export const GetDiscover = createApiThunk("status/discover", async (_, { getStat
 // the ones a search turned up, so their rings show and play wherever those people appear
 export const GetPublicStatusesOf = createApiThunk(
   "status/public-of",
-  async (ownerIds, { getState }) => readable((await axios.get("/status/discover", { params: { owners: ownerIds.join(",") } })).data.statuses, getState().user.user._id),
+  async (ownerIds, { getState }) =>
+    readable((await axios.get("/status/discover", { params: { owners: ownerIds.join(",") } })).data.statuses, getState().user.user._id),
   { notifyErrors: false }
 );
 
@@ -54,7 +55,6 @@ export const ReceiveStatus = (status) => async (dispatch, getState) => {
   if (opened) dispatch(statusAdded(opened));
 };
 
-// ------------- Choose A Photo Or Video -------------
 // a photo is redrawn at its own size when it is shared, so only a video, and a GIF sent as it is, are read now
 const draftOf = async (file) => {
   if (file.type.startsWith("video/")) return { kind: "video", file, ...(await probeVideo(file)) };
@@ -80,7 +80,6 @@ export const ChooseStatusMedia = (capture) => async () => {
   }
 };
 
-// ------------- Post -------------
 const drawnStoryOf = async (draft, signal, report) => {
   if (isGif(draft)) return draft;
   if (draft.kind !== "video") return { ...draft, kind: "image", ...(await renderPhoto({ file: draft.file, edits: draft.edits, isStory: true })) };
@@ -137,25 +136,24 @@ export const PostStatus = (draft) => async (dispatch, getState) => {
 
 export const CancelPosting = () => () => postingController?.abort();
 
-// ------------- Viewed -------------
 export const MarkStatusViewed = (statusId) => (dispatch) => {
   dispatch(statusSeen(statusId));
   axios.post(`/status/${statusId}/view`).catch(() => {});
 };
 
-// ------------- Reactions -------------
 export const ReactToStatus = createApiThunk("status/react", async ({ status, emoji }, { dispatch, getState }) => {
   const cipher = await encryptStatusReaction(emoji, status, getState().user.user._id);
   await axios.post(`/status/${status._id}/react`, { cipher });
   dispatch(reactionChosen({ statusId: status._id, emoji }));
 });
 
-export const ReceiveStatusReaction = ({ status_id, view }) => async (dispatch, getState) => {
-  const status = getState().status.statuses.find((each) => each._id === status_id);
-  if (status) dispatch(viewSaved({ status_id, view: { ...view, reaction: await openedReaction(view.reaction, status, view.user) } }));
-};
+export const ReceiveStatusReaction =
+  ({ status_id, view }) =>
+  async (dispatch, getState) => {
+    const status = getState().status.statuses.find((each) => each._id === status_id);
+    if (status) dispatch(viewSaved({ status_id, view: { ...view, reaction: await openedReaction(view.reaction, status, view.user) } }));
+  };
 
-// ------------- Replies And Mentions -------------
 const SendAboutStatus = createApiThunk("status/send-about", async ({ to, status, about, text = "" }, { dispatch }) => {
   const conversation = await dispatch(DirectConversationWith(to));
   dispatch(SendTextMessage({ conversationId: conversation._id, text, statusQuote: quoteOfStatus(status, about) }));
@@ -163,7 +161,10 @@ const SendAboutStatus = createApiThunk("status/send-about", async ({ to, status,
 
 export const ReplyToStatus = ({ status, text }) => SendAboutStatus({ to: status.owner._id, status, about: "reply", text });
 
-export const ShareStatus = ({ status, friendIds, text }) => (dispatch) => friendIds.forEach((to) => dispatch(SendAboutStatus({ to, status, about: "share", text })));
+export const ShareStatus =
+  ({ status, friendIds, text }) =>
+  (dispatch) =>
+    friendIds.forEach((to) => dispatch(SendAboutStatus({ to, status, about: "share", text })));
 
 // only someone the update was sealed for hears about a mention, since the notice carries its preview
 const TellMentioned = (status, sealedFor) => (dispatch) => {
@@ -172,19 +173,18 @@ const TellMentioned = (status, sealedFor) => (dispatch) => {
   [...mentioned].filter((to) => canSee.has(to)).forEach((to) => dispatch(SendAboutStatus({ to, status, about: "mention" })));
 };
 
-// ------------- Report -------------
 export const ReportStatus = createApiThunk("status/report", async ({ statusId, reason, note }) => {
   await axios.post(`/status/${statusId}/report`, { reason, note });
 });
 
-// ------------- Delete -------------
 export const DeleteStatus = createApiThunk("status/delete", async (statusId, { dispatch }) => {
   await axios.delete(`/status/${statusId}`);
   dispatch(statusRemoved({ _id: statusId }));
 });
 
-// ------------- Hidden From -------------
-export const GetHiddenFrom = createApiThunk("status/hidden-from", async () => (await axios.get("/status/hidden-from")).data.hiddenFrom, { notifyErrors: false });
+export const GetHiddenFrom = createApiThunk("status/hidden-from", async () => (await axios.get("/status/hidden-from")).data.hiddenFrom, {
+  notifyErrors: false,
+});
 
 export const SetHiddenFrom = createApiThunk("status/set-hidden-from", async (ids) => {
   const { data } = await axios.put("/status/hidden-from", { hiddenFrom: ids });

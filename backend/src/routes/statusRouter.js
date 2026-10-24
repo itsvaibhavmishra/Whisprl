@@ -24,7 +24,7 @@ statusRouter.route("/").get(protect, readLimit(), getStatuses).post(protect, upl
 
 statusRouter.route("/discover").get(protect, readLimit(), getDiscover);
 
-statusRouter.route("/sealed-for").get(protect, readLimit(), getSealedFor).post(protect, readLimit(), getSealedFor);
+statusRouter.route("/sealed-for").post(protect, readLimit(), getSealedFor);
 
 statusRouter.route("/hidden-from").get(protect, readLimit(), getHiddenFrom).put(protect, writeLimit(), updateHiddenFrom);
 

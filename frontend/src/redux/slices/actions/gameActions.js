@@ -68,12 +68,16 @@ export const CloseGame = createApiThunk("game/close", (conversationId, { dispatc
   })
 );
 
-export const GetLeaderboard = createApiThunk("game/leaderboard", async (conversationId) => ({
-  conversationId,
-  rows: (await axios.get(`/games/${conversationId}/leaderboard`)).data.leaderboard,
-}), { notifyErrors: false });
+export const GetLeaderboard = createApiThunk(
+  "game/leaderboard",
+  async (conversationId) => ({
+    conversationId,
+    rows: (await axios.get(`/games/${conversationId}/leaderboard`)).data.leaderboard,
+  }),
+  { notifyErrors: false }
+);
 
-export const TakeSeat = createApiThunk("game/takeSeat", (seat, { dispatch }) => sitOrOfferSwitch(dispatch, { ...seat, type: "sit" }));
+export const TakeSeatOrOfferSwitch = createApiThunk("game/takeSeat", (seat, { dispatch }) => sitOrOfferSwitch(dispatch, { ...seat, type: "sit" }));
 
 export const AnswerInvite = createApiThunk("game/answerInvite", (answer, { dispatch }) => {
   const action = { ...answer, type: "answer" };

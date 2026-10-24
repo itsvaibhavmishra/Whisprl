@@ -33,18 +33,14 @@ export const assertManager = (group, user_id) => {
 };
 
 const findGroup = async (group_id, user_id) => {
-  const group = mongoose.isValidObjectId(group_id)
-    ? await ConversationModel.findOne({ _id: group_id, users: user_id, ...GROUP })
-    : null;
+  const group = mongoose.isValidObjectId(group_id) ? await ConversationModel.findOne({ _id: group_id, users: user_id, ...GROUP }) : null;
   if (!group) throw createHttpError.NotFound("Group does not exist");
   return group;
 };
 
 // every message is sealed for each member's key, so only friends who already have one can join
 const addableFriends = async (user, user_ids) => {
-  const ids = [...new Set((Array.isArray(user_ids) ? user_ids : []).map(String))].filter(
-    (id) => mongoose.isValidObjectId(id) && id !== String(user._id)
-  );
+  const ids = [...new Set((Array.isArray(user_ids) ? user_ids : []).map(String))].filter((id) => mongoose.isValidObjectId(id) && id !== String(user._id));
   if (!ids.every((id) => isIn(user.friends, id))) throw createHttpError.BadRequest("You can only add your friends");
   const blocked = await blockedEitherWay(user, ids);
   if (ids.some((id) => blocked.has(id))) throw createHttpError.BadRequest("You can't add some of these friends");

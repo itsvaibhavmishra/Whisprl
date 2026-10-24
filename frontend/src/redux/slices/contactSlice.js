@@ -16,7 +16,6 @@ import {
 
 const initialState = {
   searchedUsersList: [],
-  searchedUsersCount: null,
 
   // the words these answer, so a search still being typed never shows the last one's results as its own
   everyone: { keyword: null, people: [], total: 0, pages: 0 },
@@ -42,7 +41,6 @@ const slice = createSlice({
   reducers: {
     clearSearchUsers: (state) => {
       state.searchedUsersList = [];
-      state.searchedUsersCount = null;
     },
   },
   extraReducers(builder) {
@@ -63,7 +61,6 @@ const slice = createSlice({
       .addCase(SearchForUsers.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;
         state.searchedUsersList = found ? action.payload.users : null;
-        state.searchedUsersCount = found ? action.payload.usersFound : null;
       })
       .addCase(AcceptRejectRequest.fulfilled, (state, action) => {
         state.incoming = state.incoming.filter((request) => request.person._id !== action.payload.sender_id);

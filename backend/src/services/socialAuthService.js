@@ -1,17 +1,15 @@
-import axios from "axios";
 import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
-import qs from "querystring";
 
 import { UserModel } from "#src/models/index.js";
 import { normalizeEmail } from "#src/utils/accountRules.js";
 import { randomCoverStyle } from "#src/utils/coverStyles.js";
+import { fetchJson } from "#src/utils/fetchJson.js";
 import { availableUsername } from "#src/services/usernameService.js";
 
 const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn" };
 
-const notVerified = (provider) =>
-  createHttpError.Unauthorized(`Verify your email with ${PROVIDER_NAMES[provider]} first, then try again`);
+const notVerified = (provider) => createHttpError.Unauthorized(`Verify your email with ${PROVIDER_NAMES[provider]} first, then try again`);
 
 const googleClient = new OAuth2Client();
 
@@ -20,9 +18,7 @@ const isIdToken = (credential) => credential.split(".").length === 3;
 
 // checks Google's signature, the expiry and that Whisprl is the audience, all without trusting the caller
 const fetchGoogleIdTokenProfile = async (idToken) => {
-  const ticket = await googleClient
-    .verifyIdToken({ idToken, audience: process.env.GOOGLE_AUTH_CLIENT_ID })
-    .catch(() => null);
+  const ticket = await googleClient.verifyIdToken({ idToken, audience: process.env.GOOGLE_AUTH_CLIENT_ID }).catch(() => null);
   const payload = ticket?.getPayload();
   if (!payload) throw createHttpError.Unauthorized("Unable to sign in using Google");
   if (!payload.email_verified) throw notVerified("google");
@@ -32,36 +28,31 @@ const fetchGoogleIdTokenProfile = async (idToken) => {
 
 // the token has to be one Google issued to Whisprl, or any site the person signed in to could reuse it here
 const fetchGoogleAccessTokenProfile = async (accessToken) => {
-  const { data: tokenInfo } = await axios.get("https://oauth2.googleapis.com/tokeninfo", {
-    params: { access_token: accessToken },
-  });
+  const tokenInfo = await fetchJson("https://oauth2.googleapis.com/tokeninfo", { query: { access_token: accessToken } });
   if (!process.env.GOOGLE_AUTH_CLIENT_ID || tokenInfo.aud !== process.env.GOOGLE_AUTH_CLIENT_ID) {
     throw createHttpError.Unauthorized("Unable to sign in using Google");
   }
 
-  const { data } = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  const data = await fetchJson("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${accessToken}` } });
   if (!data.email_verified) throw notVerified("google");
 
   return { email: data.email, name: data.name, picture: data.picture };
 };
 
-const fetchGoogleProfile = (credential) =>
-  isIdToken(credential) ? fetchGoogleIdTokenProfile(credential) : fetchGoogleAccessTokenProfile(credential);
+const fetchGoogleProfile = (credential) => (isIdToken(credential) ? fetchGoogleIdTokenProfile(credential) : fetchGoogleAccessTokenProfile(credential));
 
 const fetchGithubProfile = async (code) => {
-  const { data: token } = await axios.post(
-    "https://github.com/login/oauth/access_token",
-    { client_id: process.env.GITHUB_AUTH_CLIENT_ID, client_secret: process.env.GITHUB_AUTH_CLIENT_SECRET, code },
-    { headers: { accept: "application/json" } }
-  );
+  const token = await fetchJson("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: { accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ client_id: process.env.GITHUB_AUTH_CLIENT_ID, client_secret: process.env.GITHUB_AUTH_CLIENT_SECRET, code }),
+  });
   if (!token.access_token) throw createHttpError.Unauthorized("Unable to sign in using GitHub");
 
   const headers = { Authorization: `Bearer ${token.access_token}`, "User-Agent": "Whisprl" };
-  const [{ data: emails }, { data: profile }] = await Promise.all([
-    axios.get("https://api.github.com/user/emails", { headers }),
-    axios.get("https://api.github.com/user", { headers }),
+  const [emails, profile] = await Promise.all([
+    fetchJson("https://api.github.com/user/emails", { headers }),
+    fetchJson("https://api.github.com/user", { headers }),
   ]);
 
   const primary = emails.find((entry) => entry.primary && entry.verified);
@@ -71,18 +62,18 @@ const fetchGithubProfile = async (code) => {
 };
 
 const fetchLinkedinProfile = async (code) => {
-  const tokenRequest = {
-    client_id: process.env.LINKEDIN_AUTH_CLIENT_ID,
-    client_secret: process.env.LINKEDIN_AUTH_CLIENT_SECRET,
-    redirect_uri: `${process.env.FRONT_URL}/auth/login`,
-    grant_type: "authorization_code",
-    code,
-  };
-  const { data: token } = await axios(`https://linkedin.com/oauth/v2/accessToken?${qs.stringify(tokenRequest)}`, {
+  const token = await fetchJson("https://linkedin.com/oauth/v2/accessToken", {
+    query: {
+      client_id: process.env.LINKEDIN_AUTH_CLIENT_ID,
+      client_secret: process.env.LINKEDIN_AUTH_CLIENT_SECRET,
+      redirect_uri: `${process.env.FRONT_URL}/auth/login`,
+      grant_type: "authorization_code",
+      code,
+    },
     headers: { "Content-Type": "x-www-form-urlencoded" },
   });
 
-  const { data } = await axios.get("https://api.linkedin.com/v2/userinfo", {
+  const data = await fetchJson("https://api.linkedin.com/v2/userinfo", {
     headers: { Authorization: `Bearer ${token.access_token}`, "User-Agent": "Whisprl" },
   });
   if (!data.email_verified) throw notVerified("linkedin");
@@ -101,15 +92,11 @@ export const signInWithProvider = async (provider, credential) => {
   if (!credential) throw createHttpError.BadRequest(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
 
   const profile = await PROFILE_FETCHERS[provider](credential).catch((error) => {
-    throw createHttpError.isHttpError(error)
-      ? error
-      : createHttpError.Unauthorized(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
+    throw createHttpError.isHttpError(error) ? error : createHttpError.Unauthorized(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
   });
 
   const email = normalizeEmail(profile.email);
-  const user =
-    (await UserModel.findOne({ email })) ??
-    new UserModel({ email, ...splitName(profile.name, email), avatar: profile.picture });
+  const user = (await UserModel.findOne({ email })) ?? new UserModel({ email, ...splitName(profile.name, email), avatar: profile.picture });
 
   // nobody proved they own an unverified account's password, so the provider's proof replaces it
   if (!user.verified) {

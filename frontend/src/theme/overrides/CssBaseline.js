@@ -6,49 +6,49 @@ export default function CssBaseline() {
     },
     MuiCssBaseline: {
       styleOverrides: {
-        '*': {
+        "*": {
           margin: 0,
           padding: 0,
-          boxSizing: 'border-box',
+          boxSizing: "border-box",
         },
         html: {
-          width: '100%',
-          height: '100%',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarGutter: 'stable',
+          width: "100%",
+          height: "100%",
+          WebkitOverflowScrolling: "touch",
+          scrollbarGutter: "stable",
         },
         // the page reaches under a phone's notch, so in landscape the sides step clear of it
         body: {
-          width: '100%',
-          height: '100%',
-          paddingLeft: 'env(safe-area-inset-left)',
-          paddingRight: 'env(safe-area-inset-right)',
+          width: "100%",
+          height: "100%",
+          paddingLeft: "env(safe-area-inset-left)",
+          paddingRight: "env(safe-area-inset-right)",
         },
-        '#root': {
-          width: '100%',
-          height: '100%',
+        "#root": {
+          width: "100%",
+          height: "100%",
         },
         // a long press on a touch screen opens a menu here, so it must not also select or highlight what it landed on
-        '@media (hover: none) and (pointer: coarse)': {
-          body: { userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', WebkitTapHighlightColor: 'transparent' },
-          'input, textarea, [contenteditable="true"]': { userSelect: 'text', WebkitUserSelect: 'text' },
+        "@media (hover: none) and (pointer: coarse)": {
+          body: { userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none", WebkitTapHighlightColor: "transparent" },
+          'input, textarea, [contenteditable="true"]': { userSelect: "text", WebkitUserSelect: "text" },
         },
         input: {
-          '&[type=number]': {
-            MozAppearance: 'textfield',
-            '&::-webkit-outer-spin-button': {
+          "&[type=number]": {
+            MozAppearance: "textfield",
+            "&::-webkit-outer-spin-button": {
               margin: 0,
-              WebkitAppearance: 'none',
+              WebkitAppearance: "none",
             },
-            '&::-webkit-inner-spin-button': {
+            "&::-webkit-inner-spin-button": {
               margin: 0,
-              WebkitAppearance: 'none',
+              WebkitAppearance: "none",
             },
           },
         },
         img: {
-          display: 'block',
-          maxWidth: '100%',
+          display: "block",
+          maxWidth: "100%",
         },
       },
     },

@@ -88,6 +88,5 @@ const presetNamed = (name) => colorPresets.find((preset) => preset.name === name
 
 export const primaryFor = (name, mode) => {
   const { night, ...day } = presetNamed(name);
-  const tones = mode === "dark" ? { ...day, ...night } : day;
-  return { ...tones, lighterFaded: `${tones.main}40` };
+  return mode === "dark" ? { ...day, ...night } : day;
 };

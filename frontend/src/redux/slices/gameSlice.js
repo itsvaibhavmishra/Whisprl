@@ -83,6 +83,7 @@ export const selectGameSession = (state) => state.game.view?.session ?? null;
 export const selectViewReceivedAt = (state) => state.game.view?.receivedAt ?? 0;
 
 // the game of a chat, while that chat is open and its game is on screen rather than minimised
-export const selectGameOnScreen = ({ game }, conversationId) => (game.watching === conversationId && game.view?.session && !game.collapsed ? game.view.session.game : null);
+export const selectGameOnScreen = ({ game }, conversationId) =>
+  game.watching === conversationId && game.view?.session && !game.collapsed ? game.view.session.game : null;
 
 export default slice.reducer;

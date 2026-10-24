@@ -2,7 +2,7 @@
 
 ## What you need
 
-- Node 22 and npm 10. CI runs Node 22.
+- Node 24 and npm 11. CI runs Node 24.
 - To run the app, not to run the gate: `backend/.env` and `frontend/.env`. Each
   package has a `.env copy` listing every key and marking which are required.
 - To release: `gh` (authenticated), `git` and `python3`.
@@ -12,8 +12,10 @@
 ## Build and check
 
 ```sh
-cd backend && npm install && npm run dev     # the API under nodemon, reads backend/.env
-cd frontend && npm install -f && npm start   # the app via react-app-rewired, reads frontend/.env
+cd backend && npm install && npm run dev     # the API under node --watch, reads backend/.env
+cd frontend && npm install && npm start      # the app via Vite on port 3200, reads frontend/.env
+npm run lint                                 # ESLint, in either package
+npm run format                               # Prettier, in either package
 scripts/check.sh                             # the gate
 ```
 
@@ -24,10 +26,18 @@ Backend tests use Node's own runner, so they need no extra dependency: `cd backe
 runs every `*.test.js`. Keep them to pure functions, like the seating rules in
 `src/services/games/seats.test.js`, since the gate has no database.
 
+Frontend tests run on Vitest in a simulated browser (jsdom): `cd frontend && npm test` runs every
+`*.test.js` and `*.test.jsx`, with `vi` in place of Jest's `jest`.
+
+Both packages share one Prettier config, `.prettierrc.json` at the root, and each has its own
+ESLint config. Lint enforces the house rules a review would otherwise have to catch: imports
+go through `@/` or `#`, never a relative path, and no name is a single letter. The gate fails on
+any lint warning or unformatted file. A file containing JSX ends in `.jsx`, the rest in `.js`.
+
 ## The Android app
 
 The app is the web build inside a Capacitor shell, in `frontend/android/`. Every screen is the
-same React code, except the welcome tour (`pages/auth/AppTour.js`) that replaces the landing
+same React code, except the welcome tour (`pages/auth/AppTour.jsx`) that replaces the landing
 page.
 
 ```sh
@@ -477,10 +487,16 @@ draft release `test-v<version>`. Every push to `rc` while the pull request is op
 that draft, cancelling a build still running for an older commit, and publishing the real release
 deletes it. A draft is visible only to the repository's owners and never counts as the latest
 release, so no installed app reads it and nothing is tagged. Open it in GitHub on the phone and
-install `whisprl.apk` over the app: it carries the release's signature, so it keeps the account and
-its keys. Once the release is out, install its own `whisprl.apk` over the test build the same way:
-the test build is already on that version, so it never takes the release's live update and would
-stay on the rc backend.
+install `whisprl-test-<version>.apk`. It is its own app, Whisprl Test (`com.vaibhaw.whisprl.test`),
+so it installs beside the real app, and over the previous test build, and you sign in to it
+separately. The release workflow builds it with Gradle's `testBuild` property, which gives it that
+package and name.
+
+A test build has no push notifications, because Firebase knows only the real app's package. It
+takes no live updates either, so a release can never move it onto production code. Sign in with
+Google works through the Google Cloud project's Android OAuth client for the test package, made
+with the upload key's SHA-1, as the real app's is. Links to the website can offer the test build
+beside the real app.
 
 The rc backend is a Render service (`whisprl.onrender.com`) with auto-deploy off. The same workflow
 deploys it through its deploy hook, at the commit the APK is built from, so the test build runs
@@ -532,13 +548,14 @@ Whisprl/
 │   ├── server.js            HTTP server, MongoDB connection, Socket.io init
 │   ├── app.js               Express middleware stack and the /api router
 │   ├── socket.js            WebSocket event handlers
-│   ├── vercel.json
 │   └── src/                 routes, controllers, services, models, middlewares,
 │                            utils, templates/mail
-├── frontend/                React 18 + MUI app
+├── frontend/                React 19 + MUI app, built with Vite
 │   ├── android/             the Android app's Capacitor shell and its native key vault
 │   ├── capacitor.config.json
-│   ├── config-overrides.js  react-app-rewired overrides, including the @ alias
+│   ├── index.html           the page Vite builds around src/index.jsx
+│   ├── vite.config.mjs      the build, the dev server, the tests and the @ alias
+│   ├── eslint.config.mjs
 │   ├── public/              includes _redirects for SPA routing on Netlify
 │   └── src/                 pages, sections, components, layouts, redux, routes,
 │                            theme, contexts, hooks, utils
@@ -559,7 +576,7 @@ Whisprl/
 
 Where frontend code goes, inside `frontend/src/`:
 
-- **`pages/`**: one file per route, lazy-loaded from `routes/index.js`.
+- **`pages/`**: one file per route, lazy-loaded from `routes/index.jsx`.
 - **`sections/<page>/`**: the pieces of one page, such as `sections/chat/` for the chat screen,
   split further when a page has distinct parts (`conversation/`, `messages/`, `attachments/`).
 - **`components/`**: anything used by more than one page, such as `ProfileHero`, the

@@ -34,10 +34,20 @@ test("bringing a marble out knocks out a rival sitting on your start", () => {
   assert.deepEqual(play.moves[0].captured[0].marble, { owner: 1, id: 0 });
 });
 
-test("a marble jumps one marble in a move, its own too, but never two, and never lands on its own", () => {
+test("a marble jumps one marble in a move, its own too, but never two", () => {
   assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(3), track(5)], hand: [card(3)] }), "move")), [track(6), track(8)]);
   assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(3), track(4)], theirs: [track(5)], hand: [card(3)] }), "move")), [track(7)]);
-  assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(3), track(5)], hand: [card(2)] }), "move")), [track(7)]);
+});
+
+test("landing on your own marble knocks it back to its base, so the marble behind can still move", () => {
+  const plays = playsOf(boardWith({ mine: [track(3), track(5)], theirs: [track(7)], hand: [card(2)] }), "move");
+  const behind = plays.find((play) => play.moves[0].marble.id === 0);
+  assert.deepEqual(behind.moves[0].to, track(5));
+  assert.deepEqual(
+    behind.moves[0].captured.map(({ marble }) => marble),
+    [{ owner: 0, id: 1 }]
+  );
+  assert.equal(plays.length, 2);
 });
 
 test("landing on a rival knocks it back to its base, passing one does not", () => {
@@ -104,11 +114,11 @@ test("a swirl jumps any marble across, even one it carries past its own home", (
   assert.deepEqual(pushed.moves[0].to, track(28));
 });
 
-test("a jump onto a rival knocks it out, and one onto your own marble cannot be made", () => {
+test("a jump onto a marble knocks it out, your own too", () => {
   const [onRival] = playsOf(boardWith({ mine: [track(13)], theirs: [track(28)], hand: [card(3)] }), "move");
   assert.deepEqual(onRival.moves[0].captured.at(-1).marble, { owner: 1, id: 0 });
   const onOwn = playsOf(boardWith({ mine: [track(13), track(28)], hand: [card(3)] }), "move").find((play) => play.moves[0].marble.id === 0);
-  assert.equal(onOwn, undefined);
+  assert.deepEqual(onOwn.moves[0].captured.at(-1).marble, { owner: 0, id: 1 });
 });
 
 test("a king's thirteen knocks out every marble it passes, your own too", () => {

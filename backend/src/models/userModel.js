@@ -80,7 +80,10 @@ const deletionSchema = mongoose.Schema(
 
 export const HIDDEN_PROFILE_FIELDS = ["firstName", "lastName", "username", "avatar", "cover", "activityStatus"];
 
-const profileSchema = mongoose.Schema({ firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String }, { _id: false });
+const profileSchema = mongoose.Schema(
+  { firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String },
+  { _id: false }
+);
 
 const userSchema = mongoose.Schema(
   {
@@ -152,7 +155,6 @@ const userSchema = mongoose.Schema(
     isNewAccount: { type: Boolean, default: false },
     agePausedUntil: { type: Date },
     skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
-    whatsNewSeen: { type: String },
 
     // the browser holds the permission itself, so this only records that the account has turned them on once
     notificationsAllowedAt: { type: Date },
@@ -169,9 +171,10 @@ const userSchema = mongoose.Schema(
 
 userSchema.index({ "deletion.dueAt": 1 }, { sparse: true });
 
+// every stored password was trimmed before hashing, so each one typed is trimmed the same way to match
 userSchema.pre("save", async function () {
   if (this.isModified("password") && this.password) {
-    this.password = await bcrypt.hash(this.password, PASSWORD_COST);
+    this.password = await bcrypt.hash(this.password.trim(), PASSWORD_COST);
   }
 
   // everyone is their own friend, which is what lets them message themselves
@@ -179,7 +182,7 @@ userSchema.pre("save", async function () {
 });
 
 userSchema.methods.correctPassword = async function (candidatePassword) {
-  return Boolean(this.password) && bcrypt.compare(candidatePassword, this.password);
+  return Boolean(this.password) && bcrypt.compare(candidatePassword.trim(), this.password);
 };
 
 const UserModel = mongoose.model("User", userSchema);

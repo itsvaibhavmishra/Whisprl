@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { botMove, DISTRACTED } from "#src/services/games/dots-and-boxes/bot.js";
-import { boxesTouching, openLinesOf, outcome, play, scoresOf, setup, sidesDrawnOn, sidesOfBox } from "#src/services/games/dots-and-boxes/rules.js";
+import { openLinesOf, outcome, play, scoresOf, setup, sidesOfBox } from "#src/services/games/dots-and-boxes/rules.js";
 
 const board = (size, players = 2) => setup(null, { size, players });
 
@@ -44,12 +44,18 @@ test("no box is left on three sides while a line that gives nothing away is free
   const [top, , left] = sidesOfBox(3, 0);
   const gifts = [sidesOfBox(3, 0)[1], sidesOfBox(3, 0)[3]];
   const chosen = everyChoiceOn(draw(board(3), top, left));
-  assert.ok(gifts.every((gift) => !chosen.has(gift)), `chose a gift from ${[...chosen]}`);
+  assert.ok(
+    gifts.every((gift) => !chosen.has(gift)),
+    `chose a gift from ${[...chosen]}`
+  );
 });
 
 test("when every line gives something away, the smallest chain is opened", () => {
   const forced = draw(board(3), ...FORCED);
-  assert.deepEqual([...everyChoiceOn(forced)].sort((one, other) => one - other), CHEAPEST);
+  assert.deepEqual(
+    [...everyChoiceOn(forced)].sort((one, other) => one - other),
+    CHEAPEST
+  );
 });
 
 test("two bots finish a game, and every box ends up claimed", () => {
@@ -66,7 +72,10 @@ test("two bots finish a game, and every box ends up claimed", () => {
 test("a free box is taken even by a bot that is looking away", () => {
   const [top, bottom, left, right] = sidesOfBox(3, 0);
   const state = draw(board(3), top, bottom, left);
-  assert.equal(withLuck(0, () => botMove(state)), right);
+  assert.equal(
+    withLuck(0, () => botMove(state)),
+    right
+  );
 });
 
 test("looking away, it sometimes hands a box over instead of playing safe", () => {
@@ -74,7 +83,10 @@ test("looking away, it sometimes hands a box over instead of playing safe", () =
   const state = draw(board(3), top, left);
   const gifts = [sidesOfBox(3, 0)[1], sidesOfBox(3, 0)[3]];
   const chosen = over200(() => withLuck(LOOKING_AWAY, () => botMove(state)));
-  assert.ok(gifts.some((gift) => chosen.has(gift)), `never gave one away in 200 tries: ${[...chosen]}`);
+  assert.ok(
+    gifts.some((gift) => chosen.has(gift)),
+    `never gave one away in 200 tries: ${[...chosen]}`
+  );
 });
 
 test("the bot standing in for someone who left is the weaker of the two", () => {

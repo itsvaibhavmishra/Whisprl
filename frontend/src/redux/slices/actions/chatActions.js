@@ -43,8 +43,7 @@ const ACK_TIMEOUT = 10000;
 const RETRY_PAUSES = [1000, 2000, 4000, 8000, 15000, 15000, 15000];
 const UNREAD_LOOKBACK = 200;
 
-const readablePins = (pins = [], conversation) =>
-  Promise.all(pins.map(async (pin) => ({ ...pin, message: await decryptMessage(pin.message, conversation) })));
+const readablePins = (pins = [], conversation) => Promise.all(pins.map(async (pin) => ({ ...pin, message: await decryptMessage(pin.message, conversation) })));
 
 const readableReaction = async (reaction, conversation) => {
   if (!reaction?.message) return null;
@@ -64,26 +63,24 @@ export const conversationById = ({ chat }, conversationId) =>
 
 const isFromSomeoneElse = (message, getState) => message.sender?._id !== getState().user.user._id;
 
-const isWatching = (getState, conversationId) =>
-  getState().chat.activeConversation?._id === conversationId && document.visibilityState === "visible";
+const isWatching = (getState, conversationId) => getState().chat.activeConversation?._id === conversationId && document.visibilityState === "visible";
 
-// ------------- Get Conversation Thunk -------------
-export const GetConversations = createApiThunk("conversation/get-conversations", async (_, { getState }) => {
-  const arrivalsWhenAsked = getState().chat.arrivals;
-  const { data } = await axios.get("/conversation/get-conversations");
-  return { conversations: await Promise.all(data.conversations.map(readableConversation)), arrivalsWhenAsked };
-}, { notifyErrors: false });
-
-// ------------- Create or Open Conversation -------------
-export const CreateOpenConversation = createApiThunk(
-  "conversation/create-open-conversation",
-  async (receiver_id, { dispatch }) => {
-    // closed first, so nothing typed while the request is out lands in the chat being left
-    dispatch(CloseConversation());
-    const { data } = await axios.post("/conversation/create-open-conversation", { receiver_id });
-    return { ...data, conversation: await readableConversation(data.conversation) };
-  }
+export const GetConversations = createApiThunk(
+  "conversation/get-conversations",
+  async (_, { getState }) => {
+    const arrivalsWhenAsked = getState().chat.arrivals;
+    const { data } = await axios.get("/conversation/get-conversations");
+    return { conversations: await Promise.all(data.conversations.map(readableConversation)), arrivalsWhenAsked };
+  },
+  { notifyErrors: false }
 );
+
+export const CreateOpenConversation = createApiThunk("conversation/create-open-conversation", async (receiver_id, { dispatch }) => {
+  // closed first, so nothing typed while the request is out lands in the chat being left
+  dispatch(CloseConversation());
+  const { data } = await axios.post("/conversation/create-open-conversation", { receiver_id });
+  return { ...data, conversation: await readableConversation(data.conversation) };
+});
 
 // a friend's chat, made if there is none yet, without leaving whichever chat is open
 export const DirectConversationWith = (friendId) => async (dispatch, getState) => {
@@ -112,8 +109,7 @@ export const readablePage = (data, conversation) => async (dispatch) => {
   return { messages, hasMore: data.hasMore };
 };
 
-export const fetchPage = async (conversationId, params) =>
-  (await axios.get(`/message/get-messages/${conversationId}`, { params })).data;
+export const fetchPage = async (conversationId, params) => (await axios.get(`/message/get-messages/${conversationId}`, { params })).data;
 
 // a friend's message this browser had not seen when the chat opened; a group remembers how far each member read instead
 const isUnreadBy = (userId, conversation) => (message) => {
@@ -139,19 +135,21 @@ const unreadMarkerOf = (messages, isUnread) => {
   return unread.length ? { firstId: unread[0]._id, count: unread.length } : null;
 };
 
-// ------------- Get Messages -------------
-export const GetMessages = createApiThunk("message/get-messages", async (convoId, { dispatch, getState }) => {
-  const isOpening = !getState().chat.hasFetched;
-  const isUnread = isUnreadBy(getState().user.user._id, conversationById(getState(), convoId));
+export const GetMessages = createApiThunk(
+  "message/get-messages",
+  async (convoId, { dispatch, getState }) => {
+    const isOpening = !getState().chat.hasFetched;
+    const isUnread = isUnreadBy(getState().user.user._id, conversationById(getState(), convoId));
 
-  const data = isOpening ? await fetchOpeningPages(convoId, isUnread) : await fetchPage(convoId);
-  const page = await dispatch(readablePage(data, conversationById(getState(), convoId)));
-  dispatch(AcknowledgeMessages(convoId));
+    const data = isOpening ? await fetchOpeningPages(convoId, isUnread) : await fetchPage(convoId);
+    const page = await dispatch(readablePage(data, conversationById(getState(), convoId)));
+    dispatch(AcknowledgeMessages(convoId));
 
-  return { ...page, unread: isOpening ? unreadMarkerOf(data.messages, isUnread) : null };
-}, { notifyErrors: false });
+    return { ...page, unread: isOpening ? unreadMarkerOf(data.messages, isUnread) : null };
+  },
+  { notifyErrors: false }
+);
 
-// ------------- Load Older Messages -------------
 export const LoadOlderMessages = createApiThunk(
   "message/load-older",
   async (_, { dispatch, getState }) => {
@@ -168,7 +166,6 @@ export const LoadOlderMessages = createApiThunk(
   }
 );
 
-// ------------- Load Newer Messages -------------
 export const LoadNewerMessages = createApiThunk(
   "message/load-newer",
   async (_, { dispatch, getState }) => {
@@ -185,35 +182,27 @@ export const LoadNewerMessages = createApiThunk(
   }
 );
 
-// ------------- Acknowledge Messages -------------
 export const AcknowledgeMessages = (conversationId) => (_, getState) => {
   const { chat, encryption } = getState();
-  const isRead =
-    encryption.status === "ready" &&
-    chat.activeConversation?._id === conversationId &&
-    document.visibilityState === "visible";
+  const isRead = encryption.status === "ready" && chat.activeConversation?._id === conversationId && document.visibilityState === "visible";
   socket.emit(isRead ? "messages_seen" : "messages_delivered", conversationId);
 };
 
-// ------------- Typing -------------
 export const StartTyping = (conversationId) => () => socket.emit("start_typing", conversationId);
 
 export const StopTyping = (conversationId) => () => socket.emit("stop_typing", conversationId);
 
-// ------------- Open Conversation -------------
 export const OpenConversation = (conversation) => (dispatch) => {
   dispatch(CloseConversation());
   dispatch(openConversation(conversation));
   dispatch(markRead(conversation._id));
 };
 
-// ------------- Close Conversation -------------
 export const CloseConversation = () => (dispatch) => {
   dispatch(ClearAttachments());
   dispatch(closeActiveConversation());
 };
 
-// ------------- Send Text Message -------------
 export const quoteOf = (message) => {
   if (!message) return null;
   const { _id, sender, message: text, file, files, attachment, clientId, contact, viewOnce, viewedBy, deletedAt, albumKey } = message;
@@ -221,41 +210,43 @@ export const quoteOf = (message) => {
 };
 
 // shown at once from the outbox; the server's copy replaces it once it is saved
-export const SendTextMessage = ({ text, mentions, contact, statusQuote, emojiScale, forwardOf, file, batch, conversationId }) => (dispatch, getState) => {
-  const { chat, user } = getState();
-  const targetId = conversationId ?? chat.activeConversation._id;
-  const isHere = targetId === chat.activeConversation?._id;
-  // a forward or a word about a status was not written in this chat, so it leaves a reply started here alone
-  const takesReply = isHere && !forwardOf && !statusQuote;
-  if (isHere && chat.hasNewerMessages) dispatch(GetMessages(targetId));
-  // words typed while this chat's game is on screen belong to it; something passed on or attached does not
-  const game = forwardOf || statusQuote || file ? null : selectGameOnScreen(getState(), targetId);
-  if (game && text) emitRoomEvent({ conversationId: targetId, from: user.user._id, text });
+export const SendTextMessage =
+  ({ text, mentions, contact, statusQuote, emojiScale, forwardOf, file, batch, conversationId }) =>
+  (dispatch, getState) => {
+    const { chat, user } = getState();
+    const targetId = conversationId ?? chat.activeConversation._id;
+    const isHere = targetId === chat.activeConversation?._id;
+    // a forward or a word about a status was not written in this chat, so it leaves a reply started here alone
+    const takesReply = isHere && !forwardOf && !statusQuote;
+    if (isHere && chat.hasNewerMessages) dispatch(GetMessages(targetId));
+    // words typed while this chat's game is on screen belong to it; something passed on or attached does not
+    const game = forwardOf || statusQuote || file ? null : selectGameOnScreen(getState(), targetId);
+    if (game && text) emitRoomEvent({ conversationId: targetId, from: user.user._id, text });
 
-  dispatch(
-    queueMessage({
-      clientId: uuidv4(),
-      senderId: user.user._id,
-      conversationId: targetId,
-      afterId: isHere ? chat.messages.at(-1)?._id : undefined,
-      createdAt: new Date().toISOString(),
-      text,
-      mentions,
-      contact,
-      statusQuote,
-      emojiScale,
-      forwardOf,
-      file,
-      batch,
-      game,
-      replyTo: takesReply ? quoteOf(chat.replyingTo) : null,
-    })
-  );
-  if (takesReply) dispatch(setReplyingTo(null));
-  playQueuedSound();
-  feel();
-  dispatch(FlushOutbox());
-};
+    dispatch(
+      queueMessage({
+        clientId: uuidv4(),
+        senderId: user.user._id,
+        conversationId: targetId,
+        afterId: isHere ? chat.messages.at(-1)?._id : undefined,
+        createdAt: new Date().toISOString(),
+        text,
+        mentions,
+        contact,
+        statusQuote,
+        emojiScale,
+        forwardOf,
+        file,
+        batch,
+        game,
+        replyTo: takesReply ? quoteOf(chat.replyingTo) : null,
+      })
+    );
+    if (takesReply) dispatch(setReplyingTo(null));
+    playQueuedSound();
+    feel();
+    dispatch(FlushOutbox());
+  };
 
 const UNENCRYPTABLE = "That message could not be encrypted. Reload Whisprl and try again.";
 
@@ -285,7 +276,19 @@ const plaintextOf = (entry, key) =>
 
 const confirmQueued = (entry, saved, dispatch) => {
   const { text, caption, file, mentions, contact, statusQuote, emojiScale, replyTo } = entry;
-  dispatch(messageArrived({ ...saved, message: text ?? caption ?? "", file, mentions, contact, statusQuote, emojiScale, replyTo: replyTo ?? saved.replyTo, reactions: [] }));
+  dispatch(
+    messageArrived({
+      ...saved,
+      message: text ?? caption ?? "",
+      file,
+      mentions,
+      contact,
+      statusQuote,
+      emojiScale,
+      replyTo: replyTo ?? saved.replyTo,
+      reactions: [],
+    })
+  );
   playSound("sent");
   if (!entry.file || entry.forwardOf) return;
   markAttachmentSent(entry.clientId, saved._id);
@@ -316,8 +319,7 @@ const deliverQueued = async (entry, dispatch, getState) => {
   fail(null);
 };
 
-const isStillSending = (getState, clientId) =>
-  getState().chat.outbox.some((queued) => queued.clientId === clientId && queued.status === "sending");
+const isStillSending = (getState, clientId) => getState().chat.outbox.some((queued) => queued.clientId === clientId && queued.status === "sending");
 
 // a file still being encrypted holds its place, so nothing written after it goes first
 const nextQueued = (getState) => getState().chat.outbox.find((queued) => queued.status === "sending" || queued.status === "preparing");
@@ -351,7 +353,6 @@ export const DiscardMessage = (clientId) => (dispatch) => {
   releaseAttachment(clientId);
 };
 
-// ------------- Receive Message -------------
 export const ReceiveMessage = (message) => async (dispatch, getState) => {
   // a friend who just started a conversation with us sends a message before we have that conversation
   if (!conversationById(getState(), message.conversation)) await dispatch(GetConversations());
@@ -375,20 +376,19 @@ export const ReceiveMessage = (message) => async (dispatch, getState) => {
   notifyArrival(readable, conversation);
 };
 
-// ------------- Pins Changed -------------
-export const ReceivePins = ({ conversation_id, pins }) => async (dispatch, getState) => {
-  const conversation = conversationById(getState(), conversation_id);
-  if (conversation) dispatch(pinsUpdated({ conversation_id, pins: await readablePins(pins, conversation) }));
-};
+export const ReceivePins =
+  ({ conversation_id, pins }) =>
+  async (dispatch, getState) => {
+    const conversation = conversationById(getState(), conversation_id);
+    if (conversation) dispatch(pinsUpdated({ conversation_id, pins: await readablePins(pins, conversation) }));
+  };
 
-// ------------- Message Removed Before Its File Arrived -------------
 export const RemovedMessage = (message) => (dispatch, getState) => {
   dispatch(removeMessage(message));
   const isPreview = conversationById(getState(), message.conversation)?.latestMessage?._id === message._id;
   if (isPreview) dispatch(GetConversations());
 };
 
-// ------------- Receive Re-encrypted Message -------------
 export const ReceiveMessageUpdate = (message) => async (dispatch, getState) => {
   const conversation = conversationById(getState(), message.conversation);
   if (!conversation) return;
@@ -398,13 +398,13 @@ export const ReceiveMessageUpdate = (message) => async (dispatch, getState) => {
   if (isFromSomeoneElse(message, getState)) dispatch(AcknowledgeMessages(conversation._id));
 };
 
-// ------------- Receive Latest Reaction -------------
-export const ReceiveReactionPreview = ({ conversation: conversationId, latestReaction }) => async (dispatch, getState) => {
-  const conversation = conversationById(getState(), conversationId);
-  if (conversation) dispatch(reactionPreviewed({ conversationId, latestReaction: await readableReaction(latestReaction, conversation) }));
-};
+export const ReceiveReactionPreview =
+  ({ conversation: conversationId, latestReaction }) =>
+  async (dispatch, getState) => {
+    const conversation = conversationById(getState(), conversationId);
+    if (conversation) dispatch(reactionPreviewed({ conversationId, latestReaction: await readableReaction(latestReaction, conversation) }));
+  };
 
-// ------------- Receive Receipts -------------
 // reading a chat in one tab clears its unread count in this person's other tabs too
 export const ReceiveReceipt = (receipt) => (dispatch, getState) => {
   dispatch(applyReceipt(receipt));
@@ -412,7 +412,6 @@ export const ReceiveReceipt = (receipt) => (dispatch, getState) => {
   if (kind === "seen" && reader === getState().user.user._id) dispatch(markRead(conversation_id));
 };
 
-// ------------- Receive Album Reactions -------------
 export const ReceiveAlbumUpdate = (album) => async (dispatch, getState) => {
   const conversation = conversationById(getState(), album.conversation);
   if (!conversation) return;
@@ -422,7 +421,6 @@ export const ReceiveAlbumUpdate = (album) => async (dispatch, getState) => {
   dispatch(albumReactionsShown({ [batchKey]: withHeldReaction(batchKey, reactions, getState().user.user._id) }));
 };
 
-// ------------- Deliver Waiting Messages -------------
 export const DeliverWaitingMessages = createAsyncThunk("message/deliver-waiting", async (_, { getState }) => {
   const userId = getState().user.user._id;
   const { data } = await axios.get("/message/deliverable");
@@ -438,7 +436,6 @@ export const DeliverWaitingMessages = createAsyncThunk("message/deliver-waiting"
   );
 });
 
-// ------------- Catch Up After Reconnecting -------------
 export const CatchUp = () => (dispatch, getState) => {
   dispatch(GetConversations());
   dispatch(DeliverWaitingMessages());

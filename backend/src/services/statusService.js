@@ -24,7 +24,13 @@ const PUBLIC_TYPES = ["image/jpeg", "image/gif", "video/mp4", "video/webm"];
 const PREVIEW = /^data:image\/jpeg;base64,[\w+/=]+$/;
 const MAX_PREVIEW = 64 * 1024;
 
-const ownersFrom = (text) => (typeof text === "string" ? text.split(",").filter((id) => mongoose.isValidObjectId(id)).slice(0, MAX_OWNERS) : null);
+const ownersFrom = (text) =>
+  typeof text === "string"
+    ? text
+        .split(",")
+        .filter((id) => mongoose.isValidObjectId(id))
+        .slice(0, MAX_OWNERS)
+    : null;
 
 const parseJson = (json, problem) => {
   try {
@@ -146,7 +152,10 @@ export const discoverStatuses = async (user, ownersText) => {
   const notFriends = { $nin: [user._id, ...user.friends] };
   const live = { isPublic: true, expiresAt: { $gt: new Date() }, owner: owners ? { ...notFriends, $in: owners } : notFriends, excluded: { $ne: user._id } };
   const newest = await StatusModel.find(live).sort({ createdAt: -1 }).limit(DISCOVER_LIMIT).populate("owner", KEYED_FIELDS);
-  const blocked = await blockedEitherWay(user, newest.map((status) => status.owner._id));
+  const blocked = await blockedEitherWay(
+    user,
+    newest.map((status) => status.owner._id)
+  );
   const shown = newest.filter((status) => !blocked.has(String(status.owner._id))).reverse();
   return shown.map((status) => toClientStatus(status, user._id));
 };
@@ -174,7 +183,8 @@ export const reactToStatus = async (user, status_id, cipher) => {
   // each write is atomic, so a view arriving at the same moment can never leave two views for one person
   const viewedAt = new Date();
   const setReaction = () => StatusModel.updateOne({ ...live, "views.user": user._id }, { $set: { "views.$.reaction": cipher } });
-  const addView = () => StatusModel.updateOne({ ...live, "views.user": { $ne: user._id } }, { $push: { views: { user: user._id, viewedAt, reaction: cipher } } });
+  const addView = () =>
+    StatusModel.updateOne({ ...live, "views.user": { $ne: user._id } }, { $push: { views: { user: user._id, viewedAt, reaction: cipher } } });
   if (!(await setReaction()).matchedCount && !(await addView()).matchedCount) await setReaction();
   return { owner: status.owner._id, viewedAt, reaction: cipher };
 };
@@ -196,7 +206,10 @@ export const removeStatus = async (user, status_id) => {
 };
 
 export const sweepExpiredStatuses = async () => {
-  const expired = await StatusModel.find({ expiresAt: { $lte: new Date() } }).select("file").limit(SWEEP_BATCH).lean();
+  const expired = await StatusModel.find({ expiresAt: { $lte: new Date() } })
+    .select("file")
+    .limit(SWEEP_BATCH)
+    .lean();
   if (!expired.length) return;
   await StatusModel.deleteMany({ _id: { $in: expired.map((status) => status._id) } });
   await Promise.all(expired.filter((status) => status.file).map((status) => deleteFile(status.file.url).catch(() => {})));

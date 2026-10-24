@@ -51,12 +51,12 @@ const jackaroo = {
     },
     {
       heading: "Moving",
-      text: "A card moves a marble that many holes forward. On the way it can jump one marble, yours or theirs, but never two, and it can't land on your own. Nobody can pass or land on a marble sitting on its own start.",
+      text: "A card moves a marble that many holes forward. On the way it can jump one marble, yours or theirs, but never two. Nobody can pass or land on a marble sitting on its own start.",
       picture: "moving",
     },
     {
       heading: "Knocking out",
-      text: "Land on their marble and it goes back to its base. Knocking a marble out earns you another card to play straight away, and so does a marble reaching the deepest hole still free in your home.",
+      text: "Land on a marble, theirs or your own, and it goes back to its base. Knocking a marble out earns you another card to play straight away, and so does a marble reaching the deepest hole still free in your home.",
       picture: "knockout",
     },
     {

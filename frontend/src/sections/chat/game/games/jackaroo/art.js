@@ -1,6 +1,6 @@
 import masthead from "@/sections/chat/game/games/jackaroo/masthead.json";
 
-const FOLDER = `${process.env.PUBLIC_URL}/games/jackaroo`;
+const FOLDER = `${import.meta.env.BASE_URL}games/jackaroo`;
 
 // cut from the user's designs, so every piece shares their paint and light
 const art = {

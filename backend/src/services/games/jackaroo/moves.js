@@ -3,7 +3,7 @@ import { HOME_ENTRY, HOME_SLOTS, LOOP, START, TELEPORTS } from "#src/services/ga
 import { isRed } from "#src/services/games/jackaroo/cards.js";
 
 export const other = (seat) => 1 - seat;
-export const sameMarble = (one, two) => one.owner === two.owner && one.id === two.id;
+const sameMarble = (one, two) => one.owner === two.owner && one.id === two.id;
 export const placeOf = (state, marble) => state.players[marble.owner].marbles[marble.id];
 
 const marblesOf = (state, owner) => state.players[owner].marbles.map((_, id) => ({ owner, id }));
@@ -56,13 +56,12 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
     const occupant = marbleAt(state, index);
     if (occupant && !sameMarble(occupant, marble)) {
       if (isOnOwnStart(state, occupant)) return null;
-      if (sweep) captured.push({ marble: occupant, step });
-      else if (step < steps) {
+      if (sweep || step === steps) captured.push({ marble: occupant, step });
+      else {
         // any marble may be jumped, your own too, but only one in a move
         jumped += 1;
         if (jumped > 1) return null;
-      } else if (occupant.owner === marble.owner) return null;
-      else captured.push({ marble: occupant, step });
+      }
     }
     place = { at: "track", index };
     path.push(place);
@@ -70,12 +69,12 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
   return { marble, from: placeOf(state, marble), path, to: place, captured };
 };
 
-// landing on a swirl always jumps to its twin, even past home, knocking out a rival there; a twin holding its own colour refuses the move
+// landing on a swirl always jumps to its twin, even past home, knocking out whatever marble waits there unless it sits on its own start
 const withTeleport = (state, move) => {
   const exit = move.to.at === "track" ? TELEPORTS[move.to.index] : undefined;
   if (exit === undefined) return move;
   const occupant = marbleAt(state, exit);
-  if (occupant?.owner === move.marble.owner) return null;
+  if (occupant && isOnOwnStart(state, occupant)) return null;
   const to = { at: "track", index: exit };
   const captured = occupant ? [...move.captured, { marble: occupant, step: move.path.length + 1 }] : move.captured;
   return { ...move, to, teleport: { from: move.to, to }, captured };
@@ -101,8 +100,6 @@ export const moveMarble = (state, move) => {
   for (const { marble } of move.captured) state.players[marble.owner].marbles[marble.id] = { at: "base", slot: marble.id };
   state.players[move.marble.owner].marbles[move.marble.id] = move.to;
 };
-
-// ---------- what each card can do ----------
 
 const asPlays = (card, kind, moves) => moves.filter(Boolean).map((move) => ({ card, kind, moves: [move] }));
 
@@ -238,7 +235,8 @@ const isDeepestFree = (state, owner, slot) => {
 };
 
 // read on the board after the play: going home earns a card only for a marble that reached the deepest hole still free
-export const settlesHome = (state, play, seat) => (play.moves ?? []).some((move) => move.marble.owner === seat && move.to.at === "home" && isDeepestFree(state, seat, move.to.slot));
+export const settlesHome = (state, play, seat) =>
+  (play.moves ?? []).some((move) => move.marble.owner === seat && move.to.at === "home" && isDeepestFree(state, seat, move.to.slot));
 
 // how far round a marble has come, from its start to the last home slot
 export const progressOf = (owner, place) => {

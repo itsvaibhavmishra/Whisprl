@@ -1,14 +1,6 @@
 import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 
-import {
-  EndSession,
-  GithubLogin,
-  GoogleLogin,
-  LinkedinLogin,
-  LoginUser,
-  PasskeyLogin,
-  VerifyOTP,
-} from "@/redux/slices/actions/authActions";
+import { EndSession, GithubLogin, GoogleLogin, LinkedinLogin, LoginUser, PasskeyLogin, VerifyOTP } from "@/redux/slices/actions/authActions";
 
 const initialState = {
   isLoggedIn: false,

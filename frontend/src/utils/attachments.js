@@ -62,7 +62,9 @@ export const shrinkImage = async (file) => {
   if (file.type === "image/gif") return file;
   const bitmap = await createImageBitmap(file).catch(() => null);
   if (!bitmap) return file;
-  const shrunk = needsShrinking(file, bitmap) ? await new Promise((resolve) => drawWithin(bitmap, LONG_EDGE).toBlob(resolve, "image/jpeg", PHOTO_QUALITY)) : null;
+  const shrunk = needsShrinking(file, bitmap)
+    ? await new Promise((resolve) => drawWithin(bitmap, LONG_EDGE).toBlob(resolve, "image/jpeg", PHOTO_QUALITY))
+    : null;
   bitmap.close();
   if (!shrunk || shrunk.size >= file.size) return file;
   return new File([shrunk], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: file.lastModified });

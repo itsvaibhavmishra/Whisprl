@@ -1,4 +1,4 @@
-import { combineReducers } from "redux";
+import { combineReducers } from "@reduxjs/toolkit";
 import { createTransform } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
@@ -20,13 +20,7 @@ const PERSISTED_FIELDS = { auth: ["isLoggedIn", "otpEmail"], user: ["user"] };
 const lastingFieldsOf = (slice, key) =>
   Object.fromEntries((PERSISTED_FIELDS[key] ?? []).filter((field) => field in slice).map((field) => [field, slice[field]]));
 
-// a profile stored by an older build can still carry an access token, and the token must stay in memory only
-const withoutToken = ({ token, ...profile }) => profile;
-
-const onlyLastingFields = createTransform(lastingFieldsOf, (slice, key) => {
-  const kept = lastingFieldsOf(slice, key);
-  return kept.user ? { ...kept, user: withoutToken(kept.user) } : kept;
-});
+const onlyLastingFields = createTransform(lastingFieldsOf, lastingFieldsOf);
 
 const rootPersistConfig = {
   key: "root",

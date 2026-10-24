@@ -1,17 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  boxesIn,
-  linesIn,
-  mostPlayersOn,
-  outcome,
-  play,
-  scoresOf,
-  setup,
-  sidesOfBox,
-  viewFor,
-} from "#src/services/games/dots-and-boxes/rules.js";
+import { boxesIn, linesIn, mostPlayersOn, outcome, play, scoresOf, setup, sidesOfBox, viewFor } from "#src/services/games/dots-and-boxes/rules.js";
 import { PALETTE_SIZE } from "#src/services/games/colours.js";
 
 const board = (size, players = 2) => setup(null, { size, players });
@@ -127,8 +117,6 @@ test("a colour stays with its seat while the same people are sitting there", () 
 
 test("someone new at the table deals the colours again", () => {
   const first = setup(null, { size: 4, players: 2, seating: "ava|ben" });
-  const dealt = new Set(
-    Array.from({ length: 60 }, () => String(setup(first, { size: 4, players: 2, seating: "ava|cleo" }).colours))
-  );
+  const dealt = new Set(Array.from({ length: 60 }, () => String(setup(first, { size: 4, players: 2, seating: "ava|cleo" }).colours)));
   assert.ok(dealt.size > 1, `a changed table always dealt ${[...dealt]}`);
 });

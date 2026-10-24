@@ -3,9 +3,9 @@ export default function Table(theme) {
     MuiTableRow: {
       styleOverrides: {
         root: {
-          '&.Mui-selected': {
+          "&.Mui-selected": {
             backgroundColor: theme.palette.action.selected,
-            '&:hover': {
+            "&:hover": {
               backgroundColor: theme.palette.action.hover,
             },
           },
@@ -15,18 +15,18 @@ export default function Table(theme) {
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderBottom: 'none',
+          borderBottom: "none",
         },
         head: {
           color: theme.palette.text.secondary,
           backgroundColor: theme.palette.background.neutral,
-          '&:first-of-type': {
+          "&:first-of-type": {
             paddingLeft: theme.spacing(3),
             borderTopLeftRadius: theme.shape.borderRadius,
             borderBottomLeftRadius: theme.shape.borderRadius,
             boxShadow: `inset 8px 0 0 ${theme.palette.background.paper}`,
           },
-          '&:last-of-type': {
+          "&:last-of-type": {
             paddingRight: theme.spacing(3),
             borderTopRightRadius: theme.shape.borderRadius,
             borderBottomRightRadius: theme.shape.borderRadius,
@@ -38,32 +38,12 @@ export default function Table(theme) {
           backgroundImage: `linear-gradient(to bottom, ${theme.palette.background.neutral} 0%, ${theme.palette.background.neutral} 100%)`,
         },
         body: {
-          '&:first-of-type': {
+          "&:first-of-type": {
             paddingLeft: theme.spacing(3),
           },
-          '&:last-of-type': {
+          "&:last-of-type": {
             paddingRight: theme.spacing(3),
           },
-        },
-      },
-    },
-    MuiTablePagination: {
-      styleOverrides: {
-        root: {
-          borderTop: `solid 1px ${theme.palette.divider}`,
-        },
-        toolbar: {
-          height: 64,
-        },
-        select: {
-          '&:focus': {
-            borderRadius: theme.shape.borderRadius,
-          },
-        },
-        selectIcon: {
-          width: 20,
-          height: 20,
-          marginTop: -4,
         },
       },
     },

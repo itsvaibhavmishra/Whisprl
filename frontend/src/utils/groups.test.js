@@ -1,6 +1,11 @@
 import { describeEvent } from "@/utils/groups";
 
-const chat = { users: [{ _id: "ava", firstName: "Ava" }, { _id: "riya", firstName: "Riya" }] };
+const chat = {
+  users: [
+    { _id: "ava", firstName: "Ava" },
+    { _id: "riya", firstName: "Riya" },
+  ],
+};
 const eventFrom = (sender, event) => ({ sender: { _id: sender }, event });
 
 test("opening and closing a game each read as one line in the chat", () => {

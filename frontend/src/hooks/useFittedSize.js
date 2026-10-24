@@ -1,7 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 
 const fitted = ({ width, height }, aspect) =>
-  width / height > aspect ? { width: Math.floor(height * aspect), height: Math.floor(height) } : { width: Math.floor(width), height: Math.floor(width / aspect) };
+  width / height > aspect
+    ? { width: Math.floor(height * aspect), height: Math.floor(height) }
+    : { width: Math.floor(width), height: Math.floor(width / aspect) };
 
 // the ref callback alone owns the observer, since a strict-mode effect cleanup would disconnect it before its first report
 const useFittedSize = (aspect) => {

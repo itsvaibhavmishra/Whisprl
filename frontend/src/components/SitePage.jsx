@@ -1,0 +1,103 @@
+import { Box, Button, Container, IconButton, Link, Stack, Typography } from "@mui/material";
+import { GithubLogoIcon, InstagramLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
+import { useSelector } from "react-redux";
+import { Link as RouterLink } from "react-router-dom";
+
+import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
+import AppearanceMenu from "@/components/AppearanceMenu";
+import { DEFAULT_PATH, PORTFOLIO_URL, SOURCE_URL } from "@/config";
+import { PATH_AUTH, PATH_DOCS } from "@/routes/paths";
+
+const SOCIALS = [
+  { label: "Vaibhaw Mishra on GitHub", href: "https://github.com/itsvaibhavmishra", Icon: GithubLogoIcon },
+  { label: "Vaibhaw Mishra on Instagram", href: "https://instagram.com/itsvaibhavmishra", Icon: InstagramLogoIcon },
+  { label: "Vaibhaw Mishra on LinkedIn", href: "https://www.linkedin.com/in/itsvaibhavmishra", Icon: LinkedinLogoIcon },
+];
+
+const DOCS = [
+  { label: "Terms and conditions", to: PATH_DOCS.general.tnc },
+  { label: "Privacy policy", to: PATH_DOCS.general.privacy },
+  { label: "Child safety", to: PATH_DOCS.general.childSafety },
+];
+
+const AccountLinks = () => (
+  <>
+    <Button component={RouterLink} to={PATH_AUTH.general.login} color="inherit">
+      Log in
+    </Button>
+    <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained">
+      Create account
+    </Button>
+  </>
+);
+
+const SiteHeader = () => {
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  return (
+    <Stack
+      component="header"
+      direction="row"
+      sx={{ alignItems: "center", justifyContent: "space-between", pt: { xs: "calc(16px + env(safe-area-inset-top))", md: 3 }, pb: { xs: 2, md: 3 } }}
+    >
+      <Box component={RouterLink} to={isLoggedIn ? DEFAULT_PATH : PATH_AUTH.general.welcome} sx={{ display: "flex" }}>
+        <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
+      </Box>
+      <Stack component="nav" aria-label="Account" direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        {isLoggedIn ? (
+          <Button component={RouterLink} to={DEFAULT_PATH} variant="contained">
+            Open Whisprl
+          </Button>
+        ) : (
+          <AccountLinks />
+        )}
+        <AppearanceMenu />
+      </Stack>
+    </Stack>
+  );
+};
+
+const SiteFooter = () => (
+  <Stack
+    component="footer"
+    direction={{ xs: "column", md: "row" }}
+    spacing={3}
+    sx={{ justifyContent: "space-between", alignItems: { md: "center" }, mt: { xs: 6, md: 8 }, py: 4, borderTop: 1, borderColor: "divider" }}
+  >
+    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+      © {new Date().getFullYear()} Whisprl. Built by{" "}
+      <Link href={PORTFOLIO_URL} target="_blank" rel="noopener" color="text.primary">
+        Vaibhaw Mishra
+      </Link>
+      .
+    </Typography>
+    <Stack direction="row" spacing={3} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
+      {DOCS.map(({ label, to }) => (
+        <Link key={to} component={RouterLink} to={to} color="text.secondary" variant="body2">
+          {label}
+        </Link>
+      ))}
+      <Link href={SOURCE_URL} target="_blank" rel="noopener" color="text.secondary" variant="body2">
+        Source on GitHub
+      </Link>
+      <Stack direction="row">
+        {SOCIALS.map(({ label, href, Icon }) => (
+          <IconButton key={href} component="a" href={href} target="_blank" rel="noopener" aria-label={label} sx={{ color: "text.secondary" }}>
+            <Icon size={20} weight="duotone" />
+          </IconButton>
+        ))}
+      </Stack>
+    </Stack>
+  </Stack>
+);
+
+const SitePage = ({ children }) => (
+  <Container maxWidth="xl">
+    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
+      <SiteHeader />
+      <Box component="main">{children}</Box>
+      <SiteFooter />
+    </Box>
+  </Container>
+);
+
+export default SitePage;

@@ -29,7 +29,9 @@ const asEvidence = async (sent, conversation_id) => {
   if (!conversation_id) throw createHttpError.BadRequest("Messages can only be reported from the chat they are in");
 
   const ids = sent.map(({ message }) => message).filter((id) => mongoose.isValidObjectId(id));
-  const saved = await MessageModel.find({ _id: { $in: ids }, conversation: conversation_id }).select("franking").lean();
+  const saved = await MessageModel.find({ _id: { $in: ids }, conversation: conversation_id })
+    .select("franking")
+    .lean();
   const frankingOf = new Map(saved.map(({ _id, franking }) => [String(_id), franking]));
 
   const checkOf = (message, plaintext) => {

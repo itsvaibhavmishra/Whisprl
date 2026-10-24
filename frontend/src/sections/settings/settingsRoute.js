@@ -1,4 +1,4 @@
-import { ChatCircleDots, Info, LockKey, Palette, ShieldCheck, Sparkle, UserCircle } from "phosphor-react";
+import { ChatCircleDotsIcon, InfoIcon, LockKeyIcon, PaletteIcon, ShieldCheckIcon, SparkleIcon, UserCircleIcon } from "@phosphor-icons/react";
 
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { colorPresets } from "@/utils/colorPresets";
@@ -14,16 +14,30 @@ export const CATEGORIES = [
     label: "Appearance",
     description: "Theme, accent colour and wallpaper",
     note: "Changes apply straight away and are saved on this device.",
-    icon: Palette,
+    icon: PaletteIcon,
     tint: accent("purple"),
     group: 0,
   },
-  { slug: "chats", label: "Chats", description: "Reactions, sounds, notifications and blocked people", icon: ChatCircleDots, tint: accent("default"), group: 0 },
-  { slug: "account", label: "Account", description: "Your profile, username, email and deleting your account", icon: UserCircle, tint: accent("blue"), group: 1 },
-  { slug: "security", label: "Security", description: "Password, passkeys and your recovery key", icon: ShieldCheck, tint: accent("cyan"), group: 1 },
-  { slug: "privacy", label: "Privacy", description: "Who sees your status, suggestions and birthday", icon: LockKey, tint: accent("orange"), group: 1 },
-  { slug: "whats-new", label: "What's new", description: "The highlights of each release", icon: Sparkle, tint: accent("red"), group: 2 },
-  { slug: "about", label: "About Whisprl", description: "Terms, source code and reporting a problem", icon: Info, tint: "grey.600", group: 2 },
+  {
+    slug: "chats",
+    label: "Chats",
+    description: "Reactions, sounds, notifications and blocked people",
+    icon: ChatCircleDotsIcon,
+    tint: accent("default"),
+    group: 0,
+  },
+  {
+    slug: "account",
+    label: "Account",
+    description: "Your profile, username, email and deleting your account",
+    icon: UserCircleIcon,
+    tint: accent("blue"),
+    group: 1,
+  },
+  { slug: "security", label: "Security", description: "Password, passkeys and your recovery key", icon: ShieldCheckIcon, tint: accent("cyan"), group: 1 },
+  { slug: "privacy", label: "Privacy", description: "Who sees your status, suggestions and birthday", icon: LockKeyIcon, tint: accent("orange"), group: 1 },
+  { slug: "whats-new", label: "What's new", description: "The highlights of each release", icon: SparkleIcon, tint: accent("red"), group: 2 },
+  { slug: "about", label: "About Whisprl", description: "Terms, source code and reporting a problem", icon: InfoIcon, tint: "grey.600", group: 2 },
 ];
 
 // your profile opens from the card above the list rather than from a row in it

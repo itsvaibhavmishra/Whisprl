@@ -10,8 +10,7 @@ const isExposed = (state, seat, cell) => {
   );
 };
 
-const capturedBy = (state, seat, after) =>
-  state.owners.filter((owner, cell) => owner !== null && owner !== seat && after.owners[cell] === seat).length;
+const capturedBy = (state, seat, after) => state.owners.filter((owner, cell) => owner !== null && owner !== seat && after.owners[cell] === seat).length;
 
 const knocksOut = (state, seat, after) => state.played.some((_, other) => other !== seat && !isOut(state, other) && isOut(after, other));
 

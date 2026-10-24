@@ -1,5 +1,5 @@
 import createHttpError from "http-errors";
-import sizeOf from "image-size";
+import { imageSize } from "image-size";
 import mongoose from "mongoose";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
@@ -9,7 +9,6 @@ import { presenceShownTo } from "#src/services/blockService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { QUICK_REACTION_COUNT, areQuickReactions } from "#src/utils/emoji.js";
 import { assertStrongPassword, normalizeUsername } from "#src/utils/accountRules.js";
-import { randomCoverStyle } from "#src/utils/coverStyles.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -38,7 +37,7 @@ export const validateProfileImage = (kind, file) => {
   if (file.size > maxSize) {
     throw createHttpError.BadRequest("That image is too large");
   }
-  if (!hasRightShape(sizeOf(file.buffer))) {
+  if (!hasRightShape(imageSize(file.buffer))) {
     throw createHttpError.BadRequest(`Crop the ${noun} before uploading it`);
   }
 };
@@ -64,29 +63,15 @@ export const saveProfile = async (user, fields, uploads, removals) => {
   await Promise.allSettled(replaced.filter(isCloudinaryFile).map(deleteFile));
 };
 
-// accounts made before covers had styles are each given one when the server starts
-export const giveEveryoneACoverStyle = async () => {
-  const missing = await UserModel.find({ coverStyle: { $exists: false } }).select("_id").lean();
-  if (!missing.length) return 0;
-  await UserModel.bulkWrite(
-    missing.map(({ _id }) => ({ updateOne: { filter: { _id, coverStyle: { $exists: false } }, update: { coverStyle: randomCoverStyle() } } }))
-  );
-  return missing.length;
-};
-
-// the status accounts once started with, under the app's old and new names, said nothing about anyone
-const OLD_DEFAULT_STATUSES = ["Hey There! I ❤️ Using Whisprl 😸", "Hey There! I ❤️ Using TwinkChat 😸"];
-
-export const clearDefaultStatuses = async () =>
-  (await UserModel.updateMany({ activityStatus: { $in: OLD_DEFAULT_STATUSES } }, { activityStatus: "" })).modifiedCount;
-
 const MUTUAL_PREVIEW = 3;
 
 // everyone counts as their own friend, so both people are left out of what they share
 const mutualFriendsOf = async (viewer, person_id, theirFriends) => {
   const theirs = new Set(theirFriends.map(String));
   const shared = viewer.friends.filter((friend_id) => theirs.has(String(friend_id)) && !friend_id.equals(viewer._id) && !friend_id.equals(person_id));
-  const people = await UserModel.find({ _id: { $in: shared.slice(0, MUTUAL_PREVIEW) } }).select("firstName lastName avatar").lean();
+  const people = await UserModel.find({ _id: { $in: shared.slice(0, MUTUAL_PREVIEW) } })
+    .select("firstName lastName avatar")
+    .lean();
   return { count: shared.length, people };
 };
 
@@ -102,7 +87,9 @@ const canSeeMutualFriends = async (viewer, person) => {
 export const getPublicProfile = async (viewer, { userId, username }) => {
   const filter = username ? { username: normalizeUsername(username) } : mongoose.isValidObjectId(userId) && { _id: userId };
   if (!filter) throw createHttpError.BadRequest("Query required");
-  const person = await UserModel.findOne(filter).select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month`).lean();
+  const person = await UserModel.findOne(filter)
+    .select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month`)
+    .lean();
   if (!person) throw createHttpError.NotFound("User does not exist");
 
   const { friends, suggestToFriendsOfFriends, showBirthdayToFriends, birthday, ...rest } = person;
@@ -118,7 +105,9 @@ export const getOwnProfile = async (user) => {
   const friendIds = user.friends.filter((friendId) => !friendId.equals(user._id));
   // counted from the accounts themselves, as the friends list is, so a friend whose account is gone is not counted
   const [friendPreviews, friendCount, conversationCount, messageCount] = await Promise.all([
-    UserModel.find({ _id: { $in: friendIds } }).select("firstName lastName avatar").limit(5),
+    UserModel.find({ _id: { $in: friendIds } })
+      .select("firstName lastName avatar")
+      .limit(5),
     UserModel.countDocuments({ _id: { $in: friendIds } }),
     ConversationModel.countDocuments({ users: user._id }),
     MessageModel.countDocuments({ sender: user._id }),

@@ -36,7 +36,21 @@ const eventSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["created", "added", "removed", "left", "renamed", "photo", "admin_added", "admin_removed", "owner", "pinned", "disappearing", "game_opened", "game_closed"],
+      enum: [
+        "created",
+        "added",
+        "removed",
+        "left",
+        "renamed",
+        "photo",
+        "admin_added",
+        "admin_removed",
+        "owner",
+        "pinned",
+        "disappearing",
+        "game_opened",
+        "game_closed",
+      ],
       required: true,
     },
     users: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
@@ -129,7 +143,6 @@ messageSchema.index({ sender: 1, clientId: 1 }, { unique: true, partialFilterExp
 messageSchema.index({ sender: 1 }, { partialFilterExpression: { awaitingKey: true } });
 messageSchema.index({ expiresAt: 1 }, { partialFilterExpression: { expiresAt: { $exists: true } } });
 
-// creating model for schema
 const MessageModel = mongoose.model("Message", messageSchema);
 
 export default MessageModel;

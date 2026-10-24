@@ -1,4 +1,4 @@
-const FOLDER = `${process.env.PUBLIC_URL}/games/dots-and-boxes`;
+const FOLDER = `${import.meta.env.BASE_URL}games/dots-and-boxes`;
 
 const art = {
   scene: `${FOLDER}/scene.webp`,

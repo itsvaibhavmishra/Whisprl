@@ -5,8 +5,6 @@ import { defaultPreset } from "@/utils/colorPresets";
 const NAVY = "#0F1A2B";
 
 const SECONDARY = {
-  lighterFaded: "#84A9FF40",
-  lighterFade: "#84A9FFBF",
   lighter: "#D6E4FF",
   light: "#84A9FF",
   main: "#3366FF",
@@ -14,8 +12,6 @@ const SECONDARY = {
   darker: "#091A7A",
 };
 const INFO = {
-  lighterFaded: "#74CAFF40",
-  lighterFade: "#74CAFFBF",
   lighter: "#D0F2FF",
   light: "#74CAFF",
   main: "#1890FF",
@@ -23,8 +19,6 @@ const INFO = {
   darker: "#04297A",
 };
 const SUCCESS = {
-  lighterFaded: "#AAF27F40",
-  lighterFade: "#AAF27FBF",
   lighter: "#E9FCD4",
   light: "#7EE2A8",
   main: "#2BC48A",
@@ -32,8 +26,6 @@ const SUCCESS = {
   darker: "#08660D",
 };
 const WARNING = {
-  lighterFaded: "#FFE16A40",
-  lighterFade: "#FFE16ABF",
   lighter: "#FFF7CD",
   light: "#FFE16A",
   main: "#FFC107",
@@ -41,8 +33,6 @@ const WARNING = {
   darker: "#7A4F01",
 };
 const ERROR = {
-  lighterFaded: "#FFA48D40",
-  lighterFade: "#FFA48DBF",
   lighter: "#FFE7D9",
   light: "#FF8A8A",
   main: "#E5484D",
@@ -62,22 +52,10 @@ const GREY = {
   700: "#3A4860",
   800: "#1E2A3D",
   900: "#131C2B",
-  500_8: alpha("#8A98AE", 0.08),
   500_12: alpha("#8A98AE", 0.12),
-  500_16: alpha("#8A98AE", 0.16),
   500_24: alpha("#8A98AE", 0.24),
   500_32: alpha("#8A98AE", 0.32),
-  500_48: alpha("#8A98AE", 0.48),
-  500_56: alpha("#8A98AE", 0.56),
   500_80: alpha("#8A98AE", 0.8),
-};
-
-const CHART_COLORS = {
-  violet: ["#826AF9", "#9E86FF", "#D0AEFF", "#F7D2FF"],
-  blue: ["#2D99FF", "#83CFFF", "#A5F3FF", "#CCFAFF"],
-  green: ["#2CD9C5", "#60F1C8", "#A4F7CC", "#C0F2DC"],
-  yellow: ["#FFE700", "#FFEF5A", "#FFF7AE", "#FFF3D6"],
-  red: ["#FF6C40", "#FF8F6D", "#FFBD98", "#FFF2D4"],
 };
 
 const COMMON = {
@@ -89,7 +67,6 @@ const COMMON = {
   warning: { ...WARNING, contrastText: NAVY },
   error: { ...ERROR, contrastText: "#fff" },
   grey: GREY,
-  chart: CHART_COLORS,
 };
 
 const action = (hoverColor) => ({

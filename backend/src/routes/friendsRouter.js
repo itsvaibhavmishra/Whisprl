@@ -1,5 +1,4 @@
 import express from "express";
-import trimRequest from "trim-request";
 
 import { protect } from "#src/middlewares/authMiddleware.js";
 import { readLimit, requestLimit, searchLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
@@ -20,48 +19,31 @@ import {
 
 const friendsRouter = express.Router();
 
-// Send Friend Request
-friendsRouter
-  .route("/send-request")
-  .post(trimRequest.all, protect, requestLimit(), sendRequest);
+friendsRouter.route("/send-request").post(protect, requestLimit(), sendRequest);
 
 // The chat a request's note is sealed for
-friendsRouter.route("/note-target/:user_id").get(trimRequest.all, protect, readLimit(), getNoteTarget);
+friendsRouter.route("/note-target/:user_id").get(protect, readLimit(), getNoteTarget);
 
-// Cancel Friend Request
-friendsRouter
-  .route("/cancel-request")
-  .post(trimRequest.all, protect, writeLimit(), cancelRequest);
+friendsRouter.route("/cancel-request").post(protect, writeLimit(), cancelRequest);
 
-// Accept/Reject Friend Request
-friendsRouter
-  .route("/accept-reject-request")
-  .post(trimRequest.all, protect, writeLimit(), acceptRejectRequest);
+friendsRouter.route("/accept-reject-request").post(protect, writeLimit(), acceptRejectRequest);
 
-// Remove Friend
-friendsRouter
-  .route("/remove-friend")
-  .post(trimRequest.all, protect, writeLimit(), removeFriend);
+friendsRouter.route("/remove-friend").post(protect, writeLimit(), removeFriend);
 
-// Get List of Friends
-friendsRouter.route("/get-friends").get(trimRequest.all, protect, readLimit(), getFriends);
+friendsRouter.route("/get-friends").get(protect, readLimit(), getFriends);
 
-// Get List of Online Friends
-friendsRouter
-  .route("/online-friends")
-  .get(trimRequest.all, protect, readLimit(), getOnlineFriends);
+friendsRouter.route("/online-friends").get(protect, readLimit(), getOnlineFriends);
 
-// Search for Friends
-friendsRouter.route("/search").get(trimRequest.all, protect, searchLimit(), searchFriends);
+friendsRouter.route("/search").get(protect, searchLimit(), searchFriends);
 
 // Received and sent requests, with the cooldowns still running
-friendsRouter.route("/requests").get(trimRequest.all, protect, readLimit(), getRequests);
+friendsRouter.route("/requests").get(protect, readLimit(), getRequests);
 
 // Opening the list clears the count of requests not looked at yet
-friendsRouter.route("/requests/seen").put(trimRequest.all, protect, writeLimit(), seeRequests);
+friendsRouter.route("/requests/seen").put(protect, writeLimit(), seeRequests);
 
 // People you may know, and hiding one of them
-friendsRouter.route("/suggestions").get(trimRequest.all, protect, readLimit(), getSuggestions);
+friendsRouter.route("/suggestions").get(protect, readLimit(), getSuggestions);
 friendsRouter.route("/suggestions/:user_id").delete(protect, writeLimit(), hideSuggestion);
 
 export default friendsRouter;
