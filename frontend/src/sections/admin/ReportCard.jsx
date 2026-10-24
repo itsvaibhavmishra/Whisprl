@@ -51,7 +51,7 @@ const ReportCard = ({ report, onChanged }) => {
 
   return (
     <Box component="li" sx={{ py: 2.5, borderTop: 1, borderColor: "divider" }}>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: "baseline", flexWrap: "wrap", gap: 0.75 }}>
+      <Stack direction="row" sx={{ alignItems: "baseline", flexWrap: "wrap", columnGap: 1.5, rowGap: 0.75 }}>
         <Typography sx={{ fontSize: 15.5, fontWeight: 800, textTransform: "capitalize" }}>{report.reason}</Typography>
         <Typography sx={{ fontSize: 13.5, color: "text.secondary" }}>{`about ${ABOUT[report.subject.kind]}`}</Typography>
         <Box sx={{ flex: 1 }} />

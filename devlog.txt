@@ -22,9 +22,12 @@
     - On a phone the emoji button swaps the keyboard for an emoji panel just as tall, with recent emoji first and its sections along the foot; its grip, or a quick flick down the list, opens it to most of the screen, and scrolling back past the top brings it down again; on a computer the same panel opens below the message field
     - The emoji picker has the newest emoji, keeps your recent ones, lets you pick a skin tone from a row of them, and loads its emoji from Whisprl itself, so it works offline in the app
     - More reactions slides up from below on every screen, with your six quick reactions on top to react with or edit right there
+    - Loading shows a paw print filling in toe by toe, in place of the old spinner
+    - While someone types, a cat peeks over their typing bubble, blinks, ducks and peeks again from the corner
     - The microphone sits beside the attach button and the emoji button beside the message field on every screen; a held microphone slides right to cancel, and an emoji panel closes by sliding down whenever you press outside it
 
   - Fixed:
+    - The admin pages' rows of tags no longer space their items twice over
     - Opening the keyboard over a game no longer squeezes the game; the keyboard covers its foot instead
     - What a knocked-out player says in a game no longer fades with their seat or slips behind the board
     - Jackaroo's result no longer leaves the board squeezed to the top over an empty hand
@@ -34,6 +37,7 @@
     - Signing in with GitHub or LinkedIn no longer writes the sign-in code to the browser console
 
   - Developers:
+    - A release pull request's test build installs beside the app as Whisprl Test, as whisprl-test-<version>.apk, signs in with Google, and goes without push notifications and live updates
     - The backend reads its .env and restarts on change through Node itself, so dotenv and nodemon are gone
     - Both packages and CI run on Node 24, and CI on the current majors of the checkout, setup-node and setup-java actions
     - The frontend builds and serves with Vite instead of Create React App, so a build takes under a second and the frontend no longer needs npm install -f; its tests run on Vitest, and every file holding JSX ends in .jsx
