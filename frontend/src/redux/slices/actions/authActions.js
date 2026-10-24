@@ -11,6 +11,7 @@ import axios from "@/utils/axios";
 import { createSessionKeys } from "@/utils/crypto/sessionKeys";
 import { notify } from "@/utils/notify";
 import { authenticateWithPasskey } from "@/utils/passkeys";
+import { forgetChats } from "@/utils/savedChats";
 import { forgetSession, startSession } from "@/utils/session";
 
 const withRecaptcha = async (recaptchaRef, values) => {
@@ -69,6 +70,7 @@ export const EndSession = createAsyncThunk("auth/end-session", async ({ keepDevi
   dispatch(DisconnectSocket());
   releaseAllAttachments();
   if (!keepDeviceKeys) await dispatch(ForgetDeviceKeys(userId));
+  await forgetChats(userId).catch(() => {});
   dispatch(clearChat());
   dispatch(logout());
 });

@@ -26,7 +26,7 @@ import { selectIsLoading } from "@/redux/slices/requestSlice";
 import axios from "@/utils/axios";
 import { socket } from "@/utils/socket";
 import uuidv4 from "@/utils/uuidv4";
-import { decryptAlbumReactions, decryptMessage, decryptReaction, encryptMessage, openMessage } from "@/utils/crypto/messageCipher";
+import { decryptAlbumReactions, decryptMessage, decryptReaction, encryptMessage, openMessage, whenKeysChecked } from "@/utils/crypto/messageCipher";
 import { markAttachmentSent, releaseAttachment } from "@/utils/attachments";
 import { withHeldReaction } from "@/utils/heldReactions";
 import { batchKeyOf } from "@/utils/messageFiles";
@@ -69,7 +69,7 @@ export const GetConversations = createApiThunk(
   "conversation/get-conversations",
   async (_, { getState }) => {
     const arrivalsWhenAsked = getState().chat.arrivals;
-    const { data } = await axios.get("/conversation/get-conversations");
+    const [{ data }] = await Promise.all([axios.get("/conversation/get-conversations"), whenKeysChecked()]);
     return { conversations: await Promise.all(data.conversations.map(readableConversation)), arrivalsWhenAsked };
   },
   { notifyErrors: false }
@@ -101,6 +101,7 @@ const readableAlbumReactions = async ({ messages, albums = [] }, conversation) =
 };
 
 export const readablePage = (data, conversation) => async (dispatch) => {
+  await whenKeysChecked();
   const [messages, albumReactions] = await Promise.all([
     Promise.all(data.messages.map((message) => decryptMessage(message, conversation))),
     readableAlbumReactions(data, conversation),

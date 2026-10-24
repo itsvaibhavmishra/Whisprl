@@ -1,6 +1,7 @@
 import {
   CatchUp,
   DeliverWaitingMessages,
+  GetConversations,
   FlushOutbox,
   ReceiveMessage,
   ReceivePins,
@@ -17,6 +18,8 @@ import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
 import { FriendsChanged, GetRequests, RequestsChanged } from "@/redux/slices/actions/contactActions";
 import { ReceiveGameInvite, ReceiveGameNotice, ReceiveGameReaction, WatchGame } from "@/redux/slices/actions/gameActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
+import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
+import { selectIsLoading } from "@/redux/slices/requestSlice";
 import { gameStateReceived, lookersChanged } from "@/redux/slices/gameSlice";
 import { ReceiveStatus, ReceiveStatusReaction } from "@/redux/slices/actions/statusActions";
 import { notify } from "@/utils/notify";
@@ -24,6 +27,10 @@ import { dropAccessToken } from "@/utils/session";
 import { socket } from "@/utils/socket";
 
 const MAX_HANDSHAKE_RETRIES = 2;
+
+// a launch that could not reach the server shows only what the phone saved, so its first connection catches up as a reconnection does
+const isStartFailed = (state) =>
+  state.encryption.status === "failed" || ((state.chat.isListSaved || state.chat.hasConversationsFailed) && !selectIsLoading(state, GetConversations));
 
 let isListening = false;
 let hasConnected = false;
@@ -73,8 +80,10 @@ const listen = (dispatch, getState) => {
   socket.on("connect", () => {
     handshakeRetries = 0;
     dispatch(setConnection("connected"));
+    const hasStartFailed = isStartFailed(getState());
+    if (getState().encryption.status === "failed") dispatch(PrepareEncryption());
     // a request answered while this tab was away sent its event to nobody, so friends are fetched again too
-    if (hasConnected) {
+    if (hasConnected || hasStartFailed) {
       dispatch(CatchUp());
       dispatch(GetFriends());
     }

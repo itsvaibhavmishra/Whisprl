@@ -13,6 +13,15 @@ import { decodePayload } from "@/utils/messagePayload";
 
 let deviceKeys = null;
 const conversationKeys = new Map();
+// chats are fetched while this device's keys are still being checked, and wait for that before decrypting anything
+let keysChecked = Promise.resolve();
+
+export const trackKeyCheck = (check) => {
+  keysChecked = check.catch(() => null);
+  return check;
+};
+
+export const whenKeysChecked = () => keysChecked;
 
 export const setDeviceKeys = (keys) => {
   deviceKeys = keys;
@@ -101,11 +110,13 @@ export const openMessage = async (message, conversation, bind) => {
 export const encryptReaction = (emoji, message, conversation, userId, isForAlbum = false) =>
   encryptMessage(emoji, conversation, userId, reactionBinding(message, isForAlbum));
 
+export const readableText = (plaintext) => {
+  const { text, mentions, contact, statusQuote, emojiScale } = decodePayload(plaintext);
+  return { message: text, mentions, contact, statusQuote, emojiScale, plaintext };
+};
+
 const readableOf = (message, plaintext) => {
-  if (!message.attachment) {
-    const { text, mentions, contact, statusQuote, emojiScale } = decodePayload(plaintext);
-    return { message: text, mentions, contact, statusQuote, emojiScale, plaintext };
-  }
+  if (!message.attachment) return readableText(plaintext);
   const { caption, file } = JSON.parse(plaintext);
   return { message: caption ?? "", file, plaintext };
 };

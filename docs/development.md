@@ -62,6 +62,18 @@ Logging out deletes it. The app's own storage is kept out of Android backup by
 recovery key asks for the fingerprint, face or screen lock first, and a phone with no screen lock
 goes straight through.
 
+**Saved chats.** The app keeps the chat list and the newest 60 messages of each recently opened
+chat on the phone, so a launch after Android has ended it opens on them at once instead of on
+loading placeholders, and works with no connection. `utils/savedChats.js` saves them in the
+`saved-chats` store of the `whisprl` IndexedDB database, encrypted with AES-GCM under a key the
+browser's crypto will not export, which leaves them as hard to read as the device's own message
+keys. `hooks/useSavedChats.js` saves a moment after the chats change and at once when the app is
+left, and only once this device can read its messages. On launch the saved copy shows first and the
+server's list and pages replace it: saved messages are marked, so a fresh page drops one deleted or
+edited in the meantime, and messages that disappeared while the app was closed are left out.
+Logging out deletes the copy, as does finding that the account's key is no longer this device's.
+The website keeps nothing, since a saved copy on a shared computer would outlive the visit.
+
 **Recovery key.** The app's web view drops downloads without a word, so in the app the recovery
 key's Download becomes Save to password manager, through Android's Credential Manager. A phone with
 nowhere to save passwords says so, and Copy still works. Google Password Manager syncs with the
@@ -96,6 +108,14 @@ so a change to one that the other misses fails a test. Run the Java side with
 `./gradlew :app:testDebugUnitTest` from `frontend/android/`. A message too long for a push, or one
 the phone cannot open, shows as "New message". Pushes are data only and high priority, so the app
 decides what is shown, and shows nothing while it is on screen.
+
+A text message pushed while the app is not running is also kept, still sealed as it came, by
+`ArrivedMessages.java`, up to the newest 200. On the next launch `ArrivedMessagesPlugin.java` opens
+them with the Block Store key and `utils/savedChats.js` adds them to the saved chats before they
+show, so a chat opened from its notification already holds the message. A running app hears every
+message over its own connection and keeps nothing this way. Photos and videos are still uploading
+when their push is sent, and messages from this account's other devices are never pushed to it, so
+both arrive with the server's pages.
 
 **Signing in with Google.** Google refuses its sign-in page inside a web view, so the app asks
 Android for the token instead, through Credential Manager in `GoogleSignInPlugin.java`. That

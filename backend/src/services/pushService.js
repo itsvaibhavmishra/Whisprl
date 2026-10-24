@@ -60,6 +60,9 @@ const sealedFor = (message, sender, keyId) => {
   if (!senderPublicKey || !isForRecipient) return {};
 
   return {
+    messageId: String(message._id),
+    createdAt: message.createdAt.toISOString(),
+    ...(message.expiresAt && { expiresAt: message.expiresAt.toISOString() }),
     kind: kindOf(message),
     keyId,
     senderPublicKey,
