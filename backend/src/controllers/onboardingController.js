@@ -1,5 +1,12 @@
 import { toSessionUser } from "#src/services/authService.js";
-import { allowNotificationsStep, confirmUsernameStep, saveBirthdayStep, saveRecoveryKeyStep, settleOnboarding, skipStep } from "#src/services/onboardingService.js";
+import {
+  allowNotificationsStep,
+  confirmUsernameStep,
+  saveBirthdayStep,
+  saveRecoveryKeyStep,
+  settleOnboarding,
+  skipStep,
+} from "#src/services/onboardingService.js";
 
 const respondWithUser = async (res, user) => res.status(200).json({ status: "success", user: await toSessionUser(user) });
 

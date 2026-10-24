@@ -3,10 +3,8 @@ import axios from "@/utils/axios";
 import { loadDeviceKeys } from "@/utils/crypto/keyStore";
 import { authenticateWithPasskey, createPasskey, lockWithPasskey, randomChallenge } from "@/utils/passkeys";
 
-// ------------- List Passkeys -------------
 export const GetPasskeys = createApiThunk("passkeys/list", async () => (await axios.get("/passkeys")).data, { notifyErrors: false });
 
-// ------------- Link A Passkey To Messages -------------
 // the passkey's secret locks this browser's copy of the account key, so the passkey can unlock it elsewhere
 const lockWithSecret = async (credentialId, prfSecret, getState) => {
   const { keyId, privateKey } = await loadDeviceKeys(getState().user.user._id);
@@ -24,7 +22,6 @@ export const LinkPasskey = createApiThunk("passkeys/link", async (credentialId, 
   return lockWithSecret(credentialId, prfSecret, getState);
 });
 
-// ------------- Add Passkey -------------
 export const AddPasskey = createApiThunk("passkeys/add", async (_, { dispatch, getState }) => {
   const { data: registration } = await axios.post("/passkeys/options");
   const { response, canUnlock, prfSecret } = await createPasskey(registration.options);
@@ -38,7 +35,6 @@ export const AddPasskey = createApiThunk("passkeys/add", async (_, { dispatch, g
   return LinkPasskey.fulfilled.match(linked) ? linked.payload : data;
 });
 
-// ------------- Remove Passkey -------------
 export const RemovePasskey = createApiThunk("passkeys/remove", async (passkeyId) => {
   const { data } = await axios.delete(`/passkeys/${passkeyId}`);
   notifyResult(data);

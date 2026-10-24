@@ -8,6 +8,15 @@ export default ({ name, heading, body, reason }) =>
 ${greeting(name)}
 ${paragraph(body)}
 ${panel("Why", escapeHtml(reason))}
-${paragraph('If you think this is a mistake, reply to this email and tell us why. A person reads every reply.')}`,
-    text: [`Hey ${name},`, "", body, "", "Why:", reason, "", "If you think this is a mistake, reply to this email and tell us why. A person reads every reply."],
+${paragraph("If you think this is a mistake, reply to this email and tell us why. A person reads every reply.")}`,
+    text: [
+      `Hey ${name},`,
+      "",
+      body,
+      "",
+      "Why:",
+      reason,
+      "",
+      "If you think this is a mistake, reply to this email and tell us why. A person reads every reply.",
+    ],
   });

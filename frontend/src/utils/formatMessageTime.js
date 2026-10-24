@@ -24,5 +24,10 @@ export const formatDayLabel = (time, now = new Date()) => {
   if (daysAgo === 0) return "Today";
   if (daysAgo === 1) return "Yesterday";
   if (daysAgo < 7) return date.toLocaleDateString([], { weekday: "long" });
-  return date.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", ...(date.getFullYear() !== now.getFullYear() && { year: "numeric" }) });
+  return date.toLocaleDateString([], {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    ...(date.getFullYear() !== now.getFullYear() && { year: "numeric" }),
+  });
 };

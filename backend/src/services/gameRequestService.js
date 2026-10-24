@@ -83,7 +83,10 @@ export const listGameRequests = async ({ status = "open", kind = "all", search =
   }
 
   // the rank is by demand across everything open, so it means the same thing while searching or filtering
-  const ranked = [...byKey.values()].map(asGroup).sort(byDemand).map((group, position) => ({ ...group, rank: position + 1 }));
+  const ranked = [...byKey.values()]
+    .map(asGroup)
+    .sort(byDemand)
+    .map((group, position) => ({ ...group, rank: position + 1 }));
   const ofKind = kind === "all" ? ranked : ranked.filter((group) => group.requests.some((request) => request.kind === kind));
   const query = typeof search === "string" ? search.trim() : "";
   const shown = query

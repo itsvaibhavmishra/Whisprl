@@ -16,5 +16,4 @@ export const toBase64 = (buffer) => {
 
 export const fromBase64 = (encoded) => Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
 
-export const toHex = (buffer) =>
-  Array.from(new Uint8Array(buffer), (byte) => byte.toString(16).padStart(2, "0")).join("");
+export const toHex = (buffer) => Array.from(new Uint8Array(buffer), (byte) => byte.toString(16).padStart(2, "0")).join("");

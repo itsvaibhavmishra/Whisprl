@@ -81,11 +81,7 @@ const withQueued = (messages, outbox, me) => {
     failedAfter.set(anchor, [...(failedAfter.get(anchor) ?? []), queuedMessage(entry, me)]);
   });
 
-  return [
-    ...(failedAfter.get(null) ?? []),
-    ...messages.flatMap((message) => [message, ...(failedAfter.get(message._id) ?? [])]),
-    ...sending,
-  ];
+  return [...(failedAfter.get(null) ?? []), ...messages.flatMap((message) => [message, ...(failedAfter.get(message._id) ?? [])]), ...sending];
 };
 
 const itemTypeOf = (group) => {

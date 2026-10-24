@@ -21,13 +21,14 @@ export const assertValidName = (firstName, lastName) => {
 
 export const assertStrongPassword = (password) => {
   if (!isText(password) || !validator.isStrongPassword(password.trim())) {
-    throw createHttpError.BadRequest(
-      "Password must be at least 8 characters long, with a number, a lowercase letter, an uppercase letter and a symbol"
-    );
+    throw createHttpError.BadRequest("Password must be at least 8 characters long, with a number, a lowercase letter, an uppercase letter and a symbol");
   }
 };
 
-export const normalizeEmail = (email) => String(email ?? "").trim().toLowerCase();
+export const normalizeEmail = (email) =>
+  String(email ?? "")
+    .trim()
+    .toLowerCase();
 
 const MIN_AGE = 13;
 const EARLIEST_YEAR = 1900;
@@ -61,7 +62,11 @@ export const oldEnoughBirthdayFrom = (value) => {
 const USERNAME = /^(?=.{3,20}$)[a-z0-9]+(?:[._][a-z0-9]+)*$/;
 const RESERVED_USERNAMES = new Set(["admin", "administrator", "help", "moderator", "official", "root", "support", "system", "whisprl"]);
 
-export const normalizeUsername = (value) => String(value ?? "").trim().replace(/^@/, "").toLowerCase();
+export const normalizeUsername = (value) =>
+  String(value ?? "")
+    .trim()
+    .replace(/^@/, "")
+    .toLowerCase();
 
 export const usernameProblemOf = (username) => {
   if (!USERNAME.test(username)) {

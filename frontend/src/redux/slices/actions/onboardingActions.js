@@ -1,20 +1,14 @@
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import axios from "@/utils/axios";
 
-// ------------- Birthday Step -------------
 export const SaveBirthdayStep = createApiThunk("onboarding/birthday", async (values) => (await axios.put("/onboarding/birthday", values)).data);
 
-// ------------- Recovery Key Saved -------------
 export const ConfirmRecoveryKeySaved = createApiThunk("onboarding/recovery-key", async () => (await axios.put("/onboarding/recovery-key")).data);
 
-// ------------- Notifications Allowed -------------
 export const AllowNotifications = createApiThunk("onboarding/notifications", async () => (await axios.put("/onboarding/notifications")).data);
 
-// ------------- Refresh Progress -------------
 export const GetOnboarding = createApiThunk("onboarding/get", async () => (await axios.get("/onboarding")).data, { notifyErrors: false });
 
-// ------------- Skip A Step -------------
 export const SkipSetupStep = createApiThunk("onboarding/skip", async (step) => (await axios.put(`/onboarding/${step}/skip`)).data);
 
-// ------------- Username Kept -------------
 export const ConfirmUsername = createApiThunk("onboarding/username", async () => (await axios.put("/onboarding/username")).data);

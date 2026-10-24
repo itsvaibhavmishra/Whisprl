@@ -4,7 +4,10 @@ import { setDisappearing } from "#src/services/disappearingService.js";
 
 // only this person's other tabs hear about it, since nobody else's chat changes
 const answerPreferences = (req, res, event, conversation_id, preferences) => {
-  req.app.get("io").to(String(req.user._id)).emit(event, { conversation_id, ...preferences });
+  req.app
+    .get("io")
+    .to(String(req.user._id))
+    .emit(event, { conversation_id, ...preferences });
   res.status(200).json({ status: "success", preferences });
 };
 

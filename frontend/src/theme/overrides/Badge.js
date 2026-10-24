@@ -5,7 +5,7 @@ export default function Badge() {
         dot: {
           width: 10,
           height: 10,
-          borderRadius: '50%',
+          borderRadius: "50%",
         },
       },
     },

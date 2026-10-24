@@ -91,7 +91,6 @@ const ReadAttachment = (id, kind) => async (dispatch, getState) => {
   }
 };
 
-// ------------- Choose Attachments -------------
 export const ChooseAttachments = (kind) => async (dispatch, getState) => {
   const chosen = getState().chat.files;
   const kindInUse = chosen.length ? groupOf(chosen[0]) : kind;
@@ -136,7 +135,6 @@ export const ChooseAttachments = (kind) => async (dispatch, getState) => {
   });
 };
 
-// ------------- Edit A Chosen Photo Or Video -------------
 // a photo is redrawn at once so every preview shows the edit; a video is drawn on while it compresses
 export const EditAttachment = (id, edits) => async (dispatch, getState) => {
   const chosen = getState().chat.files.find((file) => file.id === id);
@@ -157,7 +155,6 @@ export const EditAttachment = (id, edits) => async (dispatch, getState) => {
   }
 };
 
-// ------------- Discard Chosen Attachments -------------
 export const RemoveAttachment = (id) => (dispatch) => {
   releaseAttachment(id);
   dispatch(removeFile(id));
@@ -185,7 +182,6 @@ const sealedKeyOf = async (clientId) => {
   return { key, iv };
 };
 
-// ------------- Prepare A Queued File -------------
 // a video is compressed and every file sealed, then the outbox sends its message; cancelling leaves it to send again
 export const PrepareQueued = (clientId) => async (dispatch, getState) => {
   const entry = getState().chat.outbox.find((queued) => queued.clientId === clientId);
@@ -210,7 +206,14 @@ export const PrepareQueued = (clientId) => async (dispatch, getState) => {
       replaceHeldFile(clientId, shrunk.file);
       // the held video now carries its drawing, so sending it again must not draw it a second time
       dispatch(updateQueuedMessage({ clientId, edits: undefined }));
-      file = { ...file, name: shrunk.file.name, mimeType: shrunk.file.type, size: shrunk.file.size, width: shrunk.width ?? file.width, height: shrunk.height ?? file.height };
+      file = {
+        ...file,
+        name: shrunk.file.name,
+        mimeType: shrunk.file.type,
+        size: shrunk.file.size,
+        width: shrunk.width ?? file.width,
+        height: shrunk.height ?? file.height,
+      };
       // a view-once video goes without a poster, so the drawn one only replaces a poster already there
       if (file.preview && shrunk.preview) file.preview = shrunk.preview;
     }
@@ -232,68 +235,69 @@ export const PrepareQueued = (clientId) => async (dispatch, getState) => {
   }
 };
 
-// ------------- Send Chosen Attachments -------------
 // photos and videos go as one captioned group; a single document carries the caption itself
-export const SendAttachments = (caption, isViewOnce = false) => async (dispatch, getState) => {
-  const { files, activeConversation, messages } = getState().chat;
-  if (!files.length || files.some((file) => file.isReading)) return;
-  dispatch(clearFiles());
+export const SendAttachments =
+  (caption, isViewOnce = false) =>
+  async (dispatch, getState) => {
+    const { files, activeConversation, messages } = getState().chat;
+    if (!files.length || files.some((file) => file.isReading)) return;
+    dispatch(clearFiles());
 
-  const isMedia = files[0].kind !== "doc";
-  const captionFor = (index) => ((isMedia && index === 0) || (!isMedia && files.length === 1) ? caption : undefined);
-  const batchId = uuidv4();
+    const isMedia = files[0].kind !== "doc";
+    const captionFor = (index) => ((isMedia && index === 0) || (!isMedia && files.length === 1) ? caption : undefined);
+    const batchId = uuidv4();
 
-  // queued before anything is compressed or sealed, so a message typed straight after can never overtake the files
-  files.forEach((attachment, index) =>
+    // queued before anything is compressed or sealed, so a message typed straight after can never overtake the files
+    files.forEach((attachment, index) =>
+      dispatch(
+        queueMessage({
+          clientId: attachment.id,
+          status: "preparing",
+          senderId: getState().user.user._id,
+          conversationId: activeConversation._id,
+          afterId: messages.at(-1)?._id,
+          createdAt: new Date().toISOString(),
+          caption: captionFor(index),
+          // a view-once file travels without its preview, which would otherwise outlive it
+          file: isViewOnce ? { ...detailsOf(attachment), preview: undefined } : detailsOf(attachment),
+          batch: { batchId, batchIndex: index, batchTotal: files.length },
+          ...(isViewOnce && { viewOnce: true }),
+          // kept beside the file rather than in it, since the file's details are what the message carries
+          ...(attachment.kind === "video" && { edits: attachment.edits }),
+        })
+      )
+    );
+
+    playQueuedSound();
+    feel();
+
+    // one at a time, so the files ahead in the group are not slowed by a video being compressed behind them
+    for (const attachment of files) await dispatch(PrepareQueued(attachment.id));
+  };
+
+export const SendVoiceMessage =
+  ({ file, duration, waveform }) =>
+  (dispatch, getState) => {
+    const { activeConversation, messages, replyingTo } = getState().chat;
+    const clientId = holdAttachment(file);
     dispatch(
       queueMessage({
-        clientId: attachment.id,
+        clientId,
         status: "preparing",
         senderId: getState().user.user._id,
         conversationId: activeConversation._id,
         afterId: messages.at(-1)?._id,
         createdAt: new Date().toISOString(),
-        caption: captionFor(index),
-        // a view-once file travels without its preview, which would otherwise outlive it
-        file: isViewOnce ? { ...detailsOf(attachment), preview: undefined } : detailsOf(attachment),
-        batch: { batchId, batchIndex: index, batchTotal: files.length },
-        ...(isViewOnce && { viewOnce: true }),
-        // kept beside the file rather than in it, since the file's details are what the message carries
-        ...(attachment.kind === "video" && { edits: attachment.edits }),
+        file: { name: "Voice message", mimeType: file.type, size: file.size, duration, waveform, kind: "voice" },
+        replyTo: quoteOf(replyingTo),
       })
-    )
-  );
+    );
+    if (replyingTo) dispatch(setReplyingTo(null));
+    playQueuedSound();
+    feel();
+    dispatch(PrepareQueued(clientId));
+  };
 
-  playQueuedSound();
-  feel();
-
-  // one at a time, so the files ahead in the group are not slowed by a video being compressed behind them
-  for (const attachment of files) await dispatch(PrepareQueued(attachment.id));
-};
-
-// ------------- Send A Voice Message -------------
-export const SendVoiceMessage = ({ file, duration, waveform }) => (dispatch, getState) => {
-  const { activeConversation, messages, replyingTo } = getState().chat;
-  const clientId = holdAttachment(file);
-  dispatch(
-    queueMessage({
-      clientId,
-      status: "preparing",
-      senderId: getState().user.user._id,
-      conversationId: activeConversation._id,
-      afterId: messages.at(-1)?._id,
-      createdAt: new Date().toISOString(),
-      file: { name: "Voice message", mimeType: file.type, size: file.size, duration, waveform, kind: "voice" },
-      replyTo: quoteOf(replyingTo),
-    })
-  );
-  if (replyingTo) dispatch(setReplyingTo(null));
-  playQueuedSound();
-  feel();
-  dispatch(PrepareQueued(clientId));
-};
-
-// ------------- Cancel A Send -------------
 // a file still waiting its turn has nothing running to stop, so it is simply marked as not sent
 export const CancelTransfer = (clientId) => (dispatch, getState) => {
   if (cancelTransfer(clientId)) return;
@@ -302,7 +306,6 @@ export const CancelTransfer = (clientId) => (dispatch, getState) => {
   dispatch(transferEnded(clientId));
 };
 
-// ------------- Upload An Attachment's File -------------
 export const UploadAttachment = createAsyncThunk("message/upload-attachment", async (clientId, { dispatch }) => {
   const form = new FormData();
   form.append("file", sealedCopyOf(clientId));
@@ -319,7 +322,7 @@ export const UploadAttachment = createAsyncThunk("message/upload-attachment", as
       await dispatch(ReceiveMessageUpdate(data.message));
       dropSealedCopy(clientId);
       return;
-    } catch (error) {
+    } catch {
       if (controller.signal.aborted || !retryPause) break;
       await pause(retryPause);
     }
@@ -333,7 +336,6 @@ export const RetryUpload = (clientId) => (dispatch) => {
   dispatch(UploadAttachment(clientId));
 };
 
-// ------------- Remove An Attachment That Did Not Upload -------------
 export const RemoveUnsentAttachment = (message) => async (dispatch) => {
   try {
     await axios.delete(`/message/${message._id}`);

@@ -43,7 +43,10 @@ test("landing on your own marble knocks it back to its base, so the marble behin
   const plays = playsOf(boardWith({ mine: [track(3), track(5)], theirs: [track(7)], hand: [card(2)] }), "move");
   const behind = plays.find((play) => play.moves[0].marble.id === 0);
   assert.deepEqual(behind.moves[0].to, track(5));
-  assert.deepEqual(behind.moves[0].captured.map(({ marble }) => marble), [{ owner: 0, id: 1 }]);
+  assert.deepEqual(
+    behind.moves[0].captured.map(({ marble }) => marble),
+    [{ owner: 0, id: 1 }]
+  );
   assert.equal(plays.length, 2);
 });
 

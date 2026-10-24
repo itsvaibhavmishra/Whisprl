@@ -27,11 +27,18 @@
     - Jackaroo's result no longer leaves the board squeezed to the top over an empty hand
     - In Jackaroo a marble may land on one of your own and knock it back to base, earning a card as any knock-out does, so the marble behind is no longer stuck
     - In Jackaroo, the cards a red queen leaves fly straight back into place in their fan, and when yours are taken your hand lays out over the board, the taken card leaves for the pile and the rest come home
+    - Taking a seat in a game while already playing in another chat asks whether to switch games again, instead of being refused
+    - Signing in with GitHub or LinkedIn no longer writes the sign-in code to the browser console
 
   - Developers:
     - The backend reads its .env and restarts on change through Node itself, so dotenv and nodemon are gone
-    - The backend and CI run on Node 24, and CI on the current majors of the checkout, setup-node and setup-java actions
+    - Both packages and CI run on Node 24, and CI on the current majors of the checkout, setup-node and setup-java actions
+    - The frontend builds and serves with Vite instead of Create React App, so a build takes under a second and the frontend no longer needs npm install -f; its tests run on Vitest, and every file holding JSX ends in .jsx
+    - Both packages lint with ESLint and format with Prettier from one shared config, and the gate fails on a lint warning or an unformatted file; lint also holds the rules on imports through @/ or # and on names longer than one letter
 
   - Internal:
     - The backend drops what nothing uses any more: the rebrand email, the What's new endpoint, the old status audience GET, vercel.json, the start-up backfills that had finished, and the axios, streamifier and trim-request packages
     - Every backend package is on its latest version, among them Express 5, Mongoose 9, Multer 2, Nodemailer 10, bcrypt 6 and Sentry 11, and npm audit finds nothing
+    - The frontend drops what nothing uses any more: translations that were never set up, the right-to-left layout, theme styles for components the app never shows, unused animations, components and helpers, and 13 packages including swiper
+    - Analytics starts only when its ID is set
+    - Games accept only the nine emoji the tray offers

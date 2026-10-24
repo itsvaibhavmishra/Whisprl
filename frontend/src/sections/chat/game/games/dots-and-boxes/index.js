@@ -50,9 +50,17 @@ const dotsAndBoxes = {
   rules: [
     { heading: "The aim", text: "Claim more boxes than anyone else.", picture: "aim" },
     { heading: "Your turn", text: "Draw one line between two dots that sit side by side, across or down.", picture: "turn" },
-    { heading: "Claiming a box", text: "Draw the fourth side of a box and it's yours, marked in your colour. Claiming a box earns you another turn straight away.", picture: "claim" },
+    {
+      heading: "Claiming a box",
+      text: "Draw the fourth side of a box and it's yours, marked in your colour. Claiming a box earns you another turn straight away.",
+      picture: "claim",
+    },
     { heading: "The end", text: "When every line is drawn, whoever holds the most boxes wins. If the most is shared, it's a draw.", picture: "end" },
-    { heading: "Board size", text: "Pick a 3 × 3, 4 × 4 or 5 × 5 board before you start. A bigger board makes a longer game and seats more players, four boxes for each.", picture: "sizes" },
+    {
+      heading: "Board size",
+      text: "Pick a 3 × 3, 4 × 4 or 5 × 5 board before you start. A bigger board makes a longer game and seats more players, four boxes for each.",
+      picture: "sizes",
+    },
   ],
   moveSound: (before, state) => (claimedIn(state) > claimedIn(before) ? "box" : "pencil"),
   moveCountOf: (state) => drawnIn(state),

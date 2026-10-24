@@ -118,6 +118,15 @@ export const pushGameInvite = async (conversation, sender, gameName) => {
   const sendable = messagingOrNull();
   if (!sendable) return;
   const sessions = await pushSessionsFor(conversation, sender._id);
-  const data = { conversationId: String(conversation._id), senderId: String(sender._id), title: `${sender.firstName} ${sender.lastName}`, text: `Wants to play ${gameName}` };
-  await sendAll(sendable, sessions, sessions.map((session) => pushTo(session, conversation, { ...data, recipientId: String(session.user) })));
+  const data = {
+    conversationId: String(conversation._id),
+    senderId: String(sender._id),
+    title: `${sender.firstName} ${sender.lastName}`,
+    text: `Wants to play ${gameName}`,
+  };
+  await sendAll(
+    sendable,
+    sessions,
+    sessions.map((session) => pushTo(session, conversation, { ...data, recipientId: String(session.user) }))
+  );
 };

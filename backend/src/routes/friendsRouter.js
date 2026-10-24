@@ -19,30 +19,20 @@ import {
 
 const friendsRouter = express.Router();
 
-friendsRouter
-  .route("/send-request")
-  .post(protect, requestLimit(), sendRequest);
+friendsRouter.route("/send-request").post(protect, requestLimit(), sendRequest);
 
 // The chat a request's note is sealed for
 friendsRouter.route("/note-target/:user_id").get(protect, readLimit(), getNoteTarget);
 
-friendsRouter
-  .route("/cancel-request")
-  .post(protect, writeLimit(), cancelRequest);
+friendsRouter.route("/cancel-request").post(protect, writeLimit(), cancelRequest);
 
-friendsRouter
-  .route("/accept-reject-request")
-  .post(protect, writeLimit(), acceptRejectRequest);
+friendsRouter.route("/accept-reject-request").post(protect, writeLimit(), acceptRejectRequest);
 
-friendsRouter
-  .route("/remove-friend")
-  .post(protect, writeLimit(), removeFriend);
+friendsRouter.route("/remove-friend").post(protect, writeLimit(), removeFriend);
 
 friendsRouter.route("/get-friends").get(protect, readLimit(), getFriends);
 
-friendsRouter
-  .route("/online-friends")
-  .get(protect, readLimit(), getOnlineFriends);
+friendsRouter.route("/online-friends").get(protect, readLimit(), getOnlineFriends);
 
 friendsRouter.route("/search").get(protect, searchLimit(), searchFriends);
 

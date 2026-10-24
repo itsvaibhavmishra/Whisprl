@@ -1,10 +1,5 @@
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
-import {
-  SendTextMessage,
-  conversationById,
-  fetchPage,
-  readablePage,
-} from "@/redux/slices/actions/chatActions";
+import { SendTextMessage, conversationById, fetchPage, readablePage } from "@/redux/slices/actions/chatActions";
 import {
   commonGroupsLoaded,
   editSettled,
@@ -27,7 +22,6 @@ import uuidv4 from "@/utils/uuidv4";
 
 export const HISTORY_LIMIT = 2000;
 
-// ------------- Edit -------------
 // the new words show at once, marked as sending, and the old ones come back if the server refuses them
 export const EditMessage = createApiThunk("message/edit", async ({ message: editing, text, mentions }, { dispatch, getState }) => {
   dispatch(setEditing(null));
@@ -47,7 +41,6 @@ export const EditMessage = createApiThunk("message/edit", async ({ message: edit
   }
 });
 
-// ------------- Delete -------------
 // everything the server strips, so the note it leaves behind does not change again when its copy arrives
 const asDeleted = (message) => ({
   ...message,
@@ -81,7 +74,6 @@ export const DeleteForMe = createApiThunk("message/delete-for-me", async (messag
   await axios.post(`/message/${message._id}/hide`);
 });
 
-// ------------- React -------------
 // choosing the reaction already there takes it off again
 export const ReactToMessage = createApiThunk("message/react", async ({ message, emoji, isForAlbum = false }, { dispatch, getState }) => {
   const userId = getState().user.user._id;
@@ -109,7 +101,6 @@ export const ReactToMessage = createApiThunk("message/react", async ({ message, 
   }
 });
 
-// ------------- Pins -------------
 export const PinMessage = createApiThunk("message/pin", async (message) => {
   await axios.put(`/conversation/${message.conversation}/pins/${message._id}`);
 });
@@ -118,32 +109,32 @@ export const UnpinMessage = createApiThunk("message/unpin", async (message) => {
   await axios.delete(`/conversation/${message.conversation}/pins/${message._id}`);
 });
 
-// ------------- Forward and Share -------------
 // a forwarded file is not uploaded again: the server points the copy at the same encrypted file
-export const ForwardMessages = ({ messages, conversationIds }) => (dispatch) =>
-  conversationIds.forEach((conversationId) => {
-    // photos forwarded together arrive as one group, as they were sent
-    const batchId = messages.length > 1 ? uuidv4() : null;
-    messages.forEach((message, index) =>
-      dispatch(
-        SendTextMessage({
-          conversationId,
-          text: message.message,
-          file: message.file,
-          contact: message.contact,
-          forwardOf: message._id,
-          batch: batchId ? { batchId, batchIndex: index, batchTotal: messages.length } : undefined,
-        })
-      )
-    );
-  });
+export const ForwardMessages =
+  ({ messages, conversationIds }) =>
+  (dispatch) =>
+    conversationIds.forEach((conversationId) => {
+      // photos forwarded together arrive as one group, as they were sent
+      const batchId = messages.length > 1 ? uuidv4() : null;
+      messages.forEach((message, index) =>
+        dispatch(
+          SendTextMessage({
+            conversationId,
+            text: message.message,
+            file: message.file,
+            contact: message.contact,
+            forwardOf: message._id,
+            batch: batchId ? { batchId, batchIndex: index, batchTotal: messages.length } : undefined,
+          })
+        )
+      );
+    });
 
 export const ShareContacts = (friends) => (dispatch) =>
   friends.forEach(({ _id, firstName, lastName, username, avatar }) =>
     dispatch(SendTextMessage({ text: "", contact: { _id, firstName, lastName, username, avatar } }))
   );
 
-// ------------- History -------------
 // the server cannot read messages, so searching a chat means decrypting its history here
 export const LoadHistory = createApiThunk(
   "message/history",
@@ -201,13 +192,15 @@ export const RevealMessage = (messageId) => async (dispatch, getState) => {
   }
 };
 
-// ------------- View Once -------------
 export const MarkViewOnceOpened = createApiThunk("message/open-view-once", async (messageId) => {
   await axios.post(`/message/${messageId}/open`);
 });
 
-// ------------- Groups In Common -------------
-export const GetCommonGroups = createApiThunk("conversation/common-groups", async (userId, { dispatch }) => {
-  const { data } = await axios.get(`/conversation/common-groups/${userId}`);
-  dispatch(commonGroupsLoaded({ userId, groups: data.groups }));
-}, { notifyErrors: false });
+export const GetCommonGroups = createApiThunk(
+  "conversation/common-groups",
+  async (userId, { dispatch }) => {
+    const { data } = await axios.get(`/conversation/common-groups/${userId}`);
+    dispatch(commonGroupsLoaded({ userId, groups: data.groups }));
+  },
+  { notifyErrors: false }
+);

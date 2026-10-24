@@ -7,14 +7,14 @@ export default function Paper(theme) {
 
       variants: [
         {
-          props: { variant: 'outlined' },
+          props: { variant: "outlined" },
           style: { borderColor: theme.palette.grey[500_12] },
         },
       ],
 
       styleOverrides: {
         root: {
-          backgroundImage: 'none',
+          backgroundImage: "none",
         },
       },
     },

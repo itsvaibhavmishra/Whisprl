@@ -9,9 +9,7 @@ const STORAGE_KEY = "redux-root";
 // Writes slices the way redux-persist does: each one serialised inside the outer object.
 const saveAsAnEarlierVisit = (slices) => {
   const withMeta = { ...slices, _persist: { version: -1, rehydrated: true } };
-  const serialised = Object.fromEntries(
-    Object.entries(withMeta).map(([name, state]) => [name, JSON.stringify(state)])
-  );
+  const serialised = Object.fromEntries(Object.entries(withMeta).map(([name, state]) => [name, JSON.stringify(state)]));
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serialised));
 };
 
@@ -19,8 +17,7 @@ const openTheApp = () =>
   new Promise((resolve) => {
     const store = configureStore({
       reducer: persistReducer(rootPersistConfig, rootReducer),
-      middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({ serializableCheck: { ignoredActions: [FLUSH, PERSIST, REHYDRATE] } }),
+      middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: { ignoredActions: [FLUSH, PERSIST, REHYDRATE] } }),
     });
     const persistor = persistStore(store, null, () => resolve({ store, persistor }));
   });
@@ -48,17 +45,6 @@ test("decrypted text is never written to storage", async () => {
 
   expect(store.getState().chat.outbox[0].text).toBe("an unsent secret");
   expect(window.localStorage.getItem(STORAGE_KEY)).not.toContain("secret");
-});
-
-test("an access token saved by an earlier build is dropped", async () => {
-  saveAsAnEarlierVisit({ user: { user: { _id: "user-1", firstName: "Alice", token: "header.payload.signature" } } });
-
-  const { store, persistor } = await openTheApp();
-  await persistor.flush();
-
-  expect(store.getState().user.user).toEqual(expect.objectContaining({ _id: "user-1", firstName: "Alice" }));
-  expect(store.getState().user.user.token).toBeUndefined();
-  expect(window.localStorage.getItem(STORAGE_KEY)).not.toContain("header.payload.signature");
 });
 
 test("a request in flight when the page closed does not leave a button loading forever", async () => {

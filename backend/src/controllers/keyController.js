@@ -10,7 +10,10 @@ export const addKey = async (req, res) => {
   const publicKeys = await addAccountKey(req.user, req.body);
   const { _id, friends } = req.user;
 
-  req.app.get("io").to([_id, ...friends].map(String)).emit("keys_changed", { userId: _id, publicKeys });
+  req.app
+    .get("io")
+    .to([_id, ...friends].map(String))
+    .emit("keys_changed", { userId: _id, publicKeys });
 
   res.status(200).json({ status: "success", publicKeys });
 };

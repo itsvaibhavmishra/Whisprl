@@ -9,8 +9,7 @@ import { availableUsername } from "#src/services/usernameService.js";
 
 const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn" };
 
-const notVerified = (provider) =>
-  createHttpError.Unauthorized(`Verify your email with ${PROVIDER_NAMES[provider]} first, then try again`);
+const notVerified = (provider) => createHttpError.Unauthorized(`Verify your email with ${PROVIDER_NAMES[provider]} first, then try again`);
 
 const googleClient = new OAuth2Client();
 
@@ -19,9 +18,7 @@ const isIdToken = (credential) => credential.split(".").length === 3;
 
 // checks Google's signature, the expiry and that Whisprl is the audience, all without trusting the caller
 const fetchGoogleIdTokenProfile = async (idToken) => {
-  const ticket = await googleClient
-    .verifyIdToken({ idToken, audience: process.env.GOOGLE_AUTH_CLIENT_ID })
-    .catch(() => null);
+  const ticket = await googleClient.verifyIdToken({ idToken, audience: process.env.GOOGLE_AUTH_CLIENT_ID }).catch(() => null);
   const payload = ticket?.getPayload();
   if (!payload) throw createHttpError.Unauthorized("Unable to sign in using Google");
   if (!payload.email_verified) throw notVerified("google");
@@ -42,8 +39,7 @@ const fetchGoogleAccessTokenProfile = async (accessToken) => {
   return { email: data.email, name: data.name, picture: data.picture };
 };
 
-const fetchGoogleProfile = (credential) =>
-  isIdToken(credential) ? fetchGoogleIdTokenProfile(credential) : fetchGoogleAccessTokenProfile(credential);
+const fetchGoogleProfile = (credential) => (isIdToken(credential) ? fetchGoogleIdTokenProfile(credential) : fetchGoogleAccessTokenProfile(credential));
 
 const fetchGithubProfile = async (code) => {
   const token = await fetchJson("https://github.com/login/oauth/access_token", {
@@ -96,15 +92,11 @@ export const signInWithProvider = async (provider, credential) => {
   if (!credential) throw createHttpError.BadRequest(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
 
   const profile = await PROFILE_FETCHERS[provider](credential).catch((error) => {
-    throw createHttpError.isHttpError(error)
-      ? error
-      : createHttpError.Unauthorized(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
+    throw createHttpError.isHttpError(error) ? error : createHttpError.Unauthorized(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
   });
 
   const email = normalizeEmail(profile.email);
-  const user =
-    (await UserModel.findOne({ email })) ??
-    new UserModel({ email, ...splitName(profile.name, email), avatar: profile.picture });
+  const user = (await UserModel.findOne({ email })) ?? new UserModel({ email, ...splitName(profile.name, email), avatar: profile.picture });
 
   // nobody proved they own an unverified account's password, so the provider's proof replaces it
   if (!user.verified) {

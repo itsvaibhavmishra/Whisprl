@@ -141,12 +141,12 @@ backend/src/services/games/
 
 frontend/src/sections/chat/game/   the canvas: seats, panel, screens, sheets, table talk, sounds
 ├── catalog.js
-├── GamePanel.js, GameRoom.js, GameSeats.js, ...
+├── GamePanel.jsx, GameRoom.jsx, GameSeats.jsx, ...
 └── games/
     └── tic-tac-toe/
         ├── index.js           theme, widths, board, move sound
-        ├── Board.js           renders a view, sends intents
-        ├── RulesArt.js        the pictures on its rules pages, drawn from Board.js's pieces
+        ├── Board.jsx          renders a view, sends intents
+        ├── RulesArt.jsx       the pictures on its rules pages, drawn from Board.jsx's pieces
         └── tiles.json         measured positions, see game-art.md
 
 frontend/public/games/tic-tac-toe/

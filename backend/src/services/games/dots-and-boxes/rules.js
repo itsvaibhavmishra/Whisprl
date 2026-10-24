@@ -26,8 +26,7 @@ export const sidesOfBox = (size, box) => {
   return [acrossAt(size, row, col), acrossAt(size, row + 1, col), downAt(size, row, col), downAt(size, row, col + 1)];
 };
 
-export const boxesTouching = (size, line) =>
-  Array.from({ length: boxesIn(size) }, (_, box) => box).filter((box) => sidesOfBox(size, box).includes(line));
+export const boxesTouching = (size, line) => Array.from({ length: boxesIn(size) }, (_, box) => box).filter((box) => sidesOfBox(size, box).includes(line));
 
 export const openLinesOf = ({ lines }) => lines.flatMap((drawnBy, line) => (drawnBy === null ? [line] : []));
 
@@ -37,8 +36,7 @@ export const sidesDrawnOn = ({ size, lines }, box) => sidesOfBox(size, box).filt
 export const boxesClosedBy = ({ size, lines }, line) =>
   boxesTouching(size, line).filter((box) => sidesOfBox(size, box).every((side) => side === line || lines[side] !== null));
 
-export const scoresOf = ({ boxes, players }) =>
-  Array.from({ length: players }, (_, seat) => boxes.filter((owner) => owner === seat).length);
+export const scoresOf = ({ boxes, players }) => Array.from({ length: players }, (_, seat) => boxes.filter((owner) => owner === seat).length);
 
 // the engine merges the seat count in as players, so the board and the table are checked together
 export const assertOptions = ({ size, players }) => {

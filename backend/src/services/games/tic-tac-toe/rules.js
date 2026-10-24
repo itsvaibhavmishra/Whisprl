@@ -15,8 +15,7 @@ const LINES = [
 
 export const emptyCellsOf = (board) => board.flatMap((mark, cell) => (mark === null ? [cell] : []));
 
-export const winningLineOf = (board) =>
-  LINES.find(([first, ...rest]) => board[first] !== null && rest.every((cell) => board[cell] === board[first])) ?? null;
+export const winningLineOf = (board) => LINES.find(([first, ...rest]) => board[first] !== null && rest.every((cell) => board[cell] === board[first])) ?? null;
 
 // a seat's index is its mark; X opens the first game, and each rematch the other seat does
 export const setup = (previous) => {

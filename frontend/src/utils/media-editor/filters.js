@@ -1,10 +1,26 @@
 const IDENTITY = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
 
 const saturation = (amount) => [
-  0.213 + 0.787 * amount, 0.715 - 0.715 * amount, 0.072 - 0.072 * amount, 0, 0,
-  0.213 - 0.213 * amount, 0.715 + 0.285 * amount, 0.072 - 0.072 * amount, 0, 0,
-  0.213 - 0.213 * amount, 0.715 - 0.715 * amount, 0.072 + 0.928 * amount, 0, 0,
-  0, 0, 0, 1, 0,
+  0.213 + 0.787 * amount,
+  0.715 - 0.715 * amount,
+  0.072 - 0.072 * amount,
+  0,
+  0,
+  0.213 - 0.213 * amount,
+  0.715 + 0.285 * amount,
+  0.072 - 0.072 * amount,
+  0,
+  0,
+  0.213 - 0.213 * amount,
+  0.715 - 0.715 * amount,
+  0.072 + 0.928 * amount,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
 ];
 
 const contrast = (amount) => {

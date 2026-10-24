@@ -9,8 +9,8 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-# Treat lint warnings as errors locally too, as CI does, so a green run here means green there.
-export CI=true
+printf '\n== backend: lint and format ==\n\n'
+(cd backend && npm run lint && npm run format:check)
 
 printf '\n== backend: load every route, controller, service and model ==\n\n'
 (
@@ -22,8 +22,11 @@ printf '\n== backend: load every route, controller, service and model ==\n\n'
 printf '\n== backend: tests ==\n\n'
 (cd backend && npm test)
 
+printf '\n== frontend: lint and format ==\n\n'
+(cd frontend && npm run lint && npm run format:check)
+
 printf '\n== frontend: tests ==\n\n'
-(cd frontend && npm test -- --watchAll=false --passWithNoTests)
+(cd frontend && npm test)
 
 printf '\n== frontend: production build ==\n\n'
 (cd frontend && npm run build)

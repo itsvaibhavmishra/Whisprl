@@ -13,7 +13,7 @@ const SIZES = [52, 44, 38, 34, 30];
 
 export const bareEmojiSizeOf = (text) => SIZES[emojiOnlyCount(text) - 1];
 
-export const DEFAULT_QUICK_EMOJI = "😺";
+const DEFAULT_QUICK_EMOJI = "😺";
 
 export const quickEmojiOf = (conversation) => conversation?.quickEmoji || DEFAULT_QUICK_EMOJI;
 

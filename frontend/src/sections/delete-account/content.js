@@ -3,9 +3,7 @@ import { PATH_DOCS } from "@/routes/paths";
 
 export const LAST_UPDATED = "19 October 2026";
 
-export const INTRO = [
-  "You can delete your Whisprl account at any time, from the website or the Android app. Nothing needs installing, and it takes a minute.",
-];
+export const INTRO = ["You can delete your Whisprl account at any time, from the website or the Android app. Nothing needs installing, and it takes a minute."];
 
 export const SECTIONS = [
   {
@@ -21,11 +19,7 @@ export const SECTIONS = [
         ],
       },
       {
-        parts: [
-          "Can no longer log in? Email ",
-          { email: CONTACT_EMAIL },
-          " from the address on the account, and it will be deleted for you.",
-        ],
+        parts: ["Can no longer log in? Email ", { email: CONTACT_EMAIL }, " from the address on the account, and it will be deleted for you."],
       },
     ],
   },
@@ -68,11 +62,7 @@ export const SECTIONS = [
         ],
       },
       {
-        parts: [
-          "The ",
-          { label: "privacy policy", to: PATH_DOCS.general.privacy },
-          " covers everything else about what Whisprl stores.",
-        ],
+        parts: ["The ", { label: "privacy policy", to: PATH_DOCS.general.privacy }, " covers everything else about what Whisprl stores."],
       },
     ],
   },

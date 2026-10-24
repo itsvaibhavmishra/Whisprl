@@ -9,10 +9,7 @@ const FONTS = "'Manrope','Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const BAND = "#0F1A2B";
 
 // each letter a weight lighter than the last, the way the app draws the name
-const wordmark = (name) =>
-  [...name]
-    .map((letter, position) => `<span style="font-weight:${Math.max(200, 800 - position * 100)};">${letter}</span>`)
-    .join("");
+const wordmark = (name) => [...name].map((letter, position) => `<span style="font-weight:${Math.max(200, 800 - position * 100)};">${letter}</span>`).join("");
 
 export const button = (href, label) => `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
@@ -32,7 +29,12 @@ export const button = (href, label) => `
 
 // names and reasons are typed by people, so they go into the HTML as text and never as markup
 export const escapeHtml = (text) =>
-  String(text ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  String(text ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 
 export const paragraph = (content) => `
 <p class="text" style="margin:0 0 16px;font-family:${FONTS};font-size:16px;line-height:1.65;color:#1E2A3D;">${content}</p>`;

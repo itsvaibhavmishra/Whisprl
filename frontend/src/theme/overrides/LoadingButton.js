@@ -3,11 +3,11 @@ export default function LoadingButton() {
     MuiLoadingButton: {
       styleOverrides: {
         root: {
-          '&.MuiButton-text': {
-            '& .MuiLoadingButton-startIconPendingStart': {
+          "&.MuiButton-text": {
+            "& .MuiLoadingButton-startIconPendingStart": {
               marginLeft: 0,
             },
-            '& .MuiLoadingButton-endIconPendingEnd': {
+            "& .MuiLoadingButton-endIconPendingEnd": {
               marginRight: 0,
             },
           },

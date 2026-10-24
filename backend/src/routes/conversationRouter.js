@@ -2,29 +2,14 @@ import express from "express";
 
 import { protect } from "#src/middlewares/authMiddleware.js";
 import { readLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
-import {
-  createOpenConversation,
-  getCommonGroups,
-  getConversations,
-  pin,
-  unpin,
-} from "#src/controllers/conversationController.js";
-import {
-  clearConversation,
-  deleteConversation,
-  updateChatPreferences,
-  updateDisappearing,
-} from "#src/controllers/chatSettingsController.js";
+import { createOpenConversation, getCommonGroups, getConversations, pin, unpin } from "#src/controllers/conversationController.js";
+import { clearConversation, deleteConversation, updateChatPreferences, updateDisappearing } from "#src/controllers/chatSettingsController.js";
 
 const conversationRouter = express.Router();
 
-conversationRouter
-  .route("/create-open-conversation")
-  .post(protect, writeLimit(), createOpenConversation);
+conversationRouter.route("/create-open-conversation").post(protect, writeLimit(), createOpenConversation);
 
-conversationRouter
-  .route("/get-conversations")
-  .get(protect, readLimit(), getConversations);
+conversationRouter.route("/get-conversations").get(protect, readLimit(), getConversations);
 
 conversationRouter.route("/common-groups/:user_id").get(protect, readLimit(), getCommonGroups);
 

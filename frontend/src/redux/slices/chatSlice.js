@@ -1,11 +1,5 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import {
-  CreateOpenConversation,
-  GetConversations,
-  GetMessages,
-  LoadNewerMessages,
-  LoadOlderMessages,
-} from "@/redux/slices/actions/chatActions";
+import { CreateOpenConversation, GetConversations, GetMessages, LoadNewerMessages, LoadOlderMessages } from "@/redux/slices/actions/chatActions";
 
 const initialState = {
   conversations: [],
@@ -104,12 +98,10 @@ const open = (state, conversation, canMessage) => {
 };
 
 // the open chat's messages, or a cached chat's, so a change lands wherever that chat is shown next
-const messagesOf = (state, conversationId) =>
-  state.activeConversation?._id === conversationId ? state.messages : state.cache[conversationId]?.messages;
+const messagesOf = (state, conversationId) => (state.activeConversation?._id === conversationId ? state.messages : state.cache[conversationId]?.messages);
 
 // edits and deletions reach the gathered history too, so search and shared media never show what is gone
-const listsOf = (state, conversationId) =>
-  [messagesOf(state, conversationId), state.history[conversationId]?.messages].filter(Boolean);
+const listsOf = (state, conversationId) => [messagesOf(state, conversationId), state.history[conversationId]?.messages].filter(Boolean);
 
 const conversationsWith = (state, conversationId) =>
   [state.activeConversation, ...state.conversations].filter((conversation) => conversation?._id === conversationId);
@@ -118,14 +110,12 @@ const conversationsWith = (state, conversationId) =>
 const isOlderCopy = (copy, current) => copy.updatedAt < current.updatedAt;
 
 const isSameMessage = (message, other) =>
-  message._id === other._id ||
-  Boolean(message.clientId && message.clientId === other.clientId && message.sender._id === other.sender._id);
+  message._id === other._id || Boolean(message.clientId && message.clientId === other.clientId && message.sender._id === other.sender._id);
 
 // a chat opened from search is not in the list until its first message, so that message adds it
 const moveConversationToTop = (state, conversationId, latestMessage) => {
   const isActive = state.activeConversation?._id === conversationId;
-  const conversation =
-    state.conversations.find((convo) => convo._id === conversationId) ?? (isActive && { ...state.activeConversation });
+  const conversation = state.conversations.find((convo) => convo._id === conversationId) ?? (isActive && { ...state.activeConversation });
   if (!conversation) return;
 
   if (!conversation.latestMessage || conversation.latestMessage._id <= latestMessage._id) {
@@ -171,9 +161,7 @@ const slice = createSlice({
     // a cleared chat drops everything this tab holds of it, so nothing from before shows again, and a deleted one closes too
     chatCleared: (state, action) => {
       const { conversation_id, ...preferences } = action.payload;
-      conversationsWith(state, conversation_id).forEach((conversation) =>
-        Object.assign(conversation, preferences, { latestMessage: null, unread: 0 })
-      );
+      conversationsWith(state, conversation_id).forEach((conversation) => Object.assign(conversation, preferences, { latestMessage: null, unread: 0 }));
       delete state.cache[conversation_id];
       delete state.history[conversation_id];
       if (state.activeConversation?._id !== conversation_id) return;
@@ -194,7 +182,6 @@ const slice = createSlice({
       });
     },
 
-    // ---------- Composer ----------
     setDraft: (state, action) => {
       const { conversationId, text } = action.payload;
       if (text) state.drafts[conversationId] = text;
@@ -282,7 +269,6 @@ const slice = createSlice({
       if (action.payload !== "connected") state.typingConversation = [];
     },
 
-    // ---------- Draft attachments ----------
     addFiles: (state, action) => {
       state.files.push(action.payload);
     },
@@ -306,7 +292,6 @@ const slice = createSlice({
       state.activeFileIndex = action.payload;
     },
 
-    // ---------- Outbox ----------
     queueMessage: (state, action) => {
       state.outbox.push({ status: "sending", error: null, ...action.payload });
     },
@@ -336,9 +321,7 @@ const slice = createSlice({
       const message = action.payload;
       const conversationId = message.conversation;
 
-      state.outbox = state.outbox.filter(
-        (queued) => queued.clientId !== message.clientId || queued.senderId !== message.sender._id
-      );
+      state.outbox = state.outbox.filter((queued) => queued.clientId !== message.clientId || queued.senderId !== message.sender._id);
       moveConversationToTop(state, conversationId, message);
       state.typingConversation = state.typingConversation.filter(
         (typist) => typist.conversation_id !== conversationId || typist.user_id !== message.sender._id
@@ -442,9 +425,7 @@ const slice = createSlice({
 
     updateTypingConvo: (state, action) => {
       const { typing, conversation_id, user_id } = action.payload;
-      const typist = state.typingConversation.find(
-        (convo) => convo.conversation_id === conversation_id && convo.user_id === user_id
-      );
+      const typist = state.typingConversation.find((convo) => convo.conversation_id === conversation_id && convo.user_id === user_id);
       if (typist) typist.typing = typing;
       else state.typingConversation.push({ typing, conversation_id, user_id });
     },
@@ -510,9 +491,8 @@ const slice = createSlice({
   },
 });
 
-export const selectActiveOutbox = createSelector(
-  [(state) => state.chat.outbox, (state) => state.chat.activeConversation?._id],
-  (outbox, conversationId) => outbox.filter((queued) => queued.conversationId === conversationId)
+export const selectActiveOutbox = createSelector([(state) => state.chat.outbox, (state) => state.chat.activeConversation?._id], (outbox, conversationId) =>
+  outbox.filter((queued) => queued.conversationId === conversationId)
 );
 
 export const {

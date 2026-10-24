@@ -1,0 +1,5 @@
+build
+android
+package-lock.json
+# written by the art pipeline each time the art is cut
+src/sections/chat/game/games/*/*.json

@@ -27,8 +27,7 @@ export const setDisappearing = async (conversation_id, user_id, seconds) => {
   return { conversation, event: message };
 };
 
-export const expiryFor = (conversation) =>
-  conversation.disappearAfter ? new Date(Date.now() + conversation.disappearAfter * 1000) : undefined;
+export const expiryFor = (conversation) => (conversation.disappearAfter ? new Date(Date.now() + conversation.disappearAfter * 1000) : undefined);
 
 // a chat whose newest message expired falls back to the one before, so it keeps its place in everyone's list
 const pointAtNewestRemaining = async (conversationIds, expiredIds) => {

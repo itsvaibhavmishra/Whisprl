@@ -356,11 +356,14 @@ export const growFrom = (element, from, delay) => {
 // a card not taken by the red queen flies back into its place in their fan, from wherever its grow is when you tap, and stays there until the fan shows again
 export const flyBack = (element, to) => {
   const at = element.getBoundingClientRect();
-  return element.animate([{ transform: getComputedStyle(element).transform }, { transform: `${shiftBetween(to, at)} scale(${to.ownWidth / at.width}) rotate(${to.tilt}deg)` }], {
-    duration: BACK_MS,
-    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-    fill: "forwards",
-  });
+  return element.animate(
+    [{ transform: getComputedStyle(element).transform }, { transform: `${shiftBetween(to, at)} scale(${to.ownWidth / at.width}) rotate(${to.tilt}deg)` }],
+    {
+      duration: BACK_MS,
+      easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+      fill: "forwards",
+    }
+  );
 };
 
 // the other player's bonus card swells into their hand with a gold flash

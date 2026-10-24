@@ -41,7 +41,10 @@ test("each request has its own loader, and one card's request does not load anot
 });
 
 test("a request has settled once it has finished at least once, and stays settled while it refetches", async () => {
-  const store = configureStore({ reducer: { requests: requestReducer }, middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }) });
+  const store = configureStore({
+    reducer: { requests: requestReducer },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
+  });
   const hasSettled = () => selectHasSettled(store.getState(), SearchFriends);
 
   const first = waitable();

@@ -69,7 +69,9 @@ const MUTUAL_PREVIEW = 3;
 const mutualFriendsOf = async (viewer, person_id, theirFriends) => {
   const theirs = new Set(theirFriends.map(String));
   const shared = viewer.friends.filter((friend_id) => theirs.has(String(friend_id)) && !friend_id.equals(viewer._id) && !friend_id.equals(person_id));
-  const people = await UserModel.find({ _id: { $in: shared.slice(0, MUTUAL_PREVIEW) } }).select("firstName lastName avatar").lean();
+  const people = await UserModel.find({ _id: { $in: shared.slice(0, MUTUAL_PREVIEW) } })
+    .select("firstName lastName avatar")
+    .lean();
   return { count: shared.length, people };
 };
 
@@ -85,7 +87,9 @@ const canSeeMutualFriends = async (viewer, person) => {
 export const getPublicProfile = async (viewer, { userId, username }) => {
   const filter = username ? { username: normalizeUsername(username) } : mongoose.isValidObjectId(userId) && { _id: userId };
   if (!filter) throw createHttpError.BadRequest("Query required");
-  const person = await UserModel.findOne(filter).select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month`).lean();
+  const person = await UserModel.findOne(filter)
+    .select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month`)
+    .lean();
   if (!person) throw createHttpError.NotFound("User does not exist");
 
   const { friends, suggestToFriendsOfFriends, showBirthdayToFriends, birthday, ...rest } = person;
@@ -101,7 +105,9 @@ export const getOwnProfile = async (user) => {
   const friendIds = user.friends.filter((friendId) => !friendId.equals(user._id));
   // counted from the accounts themselves, as the friends list is, so a friend whose account is gone is not counted
   const [friendPreviews, friendCount, conversationCount, messageCount] = await Promise.all([
-    UserModel.find({ _id: { $in: friendIds } }).select("firstName lastName avatar").limit(5),
+    UserModel.find({ _id: { $in: friendIds } })
+      .select("firstName lastName avatar")
+      .limit(5),
     UserModel.countDocuments({ _id: { $in: friendIds } }),
     ConversationModel.countDocuments({ users: user._id }),
     MessageModel.countDocuments({ sender: user._id }),

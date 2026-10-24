@@ -11,7 +11,10 @@ export const albumsFor = async (conversation_id, messages) => {
 
 // a group's reactions go once none of its photos is left standing
 export const dropEmptyAlbums = async (messages) => {
-  const byConversation = Object.groupBy(messages.filter((message) => message.batchId), (message) => String(message.conversation));
+  const byConversation = Object.groupBy(
+    messages.filter((message) => message.batchId),
+    (message) => String(message.conversation)
+  );
   await Promise.all(
     Object.entries(byConversation).map(async ([conversation, sent]) => {
       const batchIds = sent.map((message) => message.batchId);

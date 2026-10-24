@@ -3,15 +3,22 @@ import axios from "@/utils/axios";
 import { notify } from "@/utils/notify";
 import { authenticateWithPasskey } from "@/utils/passkeys";
 
-// ------------- Overview Thunk -------------
-export const GetOverview = createApiThunk("admin/overview", async ({ from, to }) => (await axios.get("/admin/overview", { params: { from, to } })).data, { notifyErrors: false });
+export const GetOverview = createApiThunk("admin/overview", async ({ from, to }) => (await axios.get("/admin/overview", { params: { from, to } })).data, {
+  notifyErrors: false,
+});
 
-export const GetActivePeople = createApiThunk("admin/active", async ({ from, to, page }) => (await axios.get("/admin/active", { params: { from, to, page } })).data, { notifyErrors: false });
+export const GetActivePeople = createApiThunk(
+  "admin/active",
+  async ({ from, to, page }) => (await axios.get("/admin/active", { params: { from, to, page } })).data,
+  { notifyErrors: false }
+);
 
-// ------------- People Thunk -------------
-export const GetPeople = createApiThunk("admin/people", async ({ search, filter, page }) => (await axios.get("/admin/people", { params: { search, filter, page } })).data, { notifyErrors: false });
+export const GetPeople = createApiThunk(
+  "admin/people",
+  async ({ search, filter, page }) => (await axios.get("/admin/people", { params: { search, filter, page } })).data,
+  { notifyErrors: false }
+);
 
-// ------------- Moderation Thunks -------------
 // the passkey is asked for as the action is taken, so holding the session alone is never enough
 const confirmed = async () => {
   const { data } = await axios.post("/admin/confirm");
@@ -33,8 +40,9 @@ export const SuspendPerson = actOnPerson("suspend", "Suspended, and their sessio
 export const BanPerson = actOnPerson("ban", "Banned, and their sessions are closed");
 export const RestorePerson = actOnPerson("restore", "Their access is back");
 
-// ------------- Reports Thunks -------------
-export const GetReports = createApiThunk("admin/reports", async ({ filter, page }) => (await axios.get("/admin/reports", { params: { filter, page } })).data, { notifyErrors: false });
+export const GetReports = createApiThunk("admin/reports", async ({ filter, page }) => (await axios.get("/admin/reports", { params: { filter, page } })).data, {
+  notifyErrors: false,
+});
 
 export const DismissReport = createApiThunk("admin/dismiss", async ({ reportId, reason }) => {
   const { data } = await axios.put(`/admin/reports/${reportId}/dismiss`, { reason });
@@ -42,7 +50,6 @@ export const DismissReport = createApiThunk("admin/dismiss", async ({ reportId, 
   return data;
 });
 
-// ------------- Game Request Thunks -------------
 export const GetGameRequests = createApiThunk(
   "admin/gameRequests",
   async ({ status, kind, search, page }) => (await axios.get("/admin/game-requests", { params: { status, kind, search, page } })).data
@@ -54,7 +61,6 @@ export const CloseGameRequests = createApiThunk("admin/closeGameRequests", async
   return data;
 });
 
-// ------------- Team Thunks -------------
 export const GetTeam = createApiThunk("admin/team", async () => (await axios.get("/admin/team")).data, { notifyErrors: false });
 
 export const AddAdmin = withPasskey("admin/team/add", (details, confirmation) => axios.post("/admin/team", { ...details, confirmation }), "Added to the team");
@@ -71,5 +77,6 @@ export const RemoveAdmin = withPasskey(
   "Removed from the team"
 );
 
-// ------------- Audit Log Thunk -------------
-export const GetAuditLog = createApiThunk("admin/audit", async (before) => (await axios.get("/admin/audit", { params: { before } })).data, { notifyErrors: false });
+export const GetAuditLog = createApiThunk("admin/audit", async (before) => (await axios.get("/admin/audit", { params: { before } })).data, {
+  notifyErrors: false,
+});

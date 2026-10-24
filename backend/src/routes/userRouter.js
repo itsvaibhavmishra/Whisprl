@@ -29,9 +29,7 @@ const profileImages = upload.fields([
   { name: "cover", maxCount: 1 },
 ]);
 
-userRouter
-  .route("/update-profile")
-  .post(protect, uploadLimit(), profileImages, updateProfile);
+userRouter.route("/update-profile").post(protect, uploadLimit(), profileImages, updateProfile);
 
 userRouter.route("/change-password").post(protect, writeLimit(), updatePassword);
 

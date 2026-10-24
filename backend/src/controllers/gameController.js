@@ -12,8 +12,7 @@ const answered = async (acknowledge, work) => {
   }
 };
 
-export const socketWatchGame = (io, socket, conversationId, acknowledge) =>
-  answered(acknowledge, () => watchGame(io, socket, conversationId));
+export const socketWatchGame = (io, socket, conversationId, acknowledge) => answered(acknowledge, () => watchGame(io, socket, conversationId));
 
 export const socketUnwatchGame = (io, socket, acknowledge) => answered(acknowledge, () => stopWatching(io, socket));
 
@@ -21,11 +20,9 @@ export const socketLookAtGame = (io, socket, isLooking, acknowledge) => answered
 
 export const socketReactInGame = (socket, emoji, acknowledge) => answered(acknowledge, () => reactInGame(socket, emoji));
 
-export const socketActInGame = (io, socket, payload, acknowledge) =>
-  answered(acknowledge, () => actInGame(io, socket.data.userId, payload ?? {}));
+export const socketActInGame = (io, socket, payload, acknowledge) => answered(acknowledge, () => actInGame(io, socket.data.userId, payload ?? {}));
 
-export const leaveGameOnDisconnect = (io, socket) =>
-  stopWatching(io, socket).catch((error) => console.error(`[games] ${error.message}`));
+export const leaveGameOnDisconnect = (io, socket) => stopWatching(io, socket).catch((error) => console.error(`[games] ${error.message}`));
 
 export const getLeaderboard = async (req, res) => {
   res.status(200).json({ status: "success", leaderboard: await leaderboardOf(req.user._id, req.params.conversation_id) });

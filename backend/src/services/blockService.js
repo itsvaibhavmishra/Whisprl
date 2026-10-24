@@ -52,7 +52,13 @@ export const withPresenceHidden = (people, hiddenIds) =>
 
 // online status stays hidden both ways between two people once either has blocked the other
 export const presenceShownTo = async (user, people) =>
-  withPresenceHidden(people, await blockedEitherWay(user, people.map((person) => person._id)));
+  withPresenceHidden(
+    people,
+    await blockedEitherWay(
+      user,
+      people.map((person) => person._id)
+    )
+  );
 
 export const presenceAudienceOf = async (user) => {
   const hidden = await blockedEitherWay(user, user.friends);

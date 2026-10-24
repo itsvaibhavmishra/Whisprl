@@ -6,7 +6,6 @@ export const notify = ({ severity, message, description, action, duration, id })
   message && (SEVERITIES.includes(severity) ? toast[severity] : toast)(message, { description, action, duration, id });
 
 // a logout is announced once by itself, so the requests it stopped add nothing
-export const errorMessageOf = (error) =>
-  error?.isLoggedOut ? null : error?.error?.message || "Something went wrong, please try again";
+export const errorMessageOf = (error) => (error?.isLoggedOut ? null : error?.error?.message || "Something went wrong, please try again");
 
 export const notifyError = (error) => notify({ severity: "error", message: errorMessageOf(error) });

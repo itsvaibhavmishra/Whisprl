@@ -13,7 +13,9 @@
 
 ```sh
 cd backend && npm install && npm run dev     # the API under node --watch, reads backend/.env
-cd frontend && npm install -f && npm start   # the app via react-app-rewired, reads frontend/.env
+cd frontend && npm install && npm start      # the app via Vite on port 3200, reads frontend/.env
+npm run lint                                 # ESLint, in either package
+npm run format                               # Prettier, in either package
 scripts/check.sh                             # the gate
 ```
 
@@ -24,10 +26,18 @@ Backend tests use Node's own runner, so they need no extra dependency: `cd backe
 runs every `*.test.js`. Keep them to pure functions, like the seating rules in
 `src/services/games/seats.test.js`, since the gate has no database.
 
+Frontend tests run on Vitest in a simulated browser (jsdom): `cd frontend && npm test` runs every
+`*.test.js` and `*.test.jsx`, with `vi` in place of Jest's `jest`.
+
+Both packages share one Prettier config, `.prettierrc.json` at the root, and each has its own
+`eslint.config.js`. Lint enforces the house rules a review would otherwise have to catch: imports
+go through `@/` or `#`, never a relative path, and no name is a single letter. The gate fails on
+any lint warning or unformatted file. A file containing JSX ends in `.jsx`, the rest in `.js`.
+
 ## The Android app
 
 The app is the web build inside a Capacitor shell, in `frontend/android/`. Every screen is the
-same React code, except the welcome tour (`pages/auth/AppTour.js`) that replaces the landing
+same React code, except the welcome tour (`pages/auth/AppTour.jsx`) that replaces the landing
 page.
 
 ```sh
@@ -534,10 +544,12 @@ Whisprl/
 │   ├── socket.js            WebSocket event handlers
 │   └── src/                 routes, controllers, services, models, middlewares,
 │                            utils, templates/mail
-├── frontend/                React 18 + MUI app
+├── frontend/                React 18 + MUI app, built with Vite
 │   ├── android/             the Android app's Capacitor shell and its native key vault
 │   ├── capacitor.config.json
-│   ├── config-overrides.js  react-app-rewired overrides, including the @ alias
+│   ├── index.html           the page Vite builds around src/index.jsx
+│   ├── vite.config.js       the build, the dev server, the tests and the @ alias
+│   ├── eslint.config.js
 │   ├── public/              includes _redirects for SPA routing on Netlify
 │   └── src/                 pages, sections, components, layouts, redux, routes,
 │                            theme, contexts, hooks, utils
@@ -558,7 +570,7 @@ Whisprl/
 
 Where frontend code goes, inside `frontend/src/`:
 
-- **`pages/`**: one file per route, lazy-loaded from `routes/index.js`.
+- **`pages/`**: one file per route, lazy-loaded from `routes/index.jsx`.
 - **`sections/<page>/`**: the pieces of one page, such as `sections/chat/` for the chat screen,
   split further when a page has distinct parts (`conversation/`, `messages/`, `attachments/`).
 - **`components/`**: anything used by more than one page, such as `ProfileHero`, the

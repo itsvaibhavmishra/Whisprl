@@ -38,7 +38,6 @@ export const quoteOfStatus = ({ _id, owner, content, expiresAt }, about) => ({
   expiresAt,
 });
 
-
 // each person's statuses oldest first, and whoever posted last first
 export const groupByOwner = (statuses) => {
   const groups = new Map();

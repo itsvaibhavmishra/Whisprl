@@ -8,10 +8,6 @@ test("links are found with their trailing punctuation left out", () => {
 });
 
 test("text splits around links in reading order", () => {
-  expect(splitLinks("go to https://a.io now")).toEqual([
-    { text: "go to " },
-    { text: "https://a.io", href: "https://a.io" },
-    { text: " now" },
-  ]);
+  expect(splitLinks("go to https://a.io now")).toEqual([{ text: "go to " }, { text: "https://a.io", href: "https://a.io" }, { text: " now" }]);
   expect(splitLinks("no links here")).toEqual([{ text: "no links here" }]);
 });
