@@ -60,7 +60,7 @@ const TeamMember = ({ member, onChanged }) => {
       <Stack direction="row" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
         {getAvatar(member.avatar, name, 40)}
         <Box sx={{ minWidth: 0 }}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap", gap: 0.75 }}>
+          <Stack direction="row" sx={{ alignItems: "center", flexWrap: "wrap", columnGap: 1, rowGap: 0.75 }}>
             <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{name}</Typography>
             <PersonStatus person={member} />
           </Stack>

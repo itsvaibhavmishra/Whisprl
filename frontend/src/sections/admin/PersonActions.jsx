@@ -103,7 +103,7 @@ const PersonActions = ({ person, reportId, onDone }) => {
 
   return (
     <>
-      <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+      <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
         {isShutOut && can(user, status === "banned" ? "ban" : "suspend") && (
           <Button size="small" variant="outlined" color="inherit" onClick={() => setKind("restore")}>
             Give access back

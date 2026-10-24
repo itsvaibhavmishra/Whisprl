@@ -487,10 +487,16 @@ draft release `test-v<version>`. Every push to `rc` while the pull request is op
 that draft, cancelling a build still running for an older commit, and publishing the real release
 deletes it. A draft is visible only to the repository's owners and never counts as the latest
 release, so no installed app reads it and nothing is tagged. Open it in GitHub on the phone and
-install `whisprl.apk` over the app: it carries the release's signature, so it keeps the account and
-its keys. Once the release is out, install its own `whisprl.apk` over the test build the same way:
-the test build is already on that version, so it never takes the release's live update and would
-stay on the rc backend.
+install `whisprl-test-<version>.apk`. It is its own app, Whisprl Test (`com.vaibhaw.whisprl.test`),
+so it installs beside the real app, and over the previous test build, and you sign in to it
+separately. The release workflow builds it with Gradle's `testBuild` property, which gives it that
+package and name.
+
+A test build has no push notifications, because Firebase knows only the real app's package. It
+takes no live updates either, so a release can never move it onto production code. Sign in with
+Google works through the Google Cloud project's Android OAuth client for the test package, made
+with the upload key's SHA-1, as the real app's is. Links to the website can offer the test build
+beside the real app.
 
 The rc backend is a Render service (`whisprl.onrender.com`) with auto-deploy off. The same workflow
 deploys it through its deploy hook, at the commit the APK is built from, so the test build runs

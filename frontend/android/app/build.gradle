@@ -5,11 +5,15 @@ def keystoreFile = rootProject.file("keystore.properties")
 def keystore = new Properties()
 if (keystoreFile.exists()) keystoreFile.withInputStream { stream -> keystore.load(stream) }
 
+// a test build installs beside the real app under its own name, without push, since Firebase knows only the real app's package
+def isTestBuild = project.hasProperty("testBuild")
+
 android {
     namespace = "com.vaibhaw.whisprl"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.vaibhaw.whisprl"
+        applicationId isTestBuild ? "com.vaibhaw.whisprl.test" : "com.vaibhaw.whisprl"
+        manifestPlaceholders = [appName: isTestBuild ? "Whisprl Test" : "@string/app_name"]
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 5
@@ -68,10 +72,10 @@ apply from: 'capacitor.build.gradle'
 
 // a debug build reads app/google-services.json and a release build src/release/google-services.json, so one machine builds both
 def servicesFiles = ['google-services.json', 'src/release/google-services.json']
-if (servicesFiles.any { file(it).exists() }) {
+if (!isTestBuild && servicesFiles.any { file(it).exists() }) {
     apply plugin: 'com.google.gms.google-services'
 } else {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+    logger.info("google-services plugin not applied, for a test build or with no google-services.json. Push Notifications won't work")
 }
 
 // a release on any other Firebase project registers phones the production backend cannot reach, so their pushes never arrive

@@ -1,5 +1,6 @@
-import { createContext, useContext } from "react";
-import { Box, Stack, useTheme } from "@mui/material";
+import { createContext, useContext, useLayoutEffect, useRef } from "react";
+import { Box, Stack } from "@mui/material";
+import { keyframes } from "@mui/material/styles";
 
 // a layout's page area fills what its navigation leaves, so a loader inside it centres there rather than on the whole screen
 export const PageArea = createContext(null);
@@ -11,254 +12,66 @@ const sizeOf = ({ fromChat, isAuthRoute, pageArea }) => {
   return { minHeight: "100dvh" };
 };
 
-const LoadingScreen = ({ fromChat }) => {
-  const theme = useTheme();
-  const isAuthRoute = window.location.pathname.includes("/auth");
+const FILL = "1.6s ease-in-out infinite";
 
+const fillIn = (pop) => keyframes`
+  0% { fill-opacity: 0.18; transform: translateY(0) scale(1); }
+  15% { fill-opacity: 1; transform: ${pop}; }
+  30% { transform: translateY(0) scale(1); }
+  70% { fill-opacity: 1; }
+  100% { fill-opacity: 0.18; }
+`;
+
+const press = fillIn("translateY(-4px) scale(1.08)");
+// the pad only swells where the toes hop, so the paw keeps its shape
+const swell = fillIn("translateY(0) scale(1.03)");
+
+const TOES = [
+  { cx: -8.2, cy: -2.6, rx: 2.6, ry: 3.4, angle: -24 },
+  { cx: -3.1, cy: -8, rx: 2.8, ry: 3.7, angle: -8 },
+  { cx: 3.1, cy: -8, rx: 2.8, ry: 3.7, angle: 8 },
+  { cx: 8.2, cy: -2.6, rx: 2.6, ry: 3.4, angle: 24 },
+];
+const PAD = "M0 -1.2 C4.4 -1.2 8.6 3.4 7.4 7 C6.4 9.8 2.8 9.2 0 9.2 C-2.8 9.2 -6.4 9.8 -7.4 7 C-8.6 3.4 -4.4 -1.2 0 -1.2 Z";
+
+const beanSx = (motion, delayMs) => (theme) => ({
+  fill: theme.palette.primary.main,
+  stroke: theme.palette.primary.main,
+  strokeWidth: 0.6,
+  transformBox: "fill-box",
+  transformOrigin: "center",
+  animation: `${motion} ${FILL}`,
+  animationDelay: `${delayMs}ms`,
+  "@media (prefers-reduced-motion: reduce)": { animation: "none" },
+});
+
+const LoadingScreen = ({ fromChat }) => {
+  const isAuthRoute = window.location.pathname.includes("/auth");
   const pageArea = useContext(PageArea);
+  const pawRef = useRef(null);
+
+  // every loader runs on the page's clock, so one that takes over from another carries on instead of starting over
+  useLayoutEffect(() => {
+    pawRef.current.getAnimations({ subtree: true }).forEach((animation) => {
+      animation.startTime = 0;
+    });
+  }, []);
 
   return (
-    <Stack direction={"row"} sx={[{ width: "100%", justifyContent: "center", alignItems: "center" }, sizeOf({ fromChat, isAuthRoute, pageArea })]}>
-      <Stack
-        direction={"row"}
-        sx={{
-          justifyContent: "center",
-          alignItems: "center",
-          position: "relative",
-          width: "100px",
-          height: "100px",
-          borderRadius: "50%",
-          backgroundColor: theme.palette.background.default,
-          boxShadow: `0px 0px 0px 2px ${theme.palette.primary.lighter}`,
-          animation: "spin 2.5s cubic-bezier(0.75, 0, 0, 0.75) forwards infinite",
-          "&:before": {
-            content: "''",
-            display: "block",
-            position: "absoulte",
-            top: "5px",
-            right: "5px",
-            bottom: "5px",
-            left: "5px",
-            border: `1px solid ${theme.palette.primary.lighter}`,
-            borderRadius: "50%",
-          },
-          "&:after": {
-            content: "''",
-            display: "block",
-            position: "absolute",
-            top: "40px",
-            right: "40px",
-            bottom: "40px",
-            left: "40px",
-            backgroundColor: theme.palette.primary.light,
-            borderRadius: "50%",
-            animation: "pulse 2.5s ease-in-out alternate infinite",
-          },
-        }}
-      >
-        <Box
-          sx={{
-            display: "inline-block",
-            position: "relative",
-            width: "30px",
-            height: "30px",
-            transform: "rotate(45deg)",
-            borderWidth: "2px",
-            borderColor: theme.palette.primary.main,
-            "&:before": {
-              content: "''",
-              display: "block",
-              position: "absolute",
-              width: "14px",
-              height: "14px",
-              backgroundColor: "#a9d6e580",
-              borderRadius: "50%",
-              left: "-8px",
-              top: "-8px",
-            },
-            "&:first-of-type": {
-              borderBottomStyle: "solid",
-              borderLeftStyle: "solid",
-              animation: "panL 2.5s 0s ease-in-out alternate infinite",
-            },
-            "&:first-of-type:before": {
-              animation: "slideL 2.5s 0s linear alternate infinite",
-            },
-            "&:last-of-type": {
-              borderTopStyle: "solid",
-              borderRightStyle: "solid",
-              animation: "panR 2.5s 0s ease-in-out alternate infinite",
-            },
-            "&:last-of-type:before": {
-              animation: "slideR 2.5s 0s linear alternate infinite",
-            },
-            "@keyframes pulse": {
-              "0%": {
-                transform: "scale(1)",
-              },
-              "50%": {
-                transform: "scale(0)",
-              },
-              "100%": {
-                transform: "scale(1)",
-              },
-            },
-            "@keyframes spin": {
-              "0%": {
-                transform: "rotate(0deg)",
-              },
-              "100%": {
-                transform: "rotate(359deg)",
-              },
-            },
-            "@keyframes panL": {
-              "0%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-              "50%": {
-                transform: "translate(15px, 0px) rotate(45deg)",
-              },
-              "100%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-            },
-            "@keyframes panR": {
-              "0%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-              "50%": {
-                transform: "translate(-15px, 0px) rotate(45deg)",
-              },
-              "100%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-            },
-            "@keyframes slideL": {
-              "0%": {
-                transform: "translate(0px, 0px) scale(0.5)",
-              },
-              "50%": {
-                transform: "translate(0px, 30px) scale(1.25)",
-              },
-              "100%": {
-                transform: "translate(30px, 30px) scale(0.5)",
-              },
-            },
-            "@keyframes slideR": {
-              "0%": {
-                transform: "translate(0px, 0px) scale(0.5)",
-              },
-              "50%": {
-                transform: "translate(30px, 0px) scale(1.25)",
-              },
-              "100%": {
-                transform: "translate(30px, 30px) scale(0.5)",
-              },
-            },
-          }}
-        ></Box>
-        <Box
-          sx={{
-            display: "inline-block",
-            position: "relative",
-            width: "30px",
-            height: "30px",
-            transform: "rotate(45deg)",
-            borderWidth: "2px",
-            borderColor: theme.palette.primary.main,
-            "&:before": {
-              content: "''",
-              display: "block",
-              position: "absolute",
-              width: "14px",
-              height: "14px",
-              backgroundColor: "#a9d6e580",
-              borderRadius: "50%",
-              left: "-8px",
-              top: "-8px",
-            },
-            "&:first-of-type": {
-              borderBottomStyle: "solid",
-              borderLeftStyle: "solid",
-              animation: "panL 2.5s 0s ease-in-out alternate infinite",
-            },
-            "&:first-of-type:before": {
-              animation: "slideL 2.5s 0s linear alternate infinite",
-            },
-            "&:last-of-type": {
-              borderTopStyle: "solid",
-              borderRightStyle: "solid",
-              animation: "panR 2.5s 0s ease-in-out alternate infinite",
-            },
-            "&:last-of-type:before": {
-              animation: "slideR 2.5s 0s linear alternate infinite",
-            },
-            "@keyframes pulse": {
-              "0%": {
-                transform: "scale(1)",
-              },
-              "50%": {
-                transform: "scale(0)",
-              },
-              "100%": {
-                transform: "scale(1)",
-              },
-            },
-            "@keyframes spin": {
-              "0%": {
-                transform: "rotate(0deg)",
-              },
-              "100%": {
-                transform: "rotate(359deg)",
-              },
-            },
-            "@keyframes panL": {
-              "0%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-              "50%": {
-                transform: "translate(15px, 0px) rotate(45deg)",
-              },
-              "100%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-            },
-            "@keyframes panR": {
-              "0%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-              "50%": {
-                transform: "translate(-15px, 0px) rotate(45deg)",
-              },
-              "100%": {
-                transform: "translate(0px, 0px) rotate(45deg)",
-              },
-            },
-            "@keyframes slideL": {
-              "0%": {
-                transform: "translate(0px, 0px) scale(0.5)",
-              },
-              "50%": {
-                transform: "translate(0px, 30px) scale(1.25)",
-              },
-              "100%": {
-                transform: "translate(30px, 30px) scale(0.5)",
-              },
-            },
-            "@keyframes slideR": {
-              "0%": {
-                transform: "translate(0px, 0px) scale(0.5)",
-              },
-              "50%": {
-                transform: "translate(30px, 0px) scale(1.25)",
-              },
-              "100%": {
-                transform: "translate(30px, 30px) scale(0.5)",
-              },
-            },
-          }}
-        ></Box>
-      </Stack>
+    <Stack
+      role="status"
+      aria-label="Loading"
+      sx={[{ width: "100%", justifyContent: "center", alignItems: "center" }, sizeOf({ fromChat, isAuthRoute, pageArea })]}
+    >
+      <Box component="svg" ref={pawRef} viewBox="-15 -15 30 30" aria-hidden sx={{ width: 80, height: 80, overflow: "visible" }}>
+        {/* each toe turns inside its own group, so the press animation never undoes its tilt */}
+        {TOES.map(({ cx, cy, rx, ry, angle }, index) => (
+          <g key={angle} transform={`rotate(${angle} ${cx} ${cy})`}>
+            <Box component="ellipse" cx={cx} cy={cy} rx={rx} ry={ry} sx={beanSx(press, index * 120)} />
+          </g>
+        ))}
+        <Box component="path" d={PAD} sx={beanSx(swell, 500)} />
+      </Box>
     </Stack>
   );
 };
