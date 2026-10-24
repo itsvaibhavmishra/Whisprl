@@ -1,14 +1,34 @@
 {
   "upcoming": [
     {
-      "emoji": "😜",
-      "title": "Livelier emoji in games",
-      "text": "Throw laugh, cry, taunt, kiss, cool, angry, shocked, melt or party from a bigger tray where every face moves."
+      "emoji": "🐱",
+      "title": "Someone's typing",
+      "text": "A cat peeks over the typing bubble while they write, then ducks back out of sight."
+    },
+    {
+      "emoji": "😀",
+      "title": "A fresh emoji picker",
+      "text": "The newest emoji, your recent ones first and a skin tone for every hand, even offline in the app."
     },
     {
       "emoji": "⌨️",
       "title": "Emoji where the keyboard was",
-      "text": "On a phone, emoji open in the keyboard's place with your recent ones first, and pull up to see more."
+      "text": "On a phone, emoji open in the keyboard's place and a quick flick shows more. On a computer, they open under the message box."
+    },
+    {
+      "emoji": "💬",
+      "title": "Reactions in one place",
+      "text": "More reactions slides up from below, with your six quick reactions on top to use or change right there."
+    },
+    {
+      "emoji": "🎙️",
+      "title": "Microphone beside the plus",
+      "text": "Hold it to record a voice note, and slide right to cancel."
+    },
+    {
+      "emoji": "😜",
+      "title": "Livelier emoji in games",
+      "text": "Throw laugh, cry, taunt, kiss, cool, angry, shocked, melt or party from a bigger tray where every face moves."
     }
   ],
   "releases": [
