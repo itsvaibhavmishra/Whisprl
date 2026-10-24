@@ -6,6 +6,8 @@ const initialState = {
   hasLoadedConversations: false,
   // set when the first list could not load, so an address waiting on it gives up
   hasConversationsFailed: false,
+  // true while the list shown is the one the app saved on this phone, until the server's own arrives
+  isListSaved: false,
   // counts every message that reaches the list, so a list fetched before one arrived knows it is older
   arrivals: 0,
   activeConversation: null,
@@ -136,6 +138,19 @@ const slice = createSlice({
     },
 
     clearConversation: () => initialState,
+
+    // the app opens on the chats it saved on this phone, unless the server's list has already come
+    savedChatsRestored: (state, action) => {
+      if (state.hasLoadedConversations) return;
+      const { conversations, cache, albumReactions } = action.payload;
+      Object.assign(state, { conversations, cache, hasLoadedConversations: true, isListSaved: true });
+      state.albumReactions = { ...albumReactions, ...state.albumReactions };
+    },
+
+    savedChatsDropped: (state) => {
+      if (!state.isListSaved) return;
+      Object.assign(state, closedConversation(), { conversations: [], cache: {}, hasLoadedConversations: false, isListSaved: false });
+    },
 
     openConversation: (state, action) => {
       open(state, action.payload, action.payload.canMessage ?? true);
@@ -434,6 +449,7 @@ const slice = createSlice({
     builder
       .addCase(GetConversations.fulfilled, (state, action) => {
         state.hasLoadedConversations = true;
+        state.isListSaved = false;
         const { conversations, arrivalsWhenAsked } = action.payload;
         const held = new Map(state.conversations.map((conversation) => [conversation._id, conversation]));
         const isNewer = (conversation) => held.get(conversation._id)?.arrival > arrivalsWhenAsked;
@@ -468,10 +484,12 @@ const slice = createSlice({
         state.hasFetched = true;
         state.hasNewerMessages = false;
 
-        const overlaps = messages.some((fetched) => state.messages.some((loaded) => loaded._id === fetched._id));
-        const olderLoaded = overlaps ? state.messages.filter((loaded) => loaded._id < messages[0]._id) : [];
+        // messages saved on the phone may have been edited or deleted since, so the fresh page stands in for them all
+        const live = state.messages.filter((loaded) => !loaded.isSaved);
+        const overlaps = messages.some((fetched) => live.some((loaded) => loaded._id === fetched._id));
+        const olderLoaded = overlaps ? live.filter((loaded) => loaded._id < messages[0]._id) : [];
         // a message that arrived while the page was on its way is newer than all of it
-        const arrivedSince = state.messages.filter((loaded) => !messages.length || loaded._id > messages.at(-1)._id);
+        const arrivedSince = live.filter((loaded) => !messages.length || loaded._id > messages.at(-1)._id);
 
         state.messages = [...olderLoaded, ...messages, ...arrivedSince];
         state.hasOlderMessages = olderLoaded.length ? state.hasOlderMessages : hasMore;
@@ -516,6 +534,8 @@ export const {
   commonGroupsLoaded,
   groupUpdated,
   clearConversation: clearChat,
+  savedChatsRestored,
+  savedChatsDropped,
   setConnection,
   conversationListed,
   addFiles,

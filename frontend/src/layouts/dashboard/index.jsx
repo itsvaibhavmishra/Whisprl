@@ -7,12 +7,14 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import MotionLazyContainer from "@/components/animate/MotionLazyContainer";
 import { PageArea } from "@/components/LoadingScreen";
 import NotificationsPrompt from "@/components/NotificationsPrompt";
+import useSavedChats from "@/hooks/useSavedChats";
 import useSettings from "@/hooks/useSettings";
 import NavRail from "@/layouts/dashboard/NavRail";
 import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 import { DeliverWaitingMessages, GetConversations } from "@/redux/slices/actions/chatActions";
 import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
 import { RegisterPushDevice } from "@/redux/slices/actions/pushActions";
+import { DropSavedChats, RestoreSavedChats } from "@/redux/slices/actions/savedChatsActions";
 import { ConnectSocket } from "@/redux/slices/actions/socketActions";
 import { GetDiscover, GetStatuses } from "@/redux/slices/actions/statusActions";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
@@ -39,15 +41,18 @@ const DashboardLayout = () => {
   const store = useStore();
   const { notifications } = useSettings();
 
+  useSavedChats(isApp && isLoggedIn && isSetUp ? userId : null);
+
   useEffect(() => {
     if (!isLoggedIn || !userId || !isSetUp) return;
 
+    if (isApp) dispatch(RestoreSavedChats());
     dispatch(ConnectSocket());
-    // previews can only be decrypted once this browser's key is loaded
-    dispatch(PrepareEncryption()).then(() => {
-      dispatch(GetConversations());
+    dispatch(PrepareEncryption()).then(({ payload }) => {
+      if (isApp && ["setup", "locked"].includes(payload?.status)) dispatch(DropSavedChats());
       dispatch(DeliverWaitingMessages());
     });
+    dispatch(GetConversations());
     dispatch(GetOnlineFriends());
   }, [dispatch, isLoggedIn, userId, isSetUp]);
 

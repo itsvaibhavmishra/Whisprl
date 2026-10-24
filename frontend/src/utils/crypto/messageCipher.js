@@ -13,6 +13,15 @@ import { decodePayload } from "@/utils/messagePayload";
 
 let deviceKeys = null;
 const conversationKeys = new Map();
+// chats are fetched while this device's keys are still being checked, and wait for that before decrypting anything
+let keysChecked = Promise.resolve();
+
+export const trackKeyCheck = (check) => {
+  keysChecked = check.catch(() => null);
+  return check;
+};
+
+export const whenKeysChecked = () => keysChecked;
 
 export const setDeviceKeys = (keys) => {
   deviceKeys = keys;

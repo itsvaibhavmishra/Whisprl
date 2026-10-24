@@ -16,8 +16,11 @@
   - New:
 
   - Improvements:
+    - The Android app opens on your chats and their latest messages straight away, even after the phone closed it or with no connection, and brings them up to date as soon as the server answers
+    - Chats load sooner after the app or website opens, since the chat list is fetched while your keys are still being checked
 
   - Fixed:
+    - An app opened with no connection catches up once it reconnects, instead of staying on what it had
 
   - Developers:
 
