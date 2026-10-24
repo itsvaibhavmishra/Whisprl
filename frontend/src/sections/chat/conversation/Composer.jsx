@@ -66,8 +66,8 @@ const ROW_PAD = 4;
 const TOOL_SIZE = 40;
 const TOOL_BUTTON = { width: TOOL_SIZE, height: TOOL_SIZE, color: "text.secondary" };
 
-// the bar ends where the quick emoji was, and that spot takes the send button once a recording is locked
-const RECORDING_BAR = { right: ROUND_BUTTON.width + 8 };
+// a locked recording leaves the quick emoji's spot to its send button, where a held one runs the bar to the edge
+const LOCKED_BAR = { right: ROUND_BUTTON.width + 8 };
 // a held microphone stays in view over the bar's start, beside the attach button, so what the bar says begins past it
 const PAST_THE_MIC = ROW_PAD + 2 * TOOL_SIZE + 8;
 
@@ -343,7 +343,7 @@ const Composer = () => {
                     <VoiceRecorder
                       buttonSx={TOOL_BUTTON}
                       sendSx={ROUND_BUTTON}
-                      overlaySx={RECORDING_BAR}
+                      lockedBarSx={LOCKED_BAR}
                       holdInset={PAST_THE_MIC}
                       onRecordingChange={setIsRecording}
                     />

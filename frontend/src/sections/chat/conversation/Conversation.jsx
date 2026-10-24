@@ -239,7 +239,7 @@ const Conversation = () => {
     noticeOf() ?? (
       <>
         {peerHasNoKey && (
-          <ChatNote sx={{ mb: 0.5, mt: 0 }}>
+          <ChatNote sx={{ mb: 0.5, mt: 0, mx: "auto", width: "fit-content" }}>
             {peer.firstName} has not opened Whisprl since messages became end-to-end encrypted. Your messages arrive once they do.
           </ChatNote>
         )}

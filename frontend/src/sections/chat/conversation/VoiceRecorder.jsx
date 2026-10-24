@@ -46,7 +46,7 @@ const micLabelOf = (phase, pending) => {
   return "Record a voice message";
 };
 
-const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, holdInset, onRecordingChange }) => {
+const VoiceRecorder = ({ buttonSx, sendSx, lockedBarSx, holdInset, onRecordingChange }) => {
   const dispatch = useDispatch();
   const [phase, setPhase] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -205,7 +205,7 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, holdInset, onRecordingChan
             borderRadius: "26px",
             bgcolor: "chat.raised",
             boxShadow: (theme) => `0 0 0 1px ${theme.palette.chat.edge}`,
-            ...overlaySx,
+            ...(isLocked && lockedBarSx),
           }}
         >
           {!isLocked && (
