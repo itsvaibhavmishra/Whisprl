@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { m, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "motion/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { GetLeaderboard } from "@/redux/slices/actions/gameActions";
@@ -29,8 +29,8 @@ const Score = ({ rows, conversation, theme, meId }) => {
   const nameOf = (row) => firstNameIn(conversation, row.user, meId);
 
   return (
-    <Stack alignItems="center" spacing={0.6}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ width: "100%" }}>
+    <Stack spacing={0.6} sx={{ alignItems: "center" }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", width: "100%" }}>
         <Typography noWrap sx={tallyOf(colours[0])}>{`${nameOf(first)} ${first.won}`}</Typography>
         <Box sx={{ flex: 1, height: 7, display: "flex", borderRadius: 99, overflow: "hidden", bgcolor: alpha(theme.ink, 0.18) }}>
           {rows.map((row, index) => (

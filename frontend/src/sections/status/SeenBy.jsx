@@ -1,5 +1,5 @@
 import { Box, ButtonBase, IconButton, Stack, Typography } from "@mui/material";
-import { Eye, X } from "phosphor-react";
+import { EyeIcon, XIcon } from "@phosphor-icons/react";
 
 import useMessageTime from "@/hooks/useMessageTime";
 import getAvatar from "@/utils/avatars";
@@ -39,7 +39,7 @@ export const ViewsPill = ({ views, pillRef, onOpen }) => {
           ))}
         </Stack>
       )}
-      <Eye size={18} aria-hidden />
+      <EyeIcon size={18} aria-hidden />
       <Typography component="span" sx={{ fontSize: 14, fontWeight: 700 }}>
         {views.length ? views.length : "No views yet"}
       </Typography>
@@ -58,7 +58,7 @@ const SeenBy = ({ views, onClose }) => {
 
   return (
     <Stack sx={{ minHeight: 0, height: "100%", color: "#fff" }}>
-      <Stack direction="row" alignItems="center" sx={{ px: 2.5, pt: 2, pb: 1.5 }}>
+      <Stack direction="row" sx={{ alignItems: "center", px: 2.5, pt: 2, pb: 1.5 }}>
         <Box sx={{ flex: 1 }}>
           <Typography id="seen-by-title" component="h2" sx={{ m: 0, fontSize: 16, fontWeight: 800 }}>
             {seenByLabel(views)}
@@ -67,13 +67,13 @@ const SeenBy = ({ views, onClose }) => {
         </Box>
         {onClose && (
           <IconButton autoFocus aria-label="Close who saw this" onClick={onClose} sx={{ color: "inherit", mr: -1 }}>
-            <X size={20} weight="bold" />
+            <XIcon size={20} weight="bold" />
           </IconButton>
         )}
       </Stack>
       <Box component="ul" aria-labelledby="seen-by-title" sx={{ flex: 1, overflowY: "auto", m: 0, p: 0, pb: 1 }}>
         {newestFirst(views).map(({ user, viewedAt, reaction }) => (
-          <Stack key={user._id} component="li" direction="row" spacing={1.5} alignItems="center" sx={{ listStyle: "none", px: 2.5, py: 1 }}>
+          <Stack key={user._id} component="li" direction="row" spacing={1.5} sx={{ alignItems: "center", listStyle: "none", px: 2.5, py: 1 }}>
             {getAvatar(user.avatar, user.firstName, 40)}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography noWrap sx={{ fontSize: 14, fontWeight: 700 }}>

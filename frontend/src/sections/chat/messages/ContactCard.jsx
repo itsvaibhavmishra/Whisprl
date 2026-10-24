@@ -21,7 +21,7 @@ const ContactCard = ({ contact, isMine }) => {
 
   return (
     <Stack spacing={1.25} sx={{ minWidth: 200, p: 0.5 }}>
-      <Stack direction="row" spacing={1.5} alignItems="center">
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         {getAvatar(contact.avatar, contact.firstName, 40)}
         <Box sx={{ minWidth: 0 }}>
           <Typography data-searchable variant="subtitle2" noWrap>

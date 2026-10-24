@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import { useEffect, useMemo } from "react";
 import { CssBaseline, useMediaQuery } from "@mui/material";
 import { createTheme, ThemeProvider as MUIThemeProvider, StyledEngineProvider } from "@mui/material/styles";
@@ -9,10 +8,6 @@ import breakpoints from "@/theme/breakpoints";
 import componentsOverride from "@/theme/overrides";
 import shadows, { customShadows } from "@/theme/shadows";
 import { matchSystemBars } from "@/utils/systemBars";
-
-ThemeProvider.propTypes = {
-  children: PropTypes.node,
-};
 
 export default function ThemeProvider({ children }) {
   const { themeMode } = useSettings();

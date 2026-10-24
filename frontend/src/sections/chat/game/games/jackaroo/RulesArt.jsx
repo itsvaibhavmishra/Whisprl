@@ -176,7 +176,7 @@ const BoardWindow = ({ scene }) => {
 
 // cards laid out in a gentle fan, as the hand is
 const Cards = ({ cards, width, picked }) => (
-  <Stack direction="row" alignItems="flex-end" justifyContent="center" sx={{ height: "100%", pb: 1 }}>
+  <Stack direction="row" sx={{ alignItems: "flex-end", justifyContent: "center", height: "100%", pb: 1 }}>
     {cards.map((shown, index) => {
       const spread = index - (cards.length - 1) / 2;
       return (
@@ -214,7 +214,7 @@ const JackarooRulesArt = ({ picture }) => {
   if (picture === "special") return <Cards cards={SPECIALS} width={64} />;
   const scene = SCENES[picture];
   return (
-    <Stack direction="row" alignItems="center" justifyContent="center" spacing={1.5} sx={{ height: "100%", maxWidth: "100%" }}>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", justifyContent: "center", height: "100%", maxWidth: "100%" }}>
       <BoardWindow scene={scene} />
       {scene.card && (
         <Box sx={{ width: 74, flexShrink: 0, transform: "rotate(5deg)", filter: "drop-shadow(0 4px 7px rgba(0, 0, 0, 0.45))" }}>

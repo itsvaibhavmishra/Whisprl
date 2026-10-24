@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Box, ButtonBase, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
-import { Check, DotsThree, LockSimple, Plus } from "phosphor-react";
+import { CheckIcon, DotsThreeIcon, LockSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
@@ -14,8 +14,8 @@ import { firstNameIn, memberOf } from "@/utils/groups";
 const faceOf = (seat, member, size) => {
   if (seat.bot || seat.away) return <BotFace size={size * 0.5} />;
   if (member) return getAvatar(member.avatar, member.firstName, size);
-  if (seat.locked) return <LockSimple size={size * 0.4} weight="bold" />;
-  return <Plus size={size * 0.4} weight="bold" color={alpha("#fff", 0.85)} />;
+  if (seat.locked) return <LockSimpleIcon size={size * 0.4} weight="bold" />;
+  return <PlusIcon size={size * 0.4} weight="bold" color={alpha("#fff", 0.85)} />;
 };
 
 const labelOf = (seat, conversation, meId) => {
@@ -45,7 +45,7 @@ const SeatMenu = ({ seat, meId, onLift, onLock, onInvite }) => {
         className="seat-menu"
         sx={{ position: "absolute", top: -6, right: -10, color: "inherit", bgcolor: "rgba(0,0,0,0.28)", "&:hover": { bgcolor: "rgba(0,0,0,0.4)" } }}
       >
-        <DotsThree size={16} weight="bold" />
+        <DotsThreeIcon size={16} weight="bold" />
       </IconButton>
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
         {canLift && <MenuItem onClick={choose(onLift)}>Lift out</MenuItem>}
@@ -119,7 +119,7 @@ const Seat = ({ seat, conversation, meId, theme, size, mark, onTake, onLeave, ma
             boxShadow: "0 0 0 2.5px rgba(20, 14, 8, 0.85)",
           }}
         >
-          {seat.ready && <Check size={11} weight="bold" />}
+          {seat.ready && <CheckIcon size={11} weight="bold" />}
         </Box>
       )}
       <Typography noWrap sx={{ maxWidth: "100%", fontSize: 12, fontWeight: 700, color: ON_SCRIM, textShadow: "0 1px 3px rgba(0,0,0,0.45)" }}>

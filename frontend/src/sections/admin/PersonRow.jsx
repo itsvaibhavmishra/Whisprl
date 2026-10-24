@@ -9,7 +9,7 @@ const PersonRow = ({ person, onChanged }) => (
     <Stack direction="row" spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
       {getAvatar(person.avatar, `${person.firstName} ${person.lastName}`, 40)}
       <Box sx={{ minWidth: 0 }}>
-        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ gap: 0.75 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap", gap: 0.75 }}>
           <Typography sx={{ fontSize: 15, fontWeight: 700 }}>{`${person.firstName} ${person.lastName}`}</Typography>
           <PersonStatus person={person} />
         </Stack>

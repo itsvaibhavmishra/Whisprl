@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IconButton, Stack, Tooltip } from "@mui/material";
-import { ArrowBendUpLeft, ArrowBendUpRight, DownloadSimple, Smiley, Trash } from "phosphor-react";
+import { ArrowBendUpLeftIcon, ArrowBendUpRightIcon, DownloadSimpleIcon, SmileyIcon, TrashIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ReactToMessage } from "@/redux/slices/actions/messageActions";
@@ -52,27 +52,26 @@ const ViewerActions = ({ item, onClose }) => {
       role="toolbar"
       aria-label="Photo actions"
       direction="row"
-      alignItems="center"
       spacing={0.25}
-      sx={{ p: 0.5, borderRadius: 99, bgcolor: "rgba(255, 255, 255, 0.07)", boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.08)" }}
+      sx={{ alignItems: "center", p: 0.5, borderRadius: 99, bgcolor: "rgba(255, 255, 255, 0.07)", boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.08)" }}
     >
       <ViewerButton label="React" onClick={(event) => setPickerAnchor(event.currentTarget)}>
-        <Smiley size={22} />
+        <SmileyIcon size={22} />
       </ViewerButton>
       <ViewerButton label="Reply" onClick={reply}>
-        <ArrowBendUpLeft size={22} />
+        <ArrowBendUpLeftIcon size={22} />
       </ViewerButton>
       {/* a plain file from before encryption has no sealed copy the server could point a forward at */}
       {message.file && (
         <ViewerButton label="Forward" onClick={() => setDialog("forward")}>
-          <ArrowBendUpRight size={22} />
+          <ArrowBendUpRightIcon size={22} />
         </ViewerButton>
       )}
       <ViewerButton label="Save" onClick={save} disabled={file.isUploading}>
-        <DownloadSimple size={22} />
+        <DownloadSimpleIcon size={22} />
       </ViewerButton>
       <ViewerButton label="Delete" onClick={() => setDialog("delete")}>
-        <Trash size={22} />
+        <TrashIcon size={22} />
       </ViewerButton>
 
       <ReactionPicker

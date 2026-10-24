@@ -1,7 +1,17 @@
 import { useEffect, useRef } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowLeft, ChartLineUp, ClockCounterClockwise, Crown, Flag, GameController, IdentificationBadge, ShieldStar, Users } from "phosphor-react";
+import {
+  ArrowLeftIcon,
+  ChartLineUpIcon,
+  ClockCounterClockwiseIcon,
+  CrownIcon,
+  FlagIcon,
+  GameControllerIcon,
+  IdentificationBadgeIcon,
+  ShieldStarIcon,
+  UsersIcon,
+} from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 import { Link, Navigate, Outlet, matchPath, useLocation } from "react-router-dom";
 
@@ -18,23 +28,22 @@ const SIDEBAR_WIDTH = 248;
 // the top bar already sits below the status bar, so the page area starts clear of it
 const PAGE_AREA = { isUnderStatusBar: false };
 const DESTINATIONS = [
-  { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUp, permission: "overview" },
-  { path: PATH_ADMIN.people, label: "People", Icon: Users, permission: "people" },
-  { path: PATH_ADMIN.reports, label: "Reports", Icon: Flag, permission: "reports" },
-  { path: PATH_ADMIN.requests, label: "Game requests", Icon: GameController, permission: "requests" },
-  { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwise, permission: "audit" },
-  { path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadge, permission: "team" },
+  { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUpIcon, permission: "overview" },
+  { path: PATH_ADMIN.people, label: "People", Icon: UsersIcon, permission: "people" },
+  { path: PATH_ADMIN.reports, label: "Reports", Icon: FlagIcon, permission: "reports" },
+  { path: PATH_ADMIN.requests, label: "Game requests", Icon: GameControllerIcon, permission: "requests" },
+  { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwiseIcon, permission: "audit" },
+  { path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadgeIcon, permission: "team" },
 ];
-const ROLE_BADGES = { owner: { label: "Owner", Icon: Crown }, admin: { label: "Admin", Icon: ShieldStar } };
+const ROLE_BADGES = { owner: { label: "Owner", Icon: CrownIcon }, admin: { label: "Admin", Icon: ShieldStarIcon } };
 
 const RoleBadge = ({ role }) => {
   const { label, Icon } = ROLE_BADGES[role];
   return (
     <Stack
       direction="row"
-      alignItems="center"
       spacing={0.5}
-      sx={{ px: 1, py: 0.375, borderRadius: 99, color: "primary.glow", bgcolor: (theme) => alpha(theme.palette.primary.glow, 0.14) }}
+      sx={{ alignItems: "center", px: 1, py: 0.375, borderRadius: 99, color: "primary.glow", bgcolor: (theme) => alpha(theme.palette.primary.glow, 0.14) }}
     >
       <Icon size={13} weight="fill" aria-hidden />
       <Typography component="span" sx={{ fontSize: 12, fontWeight: 800 }}>
@@ -81,7 +90,7 @@ const Sidebar = ({ destinations }) => {
       aria-label="Admin"
       sx={{ position: "sticky", top: 0, width: SIDEBAR_WIDTH, height: "100dvh", flexShrink: 0, px: 2, py: 2.5, bgcolor: "chat.rail", color: ON_RAIL }}
     >
-      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ px: 1, color: "common.white" }}>
+      <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", px: 1, color: "common.white" }}>
         <Box component="img" src={WhisprlMark} alt="" sx={{ width: 34, height: "auto" }} />
         <Typography component="p" sx={{ m: 0 }}>
           <Wordmark name="Admin" fontSize={28} />
@@ -97,7 +106,7 @@ const Sidebar = ({ destinations }) => {
       </Stack>
 
       <Stack spacing={1.5} sx={{ mt: "auto", pt: 2, borderTop: 1, borderColor: alpha(ON_RAIL, 0.15) }}>
-        <Stack direction="row" alignItems="center" spacing={1.25} sx={{ px: 1 }}>
+        <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", px: 1 }}>
           {getAvatar(avatar, `${firstName} ${lastName}`, 36)}
           <Box sx={{ minWidth: 0 }}>
             <Typography noWrap sx={{ fontSize: 14, fontWeight: 700, color: "common.white" }}>{`${firstName} ${lastName}`}</Typography>
@@ -111,7 +120,7 @@ const Sidebar = ({ destinations }) => {
           to={PATH_DASHBOARD.general.chat}
           sx={{ justifyContent: "flex-start", gap: 1, px: 1, py: 1, borderRadius: 2, color: ON_RAIL, "&:hover": { color: "common.white" } }}
         >
-          <ArrowLeft size={18} weight="bold" />
+          <ArrowLeftIcon size={18} weight="bold" />
           <Typography component="span" sx={{ fontSize: 13.5, fontWeight: 700 }}>
             Back to Whisprl
           </Typography>
@@ -172,10 +181,10 @@ const TopBar = ({ destinations }) => {
   const role = useSelector((state) => state.user.user.role);
   return (
     <Box component="header" sx={{ position: "sticky", top: 0, zIndex: 2, pt: "env(safe-area-inset-top)", bgcolor: "chat.rail", color: "common.white" }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ minHeight: 60, px: 1 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", minHeight: 60, px: 1 }}>
         <Tooltip title="Back to Whisprl">
           <IconButton component={Link} to={PATH_DASHBOARD.general.chat} aria-label="Back to Whisprl" sx={{ color: ON_RAIL, width: 44, height: 44 }}>
-            <ArrowLeft size={22} weight="bold" />
+            <ArrowLeftIcon size={22} weight="bold" />
           </IconButton>
         </Tooltip>
         <Typography component="p" sx={{ m: 0, flex: 1 }}>
@@ -214,9 +223,9 @@ const AdminLayout = () => {
     <Stack direction={{ xs: "column", md: "row" }} sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
       {isPhone ? <TopBar destinations={destinations} /> : <Sidebar destinations={destinations} />}
       <Box component="main" sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <PageArea.Provider value={PAGE_AREA}>
+        <PageArea value={PAGE_AREA}>
           <AllowedContent destinations={destinations} />
-        </PageArea.Provider>
+        </PageArea>
       </Box>
     </Stack>
   );

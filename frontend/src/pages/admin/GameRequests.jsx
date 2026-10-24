@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, ButtonBase, CircularProgress, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Box, Button, ButtonBase, CircularProgress, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -28,7 +27,7 @@ const EMPTY = {
 };
 
 const KindFilter = ({ value, onChange }) => (
-  <Stack role="group" aria-label="Kind" direction="row" flexWrap="wrap" useFlexGap spacing={1}>
+  <Stack role="group" aria-label="Kind" direction="row" useFlexGap spacing={1} sx={{ flexWrap: "wrap" }}>
     {KINDS.map((option) => {
       const isCurrent = option.value === value;
       return (
@@ -84,9 +83,9 @@ const GameRequests = () => {
       return (
         <Box>
           <Notice title="The requests didn't load">Check your connection and try again.</Notice>
-          <LoadingButton variant="contained" loading={isLoading} onClick={() => read()} sx={{ mt: 2 }}>
+          <Button variant="contained" loading={isLoading} onClick={() => read()} sx={{ mt: 2 }}>
             Try again
-          </LoadingButton>
+          </Button>
         </Box>
       );
     }
@@ -118,7 +117,7 @@ const GameRequests = () => {
           ))}
         </Box>
         {hasMore && (
-          <LoadingButton
+          <Button
             variant="outlined"
             color="inherit"
             loading={isLoading}
@@ -126,7 +125,7 @@ const GameRequests = () => {
             sx={{ mt: 2, alignSelf: "flex-start" }}
           >
             Show more
-          </LoadingButton>
+          </Button>
         )}
       </>
     );
@@ -142,7 +141,7 @@ const GameRequests = () => {
       </Typography>
 
       <SearchPill value={search} onChange={setSearch} label="Search names, details or people" sx={{ mt: 4, maxWidth: { md: 440 } }} />
-      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ md: "center" }} sx={{ mt: 2, gap: 1.5 }}>
+      <Stack direction={{ xs: "column", md: "row" }} sx={{ justifyContent: "space-between", alignItems: { md: "center" }, mt: 2, gap: 1.5 }}>
         <PillGroup label="Show" options={STATUSES} value={status} onChange={setStatus} />
         <KindFilter value={kind} onChange={setKind} />
       </Stack>

@@ -1,5 +1,5 @@
 import { Box, Button, Divider } from "@mui/material";
-import { GithubLogo, GoogleLogo, LinkedinLogo } from "phosphor-react";
+import { GithubLogoIcon, GoogleLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
 import { useGoogleLogin } from "@react-oauth/google";
 
 import { useDispatch } from "react-redux";
@@ -61,9 +61,9 @@ const AuthSocial = () => {
 
   // the app signs in with Google through Android itself, and GitHub and LinkedIn are for the website
   const providers = [
-    { name: "Google", icon: <GoogleLogo weight="bold" color="#DF3E30" />, onClick: continueWithGoogle, isInApp: true },
-    { name: "GitHub", icon: <GithubLogo weight="fill" />, onClick: githubLogin },
-    { name: "LinkedIn", icon: <LinkedinLogo weight="fill" color="#0A66C2" />, onClick: linkedinLogin },
+    { name: "Google", icon: <GoogleLogoIcon weight="bold" color="#DF3E30" />, onClick: continueWithGoogle, isInApp: true },
+    { name: "GitHub", icon: <GithubLogoIcon weight="fill" />, onClick: githubLogin },
+    { name: "LinkedIn", icon: <LinkedinLogoIcon weight="fill" color="#0A66C2" />, onClick: linkedinLogin },
   ].filter((provider) => provider.isInApp || !isApp);
 
   return (

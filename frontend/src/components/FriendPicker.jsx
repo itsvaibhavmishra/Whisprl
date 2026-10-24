@@ -51,7 +51,7 @@ const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true,
                   checked={selected.includes(friend._id)}
                   tabIndex={-1}
                   disableRipple
-                  inputProps={{ "aria-label": `Choose ${fullNameOf(friend)}` }}
+                  slotProps={{ input: { "aria-label": `Choose ${fullNameOf(friend)}` } }}
                 />
               </ListItemButton>
             </ListItem>

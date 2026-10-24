@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Popover, Slider, Stack, Typography } from "@mui/material";
-import { MusicNotes, SpeakerHigh } from "phosphor-react";
+import { MusicNotesIcon, SpeakerHighIcon } from "@phosphor-icons/react";
 
 import { UpdateGameAudio } from "@/redux/slices/actions/userActions";
 import { applyGameLevels, gameAudioOf, playGameSound } from "@/sections/chat/game/gameSounds";
 
 const Level = ({ icon, label, value, onChange, onSave }) => (
-  <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: 210 }}>
-    <Stack alignItems="center" sx={{ width: 26, color: "text.secondary" }}>
-      {icon}
-    </Stack>
+  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", width: 210 }}>
+    <Stack sx={{ alignItems: "center", width: 26, color: "text.secondary" }}>{icon}</Stack>
     <Stack sx={{ flex: 1 }}>
       <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{label}</Typography>
       <Slider
@@ -59,7 +57,7 @@ const SoundMenu = ({ anchor, gameId, track, onClose }) => {
     >
       <Stack spacing={1.5}>
         <Level
-          icon={<SpeakerHigh size={18} weight="bold" />}
+          icon={<SpeakerHighIcon size={18} weight="bold" />}
           label="Sound effects"
           value={levels.effects}
           onChange={(effects) => {
@@ -70,7 +68,7 @@ const SoundMenu = ({ anchor, gameId, track, onClose }) => {
         />
         {track && (
           <Level
-            icon={<MusicNotes size={18} weight="bold" />}
+            icon={<MusicNotesIcon size={18} weight="bold" />}
             label="Music"
             value={levels.music}
             onChange={(music) => change({ ...levels, music })}

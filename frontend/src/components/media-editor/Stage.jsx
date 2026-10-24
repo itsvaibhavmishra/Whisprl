@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Box } from "@mui/material";
-import { Trash } from "phosphor-react";
+import { TrashIcon } from "@phosphor-icons/react";
 
 import LayerView from "@/components/media-editor/LayerView";
 import useStageGestures, { BIN_LIFT, binOf } from "@/components/media-editor/useStageGestures";
@@ -135,7 +135,7 @@ const Stage = ({
             pointerEvents: "none",
           }}
         >
-          <Trash size={22} />
+          <TrashIcon size={22} />
         </Box>
       )}
 

@@ -29,7 +29,7 @@ const Bar = ({ width, height }) => (
 const ChatRowSkeletons = () => (
   <Stack component="ul" role="status" aria-label="Loading chats" sx={{ m: 0, p: 0 }}>
     {ROWS.map(({ name, preview }, row) => (
-      <Stack key={row} component="li" direction="row" alignItems="center" spacing={1.5} sx={{ listStyle: "none", px: 1, py: 1 }}>
+      <Stack key={row} component="li" direction="row" spacing={1.5} sx={{ alignItems: "center", listStyle: "none", px: 1, py: 1 }}>
         <Skeleton
           variant="circular"
           animation="wave"
@@ -38,11 +38,11 @@ const ChatRowSkeletons = () => (
           sx={{ flexShrink: 0, bgcolor: (theme) => alpha(theme.palette.text.primary, 0.1) }}
         />
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ height: 22 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", height: 22 }}>
             <Bar width={`${name}%`} height={13} />
             <Bar width={34} height={9} />
           </Stack>
-          <Stack justifyContent="center" sx={{ mt: 0.25, height: 21 }}>
+          <Stack sx={{ justifyContent: "center", mt: 0.25, height: 21 }}>
             <Bar width={`${preview}%`} height={11} />
           </Stack>
         </Box>

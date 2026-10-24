@@ -1,5 +1,5 @@
 import { Avatar, AvatarGroup, Box, Link, Skeleton, Stack, Typography } from "@mui/material";
-import { GithubLogo, GoogleLogo, LinkedinLogo } from "phosphor-react";
+import { GithubLogoIcon, GoogleLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -7,9 +7,9 @@ import { PATH_DASHBOARD } from "@/routes/paths";
 import { avatarLookOf } from "@/utils/avatars";
 
 const SIGN_IN_METHODS = {
-  google: { label: "Google", Icon: GoogleLogo },
-  github: { label: "GitHub", Icon: GithubLogo },
-  linkedin: { label: "LinkedIn", Icon: LinkedinLogo },
+  google: { label: "Google", Icon: GoogleLogoIcon },
+  github: { label: "GitHub", Icon: GithubLogoIcon },
+  linkedin: { label: "LinkedIn", Icon: LinkedinLogoIcon },
 };
 
 const joinedOn = (date) => new Date(date).toLocaleDateString(undefined, { month: "long", year: "numeric" });
@@ -41,7 +41,7 @@ const AccountSummary = () => {
       <Fact label="On Whisprl since">{joinedOn(createdAt)}</Fact>
       <Fact label="Friends">
         {friendCount ? (
-          <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
             <AvatarGroup max={5} total={friendCount} sx={{ "& .MuiAvatar-root": { width: 32, height: 32, fontSize: 14, borderColor: "background.default" } }}>
               {friendPreviews.map(({ _id, firstName, avatar }) => (
                 <Avatar key={_id} src={avatar || undefined} alt={firstName} sx={{ background: avatarLookOf(firstName).background, color: "common.white" }}>
@@ -63,11 +63,11 @@ const AccountSummary = () => {
       <Fact label="Messages sent">{messageCount.toLocaleString()}</Fact>
       <Fact label="Connected sign-ins">
         {socialsConnected.length ? (
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+          <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: "wrap" }}>
             {socialsConnected.map((method) => {
               const { label, Icon } = SIGN_IN_METHODS[method];
               return (
-                <Stack key={method} direction="row" spacing={0.75} alignItems="center">
+                <Stack key={method} direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
                   <Icon size={18} aria-hidden="true" />
                   <span>{label}</span>
                 </Stack>

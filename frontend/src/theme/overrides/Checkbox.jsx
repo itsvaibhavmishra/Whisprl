@@ -1,4 +1,4 @@
-import { CheckboxIcon, CheckboxCheckedIcon, CheckboxIndeterminateIcon } from "@/theme/overrides/CustomIcons";
+import { CheckboxIcon, CheckboxCheckedIcon } from "@/theme/overrides/CustomIcons";
 
 export default function Checkbox(theme) {
   return {
@@ -6,7 +6,6 @@ export default function Checkbox(theme) {
       defaultProps: {
         icon: <CheckboxIcon />,
         checkedIcon: <CheckboxCheckedIcon />,
-        indeterminateIcon: <CheckboxIndeterminateIcon />,
       },
 
       styleOverrides: {

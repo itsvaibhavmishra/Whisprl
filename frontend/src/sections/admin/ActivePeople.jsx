@@ -1,5 +1,4 @@
-import { Box, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
 
 import PlatformIcons from "@/sections/admin/PlatformIcons";
@@ -15,7 +14,7 @@ const ActivePeople = ({ people, hasMore, isLoading, onMore }) => {
     <>
       <Box component="ul" sx={{ m: 0, mt: 1, p: 0, listStyle: "none" }}>
         {people.map((person) => (
-          <Stack key={person._id} component="li" direction="row" alignItems="center" spacing={1.5} sx={{ py: 1.25, borderTop: 1, borderColor: "divider" }}>
+          <Stack key={person._id} component="li" direction="row" spacing={1.5} sx={{ alignItems: "center", py: 1.25, borderTop: 1, borderColor: "divider" }}>
             {getAvatar(person.avatar, `${person.firstName} ${person.lastName}`, 36)}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography noWrap sx={{ fontSize: 14.5, fontWeight: 700 }}>{`${person.firstName} ${person.lastName}`}</Typography>
@@ -28,9 +27,9 @@ const ActivePeople = ({ people, hasMore, isLoading, onMore }) => {
         ))}
       </Box>
       {hasMore && (
-        <LoadingButton variant="outlined" color="inherit" loading={isLoading} onClick={onMore} sx={{ mt: 1.5 }}>
+        <Button variant="outlined" color="inherit" loading={isLoading} onClick={onMore} sx={{ mt: 1.5 }}>
           Show more
-        </LoadingButton>
+        </Button>
       )}
     </>
   );

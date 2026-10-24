@@ -1,8 +1,19 @@
 import { memo } from "react";
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { m } from "framer-motion";
-import { BellSlash, Camera, Check, Checks, FileText, Microphone, Star, User, UsersThree, VideoCamera } from "phosphor-react";
+import { m } from "motion/react";
+import {
+  BellSlashIcon,
+  CameraIcon,
+  CheckIcon,
+  ChecksIcon,
+  FileTextIcon,
+  MicrophoneIcon,
+  StarIcon,
+  UserIcon,
+  UsersThreeIcon,
+  VideoCameraIcon,
+} from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -21,19 +32,19 @@ import { SPOKEN_ONLY } from "@/utils/spokenOnly";
 
 const ROW_SLIDE = { type: "spring", stiffness: 520, damping: 42 };
 const REORDER = { duration: 0.28, ease: [0.33, 1, 0.68, 1] };
-const PREVIEW_ICONS = { image: Camera, video: VideoCamera, voice: Microphone, document: FileText };
+const PREVIEW_ICONS = { image: CameraIcon, video: VideoCameraIcon, voice: MicrophoneIcon, document: FileTextIcon };
 const AVATAR_SIZE = 50;
 
 const previewIconOf = (message) => {
   if (message.deletedAt || message.undecryptable) return null;
-  if (message.contact) return User;
+  if (message.contact) return UserIcon;
   return PREVIEW_ICONS[message.file?.kind] ?? null;
 };
 
 const Receipt = ({ message }) => {
-  if (message.seenAt) return <Checks size={16} weight="bold" role="img" aria-label="Seen" />;
-  if (message.deliveredAt) return <Checks size={16} role="img" aria-label="Delivered" />;
-  return <Check size={16} role="img" aria-label="Sent" />;
+  if (message.seenAt) return <ChecksIcon size={16} weight="bold" role="img" aria-label="Seen" />;
+  if (message.deliveredAt) return <ChecksIcon size={16} role="img" aria-label="Delivered" />;
+  return <CheckIcon size={16} role="img" aria-label="Sent" />;
 };
 
 // the row is a link, so the avatar's own button lies over it as a sibling rather than nesting inside it
@@ -55,8 +66,8 @@ const RowAvatarChoices = ({ conversationId, name, peerId, hasStatus, isGroup }) 
       hasStatus={hasStatus}
       other={
         isGroup
-          ? { noun: "group info", label: "View group info", icon: UsersThree, onChoose: viewProfile }
-          : { noun: "profile", label: "View profile", icon: User, onChoose: viewProfile }
+          ? { noun: "group info", label: "View group info", icon: UsersThreeIcon, onChoose: viewProfile }
+          : { noun: "profile", label: "View profile", icon: UserIcon, onChoose: viewProfile }
       }
       sx={{
         position: "absolute",
@@ -154,7 +165,7 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
       >
         <ChatAvatar src={avatar} name={name} size={AVATAR_SIZE} isOnline={isOnline} statuses={statuses} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Stack direction="row" alignItems="center" spacing={0.75}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
             <Typography noWrap sx={{ flex: 1, fontSize: 15, fontWeight: unread ? 800 : 700, letterSpacing: "-0.01em" }}>
               {name}
               {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
@@ -175,7 +186,7 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
               </Typography>
             )}
           </Stack>
-          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.25, color: "text.secondary" }}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mt: 0.25, color: "text.secondary" }}>
             {hasReceipt && !isLive && !label && !isReactionLatest && (
               <Box component="span" sx={{ display: "grid", color: latest.seenAt ? "primary.main" : "text.disabled" }}>
                 <Receipt message={latest} />
@@ -198,8 +209,8 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
               {PreviewIcon && <PreviewIcon size={15} weight="bold" aria-hidden style={{ verticalAlign: "-2px", marginRight: 4 }} />}
               {text}
             </Typography>
-            {conversation.isFavourite && <Star size={14} weight="fill" role="img" aria-label="Favourite" style={{ flexShrink: 0 }} />}
-            {isQuiet && <BellSlash size={14} role="img" aria-label="Muted" style={{ flexShrink: 0 }} />}
+            {conversation.isFavourite && <StarIcon size={14} weight="fill" role="img" aria-label="Favourite" style={{ flexShrink: 0 }} />}
+            {isQuiet && <BellSlashIcon size={14} role="img" aria-label="Muted" style={{ flexShrink: 0 }} />}
             {unread > 0 && (
               <Box
                 aria-hidden

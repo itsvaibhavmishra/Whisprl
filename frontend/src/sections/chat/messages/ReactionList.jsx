@@ -15,7 +15,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Plus, Smiley } from "phosphor-react";
+import { PlusIcon, SmileyIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 
 import MediaTile from "@/sections/chat/messages/MediaTile";
@@ -70,8 +70,8 @@ const ReactionList = ({ anchorEl, side, reactions, conversation, mine, onReact, 
       <Stack direction="row" sx={{ flexShrink: 0, gap: 1, px: 2.5, py: 1.5, overflowX: "auto", scrollbarWidth: "none" }}>
         <ButtonBase aria-label="Add a reaction" onClick={(event) => setPickerAnchor(event.currentTarget)} sx={[chipStyle(false), { px: 2.25 }]}>
           <Box sx={{ position: "relative", display: "flex" }}>
-            <Smiley size={20} />
-            <Plus size={9} weight="bold" style={{ position: "absolute", top: -3, right: -5 }} />
+            <SmileyIcon size={20} />
+            <PlusIcon size={9} weight="bold" style={{ position: "absolute", top: -3, right: -5 }} />
           </Box>
         </ButtonBase>
         {tally.map(({ emoji, users }) => (
@@ -100,8 +100,7 @@ const ReactionList = ({ anchorEl, side, reactions, conversation, mine, onReact, 
               <ListItemText
                 primary={isMine ? "You" : fullNameOf(person)}
                 secondary={isMine && (canHover ? "Click to remove" : "Tap to remove")}
-                primaryTypographyProps={{ noWrap: true, fontSize: 15, fontWeight: 600 }}
-                secondaryTypographyProps={{ fontSize: 13 }}
+                slotProps={{ primary: { noWrap: true, sx: { fontSize: 15, fontWeight: 600 } }, secondary: { sx: { fontSize: 13 } } }}
               />
               {photo && (
                 <Box sx={{ width: 30, height: 30, ml: 1, flexShrink: 0, borderRadius: 1, overflow: "hidden" }}>
@@ -139,9 +138,11 @@ const ReactionList = ({ anchorEl, side, reactions, conversation, mine, onReact, 
       anchor="bottom"
       open={isOpen}
       onClose={onClose}
-      PaperProps={{
-        ...paper,
-        sx: { maxHeight: "70dvh", pb: "env(safe-area-inset-bottom)", borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundImage: "none" },
+      slotProps={{
+        paper: {
+          ...paper,
+          sx: { maxHeight: "70dvh", pb: "env(safe-area-inset-bottom)", borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundImage: "none" },
+        },
       }}
     >
       {content}

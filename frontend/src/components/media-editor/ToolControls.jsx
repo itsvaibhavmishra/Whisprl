@@ -24,7 +24,7 @@ export const ToolButton = ({ label, isPressed, onClick, disabled, children }) =>
 );
 
 export const ColorRow = ({ value, onChange }) => (
-  <Stack direction="row" spacing={1.25} justifyContent="center" sx={{ px: 2, py: 1.25 }}>
+  <Stack direction="row" spacing={1.25} sx={{ justifyContent: "center", px: 2, py: 1.25 }}>
     {COLORS.map((color) => (
       <ButtonBase
         key={color.name}

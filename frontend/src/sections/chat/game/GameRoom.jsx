@@ -1,8 +1,8 @@
 import { memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha, ThemeProvider } from "@mui/material/styles";
-import { m, useReducedMotion } from "framer-motion";
-import { ArrowsInSimple, BookOpen, Smiley, SpeakerHigh, Stop, Trophy, X } from "phosphor-react";
+import { m, useReducedMotion } from "motion/react";
+import { ArrowsInSimpleIcon, BookOpenIcon, SmileyIcon, SpeakerHighIcon, StopIcon, TrophyIcon, XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -193,9 +193,9 @@ const GameRoom = ({ conversation, session }) => {
       <SceneSparkle fireflies={game.art.fireflies} />
       <Stack
         direction="row"
-        alignItems="center"
         spacing={1}
         sx={{
+          alignItems: "center",
           pl: 2,
           pr: 1,
           py: 1,
@@ -214,33 +214,33 @@ const GameRoom = ({ conversation, session }) => {
               <GameTitle title={game.title} name={game.name} isStatic width={132} />
             ))}
         </Box>
-        <Stack direction="row" alignItems="flex-start" spacing={isLabelled ? 0.5 : 0} sx={isLabelled ? { flexShrink: 0 } : controlsOf(theme)}>
+        <Stack direction="row" spacing={isLabelled ? 0.5 : 0} sx={[{ alignItems: "flex-start" }, isLabelled ? { flexShrink: 0 } : controlsOf(theme)]}>
           <BarButton label="Rules" theme={theme} onClick={() => setIsShowingRules(true)}>
-            <BookOpen size={20} weight="bold" />
+            <BookOpenIcon size={20} weight="bold" />
           </BarButton>
           <BarButton label="Leaderboard" theme={theme} onClick={() => setIsShowingScores(true)}>
-            <Trophy size={20} weight="bold" />
+            <TrophyIcon size={20} weight="bold" />
           </BarButton>
           <BarButton label="Sound and music" caption="Sound" theme={theme} onClick={(event) => setSoundAnchor(event.currentTarget)}>
-            <SpeakerHigh size={20} weight="bold" />
+            <SpeakerHighIcon size={20} weight="bold" />
           </BarButton>
           {/* a phone throws emoji from the bar at its foot; beside the chat on a wide screen, it is here */}
           <Box sx={{ display: { xs: "none", lg: "inline-flex" } }}>
             <BarButton label="Throw an emoji" caption="Emoji" theme={theme} onClick={(event) => setReactionAnchor(event.currentTarget)}>
-              <Smiley size={20} weight="bold" />
+              <SmileyIcon size={20} weight="bold" />
             </BarButton>
           </Box>
           {isManager && isPlaying && (
             <BarButton label="End game" theme={theme} onClick={() => setConfirming("cancel")}>
-              <Stop size={20} weight="bold" />
+              <StopIcon size={20} weight="bold" />
             </BarButton>
           )}
           <BarButton label="Hide game" caption="Hide" theme={theme} onClick={() => dispatch(gameCollapsed(true))}>
-            <ArrowsInSimple size={20} weight="bold" />
+            <ArrowsInSimpleIcon size={20} weight="bold" />
           </BarButton>
           {canClose && (
             <BarButton label="Close game" caption="Close" theme={theme} onClick={() => setConfirming("close")}>
-              <X size={20} weight="bold" />
+              <XIcon size={20} weight="bold" />
             </BarButton>
           )}
         </Stack>
@@ -304,7 +304,7 @@ const GameRoom = ({ conversation, session }) => {
       )}
 
       {isSeatSaved && (
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mx: 2, mb: 1.5, px: 2, py: 1, borderRadius: 3, bgcolor: theme.card, flexShrink: 0 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", mx: 2, mb: 1.5, px: 2, py: 1, borderRadius: 3, bgcolor: theme.card, flexShrink: 0 }}>
           <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600 }}>A seat at the table is saved for you</Typography>
           <Button size="small" sx={{ color: theme.ink }} onClick={() => dispatch(AnswerInvite({ conversationId, accept: false }))}>
             No thanks
@@ -332,7 +332,7 @@ const GameRoom = ({ conversation, session }) => {
     </Stack>
   );
 
-  return <SayingsContext.Provider value={sayings}>{fontTheme ? <ThemeProvider theme={fontTheme}>{room}</ThemeProvider> : room}</SayingsContext.Provider>;
+  return <SayingsContext value={sayings}>{fontTheme ? <ThemeProvider theme={fontTheme}>{room}</ThemeProvider> : room}</SayingsContext>;
 };
 
 export default memo(GameRoom);

@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { Box, FormControlLabel, Stack, Switch, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Check } from "phosphor-react";
+import { CheckIcon } from "@phosphor-icons/react";
 
 import useSettings from "@/hooks/useSettings";
 import { WallpaperLayers } from "@/sections/chat/ChatCanvas";
@@ -63,7 +63,7 @@ const WallpaperChoices = ({ chosenId, onChoose, offersDefault = false, action })
                       color: "primary.contrastText",
                     }}
                   >
-                    <Check size={13} weight="bold" />
+                    <CheckIcon size={13} weight="bold" />
                   </Box>
                 )}
               </Box>
@@ -72,7 +72,7 @@ const WallpaperChoices = ({ chosenId, onChoose, offersDefault = false, action })
           );
         })}
       </Box>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
+      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
         <FormControlLabel
           control={<Switch checked={wallpapers.doodles} onChange={onToggleDoodles} />}
           label={<Typography sx={{ fontSize: 14, fontWeight: 600 }}>Show doodles</Typography>}

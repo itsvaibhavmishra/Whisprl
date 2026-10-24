@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IconButton, Popover, Stack, Tooltip } from "@mui/material";
-import { Palette } from "phosphor-react";
+import { PaletteIcon } from "@phosphor-icons/react";
 
 import { AccentPicker, ThemeModePicker } from "@/components/AppearancePickers";
 
@@ -11,7 +11,7 @@ const AppearanceMenu = () => {
     <>
       <Tooltip title="Appearance">
         <IconButton aria-label="Change appearance" aria-haspopup="dialog" color="inherit" onClick={(event) => setAnchor(event.currentTarget)}>
-          <Palette size={22} />
+          <PaletteIcon size={22} />
         </IconButton>
       </Tooltip>
       <Popover

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Box, Button, Skeleton, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { Check, Copy } from "phosphor-react";
+import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -68,7 +67,7 @@ const SavedKey = ({ recoveryKey }) => {
         <Button variant="contained" startIcon={<KEEP_RECOVERY_KEY.Icon />} onClick={keep} sx={{ flex: 1 }}>
           {KEEP_RECOVERY_KEY.label}
         </Button>
-        <Button variant="outlined" color="inherit" startIcon={isCopied ? <Check /> : <Copy />} onClick={copy} sx={{ flex: 1 }}>
+        <Button variant="outlined" color="inherit" startIcon={isCopied ? <CheckIcon /> : <CopyIcon />} onClick={copy} sx={{ flex: 1 }}>
           {isCopied ? "Copied" : "Copy"}
         </Button>
       </Stack>
@@ -83,7 +82,7 @@ const SavedKey = ({ recoveryKey }) => {
       )}
       <KeepingPlaces />
       {/* a key only copied may never have been pasted anywhere, so it is asked about once more before going on */}
-      <LoadingButton
+      <Button
         size="large"
         variant="contained"
         fullWidth
@@ -92,7 +91,7 @@ const SavedKey = ({ recoveryKey }) => {
         onClick={isKept ? confirm : () => setIsCheckingCopy(true)}
       >
         Continue
-      </LoadingButton>
+      </Button>
       {isCheckingCopy && <CopiedKeyDialog isContinuing={isConfirming} onBack={() => setIsCheckingCopy(false)} onContinue={confirm} />}
     </Stack>
   );
@@ -149,9 +148,9 @@ const ProtectMessagesStep = () => {
       {recoveryKey && <SavedKey recoveryKey={recoveryKey} />}
       {!recoveryKey && isMakingKey && <Skeleton variant="rounded" height={58} aria-label="Making your recovery key" />}
       {!recoveryKey && !isMakingKey && (
-        <LoadingButton size="large" variant="contained" fullWidth loading={isCreating || isReplacing} onClick={action.run}>
+        <Button size="large" variant="contained" fullWidth loading={isCreating || isReplacing} onClick={action.run}>
           {action.label}
-        </LoadingButton>
+        </Button>
       )}
       {isUnlocking && status === "locked" && <UnlockDialog onStartFresh={startFresh} />}
     </Stack>

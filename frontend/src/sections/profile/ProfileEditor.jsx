@@ -3,7 +3,6 @@ import * as Yup from "yup";
 import { useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Button, Paper, Slide, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
 import FormProvider, { RHFBirthdayPicker, RHFTextField } from "@/components/hook-form";
@@ -74,9 +73,9 @@ const SaveBar = ({ visible, saving, onDiscard }) => (
         <Button color="inherit" disabled={saving} onClick={onDiscard}>
           Discard
         </Button>
-        <LoadingButton type="submit" variant="contained" loading={saving}>
+        <Button type="submit" variant="contained" loading={saving}>
           Save changes
-        </LoadingButton>
+        </Button>
       </Stack>
     </Paper>
   </Slide>
@@ -139,7 +138,7 @@ const ProfileEditor = () => {
         <Box component="section" aria-labelledby="details-title">
           <SectionTitle id="details-title">About you</SectionTitle>
           <Stack spacing={2.5}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="flex-start">
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: "flex-start" }}>
               <RHFTextField name="firstName" label="First name" autoComplete="given-name" />
               <RHFTextField name="lastName" label="Last name" autoComplete="family-name" />
             </Stack>

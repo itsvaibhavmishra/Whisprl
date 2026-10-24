@@ -4,9 +4,8 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import { Link, Stack } from "@mui/material";
-import { Key } from "phosphor-react";
-import { LoadingButton } from "@mui/lab";
+import { Button, Link, Stack } from "@mui/material";
+import { KeyIcon } from "@phosphor-icons/react";
 
 import { useDispatch } from "react-redux";
 import { LoginUser, PasskeyLogin } from "@/redux/slices/actions/authActions";
@@ -53,7 +52,7 @@ const LoginForm = () => {
         <RHFTextField name="identifier" label="Email or username" autoComplete="username" />
         <RHFPasswordField name="password" label="Password" autoComplete="current-password" />
       </Stack>
-      <Stack alignItems="flex-end" sx={{ mt: 1.5 }}>
+      <Stack sx={{ alignItems: "flex-end", mt: 1.5 }}>
         <Link to="/auth/forgot-password" component={RouterLink} variant="body2" color="inherit" underline="hover">
           Forgot your password?
         </Link>
@@ -61,23 +60,23 @@ const LoginForm = () => {
 
       <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={import.meta.env.REACT_APP_RECAPTCHA_CLIENT} theme="dark" />
 
-      <LoadingButton loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
+      <Button loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
         Log in
-      </LoadingButton>
+      </Button>
 
       {canUsePasskeys() && (
-        <LoadingButton
+        <Button
           loading={isUsingPasskey}
           fullWidth
           size="large"
           variant="outlined"
           color="inherit"
-          startIcon={<Key weight="bold" />}
+          startIcon={<KeyIcon weight="bold" />}
           onClick={() => dispatch(PasskeyLogin())}
           sx={{ mt: 1.5 }}
         >
           Log in with a passkey
-        </LoadingButton>
+        </Button>
       )}
     </FormProvider>
   );

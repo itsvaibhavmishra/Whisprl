@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { PushPinSlash } from "phosphor-react";
+import { PushPinSlashIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { UnpinMessage } from "@/redux/slices/actions/messageActions";
@@ -22,7 +22,7 @@ const PinnedBar = () => {
   const { message } = pins[position];
 
   return (
-    <Stack direction="row" alignItems="center" spacing={1} sx={{ ...GLASS_BAR, px: { xs: 1.5, md: 2.5 }, py: 0.75 }}>
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center", ...GLASS_BAR, px: { xs: 1.5, md: 2.5 }, py: 0.75 }}>
       <ButtonBase
         onClick={() => {
           dispatch(focusMessage(message._id));
@@ -46,7 +46,7 @@ const PinnedBar = () => {
       </ButtonBase>
       <Tooltip title="Unpin">
         <IconButton size="small" aria-label="Unpin this message" onClick={() => dispatch(UnpinMessage({ _id: message._id, conversation: conversation._id }))}>
-          <PushPinSlash size={18} />
+          <PushPinSlashIcon size={18} />
         </IconButton>
       </Tooltip>
     </Stack>

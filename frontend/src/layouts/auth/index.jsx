@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Grow, IconButton, Stack, Tooltip } from "@mui/material";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowLeft, ArrowsCounterClockwise } from "phosphor-react";
+import { ArrowLeftIcon, ArrowsCounterClockwiseIcon } from "@phosphor-icons/react";
 
 import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import AppearanceMenu from "@/components/AppearanceMenu";
@@ -57,10 +57,10 @@ const AuthLayout = () => {
       <BrandPanel />
 
       <Stack sx={{ px: { xs: 2.5, sm: 4 }, pt: { xs: "calc(24px + env(safe-area-inset-top))", md: 6 }, pb: { xs: 3, md: 6 } }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
           {isApp ? (
             <IconButton component={Link} to={PATH_AUTH.general.welcome} aria-label="Back" sx={{ ml: -1 }}>
-              <ArrowLeft size={22} />
+              <ArrowLeftIcon size={22} />
             </IconButton>
           ) : (
             <Box component={Link} to={PATH_AUTH.general.welcome} sx={{ display: { xs: "flex", md: "none" } }}>
@@ -90,7 +90,7 @@ const AuthLayout = () => {
               "&:hover": { bgcolor: "primary.dark" },
             }}
           >
-            <ArrowsCounterClockwise />
+            <ArrowsCounterClockwiseIcon />
           </IconButton>
         </Tooltip>
       </Grow>

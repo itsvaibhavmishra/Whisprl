@@ -17,7 +17,11 @@ const ControlRow = ({ icon: Icon, label, detail, isDanger, ...button }) => (
     >
       <Icon size={19} weight="bold" />
     </Box>
-    <ListItemText primary={label} secondary={detail} primaryTypographyProps={{ fontSize: 14, fontWeight: 700 }} secondaryTypographyProps={{ fontSize: 12.5 }} />
+    <ListItemText
+      primary={label}
+      secondary={detail}
+      slotProps={{ primary: { sx: { fontSize: 14, fontWeight: 700 } }, secondary: { sx: { fontSize: 12.5 } } }}
+    />
   </ListItemButton>
 );
 

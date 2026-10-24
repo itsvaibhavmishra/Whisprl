@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flag, Prohibit, UserMinus } from "phosphor-react";
+import { FlagIcon, ProhibitIcon, UserMinusIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -21,14 +21,14 @@ const SafetyRows = ({ person, conversationId, canRemoveFriend = false }) => {
 
   return (
     <>
-      {canRemoveFriend && <ControlRow icon={UserMinus} label="Remove friend" isDanger onClick={() => setDialog("remove")} />}
+      {canRemoveFriend && <ControlRow icon={UserMinusIcon} label="Remove friend" isDanger onClick={() => setDialog("remove")} />}
       <ControlRow
-        icon={Prohibit}
+        icon={ProhibitIcon}
         label={hasBlocked ? `Unblock ${firstName}` : `Block ${firstName}`}
         isDanger={!hasBlocked}
         onClick={() => (hasBlocked ? dispatch(UnblockUser(person._id)) : setDialog("block"))}
       />
-      <ControlRow icon={Flag} label={`Report ${firstName}`} isDanger onClick={() => setDialog("report")} />
+      <ControlRow icon={FlagIcon} label={`Report ${firstName}`} isDanger onClick={() => setDialog("report")} />
 
       {dialog === "remove" && (
         <ConfirmDialog

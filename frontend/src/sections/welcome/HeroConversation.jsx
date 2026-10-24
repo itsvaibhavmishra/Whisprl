@@ -1,6 +1,6 @@
 import { Avatar, Badge, Box, Stack, Typography } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
-import { PaperPlaneRight } from "phosphor-react";
+import { PaperPlaneRightIcon } from "@phosphor-icons/react";
 
 import whisprlFace from "@/assets/icons/logo/WhisprlAvatar.webp";
 import TypingDots from "@/components/TypingDots";
@@ -108,7 +108,7 @@ const Message = ({ from, parts, typingFrom, arriveAt }) => {
 };
 
 const Composer = () => (
-  <Stack aria-hidden="true" direction="row" spacing={1.25} alignItems="center" sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
+  <Stack aria-hidden="true" direction="row" spacing={1.25} sx={{ alignItems: "center", p: 2, borderTop: 1, borderColor: "divider" }}>
     <Box
       sx={{
         flexGrow: 1,
@@ -123,9 +123,9 @@ const Composer = () => (
       Message
     </Box>
     <Stack
-      alignItems="center"
-      justifyContent="center"
       sx={{
+        alignItems: "center",
+        justifyContent: "center",
         width: 42,
         height: 42,
         borderRadius: "50%",
@@ -133,7 +133,7 @@ const Composer = () => (
         color: "primary.contrastText",
       }}
     >
-      <PaperPlaneRight size={20} weight="fill" />
+      <PaperPlaneRightIcon size={20} weight="fill" />
     </Stack>
   </Stack>
 );
@@ -151,7 +151,7 @@ export const ChatWindow = ({ label, children, sx }) => (
       ...sx,
     }}
   >
-    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", px: 2.5, py: 2, borderBottom: 1, borderColor: "divider" }}>
       <Badge
         overlap="circular"
         variant="dot"
@@ -173,7 +173,7 @@ export const ChatWindow = ({ label, children, sx }) => (
         <Typography variant="subtitle1" component="p" sx={{ fontWeight: 700 }}>
           Whisprl
         </Typography>
-        <Typography variant="caption" component="p" color="text.secondary">
+        <Typography variant="caption" component="p" sx={{ color: "text.secondary" }}>
           Online
         </Typography>
       </Box>

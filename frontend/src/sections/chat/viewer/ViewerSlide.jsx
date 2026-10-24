@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
-import { animate, m, useDragControls, useMotionValue, useTransform } from "framer-motion";
+import { animate, m, useDragControls, useMotionValue, useTransform } from "motion/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ReactToMessage } from "@/redux/slices/actions/messageActions";
@@ -153,7 +153,7 @@ const ViewerSlide = ({ item, direction, conversation, dragY, frameRef, frameStyl
       onDragEnd={release}
       onPointerDown={press}
       onTap={tap}
-      // framer makes anything with onTap a tab stop, and the slide is not a control
+      // motion makes anything with onTap a tab stop, and the slide is not a control
       tabIndex={-1}
       onDragStartCapture={stopImageDrag}
       style={{ x: swipeX, y: dragY, scale: shrink }}

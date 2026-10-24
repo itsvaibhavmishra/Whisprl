@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { Scroll } from "phosphor-react";
+import { ScrollIcon } from "@phosphor-icons/react";
 
 import useSettings from "@/hooks/useSettings";
 import getAvatar from "@/utils/avatars";
@@ -11,7 +11,7 @@ export const NODE_SIZE = 32;
 const nameOf = (person) => (person ? `${person.firstName} ${person.lastName}` : "A deleted account");
 
 const Person = ({ label, person }) => (
-  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ color: "text.secondary" }}>
+  <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", color: "text.secondary" }}>
     {getAvatar(person?.avatar, nameOf(person), 20)}
     <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>{`${label} ${nameOf(person)}`}</Typography>
   </Stack>
@@ -37,11 +37,11 @@ const AuditEntry = ({ entry }) => {
           boxShadow: (theme) => `inset 0 0 0 2px ${theme.palette.primary.main}`,
         }}
       >
-        <Scroll size={16} weight="fill" aria-hidden />
+        <ScrollIcon size={16} weight="fill" aria-hidden />
       </Box>
 
       <Box sx={{ flex: 1, minWidth: 0, pt: 0.5 }}>
-        <Stack direction="row" alignItems="baseline" spacing={2}>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "baseline" }}>
           <Typography sx={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 700, lineHeight: 1.45 }}>{entry.action.replaceAll("_", " ")}</Typography>
           <Typography
             component="time"

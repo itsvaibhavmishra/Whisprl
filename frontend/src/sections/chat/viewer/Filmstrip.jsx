@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ButtonBase, Stack } from "@mui/material";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "motion/react";
 
 import MediaTile from "@/sections/chat/messages/MediaTile";
 import { mediaKeyOf } from "@/sections/chat/viewer/mediaItems";

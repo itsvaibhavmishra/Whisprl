@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { m } from "framer-motion";
+import { m } from "motion/react";
 
 const RADIUS = 16.5;
 

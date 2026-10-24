@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ReplaceRecoveryKey } from "@/redux/slices/actions/encryptionActions";
@@ -25,7 +24,7 @@ const ConfirmNewKey = ({ onCancel, onConfirm }) => {
       maxWidth="xs"
       aria-labelledby="new-recovery-key-title"
       aria-describedby="new-recovery-key-description"
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      slotProps={{ paper: { sx: { borderRadius: 3 } } }}
     >
       <DialogTitle id="new-recovery-key-title" sx={{ pb: 0.5 }}>
         Make a new recovery key?
@@ -39,9 +38,9 @@ const ConfirmNewKey = ({ onCancel, onConfirm }) => {
         <Button color="inherit" onClick={onCancel}>
           Cancel
         </Button>
-        <LoadingButton variant="contained" loading={making} onClick={confirm}>
+        <Button variant="contained" loading={making} onClick={confirm}>
           Make a new key
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );

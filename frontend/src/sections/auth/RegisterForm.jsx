@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Stack } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Button, Stack } from "@mui/material";
 
 import { useDispatch } from "react-redux";
 import { RegisterUser } from "@/redux/slices/actions/authActions";
@@ -58,7 +57,7 @@ const RegisterForm = ({ onTooYoung }) => {
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2}>
-        <Stack direction={{ xs: "column", md: "row" }} alignItems={{ md: "flex-start" }} spacing={2} justifyContent={"center"}>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { md: "flex-start" }, justifyContent: "center" }}>
           <RHFTextField name="firstName" label="First name" />
           <RHFTextField name="lastName" label="Last name" />
         </Stack>
@@ -69,9 +68,9 @@ const RegisterForm = ({ onTooYoung }) => {
 
         <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={import.meta.env.REACT_APP_RECAPTCHA_CLIENT} theme="dark" />
 
-        <LoadingButton loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
+        <Button loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
           Create account
-        </LoadingButton>
+        </Button>
       </Stack>
     </FormProvider>
   );

@@ -1,6 +1,6 @@
 import { Box, Drawer, IconButton, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
-import { ArrowLeft, X } from "phosphor-react";
+import { AnimatePresence, m, useReducedMotion } from "motion/react";
+import { ArrowLeftIcon, XIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 
 import ChatControls from "@/sections/chat/details/ChatControls";
@@ -30,7 +30,7 @@ const DetailsPanel = ({ open }) => {
   const quickActions = <QuickActions conversation={conversation} name={name} />;
   const closeButton = (
     <IconButton aria-label={`Close ${title.toLowerCase()}`} onClick={details.close} sx={{ width: 44, height: 44 }}>
-      {isPhone ? <ArrowLeft size={22} weight="bold" /> : <X size={20} weight="bold" />}
+      {isPhone ? <ArrowLeftIcon size={22} weight="bold" /> : <XIcon size={20} weight="bold" />}
     </IconButton>
   );
 
@@ -38,9 +38,8 @@ const DetailsPanel = ({ open }) => {
     <Stack component="aside" aria-label={title} sx={{ height: "100%", width: { xs: "100vw", sm: DETAILS_WIDTH }, bgcolor: "chat.list" }}>
       <Stack
         direction="row"
-        alignItems="center"
         spacing={1}
-        sx={{ px: 1.5, minHeight: 64, pt: { xs: "env(safe-area-inset-top)", sm: 0 }, borderBottom: 1, borderColor: "divider" }}
+        sx={{ alignItems: "center", px: 1.5, minHeight: 64, pt: { xs: "env(safe-area-inset-top)", sm: 0 }, borderBottom: 1, borderColor: "divider" }}
       >
         {isPhone && closeButton}
         <Typography component="h2" sx={{ flex: 1, pl: isPhone ? 0 : 1, fontSize: 16, fontWeight: 800 }}>
@@ -91,7 +90,7 @@ const DetailsPanel = ({ open }) => {
     );
   }
   return (
-    <Drawer anchor="right" open={open} onClose={details.close} PaperProps={{ sx: { bgcolor: "chat.list" } }}>
+    <Drawer anchor="right" open={open} onClose={details.close} slotProps={{ paper: { sx: { bgcolor: "chat.list" } } }}>
       {panel}
     </Drawer>
   );

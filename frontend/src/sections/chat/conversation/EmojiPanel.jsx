@@ -1,25 +1,103 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box } from "@mui/material";
 
-import EmojiPicker from "@/components/EmojiPicker";
+import EmojiPicker from "@/components/emoji-picker/EmojiPicker";
 import useScreenBack from "@/hooks/useScreenBack";
+
+// a computer has no keyboard height to match, so its panel opens at about a phone keyboard's
+export const DESKTOP_PANEL_HEIGHT = 320;
 
 // how far down the screen a panel pulled all the way up stops, so the chat's header and the field above it stay in view
 const KEEP_ABOVE = 210;
 // a pull this far below the panel's own height puts it away
 const CLOSE_PULL = 0.4;
+// a flick down the list faster than this, in pixels a millisecond, opens the panel all the way; a slow scroll leaves it
+const FLING_SPEED = 1.2;
+const FLING_SAMPLE_MS = 80;
+// only a scroll this soon after a wheel or a finger's move counts, so jumping to a section never flings the panel open
+const INPUT_GRACE_MS = 300;
+// how far past the list's top a scroll up has to carry before the panel goes back to its own height
+const PULL_BACK = 60;
 
-const EmojiPanel = ({ baseHeight, onSelect, onClose }) => {
+// the conversation above gives up its room as the panel grows, so how far it can go is read from where it sits now
+const tallestOf = (panel, baseHeight) => {
+  const { top, height } = panel.getBoundingClientRect();
+  return Math.max(baseHeight, height + top - KEEP_ABOVE);
+};
+
+const EmojiPanel = ({ baseHeight, autoFocus, pinned, onSelect, onClose }) => {
   const [height, setHeight] = useState(baseHeight);
   const [isDragging, setIsDragging] = useState(false);
   const drag = useRef(null);
+  const panelRef = useRef(null);
   useScreenBack(onClose);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    const viewport = () => panel.querySelector("[frimousse-viewport]");
+    const isOnGrip = (event) => Boolean(event.target.closest?.('[role="separator"]'));
+    let sample = null;
+    let pulled = 0;
+    let touchY = null;
+    let inputAt = -Infinity;
+
+    const pullBack = (distance) => {
+      if ((viewport()?.scrollTop ?? 0) > 0) {
+        pulled = 0;
+        return;
+      }
+      pulled += distance;
+      if (pulled >= PULL_BACK) {
+        pulled = 0;
+        setHeight(baseHeight);
+      }
+    };
+
+    const onScroll = (event) => {
+      if (!event.target.matches?.("[frimousse-viewport]")) return;
+      const now = performance.now();
+      if (now - inputAt > INPUT_GRACE_MS) {
+        sample = null;
+        return;
+      }
+      const top = event.target.scrollTop;
+      const isGoingDown = sample && top > sample.top;
+      if (isGoingDown && now - sample.time < FLING_SAMPLE_MS) return;
+      if (isGoingDown && (top - sample.top) / (now - sample.time) > FLING_SPEED) setHeight(tallestOf(panel, baseHeight));
+      sample = { top, time: now };
+    };
+    const onWheel = (event) => {
+      inputAt = performance.now();
+      if (event.deltaY < 0) pullBack(-event.deltaY);
+      else pulled = 0;
+    };
+    const onTouchStart = (event) => {
+      touchY = event.touches[0].clientY;
+      pulled = 0;
+    };
+    const onTouchMove = (event) => {
+      if (isOnGrip(event)) return;
+      inputAt = performance.now();
+      const fingerY = event.touches[0].clientY;
+      if (fingerY > touchY) pullBack(fingerY - touchY);
+      touchY = fingerY;
+    };
+
+    panel.addEventListener("scroll", onScroll, true);
+    panel.addEventListener("wheel", onWheel, { passive: true });
+    panel.addEventListener("touchstart", onTouchStart, { passive: true });
+    panel.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      panel.removeEventListener("scroll", onScroll, true);
+      panel.removeEventListener("wheel", onWheel);
+      panel.removeEventListener("touchstart", onTouchStart);
+      panel.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [baseHeight]);
 
   const start = (event) => {
     event.currentTarget.setPointerCapture(event.pointerId);
-    // the conversation above gives up its room as the panel grows, so how far it can go is read from where it sits now
-    const tallest = Math.max(baseHeight, height + event.currentTarget.getBoundingClientRect().top - KEEP_ABOVE);
-    drag.current = { startY: event.clientY, startHeight: height, tallest };
+    drag.current = { startY: event.clientY, startHeight: height, tallest: tallestOf(panelRef.current, baseHeight) };
     setIsDragging(true);
   };
   const move = (event) => {
@@ -37,6 +115,8 @@ const EmojiPanel = ({ baseHeight, onSelect, onClose }) => {
 
   return (
     <Box
+      ref={panelRef}
+      onKeyDown={(event) => event.key === "Escape" && onClose()}
       sx={{
         height: Math.max(height, 0),
         display: "flex",
@@ -61,7 +141,7 @@ const EmojiPanel = ({ baseHeight, onSelect, onClose }) => {
         <Box sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: "text.disabled" }} />
       </Box>
       <Box sx={{ flex: 1, minHeight: 0 }}>
-        <EmojiPicker onSelect={onSelect} autoFocus={false} isPanel />
+        <EmojiPicker onSelect={onSelect} autoFocus={autoFocus} pinned={pinned} isPanel />
       </Box>
     </Box>
   );

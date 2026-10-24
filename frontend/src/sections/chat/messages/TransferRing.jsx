@@ -1,5 +1,5 @@
 import { Box, ButtonBase, CircularProgress } from "@mui/material";
-import { X } from "phosphor-react";
+import { XIcon } from "@phosphor-icons/react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import { CancelTransfer } from "@/redux/slices/actions/attachmentActions";
@@ -38,7 +38,7 @@ const TransferRing = ({ transfer, size = 56 }) => (
       }}
       sx={{ position: "absolute", inset: 0, borderRadius: "50%", color: "#fff" }}
     >
-      <X size={size * 0.38} />
+      <XIcon size={size * 0.38} />
     </ButtonBase>
   </Box>
 );

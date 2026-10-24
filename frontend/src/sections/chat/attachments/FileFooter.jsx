@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, ButtonBase, IconButton, InputBase, Stack, Tooltip } from "@mui/material";
-import { NumberCircleOne, PaperPlaneTilt, Plus, X } from "phosphor-react";
+import { NumberCircleOneIcon, PaperPlaneTiltIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ChooseAttachments, RemoveAttachment, SendAttachments } from "@/redux/slices/actions/attachmentActions";
@@ -57,7 +57,7 @@ const Thumbnail = ({ file, isActive, onPick, onRemove }) => (
         "&:hover": { bgcolor: "error.main" },
       }}
     >
-      <X size={12} weight="bold" />
+      <XIcon size={12} weight="bold" />
     </IconButton>
   </Box>
 );
@@ -80,7 +80,7 @@ const FileFooter = () => {
   return (
     <Box sx={COMPOSER_GUTTER}>
       <Stack spacing={1.5} sx={{ maxWidth: COLUMN_WIDTH, mx: "auto" }}>
-        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ overflowX: "auto", p: 0.75 }}>
+        <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", overflowX: "auto", p: 0.75 }}>
           {files.map((file, index) => (
             <Thumbnail
               key={file.id}
@@ -105,14 +105,14 @@ const FileFooter = () => {
                   "&:hover": { color: "primary.main", borderColor: "primary.main" },
                 }}
               >
-                <Plus size={22} weight="bold" />
+                <PlusIcon size={22} weight="bold" />
               </ButtonBase>
             </Tooltip>
           )}
         </Stack>
 
-        <Stack direction="row" alignItems="flex-end" sx={{ gap: 1 }}>
-          <Stack direction="row" alignItems="center" sx={{ ...FIELD_PILL, minHeight: 48, px: 0.5 }}>
+        <Stack direction="row" sx={{ alignItems: "flex-end", gap: 1 }}>
+          <Stack direction="row" sx={{ alignItems: "center", ...FIELD_PILL, minHeight: 48, px: 0.5 }}>
             {canBeViewOnce && (
               <Tooltip title={sendsViewOnce ? "View once is on" : "View once"}>
                 <IconButton
@@ -121,7 +121,7 @@ const FileFooter = () => {
                   onClick={() => setIsViewOnce((isOn) => !isOn)}
                   sx={{ color: sendsViewOnce ? "primary.main" : "text.secondary" }}
                 >
-                  <NumberCircleOne size={22} weight={sendsViewOnce ? "fill" : "regular"} />
+                  <NumberCircleOneIcon size={22} weight={sendsViewOnce ? "fill" : "regular"} />
                 </IconButton>
               </Tooltip>
             )}
@@ -141,7 +141,7 @@ const FileFooter = () => {
             />
           </Stack>
           <IconButton aria-label="Send" onClick={handleSend} disabled={files.length === 0 || isReading} sx={ROUND_BUTTON}>
-            <PaperPlaneTilt size={21} weight="fill" />
+            <PaperPlaneTiltIcon size={21} weight="fill" />
           </IconButton>
         </Stack>
       </Stack>

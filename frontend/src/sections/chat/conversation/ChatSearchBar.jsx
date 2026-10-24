@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CircularProgress, IconButton, InputBase, Stack, Tooltip, Typography } from "@mui/material";
-import { CaretDown, CaretUp, MagnifyingGlass, X } from "phosphor-react";
+import { CaretDownIcon, CaretUpIcon, MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -97,8 +97,8 @@ const ChatSearchBar = ({ onClose }) => {
   };
 
   return (
-    <Stack direction="row" alignItems="center" spacing={1} role="search" sx={{ ...GLASS_BAR, px: { xs: 1.5, md: 2.5 }, py: 0.75 }}>
-      <MagnifyingGlass size={18} aria-hidden />
+    <Stack direction="row" spacing={1} role="search" sx={{ alignItems: "center", ...GLASS_BAR, px: { xs: 1.5, md: 2.5 }, py: 0.75 }}>
+      <MagnifyingGlassIcon size={18} aria-hidden />
       <InputBase
         autoFocus
         value={query}
@@ -118,19 +118,19 @@ const ChatSearchBar = ({ onClose }) => {
       <Tooltip title="Newer match">
         <span>
           <IconButton size="small" aria-label="Newer match" onClick={() => step(-1)} disabled={matches.length < 2}>
-            <CaretUp size={16} />
+            <CaretUpIcon size={16} />
           </IconButton>
         </span>
       </Tooltip>
       <Tooltip title="Older match">
         <span>
           <IconButton size="small" aria-label="Older match" onClick={() => step(1)} disabled={matches.length < 2}>
-            <CaretDown size={16} />
+            <CaretDownIcon size={16} />
           </IconButton>
         </span>
       </Tooltip>
       <IconButton size="small" aria-label="Close search" onClick={onClose}>
-        <X size={16} />
+        <XIcon size={16} />
       </IconButton>
     </Stack>
   );

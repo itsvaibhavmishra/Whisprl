@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { X } from "phosphor-react";
+import { XIcon } from "@phosphor-icons/react";
 
 import useScreenBack from "@/hooks/useScreenBack";
 
@@ -52,10 +52,10 @@ const GameSheet = ({ theme, title, onClose, children }) => {
           boxShadow: "0 18px 50px rgba(0, 0, 0, 0.4)",
         }}
       >
-        <Stack direction="row" alignItems="center" sx={{ px: 3, pr: 1.5, mb: 1.5 }}>
+        <Stack direction="row" sx={{ alignItems: "center", px: 3, pr: 1.5, mb: 1.5 }}>
           <Typography sx={{ flex: 1, fontSize: 13, fontWeight: 800, color: alpha(theme.ink, 0.6) }}>{title}</Typography>
           <IconButton aria-label="Close" onClick={onClose} sx={{ color: theme.ink }}>
-            <X size={20} weight="bold" />
+            <XIcon size={20} weight="bold" />
           </IconButton>
         </Stack>
         {children}

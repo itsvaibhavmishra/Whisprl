@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, IconButton, ListItemText, Menu, MenuItem, Tooltip } from "@mui/material";
-import { File, GameController, Image, Plus, User } from "phosphor-react";
+import { FileIcon, GameControllerIcon, ImageIcon, PlusIcon, UserIcon } from "@phosphor-icons/react";
 
 import { gradientOf } from "@/utils/gradients";
 
@@ -9,10 +9,10 @@ const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact, onGame
   const isOpen = Boolean(anchor);
 
   const choices = [
-    { label: "Photos and videos", icon: Image, background: gradientOf(["#7444E0", "#C2399E"]), onChoose: onMedia },
-    { label: "Document", icon: File, background: gradientOf(["#2453D6", "#3E86E8"]), onChoose: onDocument },
-    { label: "Contact", icon: User, background: gradientOf(["#0B7F75", "#1F8FA8"]), onChoose: onContact },
-    { label: "Games", icon: GameController, background: gradientOf(["#C2560F", "#D23A4E"]), onChoose: onGames },
+    { label: "Photos and videos", icon: ImageIcon, background: gradientOf(["#7444E0", "#C2399E"]), onChoose: onMedia },
+    { label: "Document", icon: FileIcon, background: gradientOf(["#2453D6", "#3E86E8"]), onChoose: onDocument },
+    { label: "Contact", icon: UserIcon, background: gradientOf(["#0B7F75", "#1F8FA8"]), onChoose: onContact },
+    { label: "Games", icon: GameControllerIcon, background: gradientOf(["#C2560F", "#D23A4E"]), onChoose: onGames },
   ];
 
   const choose = (onChoose) => {
@@ -32,7 +32,7 @@ const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact, onGame
           sx={{ ...buttonSx, ...(isOpen && { color: "primary.main" }) }}
         >
           <Box component="span" sx={{ display: "grid", transition: "transform 200ms ease", transform: isOpen ? "rotate(45deg)" : "none" }}>
-            <Plus size={22} weight="bold" />
+            <PlusIcon size={22} weight="bold" />
           </Box>
         </IconButton>
       </Tooltip>
@@ -49,7 +49,7 @@ const AttachMenu = ({ disabled, buttonSx, onMedia, onDocument, onContact, onGame
             <Box sx={{ width: 34, height: 34, borderRadius: "50%", display: "grid", placeItems: "center", color: "#fff", background, flexShrink: 0 }}>
               <Icon size={18} weight="fill" />
             </Box>
-            <ListItemText primary={label} primaryTypographyProps={{ fontWeight: 700, fontSize: 14 }} />
+            <ListItemText primary={label} slotProps={{ primary: { sx: { fontWeight: 700, fontSize: 14 } } }} />
           </MenuItem>
         ))}
       </Menu>

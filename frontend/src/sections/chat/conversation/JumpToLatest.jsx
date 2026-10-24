@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Badge, Box, IconButton, Tooltip, Zoom } from "@mui/material";
-import { ArrowDown } from "phosphor-react";
+import { ArrowDownIcon } from "@phosphor-icons/react";
 
 const JumpToLatest = ({ watchAway, hasNewerMessages, conversationId, lastArrival, onJump }) => {
   const [isAway, setIsAway] = useState(false);
@@ -37,7 +37,7 @@ const JumpToLatest = ({ watchAway, hasNewerMessages, conversationId, lastArrival
             }}
           >
             <Badge badgeContent={missed} color="primary" sx={{ "& .MuiBadge-badge": { top: -10, right: -10, fontWeight: 800 } }}>
-              <ArrowDown size={20} weight="bold" />
+              <ArrowDownIcon size={20} weight="bold" />
             </Badge>
           </IconButton>
         </Tooltip>

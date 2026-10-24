@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Stack, Switch, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { CaretRight, MoonStars, ShieldStar, SignOut } from "phosphor-react";
+import { CaretRightIcon, MoonStarsIcon, ShieldStarIcon, SignOutIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -45,7 +45,7 @@ const ProfileCard = ({ isSelected, isWide }) => {
           {username ? `@${username}` : "Edit your profile"}
         </Typography>
       </Box>
-      {!isWide && <CaretRight size={16} weight="bold" />}
+      {!isWide && <CaretRightIcon size={16} weight="bold" />}
     </ButtonBase>
   );
 };
@@ -54,7 +54,7 @@ const CategoryRow = ({ category: { label, icon: Icon, tint }, to, isSelected, is
   <ButtonBase component={Link} to={to} aria-current={isSelected ? "page" : undefined} sx={{ ...rowLook(isSelected), py: 1 }}>
     <Tile icon={Icon} tint={tint} />
     <Typography sx={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: isSelected ? 700 : 600 }}>{label}</Typography>
-    {!isWide && <CaretRight size={16} weight="bold" />}
+    {!isWide && <CaretRightIcon size={16} weight="bold" />}
   </ButtonBase>
 );
 
@@ -64,7 +64,7 @@ const ThemeRow = () => {
   const { onToggleMode } = useSettings();
   return (
     <Box component="label" sx={{ ...rowLook(false), py: 1, cursor: "pointer" }}>
-      <Tile icon={MoonStars} tint="grey.700" />
+      <Tile icon={MoonStarsIcon} tint="grey.700" />
       <Typography sx={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600 }}>Dark mode</Typography>
       <Switch checked={theme.palette.mode === "dark"} onChange={onToggleMode} sx={{ mr: -1 }} />
     </Box>
@@ -76,9 +76,9 @@ const AdminRow = () => {
   if (!isStaff(role)) return null;
   return (
     <ButtonBase component={Link} to={PATH_ADMIN.root} sx={{ ...rowLook(false), py: 1 }}>
-      <Tile icon={ShieldStar} tint="chat.rail" color="primary.glow" />
+      <Tile icon={ShieldStarIcon} tint="chat.rail" color="primary.glow" />
       <Typography sx={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600 }}>Admin panel</Typography>
-      <CaretRight size={16} weight="bold" />
+      <CaretRightIcon size={16} weight="bold" />
     </ButtonBase>
   );
 };
@@ -87,7 +87,7 @@ const LogOutRow = () => {
   const dispatch = useDispatch();
   return (
     <ButtonBase onClick={() => dispatch(LogoutUser())} sx={{ ...rowLook(false, "error"), py: 1, color: "error.main" }}>
-      <Tile icon={SignOut} tint={(theme) => alpha(theme.palette.error.main, 0.14)} color="error.main" />
+      <Tile icon={SignOutIcon} tint={(theme) => alpha(theme.palette.error.main, 0.14)} color="error.main" />
       <Typography sx={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: "inherit" }}>Log out</Typography>
     </ButtonBase>
   );

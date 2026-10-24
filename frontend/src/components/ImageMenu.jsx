@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
-import { Camera, Trash, UploadSimple } from "phosphor-react";
+import { CameraIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 
 import ImageCropper from "@/components/image-cropper/ImageCropper";
 import { notify } from "@/utils/notify";
@@ -76,14 +76,14 @@ const ImageMenu = ({ kind, hasImage, onChange }) => {
             "&:hover": { bgcolor: "background.neutral" },
           }}
         >
-          <Camera size={20} weight="bold" />
+          <CameraIcon size={20} weight="bold" />
         </IconButton>
       </Tooltip>
 
       <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
         <MenuItem onClick={pickFile}>
           <ListItemIcon>
-            <UploadSimple size={18} />
+            <UploadSimpleIcon size={18} />
           </ListItemIcon>
           Upload a new {noun}
         </MenuItem>
@@ -95,7 +95,7 @@ const ImageMenu = ({ kind, hasImage, onChange }) => {
           sx={{ color: "error.main" }}
         >
           <ListItemIcon sx={{ color: "inherit" }}>
-            <Trash size={18} />
+            <TrashIcon size={18} />
           </ListItemIcon>
           Remove {noun}
         </MenuItem>

@@ -1,7 +1,6 @@
 import { useEffect, useId, useState } from "react";
-import { Alert, Box, Chip, Stack, Tab, Tabs, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { Key } from "phosphor-react";
+import { Alert, Box, Button, Chip, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { KeyIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -73,7 +72,7 @@ const PasskeyStep = () => {
   return (
     <Stack spacing={3}>
       <Stack spacing={1}>
-        <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography component="h2" sx={{ m: 0, fontSize: 20, fontWeight: 700 }}>
             Add a passkey
           </Typography>
@@ -85,16 +84,16 @@ const PasskeyStep = () => {
         </Typography>
       </Stack>
       {canUsePasskeys() ? (
-        <LoadingButton size="large" variant="contained" fullWidth startIcon={<Key weight="bold" />} loading={isAdding || isLinking} onClick={add}>
+        <Button size="large" variant="contained" fullWidth startIcon={<KeyIcon weight="bold" />} loading={isAdding || isLinking} onClick={add}>
           Add a passkey
-        </LoadingButton>
+        </Button>
       ) : (
         <Alert severity="info">This browser can&apos;t make passkeys. You can add one later from Settings on another browser.</Alert>
       )}
       <DeviceGuide />
-      <LoadingButton fullWidth color="inherit" loading={isSkipping} onClick={() => dispatch(SkipSetupStep("passkey"))}>
+      <Button fullWidth color="inherit" loading={isSkipping} onClick={() => dispatch(SkipSetupStep("passkey"))}>
         Skip for now
-      </LoadingButton>
+      </Button>
     </Stack>
   );
 };

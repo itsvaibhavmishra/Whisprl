@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, IconButton, InputBase, Stack, Typography } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
-import { PaperPlaneTilt, Smiley } from "phosphor-react";
+import { PaperPlaneTiltIcon, SmileyIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import { ReactToStatus, ReplyToStatus } from "@/redux/slices/actions/statusActions";
@@ -135,11 +135,11 @@ const ReplyBar = ({ status, canReply, fieldRef, isPicking, onPicking, onTyping }
           />
           {text.trim() ? (
             <IconButton type="submit" aria-label="Send reply" sx={footerButton}>
-              <PaperPlaneTilt size={22} weight="fill" />
+              <PaperPlaneTiltIcon size={22} weight="fill" />
             </IconButton>
           ) : (
             <IconButton aria-label={isPicking ? "Hide reactions" : "React"} aria-expanded={isPicking} onClick={() => onPicking(!isPicking)} sx={footerButton}>
-              <Smiley size={24} />
+              <SmileyIcon size={24} />
             </IconButton>
           )}
         </Box>

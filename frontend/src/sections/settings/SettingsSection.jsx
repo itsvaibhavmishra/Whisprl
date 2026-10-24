@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { Box, ButtonBase, Typography } from "@mui/material";
-import { CaretRight } from "phosphor-react";
+import { CaretRightIcon } from "@phosphor-icons/react";
 
 const rowLayout = {
   display: "flex",
@@ -46,7 +46,7 @@ export const SettingRow = ({ label, description, children }) => (
   </Box>
 );
 
-export const SettingLink = ({ label, description, leading, icon: Icon = CaretRight, ...link }) => (
+export const SettingLink = ({ label, description, leading, icon: Icon = CaretRightIcon, ...link }) => (
   <ButtonBase {...link} sx={{ ...rowLayout, flexWrap: "nowrap", width: "100%", "&:hover": { bgcolor: "action.hover" } }}>
     {leading}
     <RowText label={label} description={description} />

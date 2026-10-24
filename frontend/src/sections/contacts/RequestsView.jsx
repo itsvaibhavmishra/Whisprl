@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Box, Button, ButtonBase, Stack, Typography } from "@mui/material";
-import { AnimatePresence, m } from "framer-motion";
+import { AnimatePresence, m } from "motion/react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -51,7 +51,7 @@ const RequestItem = ({ request, isMine }) => {
       </ButtonBase>
       <Stack spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
         <Box>
-          <Stack direction="row" alignItems="baseline" spacing={1}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
             <Typography
               component={Link}
               to={contactPathOf(person)}

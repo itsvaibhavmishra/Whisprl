@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Box, CircularProgress, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -25,9 +24,9 @@ const AuditLog = () => {
       return (
         <Box>
           <Notice title="The log didn't load">Check your connection and try again.</Notice>
-          <LoadingButton variant="contained" loading={isLoading} onClick={() => read()} sx={{ mt: 2 }}>
+          <Button variant="contained" loading={isLoading} onClick={() => read()} sx={{ mt: 2 }}>
             Try again
-          </LoadingButton>
+          </Button>
         </Box>
       );
     }
@@ -39,9 +38,9 @@ const AuditLog = () => {
       <>
         <AuditTimeline entries={entries} />
         {hasMore && (
-          <LoadingButton variant="outlined" color="inherit" loading={isLoading} onClick={() => read(entries.at(-1)._id)} sx={{ mt: 2, ml: 6 }}>
+          <Button variant="outlined" color="inherit" loading={isLoading} onClick={() => read(entries.at(-1)._id)} sx={{ mt: 2, ml: 6 }}>
             Show older entries
-          </LoadingButton>
+          </Button>
         )}
       </>
     );

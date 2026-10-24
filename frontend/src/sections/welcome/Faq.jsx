@@ -1,5 +1,5 @@
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from "@mui/material";
-import { CaretDown } from "phosphor-react";
+import { CaretDownIcon } from "@phosphor-icons/react";
 import { Helmet } from "react-helmet-async";
 
 import { FAQS } from "@/sections/welcome/content";
@@ -54,7 +54,7 @@ const Faq = () => (
             "&.Mui-expanded": { boxShadow: "none" },
           }}
         >
-          <AccordionSummary expandIcon={<CaretDown size={20} />} sx={{ px: 0, minHeight: 0, "& .MuiAccordionSummary-content": { my: 2 } }}>
+          <AccordionSummary expandIcon={<CaretDownIcon size={20} />} sx={{ px: 0, minHeight: 0, "& .MuiAccordionSummary-content": { my: 2 } }}>
             <Typography component="h3" sx={{ fontSize: 17, fontWeight: 600 }}>
               {question}
             </Typography>

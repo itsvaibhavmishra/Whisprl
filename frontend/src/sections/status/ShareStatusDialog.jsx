@@ -29,10 +29,10 @@ const ShareStatusDialog = ({ status, onClose }) => {
             label="Add a message"
             value={text}
             onChange={(event) => setText(event.target.value)}
-            inputProps={{ maxLength: MAX_MESSAGE }}
             multiline
             maxRows={4}
             fullWidth
+            slotProps={{ htmlInput: { maxLength: MAX_MESSAGE } }}
           />
         </Stack>
       </DialogContent>

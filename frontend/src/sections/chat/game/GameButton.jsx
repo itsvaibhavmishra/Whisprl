@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import { alpha, lighten } from "@mui/material/styles";
-import { GameController } from "phosphor-react";
+import { GameControllerIcon } from "@phosphor-icons/react";
 
 import { displayFontOf } from "@/sections/chat/game/gameFonts";
 
@@ -16,7 +16,7 @@ const GameButton = ({ theme, label, onClick, isDisabled = false, isQuiet = false
     variant="contained"
     fullWidth={isFull}
     disabled={isDisabled}
-    startIcon={isDisabled || isQuiet || theme.fonts ? null : <GameController size={18} weight="fill" />}
+    startIcon={isDisabled || isQuiet || theme.fonts ? null : <GameControllerIcon size={18} weight="fill" />}
     onClick={onClick}
     sx={{
       py: isSmall ? 0.9 : 1.35,

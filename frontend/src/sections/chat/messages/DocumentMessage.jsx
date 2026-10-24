@@ -1,5 +1,5 @@
 import { Box, CircularProgress, IconButton, Stack, Typography, useTheme } from "@mui/material";
-import { DownloadSimple, File as FileIcon } from "phosphor-react";
+import { DownloadSimpleIcon, FileIcon } from "@phosphor-icons/react";
 
 import useFileUrl from "@/hooks/useFileUrl";
 import { downloadFile } from "@/utils/attachments";
@@ -26,9 +26,8 @@ const DocumentRow = ({ file }) => {
   return (
     <Stack
       direction="row"
-      alignItems="center"
       spacing={1.5}
-      sx={{ backgroundColor: theme.palette.background.default, borderRadius: 1.5, p: 1, pr: 1.5, minWidth: 200 }}
+      sx={{ alignItems: "center", backgroundColor: theme.palette.background.default, borderRadius: 1.5, p: 1, pr: 1.5, minWidth: 200 }}
     >
       <Box
         sx={{
@@ -57,7 +56,7 @@ const DocumentRow = ({ file }) => {
 
       {status === "ready" && (
         <IconButton size="small" aria-label={`Download ${file.fileName}`} onClick={save}>
-          <DownloadSimple size={18} />
+          <DownloadSimpleIcon size={18} />
         </IconButton>
       )}
       {(status === "uploading" || status === "opening") && <CircularProgress size={18} aria-label={`Preparing ${file.fileName}`} />}

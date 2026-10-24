@@ -1,14 +1,6 @@
 import { Stack, TextField } from "@mui/material";
 import { useRef } from "react";
-import PropTypes from "prop-types";
 import { Controller, useFormContext } from "react-hook-form";
-
-// Props validation
-RHFOtp.propTypes = {
-  keyName: PropTypes.string,
-  inputs: PropTypes.array,
-  helperText: PropTypes.node,
-};
 
 export default function RHFOtp({ keyName = "", helperText, inputs = [], ...other }) {
   const otpsRef = useRef(null);
@@ -55,13 +47,7 @@ export default function RHFOtp({ keyName = "", helperText, inputs = [], ...other
   };
 
   return (
-    <Stack
-      direction={"row"}
-      justifyContent={"center"}
-      spacing={2}
-      ref={otpsRef}
-      onPaste={handlePaste} // paste event handler
-    >
+    <Stack direction={"row"} spacing={2} ref={otpsRef} onPaste={handlePaste} sx={{ justifyContent: "center" }}>
       {inputs.map((name, index) => (
         <Controller
           key={name}
@@ -80,15 +66,7 @@ export default function RHFOtp({ keyName = "", helperText, inputs = [], ...other
                 handleChangeWithNextField(event, field.onChange);
               }}
               onFocus={(event) => event.currentTarget.select()}
-              InputProps={{
-                sx: {
-                  "& input": { textAlign: "center" },
-                },
-              }}
-              inputProps={{
-                maxLength: 1,
-                type: "text", // Change type to "text" for uppercase input
-              }}
+              slotProps={{ htmlInput: { maxLength: 1, sx: { textAlign: "center" } } }}
               helperText={error ? error.message : helperText}
               {...other}
             />

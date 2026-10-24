@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Skeleton, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { m } from "framer-motion";
+import { m } from "motion/react";
 import { Link } from "react-router-dom";
 
 import BirthdayCake from "@/components/BirthdayCake";
@@ -114,7 +114,7 @@ export const PersonRows = ({ children }) => (
 export const PersonSkeletons = () => (
   <Stack spacing={0.5} sx={{ pt: 1 }} aria-hidden>
     {[0, 1, 2].map((index) => (
-      <Stack key={index} direction="row" spacing={1.5} alignItems="center" sx={{ py: 1 }}>
+      <Stack key={index} direction="row" spacing={1.5} sx={{ alignItems: "center", py: 1 }}>
         <Skeleton variant="circular" width={AVATAR_SIZE} height={AVATAR_SIZE} />
         <Box sx={{ flex: 1 }}>
           <Skeleton width={`${40 + index * 12}%`} sx={{ borderRadius: 2 }} />

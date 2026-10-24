@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Box, ButtonBase, IconButton, Modal, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { AnimatePresence, m, useMotionValue, useTransform } from "framer-motion";
-import { CaretLeft, CaretRight, X } from "phosphor-react";
+import { AnimatePresence, m, useMotionValue, useTransform } from "motion/react";
+import { CaretLeftIcon, CaretRightIcon, XIcon } from "@phosphor-icons/react";
 import { flushSync } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -35,7 +35,7 @@ const StepButton = ({ side, onClick }) => (
     onClick={onClick}
     sx={{ ...VIEWER_BUTTON, position: "absolute", top: "50%", [side]: 24, zIndex: 2, width: 52, height: 52, transform: "translateY(-50%)" }}
   >
-    {side === "left" ? <CaretLeft size={24} weight="bold" /> : <CaretRight size={24} weight="bold" />}
+    {side === "left" ? <CaretLeftIcon size={24} weight="bold" /> : <CaretRightIcon size={24} weight="bold" />}
   </IconButton>
 );
 
@@ -121,9 +121,15 @@ const MediaViewer = ({ items, startIndex = 0, conversation, tileOf, onClose }) =
         <Box component={m.div} style={{ opacity: chromeFade }} sx={{ position: "relative", zIndex: 2 }}>
           <Stack
             direction="row"
-            alignItems="center"
             spacing={1}
-            sx={{ ...chromeStyle(isChromeShown), position: "relative", px: { xs: 1, md: 2.5 }, pt: "max(10px, env(safe-area-inset-top))", pb: 1 }}
+            sx={{
+              alignItems: "center",
+              ...chromeStyle(isChromeShown),
+              position: "relative",
+              px: { xs: 1, md: 2.5 },
+              pt: "max(10px, env(safe-area-inset-top))",
+              pb: 1,
+            }}
           >
             <Tooltip title="Show in chat">
               <ButtonBase
@@ -171,7 +177,7 @@ const MediaViewer = ({ items, startIndex = 0, conversation, tileOf, onClose }) =
             )}
             {isWide && actions}
             <IconButton aria-label="Close" onClick={close} sx={VIEWER_BUTTON}>
-              <X size={22} weight="bold" />
+              <XIcon size={22} weight="bold" />
             </IconButton>
           </Stack>
         </Box>
@@ -197,7 +203,7 @@ const MediaViewer = ({ items, startIndex = 0, conversation, tileOf, onClose }) =
         </Box>
 
         <Box component={m.div} style={{ opacity: chromeFade }} sx={{ position: "relative", zIndex: 2 }}>
-          <Stack alignItems="center" spacing={1.5} sx={{ ...chromeStyle(isChromeShown), px: 2, pt: 1.5, pb: "max(16px, env(safe-area-inset-bottom))" }}>
+          <Stack spacing={1.5} sx={{ alignItems: "center", ...chromeStyle(isChromeShown), px: 2, pt: 1.5, pb: "max(16px, env(safe-area-inset-bottom))" }}>
             {message.message && (
               <MessageText
                 text={message.message}

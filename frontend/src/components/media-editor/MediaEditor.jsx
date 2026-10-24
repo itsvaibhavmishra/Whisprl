@@ -2,23 +2,23 @@ import { useEffect, useState } from "react";
 import { Box, Button, CircularProgress, Dialog, DialogActions, DialogTitle, Stack, Typography } from "@mui/material";
 import { keyframes } from "@mui/system";
 import {
-  ArrowCounterClockwise,
-  At,
-  Eraser,
-  HighlighterCircle,
-  Lightning,
-  MagicWand,
-  Palette,
-  PencilSimple,
-  ScribbleLoop,
-  SpeakerHigh,
-  SpeakerSlash,
-  Sticker,
-  TextAa,
-  X,
-} from "phosphor-react";
+  ArrowCounterClockwiseIcon,
+  AtIcon,
+  EraserIcon,
+  HighlighterCircleIcon,
+  LightningIcon,
+  MagicWandIcon,
+  PaletteIcon,
+  PencilSimpleIcon,
+  ScribbleLoopIcon,
+  SpeakerHighIcon,
+  SpeakerSlashIcon,
+  StickerIcon,
+  TextAaIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 
-import EmojiPicker from "@/components/EmojiPicker";
+import EmojiPicker from "@/components/emoji-picker/EmojiPicker";
 import FilterStrip from "@/components/media-editor/FilterStrip";
 import MentionPicker from "@/components/media-editor/MentionPicker";
 import Stage from "@/components/media-editor/Stage";
@@ -37,7 +37,7 @@ import uuidv4 from "@/utils/uuidv4";
 import { canDrawOnVideos } from "@/utils/video";
 
 const STORY_ASPECT = 9 / 16;
-const BRUSH_ICONS = { Pen: PencilSimple, Marker: HighlighterCircle, Neon: Lightning, Eraser };
+const BRUSH_ICONS = { Pen: PencilSimpleIcon, Marker: HighlighterCircleIcon, Neon: LightningIcon, Eraser: EraserIcon };
 const BRUSH_SIZES = { min: 0.004, max: 0.04 };
 const STICKER_SIZES = { emoji: 0.22, mention: 0.055 };
 const PLACED = { x: 0.5, y: 0.5, scale: 1, rotation: 0 };
@@ -202,7 +202,7 @@ const MediaEditor = ({ media, initialEdits = NO_EDITS, isStory = false, people =
       })}
       <Box sx={{ flex: 1 }} />
       <ToolButton label="Undo" onClick={() => setEdits((current) => ({ ...current, strokes: current.strokes.slice(0, -1) }))} disabled={!edits.strokes.length}>
-        <ArrowCounterClockwise size={22} />
+        <ArrowCounterClockwiseIcon size={22} />
       </ToolButton>
       <Button onClick={() => setTool(null)} sx={{ color: "#fff", fontWeight: 800 }}>
         Done
@@ -212,48 +212,48 @@ const MediaEditor = ({ media, initialEdits = NO_EDITS, isStory = false, people =
     <>
       {!media && (
         <ToolButton label="Change background" onClick={() => setEdits((current) => ({ ...current, background: (current.background + 1) % GRADIENTS.length }))}>
-          <Palette size={22} />
+          <PaletteIcon size={22} />
         </ToolButton>
       )}
       {canEdit && (
         <>
           <ToolButton label="Add text" onClick={() => setEditing({ ...NEW_TEXT, id: uuidv4() })}>
-            <TextAa size={22} />
+            <TextAaIcon size={22} />
           </ToolButton>
           {people.length > 0 && (
             <ToolButton label="Mention a friend" onClick={openSheet("mention")}>
-              <At size={22} />
+              <AtIcon size={22} />
             </ToolButton>
           )}
           <ToolButton label="Add a sticker" onClick={openSheet("stickers")}>
-            <Sticker size={22} />
+            <StickerIcon size={22} />
           </ToolButton>
           <ToolButton label="Draw" onClick={() => setTool("draw")}>
-            <ScribbleLoop size={22} />
+            <ScribbleLoopIcon size={22} />
           </ToolButton>
         </>
       )}
       {isPhoto && (
         <ToolButton label="Filters" isPressed={tool === "filters"} onClick={() => setTool((current) => (current === "filters" ? null : "filters"))}>
-          <MagicWand size={22} />
+          <MagicWandIcon size={22} />
         </ToolButton>
       )}
       {isVideo && (
         <ToolButton label={isMuted ? "Turn sound on" : "Turn sound off"} onClick={() => setIsMuted((current) => !current)}>
-          {isMuted ? <SpeakerSlash size={22} /> : <SpeakerHigh size={22} />}
+          {isMuted ? <SpeakerSlashIcon size={22} /> : <SpeakerHighIcon size={22} />}
         </ToolButton>
       )}
       <Box sx={{ flex: 1 }} />
       <ToolButton label="Close" onClick={askToClose} disabled={isSaving}>
-        <X size={22} />
+        <XIcon size={22} />
       </ToolButton>
     </>
   );
 
   return (
-    <Dialog open fullScreen onClose={isSaving ? undefined : onEscape} PaperProps={{ "aria-label": label, sx: { bgcolor: "#000", color: "#fff" } }}>
+    <Dialog open fullScreen onClose={isSaving ? undefined : onEscape} slotProps={{ paper: { "aria-label": label, sx: { bgcolor: "#000", color: "#fff" } } }}>
       <Stack sx={{ height: "100%", pt: "env(safe-area-inset-top)", pb: "env(safe-area-inset-bottom)" }}>
-        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ ...behindText, px: 1, height: 56 }}>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", ...behindText, px: 1, height: 56 }}>
           {toolbar}
         </Stack>
 
@@ -291,7 +291,7 @@ const MediaEditor = ({ media, initialEdits = NO_EDITS, isStory = false, people =
         {isDrawing && brush.name !== "Eraser" && <ColorRow value={brush.color} onChange={(color) => setBrush((current) => ({ ...current, color }))} />}
         {tool === "filters" && <FilterStrip image={image} chosen={edits.filter} onChoose={chooseFilter} />}
         {!isDrawing && (
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ ...behindText, px: 2, py: 1.5 }}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", ...behindText, px: 2, py: 1.5 }}>
             {footer}
             <Box sx={{ flex: 1 }} />
             <Button variant="contained" onClick={finish} disabled={isEmpty || isSaving}>

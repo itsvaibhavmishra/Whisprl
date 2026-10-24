@@ -1,6 +1,6 @@
 import { IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Camera, ImageSquare, Plus, TextT, VideoCamera } from "phosphor-react";
+import { CameraIcon, ImageSquareIcon, PlusIcon, TextTIcon, VideoCameraIcon } from "@phosphor-icons/react";
 
 import { isApp } from "@/utils/platform";
 
@@ -8,8 +8,8 @@ import { isApp } from "@/utils/platform";
 const CAN_CAPTURE = isApp || window.matchMedia("(pointer: coarse)").matches;
 
 const CAPTURES = [
-  { kind: "photo", label: "Take a photo", Icon: Camera },
-  { kind: "video", label: "Record a video", Icon: VideoCamera },
+  { kind: "photo", label: "Take a photo", Icon: CameraIcon },
+  { kind: "video", label: "Record a video", Icon: VideoCameraIcon },
 ];
 
 export const NewUpdateButton = ({ onOpen, disabled }) => (
@@ -28,7 +28,7 @@ export const NewUpdateButton = ({ onOpen, disabled }) => (
           "&:hover": { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.18) },
         }}
       >
-        <Plus size={20} weight="bold" />
+        <PlusIcon size={20} weight="bold" />
       </IconButton>
     </span>
   </Tooltip>
@@ -50,13 +50,13 @@ const NewUpdateMenu = ({ anchor, onClose, onWrite, onChooseMedia }) => {
     >
       <MenuItem onClick={choose(onWrite)}>
         <ListItemIcon>
-          <TextT size={20} />
+          <TextTIcon size={20} />
         </ListItemIcon>
         Write
       </MenuItem>
       <MenuItem onClick={choose(onChooseMedia)}>
         <ListItemIcon>
-          <ImageSquare size={20} />
+          <ImageSquareIcon size={20} />
         </ListItemIcon>
         Photo or video
       </MenuItem>

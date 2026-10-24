@@ -15,7 +15,7 @@ const GamePlays = ({ rows }) => {
         const { plays = 0, players = 0 } = byGame.get(id) ?? {};
         return (
           <Box key={id} component="li" sx={{ py: 1.5, borderTop: 1, borderColor: "divider" }}>
-            <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={1.5}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: "baseline", justifyContent: "space-between" }}>
               <Typography noWrap sx={{ fontSize: 14.5, fontWeight: 700 }}>
                 {GAMES[id].name}
               </Typography>

@@ -1,5 +1,5 @@
 import { Stack, Typography } from "@mui/material";
-import { Globe } from "phosphor-react";
+import { GlobeIcon } from "@phosphor-icons/react";
 
 import { SPOKEN_ONLY } from "@/utils/spokenOnly";
 
@@ -8,8 +8,8 @@ const EveryonePill = ({ isOnMedia = false }) => (
   <Stack
     direction="row"
     spacing={0.5}
-    alignItems="center"
     sx={{
+      alignItems: "center",
       flexShrink: 0,
       px: 0.875,
       py: 0.25,
@@ -18,7 +18,7 @@ const EveryonePill = ({ isOnMedia = false }) => (
       bgcolor: isOnMedia ? "rgba(255, 255, 255, 0.18)" : "action.selected",
     }}
   >
-    <Globe size={12} weight="bold" aria-hidden />
+    <GlobeIcon size={12} weight="bold" aria-hidden />
     {/* where its container is narrow the word is left to screen readers, so the name beside it keeps its room */}
     <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, lineHeight: 1.4, "@container (max-width: 340px)": SPOKEN_ONLY }}>
       Everyone

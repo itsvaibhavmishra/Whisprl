@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Stack } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Button, Stack } from "@mui/material";
 
 import { useDispatch, useSelector } from "react-redux";
 import { AddOtpEmail, SendOTP, VerifyOTP } from "@/redux/slices/actions/authActions";
@@ -56,12 +55,14 @@ export const EmailForm = () => {
         name="email"
         label="Email address"
         helperText={otpEmail ? "The code went to this address. Resend it if it has not arrived." : "Send a code to this address first."}
-        InputProps={{
-          endAdornment: (
-            <LoadingButton loading={isLoading} size="small" type="submit" variant="outlined" sx={{ flexShrink: 0, whiteSpace: "nowrap", ml: 1 }}>
-              {otpEmail ? "Resend code" : "Send code"}
-            </LoadingButton>
-          ),
+        slotProps={{
+          input: {
+            endAdornment: (
+              <Button loading={isLoading} size="small" type="submit" variant="outlined" sx={{ flexShrink: 0, whiteSpace: "nowrap", ml: 1 }}>
+                {otpEmail ? "Resend code" : "Send code"}
+              </Button>
+            ),
+          },
         }}
       />
     </FormProvider>
@@ -120,9 +121,9 @@ const VerifyForm = () => {
 
         <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={import.meta.env.REACT_APP_RECAPTCHA_CLIENT} theme="dark" />
 
-        <LoadingButton loading={isLoading} fullWidth size="large" type="submit" variant="contained" disabled={!otpEmail} sx={{ mt: 1 }}>
+        <Button loading={isLoading} fullWidth size="large" type="submit" variant="contained" disabled={!otpEmail} sx={{ mt: 1 }}>
           Verify email
-        </LoadingButton>
+        </Button>
       </Stack>
     </FormProvider>
   );

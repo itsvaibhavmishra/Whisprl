@@ -38,8 +38,8 @@ const Bubble = ({ lines, isMine, isStart, isEnd }) => {
   return (
     <Stack
       spacing={1}
-      justifyContent="center"
       sx={{
+        justifyContent: "center",
         ...surface,
         alignSelf: isMine ? "flex-end" : "flex-start",
         maxWidth: { xs: "min(17em, 100%)", md: "min(28em, 100%)" },
@@ -51,7 +51,7 @@ const Bubble = ({ lines, isMine, isStart, isEnd }) => {
     >
       {lines.map((width, position) =>
         position === lines.length - 1 ? (
-          <Stack key={position} direction="row" alignItems="flex-end" spacing={1.5}>
+          <Stack key={position} direction="row" spacing={1.5} sx={{ alignItems: "flex-end" }}>
             <Bar width={`${width}em`} isMine={isMine} />
             <Bar width="2.6em" height={8} isMine={isMine} />
           </Stack>

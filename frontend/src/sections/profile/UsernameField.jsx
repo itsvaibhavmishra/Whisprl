@@ -21,15 +21,17 @@ const UsernameField = () => {
         label="Username"
         value={username ? `@${username}` : ""}
         helperText={helperText}
-        InputProps={{
-          readOnly: true,
-          endAdornment: (
-            <InputAdornment position="end">
-              <Button size="small" onClick={() => setIsChanging(true)} disabled={!username || Boolean(lockedUntil)}>
-                Change
-              </Button>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            readOnly: true,
+            endAdornment: (
+              <InputAdornment position="end">
+                <Button size="small" onClick={() => setIsChanging(true)} disabled={!username || Boolean(lockedUntil)}>
+                  Change
+                </Button>
+              </InputAdornment>
+            ),
+          },
         }}
       />
       {isChanging && <UsernameDialog current={username} onClose={() => setIsChanging(false)} />}

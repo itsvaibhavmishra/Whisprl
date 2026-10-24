@@ -1,5 +1,5 @@
 import { Box, Dialog, IconButton, useMediaQuery } from "@mui/material";
-import { ArrowLeft, X } from "phosphor-react";
+import { ArrowLeftIcon, XIcon } from "@phosphor-icons/react";
 
 import { onCover } from "@/components/ProfileCover";
 import ProfileView from "@/components/profile/ProfileView";
@@ -23,16 +23,18 @@ const ProfileSheet = ({ person, startWithComposer = false, onClose }) => {
       onTouchEnd={keepInside}
       // held near the top, so a profile that fills in grows downward instead of moving the whole sheet
       sx={{ "& .MuiDialog-container": { alignItems: { sm: "flex-start" } } }}
-      PaperProps={{
-        "aria-label": person.firstName ? `${person.firstName}'s profile` : "Profile",
-        sx: {
-          width: { sm: 480 },
-          maxWidth: "100%",
-          maxHeight: { sm: "min(88dvh, 880px)" },
-          mt: { sm: "6dvh" },
-          borderRadius: { sm: 2 },
-          overflow: "hidden",
-          backgroundImage: "none",
+      slotProps={{
+        paper: {
+          "aria-label": person.firstName ? `${person.firstName}'s profile` : "Profile",
+          sx: {
+            width: { sm: 480 },
+            maxWidth: "100%",
+            maxHeight: { sm: "min(88dvh, 880px)" },
+            mt: { sm: "6dvh" },
+            borderRadius: { sm: 2 },
+            overflow: "hidden",
+            backgroundImage: "none",
+          },
         },
       }}
     >
@@ -44,7 +46,7 @@ const ProfileSheet = ({ person, startWithComposer = false, onClose }) => {
         onClick={onClose}
         sx={(theme) => ({ ...onCover(theme), position: "absolute", top: 12, left: 12, width: 40, height: 40 })}
       >
-        {isPhone ? <ArrowLeft size={20} weight="bold" /> : <X size={20} weight="bold" />}
+        {isPhone ? <ArrowLeftIcon size={20} weight="bold" /> : <XIcon size={20} weight="bold" />}
       </IconButton>
     </Dialog>
   );

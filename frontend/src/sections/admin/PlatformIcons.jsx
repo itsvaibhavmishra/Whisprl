@@ -1,9 +1,9 @@
 import { Stack, Tooltip } from "@mui/material";
-import { AndroidLogo, Globe } from "phosphor-react";
+import { AndroidLogoIcon, GlobeIcon } from "@phosphor-icons/react";
 
 const PLATFORMS = {
-  web: { label: "Website", Icon: Globe },
-  android: { label: "Android app", Icon: AndroidLogo },
+  web: { label: "Website", Icon: GlobeIcon },
+  android: { label: "Android app", Icon: AndroidLogoIcon },
 };
 
 const PlatformIcons = ({ platforms, size = 18 }) => (

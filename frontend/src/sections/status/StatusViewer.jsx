@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, ButtonBase, Dialog, IconButton, Stack, Typography, useMediaQuery } from "@mui/material";
-import { CaretLeft, CaretRight, X } from "phosphor-react";
+import { CaretLeftIcon, CaretRightIcon, XIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 
 import useDarkSystemBars from "@/hooks/useDarkSystemBars";
@@ -77,7 +77,7 @@ const Neighbour = ({ status, label, onOpen }) => {
         <Box component="img" src={content.file.preview} alt="" sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
       )}
       <Box className="neighbour-dim" sx={{ position: "absolute", inset: 0, bgcolor: "rgba(0, 0, 0, 0.6)" }} />
-      <Stack alignItems="center" spacing={1} sx={{ position: "relative", px: 1, color: "#fff" }}>
+      <Stack spacing={1} sx={{ alignItems: "center", position: "relative", px: 1, color: "#fff" }}>
         <Box sx={{ borderRadius: "50%", boxShadow: "0 0 0 2px #fff", display: "grid" }}>{getAvatar(owner.avatar, owner.firstName, 44)}</Box>
         <Typography sx={{ fontSize: 13, fontWeight: 700, textAlign: "center", lineHeight: 1.3 }}>{name}</Typography>
       </Stack>
@@ -184,27 +184,27 @@ const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
       fullScreen
       onClose={onClose}
       onKeyDown={onKeyDown}
-      PaperProps={{
-        "aria-label": "Status",
-        sx: { position: "relative", overflow: "hidden", bgcolor: "#06090E", border: 0, boxShadow: "none", backgroundImage: "none" },
+      slotProps={{
+        paper: {
+          "aria-label": "Status",
+          sx: { position: "relative", overflow: "hidden", bgcolor: "#06090E", border: 0, boxShadow: "none", backgroundImage: "none" },
+        },
       }}
     >
       <Ambient status={status} />
       <Stack
         direction="row"
-        alignItems={{ xs: "stretch", md: "center" }}
-        justifyContent="center"
         spacing={{ xs: 0, md: 3 }}
         onPointerDown={(event) => {
           isDownOnBackdrop.current = event.target === event.currentTarget;
         }}
         onClick={closeFromOutside}
-        sx={{ position: "relative", height: "100%", px: { xs: 0, md: 2 } }}
+        sx={{ alignItems: { xs: "stretch", md: "center" }, justifyContent: "center", position: "relative", height: "100%", px: { xs: 0, md: 2 } }}
       >
         {hasNeighbours && <Neighbour status={ownerIndex > 0 && neighbourAt(-1)} label="Previous" onOpen={() => jumpTo(ownerIndex - 1, "previous")} />}
         {isWide && (
           <Chevron label="Previous" isHidden={isAtStart} onClick={previous}>
-            <CaretLeft size={22} weight="bold" />
+            <CaretLeftIcon size={22} weight="bold" />
           </Chevron>
         )}
         <StatusSlide
@@ -225,7 +225,7 @@ const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
         />
         {isWide && (
           <Chevron label="Next" onClick={next}>
-            <CaretRight size={22} weight="bold" />
+            <CaretRightIcon size={22} weight="bold" />
           </Chevron>
         )}
         {hasNeighbours && <Neighbour status={ownerIndex < order.length - 1 && neighbourAt(1)} label="Next" onOpen={() => jumpTo(ownerIndex + 1, "next")} />}
@@ -244,7 +244,7 @@ const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
             "&:hover": { bgcolor: "rgba(255, 255, 255, 0.12)" },
           }}
         >
-          <X size={22} weight="bold" />
+          <XIcon size={22} weight="bold" />
         </IconButton>
       )}
     </Dialog>

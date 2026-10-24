@@ -1,5 +1,5 @@
 import { Box, Stack } from "@mui/material";
-import { m } from "framer-motion";
+import { m } from "motion/react";
 
 import getAvatar from "@/utils/avatars";
 

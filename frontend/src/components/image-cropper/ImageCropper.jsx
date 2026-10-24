@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Slider, Stack, Tooltip } from "@mui/material";
-import { ArrowClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "phosphor-react";
+import { ArrowClockwiseIcon, MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon } from "@phosphor-icons/react";
 import Cropper from "react-easy-crop";
 
 import cropImage from "@/components/image-cropper/cropImage";
@@ -33,13 +33,13 @@ const ImageCropper = ({ image, title, aspect, round, maxWidth, onCancel, onCrop 
             onCropComplete={(_, pixels) => setCropArea(pixels)}
           />
         </Box>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 3 }}>
-          <MagnifyingGlassMinus size={20} aria-hidden="true" />
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center", mt: 3 }}>
+          <MagnifyingGlassMinusIcon size={20} aria-hidden="true" />
           <Slider value={zoom} min={1} max={4} step={0.05} aria-label="Zoom" onChange={(_, value) => setZoom(value)} />
-          <MagnifyingGlassPlus size={20} aria-hidden="true" />
+          <MagnifyingGlassPlusIcon size={20} aria-hidden="true" />
           <Tooltip title="Rotate">
             <IconButton aria-label="Rotate a quarter turn" onClick={() => setRotation((rotation + 90) % 360)}>
-              <ArrowClockwise size={20} />
+              <ArrowClockwiseIcon size={20} />
             </IconButton>
           </Tooltip>
         </Stack>

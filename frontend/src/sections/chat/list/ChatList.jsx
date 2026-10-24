@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Archive, ArrowLeft, CaretRight, UsersThree } from "phosphor-react";
+import { ArchiveIcon, ArrowLeftIcon, CaretRightIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import MascotHalo from "@/components/MascotHalo";
@@ -143,11 +143,11 @@ const ChatList = ({ onNewGroup }) => {
   return (
     <Stack component="nav" aria-label="Chats" sx={{ height: "100%", bgcolor: "chat.list" }}>
       <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 44 }}>
-          <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
             {isShowingArchived && (
               <IconButton aria-label="Back to chats" onClick={() => setIsShowingArchived(false)} sx={{ ml: -1 }}>
-                <ArrowLeft size={22} />
+                <ArrowLeftIcon size={22} />
               </IconButton>
             )}
             <Typography component="h1" sx={{ m: 0 }}>
@@ -166,7 +166,7 @@ const ChatList = ({ onNewGroup }) => {
                 "&:hover": { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.18) },
               }}
             >
-              <UsersThree size={20} weight="bold" />
+              <UsersThreeIcon size={20} weight="bold" />
             </IconButton>
           </Tooltip>
         </Stack>
@@ -174,7 +174,7 @@ const ChatList = ({ onNewGroup }) => {
         <SearchPill value={query} onChange={setQuery} label="Search chats and people" />
 
         {!isShowingArchived && (
-          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" role="group" aria-label="Show">
+          <Stack direction="row" spacing={0.75} useFlexGap role="group" aria-label="Show" sx={{ flexWrap: "wrap" }}>
             {Object.entries(FILTERS).map(([value, { label }]) => {
               const isOn = filter === value;
               return (
@@ -225,13 +225,13 @@ const ChatList = ({ onNewGroup }) => {
                 sx={{ width: "100%", gap: 1.5, px: 1, py: 1, borderRadius: 3, justifyContent: "flex-start", "&:hover": { bgcolor: "action.hover" } }}
               >
                 <Box sx={{ width: 50, height: 50, borderRadius: "50%", display: "grid", placeItems: "center", color: "text.secondary", bgcolor: "chat.field" }}>
-                  <Archive size={22} />
+                  <ArchiveIcon size={22} />
                 </Box>
                 <Typography sx={{ flex: 1, textAlign: "left", fontSize: 15, fontWeight: 700 }}>Archived</Typography>
                 <Typography component="span" sx={{ fontSize: 13, fontWeight: 700, color: "text.secondary" }}>
                   {archivedCount}
                 </Typography>
-                <CaretRight size={16} weight="bold" />
+                <CaretRightIcon size={16} weight="bold" />
               </ButtonBase>
             )}
             {shown.length > 0 && (
@@ -262,7 +262,7 @@ const ChatList = ({ onNewGroup }) => {
               </>
             )}
             {!shown.length && !people.length && !strangers.length && note && (
-              <Stack alignItems="center" spacing={1.5} sx={{ px: 3, py: 6, textAlign: "center" }}>
+              <Stack spacing={1.5} sx={{ alignItems: "center", px: 3, py: 6, textAlign: "center" }}>
                 {isUnfiltered && <MascotHalo size={120} />}
                 <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.secondary", maxWidth: 260 }}>{note}</Typography>
               </Stack>

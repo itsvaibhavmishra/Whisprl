@@ -3,8 +3,7 @@ import * as Yup from "yup";
 import { useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Button, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { Camera } from "phosphor-react";
+import { CameraIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FormProvider, { RHFTextField } from "@/components/hook-form";
@@ -58,9 +57,9 @@ const ProfileStep = () => {
             Help your friends recognise you. Both are optional, and you can change them on your profile any time.
           </Typography>
         </Stack>
-        <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
           {getAvatar(photo || user.avatar, `${user.firstName} ${user.lastName}`, 88)}
-          <Button variant="outlined" color="inherit" startIcon={<Camera />} onClick={pick}>
+          <Button variant="outlined" color="inherit" startIcon={<CameraIcon />} onClick={pick}>
             {photo ? "Choose another" : "Choose a photo"}
           </Button>
           {picker}
@@ -73,12 +72,12 @@ const ProfileStep = () => {
           helperText={`Shown in the bubble beside your photo, up to ${BIO_LIMIT} characters.`}
         />
         <Stack spacing={1}>
-          <LoadingButton type="submit" size="large" variant="contained" fullWidth disabled={!photo && !bio.trim()} loading={isSaving}>
+          <Button type="submit" size="large" variant="contained" fullWidth disabled={!photo && !bio.trim()} loading={isSaving}>
             Continue
-          </LoadingButton>
-          <LoadingButton fullWidth color="inherit" loading={isSkipping} onClick={() => dispatch(SkipSetupStep("profile"))}>
+          </Button>
+          <Button fullWidth color="inherit" loading={isSkipping} onClick={() => dispatch(SkipSetupStep("profile"))}>
             Skip for now
-          </LoadingButton>
+          </Button>
         </Stack>
       </Stack>
     </FormProvider>

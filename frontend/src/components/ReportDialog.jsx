@@ -59,11 +59,11 @@ const ReportDialog = ({ subject, explanation, report, details, person, evidence,
             label="Anything else? (optional)"
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            inputProps={{ maxLength: MAX_NOTE }}
             multiline
             minRows={2}
             fullWidth
             sx={{ mt: 1.5 }}
+            slotProps={{ htmlInput: { maxLength: MAX_NOTE } }}
           />
           {Boolean(evidence?.length) && (
             <DialogContentText sx={{ mt: 2, fontSize: 13 }}>

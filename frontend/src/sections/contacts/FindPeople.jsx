@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Box, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
-import { X } from "phosphor-react";
+import { XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useSearchParams } from "react-router-dom";
 
@@ -33,7 +33,7 @@ const reasonOf = ({ friendsInCommon, groupsInCommon }) => {
 const SuggestionActions = ({ person }) => {
   const dispatch = useDispatch();
   return (
-    <Stack direction="row" alignItems="center" spacing={0.5}>
+    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
       <RequestButton person={person} size="small" sx={{ borderRadius: 99 }} />
       <Tooltip title="Hide">
         <IconButton
@@ -42,7 +42,7 @@ const SuggestionActions = ({ person }) => {
           onClick={() => dispatch(HideSuggestion(person._id))}
           sx={{ color: "text.secondary" }}
         >
-          <X size={16} weight="bold" />
+          <XIcon size={16} weight="bold" />
         </IconButton>
       </Tooltip>
     </Stack>

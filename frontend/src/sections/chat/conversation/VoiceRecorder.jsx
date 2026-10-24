@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
-import { CaretLeft, CaretUp, LockSimple, Microphone, Pause, PaperPlaneTilt, Trash } from "phosphor-react";
+import { CaretRightIcon, CaretUpIcon, LockSimpleIcon, MicrophoneIcon, PauseIcon, PaperPlaneTiltIcon, TrashIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import { SendVoiceMessage } from "@/redux/slices/actions/attachmentActions";
@@ -13,7 +13,7 @@ import { MAX_VOICE_SECONDS, MIN_VOICE_SECONDS, MicrophoneRefusal, startVoiceReco
 
 const CANCEL_PX = 90;
 const LOCK_PX = 70;
-const NO_DRAG = { left: 0, up: 0 };
+const NO_DRAG = { across: 0, up: 0 };
 // a tap rather than a hold records hands-free, with the controls to pause, delete or send
 const QUICK_PRESS_MS = 250;
 const HOLD_HINT = "Hold to record, let go to send";
@@ -31,10 +31,10 @@ const LIVE_BARS = 160;
 const liveBarsOf = (levels) => [...Array(Math.max(LIVE_BARS - levels.length, 0)).fill(0), ...levels.map((level) => level * 100)];
 
 // a slide only says what letting go will do, so sliding back before letting go undoes it
-const releaseOf = ({ left, up }) => {
-  const isPastCancel = left < -CANCEL_PX;
+const releaseOf = ({ across, up }) => {
+  const isPastCancel = across > CANCEL_PX;
   const isPastLock = up < -LOCK_PX;
-  if (isPastCancel && isPastLock) return left < up ? "cancel" : "lock";
+  if (isPastCancel && isPastLock) return across > -up ? "cancel" : "lock";
   if (isPastCancel) return "cancel";
   return isPastLock ? "lock" : null;
 };
@@ -46,7 +46,7 @@ const micLabelOf = (phase, pending) => {
   return "Record a voice message";
 };
 
-const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecordingChange }) => {
+const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, holdInset, onRecordingChange }) => {
   const dispatch = useDispatch();
   const [phase, setPhase] = useState("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -155,7 +155,7 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
 
   const isThePress = (event) => phaseNow.current === "holding" && event.pointerId === press.current.pointerId;
 
-  const dragOf = (event) => ({ left: Math.min(event.clientX - press.current.x, 0), up: Math.min(event.clientY - press.current.y, 0) });
+  const dragOf = (event) => ({ across: Math.max(event.clientX - press.current.x, 0), up: Math.min(event.clientY - press.current.y, 0) });
 
   const onPointerMove = (event) => {
     if (!isThePress(event)) return;
@@ -175,7 +175,8 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
 
   // keyboard only: Chrome drops a pointer's click when the icon under it changes mid-press
   const onClick = (event) => {
-    if (event.detail !== 0) return;
+    // a finger can end in a click with no count, which only its pointer type tells apart from a key
+    if (event.detail !== 0 || event.nativeEvent.pointerType) return;
     if (phaseNow.current === "locked") return send();
     if (phaseNow.current === "idle") start("locked");
   };
@@ -184,7 +185,7 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
   const pending = phase === "holding" ? releaseOf(drag) : null;
   const isCancelPending = pending === "cancel";
   const isLockPending = pending === "lock";
-  const cancelSlide = Math.max(drag.left, -CANCEL_PX);
+  const cancelSlide = Math.min(drag.across, CANCEL_PX);
 
   return (
     <>
@@ -193,41 +194,51 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
           role="group"
           aria-label="Recording a voice message"
           direction="row"
-          alignItems="center"
           spacing={1.25}
           sx={{
+            alignItems: "center",
             position: "absolute",
             inset: 0,
             zIndex: 1,
             px: 1.5,
+            ...(phase === "holding" && { pl: `${holdInset}px` }),
             borderRadius: "26px",
             bgcolor: "chat.raised",
             boxShadow: (theme) => `0 0 0 1px ${theme.palette.chat.edge}`,
             ...overlaySx,
           }}
         >
-          {/* the controls sit away from where the microphone was, so the tap that started recording cannot land on one */}
-          {isLocked && (
-            <>
-              <IconButton aria-label="Delete recording" onClick={discard} sx={{ ml: -0.75, color: "text.secondary", "&:hover": { color: "error.main" } }}>
-                <Trash size={20} />
-              </IconButton>
-              <Tooltip title={isPaused ? "Resume" : "Pause"}>
-                <IconButton
-                  aria-label={isPaused ? "Resume recording" : "Pause recording"}
-                  onClick={togglePause}
-                  sx={{ color: isPaused ? "error.main" : "text.primary" }}
-                >
-                  {isPaused ? <Microphone size={20} weight="fill" /> : <Pause size={20} weight="fill" />}
-                </IconButton>
-              </Tooltip>
-            </>
+          {!isLocked && (
+            <Stack
+              direction="row"
+              spacing={0.25}
+              sx={{
+                alignItems: "center",
+                flexShrink: 0,
+                position: "relative",
+                zIndex: 1,
+                px: 1,
+                py: 0.25,
+                borderRadius: 99,
+                // solid, so the hint stays readable where it slides over the waveform
+                bgcolor: "chat.raised",
+                backgroundImage: (theme) =>
+                  isCancelPending ? `linear-gradient(${alpha(theme.palette.error.main, 0.14)}, ${alpha(theme.palette.error.main, 0.14)})` : "none",
+                color: isCancelPending ? "error.main" : "text.secondary",
+                transform: `translateX(${cancelSlide}px)`,
+                opacity: isCancelPending ? 1 : 1 - cancelSlide / (CANCEL_PX * 2),
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: isCancelPending ? 700 : undefined }}>
+                {isCancelPending ? "Release to cancel" : "Slide to cancel"}
+              </Typography>
+              {isCancelPending ? <TrashIcon size={14} weight="bold" aria-hidden /> : <CaretRightIcon size={14} aria-hidden />}
+            </Stack>
           )}
           <Stack
             direction="row"
-            alignItems="center"
             spacing={1.25}
-            sx={{ flexGrow: 1, minWidth: 0, opacity: isCancelPending ? 0.4 : 1, transition: "opacity 120ms" }}
+            sx={{ alignItems: "center", flexGrow: 1, minWidth: 0, opacity: isCancelPending ? 0.4 : 1, transition: "opacity 120ms" }}
           >
             <Box
               aria-hidden
@@ -246,30 +257,22 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
             </Typography>
             <Waveform bars={liveBarsOf(levels)} progress={1} playedColor="primary.main" />
           </Stack>
-          {!isLocked && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={0.25}
-              sx={{
-                flexShrink: 0,
-                px: 1,
-                py: 0.25,
-                borderRadius: 99,
-                // solid, so the hint stays readable where it slides over the waveform
-                bgcolor: "chat.raised",
-                backgroundImage: (theme) =>
-                  isCancelPending ? `linear-gradient(${alpha(theme.palette.error.main, 0.14)}, ${alpha(theme.palette.error.main, 0.14)})` : "none",
-                color: isCancelPending ? "error.main" : "text.secondary",
-                transform: `translateX(${cancelSlide}px)`,
-                opacity: isCancelPending ? 1 : 1 + cancelSlide / (CANCEL_PX * 2),
-              }}
-            >
-              {isCancelPending ? <Trash size={14} weight="bold" aria-hidden /> : <CaretLeft size={14} aria-hidden />}
-              <Typography variant="caption" sx={{ fontWeight: isCancelPending ? 700 : undefined }}>
-                {isCancelPending ? "Release to cancel" : "Slide to cancel"}
-              </Typography>
-            </Stack>
+          {/* the controls sit at the far end from the microphone, so the tap that started recording cannot land on one */}
+          {isLocked && (
+            <>
+              <IconButton aria-label="Delete recording" onClick={discard} sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}>
+                <TrashIcon size={20} />
+              </IconButton>
+              <Tooltip title={isPaused ? "Resume" : "Pause"}>
+                <IconButton
+                  aria-label={isPaused ? "Resume recording" : "Pause recording"}
+                  onClick={togglePause}
+                  sx={{ mr: -0.75, color: isPaused ? "error.main" : "text.primary" }}
+                >
+                  {isPaused ? <MicrophoneIcon size={20} weight="fill" /> : <PauseIcon size={20} weight="fill" />}
+                </IconButton>
+              </Tooltip>
+            </>
           )}
         </Stack>
       )}
@@ -277,27 +280,20 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
         <Box sx={{ position: "absolute", right: 0, bottom: 0, zIndex: 1 }}>
           <Tooltip title="Send voice message">
             <IconButton aria-label="Send voice message" onClick={send} sx={sendSx}>
-              <PaperPlaneTilt size={21} weight="fill" />
+              <PaperPlaneTiltIcon size={21} weight="fill" />
             </IconButton>
           </Tooltip>
         </Box>
       )}
 
-      {/* held, the microphone moves out to the send button's spot beside the bar, keeping the finger's press */}
-      <Box
-        sx={{
-          position: "relative",
-          display: "flex",
-          transition: "transform 160ms ease-out",
-          ...(phase === "holding" && { zIndex: 2, transform: `translateX(${sendSpotShift}px)` }),
-        }}
-      >
+      {/* held, the microphone stays under the finger, above the bar, so sliding from it is felt as well as seen */}
+      <Box sx={{ position: "relative", display: "flex", ...(phase === "holding" && { zIndex: 2 }) }}>
         {phase === "holding" && (
           <Stack
             aria-hidden
-            alignItems="center"
             spacing={0.25}
             sx={{
+              alignItems: "center",
               position: "absolute",
               left: "50%",
               bottom: "calc(100% + 8px)",
@@ -313,8 +309,8 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
               transition: "background-color 120ms, border-color 120ms, color 120ms",
             }}
           >
-            <LockSimple size={18} weight={isLockPending ? "fill" : "regular"} />
-            <CaretUp size={14} />
+            <LockSimpleIcon size={18} weight={isLockPending ? "fill" : "regular"} />
+            <CaretUpIcon size={14} />
           </Stack>
         )}
 
@@ -337,7 +333,7 @@ const VoiceRecorder = ({ buttonSx, sendSx, overlaySx, sendSpotShift, onRecording
               ...(phase === "holding" && { background: sendSx.background, color: "common.white", "&, &:active": { transform: "scale(1.3)" } }),
             }}
           >
-            <Microphone size={20} weight="fill" />
+            <MicrophoneIcon size={20} weight="fill" />
           </IconButton>
         </Tooltip>
       </Box>

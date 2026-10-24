@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Box } from "@mui/material";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "motion/react";
 import { useSelector } from "react-redux";
 
 import { selectViewReceivedAt } from "@/redux/slices/gameSlice";

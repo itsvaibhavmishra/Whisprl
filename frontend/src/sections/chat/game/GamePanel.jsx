@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Box, useMediaQuery, useTheme } from "@mui/material";
-import { m, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "motion/react";
 import { useDispatch } from "react-redux";
 
 import useScreenBack from "@/hooks/useScreenBack";

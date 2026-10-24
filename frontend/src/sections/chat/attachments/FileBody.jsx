@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { File as FileIcon, PencilSimple } from "phosphor-react";
+import { FileIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import MediaEditor from "@/components/media-editor/MediaEditor";
@@ -60,7 +60,7 @@ const FileBody = () => {
       return <Box component="img" src={attachmentUrl(activeFile.id)} alt={activeFile.fileName} sx={{ ...PREVIEW, objectFit: "contain" }} />;
     }
     return (
-      <Stack alignItems="center" spacing={1.5} sx={{ px: 5, py: 4, borderRadius: 5, bgcolor: "chat.pill", maxWidth: 360 }}>
+      <Stack spacing={1.5} sx={{ alignItems: "center", px: 5, py: 4, borderRadius: 5, bgcolor: "chat.pill", maxWidth: 360 }}>
         <Box
           sx={{
             width: 72,
@@ -101,7 +101,7 @@ const FileBody = () => {
               "&:hover": { bgcolor: "rgba(6, 12, 22, 0.8)" },
             }}
           >
-            <PencilSimple size={20} weight="bold" />
+            <PencilSimpleIcon size={20} weight="bold" />
           </IconButton>
         </Tooltip>
       )}

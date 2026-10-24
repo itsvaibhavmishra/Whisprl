@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, ButtonBase, IconButton, Popover, Stack, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowRight, CalendarBlank, CaretLeft, CaretRight } from "phosphor-react";
+import { ArrowRightIcon, CalendarBlankIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import dayjs from "dayjs";
 
 import MonthGrid from "@/sections/admin/MonthGrid";
@@ -72,9 +72,9 @@ const DateRangePicker = ({ value, isCustom, onChange }) => {
           "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.main" },
         }}
       >
-        <CalendarBlank size={18} />
+        <CalendarBlankIcon size={18} />
         <span>{labelOf(value.from)}</span>
-        <ArrowRight size={14} aria-hidden />
+        <ArrowRightIcon size={14} aria-hidden />
         <span>{labelOf(value.to)}</span>
       </ButtonBase>
 
@@ -89,14 +89,14 @@ const DateRangePicker = ({ value, isCustom, onChange }) => {
         <Stack direction="row" spacing={3}>
           {months.map((month, position) => (
             <Box key={keyOf(month)}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ height: 36, mb: 0.5 }}>
+              <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", height: 36, mb: 0.5 }}>
                 <IconButton
                   size="small"
                   aria-label="Earlier month"
                   onClick={() => setFirstMonth(firstMonth.subtract(1, "month"))}
                   sx={{ visibility: position === 0 ? "visible" : "hidden" }}
                 >
-                  <CaretLeft size={16} weight="bold" />
+                  <CaretLeftIcon size={16} weight="bold" />
                 </IconButton>
                 <Typography sx={{ fontSize: 14.5, fontWeight: 800 }}>{month.format("MMMM YYYY")}</Typography>
                 <IconButton
@@ -106,7 +106,7 @@ const DateRangePicker = ({ value, isCustom, onChange }) => {
                   disabled={keyOf(months.at(-1).endOf("month")) >= today}
                   sx={{ visibility: position === months.length - 1 ? "visible" : "hidden" }}
                 >
-                  <CaretRight size={16} weight="bold" />
+                  <CaretRightIcon size={16} weight="bold" />
                 </IconButton>
               </Stack>
               <MonthGrid month={month} from={shown.from} to={shown.to} today={today} isDisabled={isDisabled} onPick={pick} onHover={setHovered} />

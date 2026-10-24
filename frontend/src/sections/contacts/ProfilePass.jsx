@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
-import { CopySimple, ShareNetwork } from "phosphor-react";
+import { CopySimpleIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import { QRCodeSVG } from "qrcode.react";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
@@ -66,23 +66,21 @@ const ProfilePass = ({ person }) => {
         </Box>
         <Stack
           direction={{ xs: "column", md: "row" }}
-          alignItems={{ md: "center" }}
-          justifyContent="space-between"
           spacing={{ xs: 1.5, md: 3 }}
-          sx={{ gridColumn: "1 / -1", mt: 2 }}
+          sx={{ alignItems: { md: "center" }, justifyContent: "space-between", gridColumn: "1 / -1", mt: 2 }}
         >
           <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: "text.secondary" }}>
             Anyone with this code or link can see your profile and send you a request.
           </Typography>
           <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
             {canShare && (
-              <Button variant="contained" startIcon={<ShareNetwork weight="bold" />} onClick={() => shareProfile(person)}>
+              <Button variant="contained" startIcon={<ShareNetworkIcon weight="bold" />} onClick={() => shareProfile(person)}>
                 Share
               </Button>
             )}
             <Button
               variant={canShare ? "text" : "contained"}
-              startIcon={<CopySimple weight="bold" />}
+              startIcon={<CopySimpleIcon weight="bold" />}
               onClick={() => copyProfileLink(person)}
               sx={canShare ? SOFT : undefined}
             >

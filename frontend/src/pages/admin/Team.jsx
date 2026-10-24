@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { Plus } from "phosphor-react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -28,9 +27,9 @@ const Team = () => {
       return (
         <Box>
           <Notice title="The team didn't load">Check your connection and try again.</Notice>
-          <LoadingButton variant="contained" loading={isLoading} onClick={read} sx={{ mt: 2 }}>
+          <Button variant="contained" loading={isLoading} onClick={read} sx={{ mt: 2 }}>
             Try again
-          </LoadingButton>
+          </Button>
         </Box>
       );
     }
@@ -52,7 +51,7 @@ const Team = () => {
 
   return (
     <Stack sx={{ maxWidth: 760, px: { xs: 2, md: 6 }, py: { xs: 3, md: 6 } }}>
-      <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ sm: "flex-end" }} justifyContent="space-between" spacing={2}>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "flex-end" }, justifyContent: "space-between" }}>
         <Box>
           <Typography component="h1" sx={{ m: 0, fontSize: { xs: 26, md: 32 }, fontWeight: 800, letterSpacing: "-0.02em" }}>
             Team
@@ -63,7 +62,7 @@ const Team = () => {
         </Box>
         <Button
           variant="contained"
-          startIcon={<Plus weight="bold" />}
+          startIcon={<PlusIcon weight="bold" />}
           onClick={() => setIsAdding(true)}
           sx={{ flexShrink: 0, alignSelf: { xs: "flex-start", sm: "auto" } }}
         >

@@ -1,4 +1,4 @@
-import { forwardRef, memo, useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { Box, ButtonBase, Typography } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
 import { useForkRef } from "@mui/material/utils";
@@ -139,152 +139,167 @@ const dropTargetAt = (clientX, clientY) => {
 };
 
 // your cards, fanned until your turn straightens them: one tap lifts a card, a second plays it, or drag it onto the board
-const Hand = forwardRef(
-  ({ cards, tones, pickedId, awayId, playableIds, isMyTurn, isGreyed, isAlarmed, pills, onPick, onSelect, onDrop, shoeRef, arrival, isStill }, ref) => {
-    // a game's opening deal arrives with the hand itself, so it is dealt into an empty one
-    const lastCards = useRef(arrival?.isOpening ? [] : cards);
-    const rowRef = useRef(null);
-    const handRef = useForkRef(rowRef, ref);
-    const drag = useRef(null);
-    const latest = useRef();
-    latest.current = { onPick, onSelect, onDrop, pickedId };
-    useGlide(rowRef, isStill);
-    // how new cards arrive is read when they do, so a redraw with the same cards never replays or reopens anything
-    const arrivalRef = useRef(arrival);
-    arrivalRef.current = arrival;
+const Hand = ({
+  cards,
+  tones,
+  pickedId,
+  awayId,
+  playableIds,
+  isMyTurn,
+  isGreyed,
+  isAlarmed,
+  pills,
+  onPick,
+  onSelect,
+  onDrop,
+  shoeRef,
+  arrival,
+  isStill,
+  ref,
+}) => {
+  // a game's opening deal arrives with the hand itself, so it is dealt into an empty one
+  const lastCards = useRef(arrival?.isOpening ? [] : cards);
+  const rowRef = useRef(null);
+  const handRef = useForkRef(rowRef, ref);
+  const drag = useRef(null);
+  const latest = useRef();
+  latest.current = { onPick, onSelect, onDrop, pickedId };
+  useGlide(rowRef, isStill);
+  // how new cards arrive is read when they do, so a redraw with the same cards never replays or reopens anything
+  const arrivalRef = useRef(arrival);
+  arrivalRef.current = arrival;
 
-    useLayoutEffect(() => {
-      const previous = lastCards.current;
-      lastCards.current = cards;
-      const had = new Set(previous.map((card) => card.id));
-      const arrived = cards.filter((card) => !had.has(card.id));
-      const arriving = arrivalRef.current;
-      if (isStill || !arriving || !arrived.length) return;
-      const shoe = shoeRef.current?.getBoundingClientRect();
-      arrived.forEach((card, index) => {
-        const element = rowRef.current?.querySelector(`[data-card="${card.id}"]`);
-        if (!element) return;
-        const layers = { back: element.querySelector("[data-back]") };
-        if (arriving.kind === "deal" && shoe) flyIn(element, shoe, arriving.at + dealOrder(index, arriving.isFirst), layers);
-        if (arriving.kind === "bonus") {
-          // a bonus card comes in from the screen's right edge, level with the hand
-          const at = element.getBoundingClientRect();
-          const edge = { left: window.innerWidth + 10, top: at.top - 30, width: at.width, height: at.height };
-          flyIn(element, edge, arriving.at, { ...layers, flight: BONUS.flight, plus: element.querySelector("[data-plus]") });
-        }
-      });
-    }, [cards, shoeRef, isStill]);
+  useLayoutEffect(() => {
+    const previous = lastCards.current;
+    lastCards.current = cards;
+    const had = new Set(previous.map((card) => card.id));
+    const arrived = cards.filter((card) => !had.has(card.id));
+    const arriving = arrivalRef.current;
+    if (isStill || !arriving || !arrived.length) return;
+    const shoe = shoeRef.current?.getBoundingClientRect();
+    arrived.forEach((card, index) => {
+      const element = rowRef.current?.querySelector(`[data-card="${card.id}"]`);
+      if (!element) return;
+      const layers = { back: element.querySelector("[data-back]") };
+      if (arriving.kind === "deal" && shoe) flyIn(element, shoe, arriving.at + dealOrder(index, arriving.isFirst), layers);
+      if (arriving.kind === "bonus") {
+        // a bonus card comes in from the screen's right edge, level with the hand
+        const at = element.getBoundingClientRect();
+        const edge = { left: window.innerWidth + 10, top: at.top - 30, width: at.width, height: at.height };
+        flyIn(element, edge, arriving.at, { ...layers, flight: BONUS.flight, plus: element.querySelector("[data-plus]") });
+      }
+    });
+  }, [cards, shoeRef, isStill]);
 
-    // a drag moves the card with transform alone and never re-renders, so it keeps up with the finger on a slow phone
-    const onPointerMove = useCallback((event) => {
+  // a drag moves the card with transform alone and never re-renders, so it keeps up with the finger on a slow phone
+  const onPointerMove = useCallback((event) => {
+    const held = drag.current;
+    if (!held || event.pointerId !== held.pointer) return;
+    const dx = event.clientX - held.x;
+    const dy = event.clientY - held.y;
+    if (!held.isDragging) {
+      if (Math.hypot(dx, dy) < DRAG_FROM) return;
+      held.isDragging = true;
+      held.element.setPointerCapture(event.pointerId);
+      held.element.style.zIndex = "10";
+      if (latest.current.pickedId !== held.id) latest.current.onSelect(held.id);
+    }
+    held.element.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
+  }, []);
+
+  const onPointerUp = useCallback(
+    (event) => {
       const held = drag.current;
       if (!held || event.pointerId !== held.pointer) return;
-      const dx = event.clientX - held.x;
-      const dy = event.clientY - held.y;
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
       if (!held.isDragging) {
-        if (Math.hypot(dx, dy) < DRAG_FROM) return;
-        held.isDragging = true;
-        held.element.setPointerCapture(event.pointerId);
-        held.element.style.zIndex = "10";
-        if (latest.current.pickedId !== held.id) latest.current.onSelect(held.id);
+        drag.current = null;
+        return;
       }
-      held.element.style.transform = `translate(${dx}px, ${dy}px) scale(1.06)`;
-    }, []);
+      const target = event.type === "pointerup" ? dropTargetAt(event.clientX, event.clientY) : null;
+      const { element } = held;
+      const from = element.style.transform;
+      element.style.transform = "";
+      element.style.zIndex = "";
+      // the card glides back to the hand; if it was played, the hand drops it once the server agrees
+      element.animate([{ transform: from }, { transform: "none" }], { duration: 220, easing: "cubic-bezier(0.2, 0.8, 0.3, 1)" });
+      if (target) latest.current.onDrop(held.id, target);
+      // the click a released drag still fires is swallowed, so letting go is never also a second tap
+      held.isReleased = true;
+      setTimeout(() => {
+        if (drag.current === held) drag.current = null;
+      }, 0);
+    },
+    [onPointerMove]
+  );
 
-    const onPointerUp = useCallback(
-      (event) => {
-        const held = drag.current;
-        if (!held || event.pointerId !== held.pointer) return;
-        window.removeEventListener("pointermove", onPointerMove);
-        window.removeEventListener("pointerup", onPointerUp);
-        window.removeEventListener("pointercancel", onPointerUp);
-        if (!held.isDragging) {
-          drag.current = null;
-          return;
-        }
-        const target = event.type === "pointerup" ? dropTargetAt(event.clientX, event.clientY) : null;
-        const { element } = held;
-        const from = element.style.transform;
-        element.style.transform = "";
-        element.style.zIndex = "";
-        // the card glides back to the hand; if it was played, the hand drops it once the server agrees
-        element.animate([{ transform: from }, { transform: "none" }], { duration: 220, easing: "cubic-bezier(0.2, 0.8, 0.3, 1)" });
-        if (target) latest.current.onDrop(held.id, target);
-        // the click a released drag still fires is swallowed, so letting go is never also a second tap
-        held.isReleased = true;
-        setTimeout(() => {
-          if (drag.current === held) drag.current = null;
-        }, 0);
-      },
-      [onPointerMove]
-    );
+  const onPointerDown = useCallback(
+    (event) => {
+      if (event.button !== 0) return;
+      drag.current = { id: event.currentTarget.dataset.card, element: event.currentTarget, pointer: event.pointerId, x: event.clientX, y: event.clientY };
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+      window.addEventListener("pointercancel", onPointerUp);
+    },
+    [onPointerMove, onPointerUp]
+  );
 
-    const onPointerDown = useCallback(
-      (event) => {
-        if (event.button !== 0) return;
-        drag.current = { id: event.currentTarget.dataset.card, element: event.currentTarget, pointer: event.pointerId, x: event.clientX, y: event.clientY };
-        window.addEventListener("pointermove", onPointerMove);
-        window.addEventListener("pointerup", onPointerUp);
-        window.addEventListener("pointercancel", onPointerUp);
-      },
-      [onPointerMove, onPointerUp]
-    );
+  // a drag still held when the hand goes leaves nothing listening behind it
+  useEffect(
+    () => () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+    },
+    [onPointerMove, onPointerUp]
+  );
 
-    // a drag still held when the hand goes leaves nothing listening behind it
-    useEffect(
-      () => () => {
-        window.removeEventListener("pointermove", onPointerMove);
-        window.removeEventListener("pointerup", onPointerUp);
-        window.removeEventListener("pointercancel", onPointerUp);
-      },
-      [onPointerMove, onPointerUp]
-    );
+  const onClick = useCallback((event) => {
+    if (drag.current?.isReleased) return;
+    latest.current.onPick(event.currentTarget.dataset.card);
+  }, []);
 
-    const onClick = useCallback((event) => {
-      if (drag.current?.isReleased) return;
-      latest.current.onPick(event.currentTarget.dataset.card);
-    }, []);
+  // a card played onto the pile leaves the row at once, while its choices are still being made
+  const shown = cards.filter((card) => card.id !== awayId);
+  // the design's fan sits edge to edge with the slightest overlap; the reference's row on your turn leaves small gaps
+  const gap = isMyTurn ? "3px" : "-1px";
 
-    // a card played onto the pile leaves the row at once, while its choices are still being made
-    const shown = cards.filter((card) => card.id !== awayId);
-    // the design's fan sits edge to edge with the slightest overlap; the reference's row on your turn leaves small gaps
-    const gap = isMyTurn ? "3px" : "-1px";
-
-    return (
-      <Box
-        ref={handRef}
-        // an empty hand keeps its height, so the board never jumps between a round's last card and the next deal
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-end",
-          px: 2,
-          pt: 3,
-          pb: ROOM_BELOW,
-          minHeight: `calc(${CARD_WIDTH} / ${CARD_RATIO} + 24px + ${ROOM_BELOW})`,
-          flexShrink: 0,
-        }}
-      >
-        {shown.map((card, index) => (
-          <HandCard
-            key={card.id}
-            card={card}
-            tones={tones}
-            tilt={isMyTurn ? 0 : tiltOf(index, shown.length)}
-            drop={isMyTurn ? 0 : dropOf(index, shown.length)}
-            gap={gap}
-            isPicked={pickedId === card.id}
-            isDim={isMyTurn ? !playableIds.has(card.id) : isGreyed}
-            isEnabled={isMyTurn && playableIds.has(card.id)}
-            isAlarmed={isAlarmed}
-            pill={isMyTurn ? pills.get(card.id) : null}
-            onPointerDown={onPointerDown}
-            onClick={onClick}
-          />
-        ))}
-      </Box>
-    );
-  }
-);
+  return (
+    <Box
+      ref={handRef}
+      // an empty hand keeps its height, so the board never jumps between a round's last card and the next deal
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-end",
+        px: 2,
+        pt: 3,
+        pb: ROOM_BELOW,
+        minHeight: `calc(${CARD_WIDTH} / ${CARD_RATIO} + 24px + ${ROOM_BELOW})`,
+        flexShrink: 0,
+      }}
+    >
+      {shown.map((card, index) => (
+        <HandCard
+          key={card.id}
+          card={card}
+          tones={tones}
+          tilt={isMyTurn ? 0 : tiltOf(index, shown.length)}
+          drop={isMyTurn ? 0 : dropOf(index, shown.length)}
+          gap={gap}
+          isPicked={pickedId === card.id}
+          isDim={isMyTurn ? !playableIds.has(card.id) : isGreyed}
+          isEnabled={isMyTurn && playableIds.has(card.id)}
+          isAlarmed={isAlarmed}
+          pill={isMyTurn ? pills.get(card.id) : null}
+          onPointerDown={onPointerDown}
+          onClick={onClick}
+        />
+      ))}
+    </Box>
+  );
+};
 
 export default memo(Hand);

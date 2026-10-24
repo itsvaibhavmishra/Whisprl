@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Box, Stack } from "@mui/material";
-import { MotionConfig } from "framer-motion";
+import { MotionConfig } from "motion/react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector, useStore } from "react-redux";
 
@@ -91,9 +91,9 @@ const DashboardLayout = () => {
         <Stack direction={{ xs: "column-reverse", md: "row" }} sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
           <NavRail />
           <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-            <PageArea.Provider value={PAGE_AREA}>
+            <PageArea value={PAGE_AREA}>
               <Outlet />
-            </PageArea.Provider>
+            </PageArea>
           </Box>
           <EncryptionGate />
           {isApp && isEncryptionReady && <NotificationsPrompt />}

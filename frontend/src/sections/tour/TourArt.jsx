@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { LockKey } from "phosphor-react";
+import { LockKeyIcon } from "@phosphor-icons/react";
 
 import chainReaction from "@/assets/tour/chain-reaction.webp";
 import dotsAndBoxes from "@/assets/tour/dots-and-boxes.webp";
@@ -38,7 +38,7 @@ export const LockArt = () => (
         boxShadow: (theme) => `0 0 0 6px ${theme.palette.background.default}`,
       }}
     >
-      <LockKey size={28} weight="fill" />
+      <LockKeyIcon size={28} weight="fill" />
     </Box>
   </Box>
 );

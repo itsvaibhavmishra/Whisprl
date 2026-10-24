@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack, TextField } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 
@@ -57,11 +56,11 @@ const ActionDialog = ({ action, person, reportId, onClose, onDone }) => {
           <TextField
             select
             fullWidth
-            SelectProps={{ native: true }}
             label="For how long"
             value={days}
             onChange={(event) => setDays(Number(event.target.value))}
             sx={{ mt: 2.5 }}
+            slotProps={{ select: { native: true } }}
           >
             {SUSPEND_DAYS.map((count) => (
               <option key={count} value={count}>
@@ -86,9 +85,9 @@ const ActionDialog = ({ action, person, reportId, onClose, onDone }) => {
         <Button color="inherit" onClick={onClose}>
           Cancel
         </Button>
-        <LoadingButton variant="contained" color={action.isDanger ? "error" : "primary"} loading={isWorking} disabled={!reason.trim()} onClick={act}>
+        <Button variant="contained" color={action.isDanger ? "error" : "primary"} loading={isWorking} disabled={!reason.trim()} onClick={act}>
           {action.verb}
-        </LoadingButton>
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -104,7 +103,7 @@ const PersonActions = ({ person, reportId, onDone }) => {
 
   return (
     <>
-      <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
+      <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
         {isShutOut && can(user, status === "banned" ? "ban" : "suspend") && (
           <Button size="small" variant="outlined" color="inherit" onClick={() => setKind("restore")}>
             Give access back

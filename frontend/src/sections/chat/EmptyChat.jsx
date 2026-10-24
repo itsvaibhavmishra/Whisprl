@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { AddressBook, CircleDashed, LockSimple, UsersThree } from "phosphor-react";
+import { AddressBookIcon, CircleDashedIcon, LockSimpleIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 
 import MascotHalo from "@/components/MascotHalo";
@@ -44,8 +44,8 @@ const ActionTile = ({ icon: Icon, label, detail, background, ...button }) => (
 const EmptyChat = ({ onNewGroup }) => (
   <ChatCanvas sx={{ height: "100%", display: "grid", placeItems: "center", px: 3, overflowY: "auto" }}>
     <Stack
-      alignItems="center"
       sx={{
+        alignItems: "center",
         width: "100%",
         maxWidth: 560,
         py: 4,
@@ -65,14 +65,14 @@ const EmptyChat = ({ onNewGroup }) => (
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 4, width: "100%" }}>
         <ActionTile
-          icon={UsersThree}
+          icon={UsersThreeIcon}
           label="Start a group"
           detail={`Up to ${MAX_GROUP_SIZE} people`}
           background={gradientOf(["#7444E0", "#C2399E"])}
           onClick={onNewGroup}
         />
         <ActionTile
-          icon={AddressBook}
+          icon={AddressBookIcon}
           label="Find friends"
           detail="By name or username"
           background={gradientOf(["#0979C2", "#3E5BDB"])}
@@ -80,7 +80,7 @@ const EmptyChat = ({ onNewGroup }) => (
           to={PATH_DASHBOARD.general.contacts}
         />
         <ActionTile
-          icon={CircleDashed}
+          icon={CircleDashedIcon}
           label="Share a status"
           detail="Gone in 24 hours"
           background={gradientOf(["#0B7F75", "#1F8FA8"])}
@@ -92,10 +92,9 @@ const EmptyChat = ({ onNewGroup }) => (
       <Stack
         direction="row"
         spacing={0.75}
-        alignItems="center"
-        sx={{ mt: 4, px: 1.5, py: 0.5, borderRadius: 99, color: "text.secondary", bgcolor: "chat.pill" }}
+        sx={{ alignItems: "center", mt: 4, px: 1.5, py: 0.5, borderRadius: 99, color: "text.secondary", bgcolor: "chat.pill" }}
       >
-        <LockSimple size={14} weight="bold" aria-hidden />
+        <LockSimpleIcon size={14} weight="bold" aria-hidden />
         <Typography sx={{ fontSize: 12.5, fontWeight: 600 }}>Your messages are end-to-end encrypted</Typography>
       </Stack>
     </Stack>

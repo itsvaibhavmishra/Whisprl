@@ -1,6 +1,6 @@
 import { Box, Dialog, IconButton, Stack, Typography } from "@mui/material";
-import { useReducedMotion } from "framer-motion";
-import { X } from "phosphor-react";
+import { useReducedMotion } from "motion/react";
+import { XIcon } from "@phosphor-icons/react";
 
 import useDarkSystemBars from "@/hooks/useDarkSystemBars";
 
@@ -19,13 +19,23 @@ const PhotoViewer = ({ src, name, onClose }) => {
       onClose={onClose}
       transitionDuration={isStill ? 0 : undefined}
       aria-labelledby={TITLE_ID}
-      PaperProps={{ sx: { bgcolor: "rgba(0, 0, 0, 0.94)", backgroundImage: "none" } }}
+      slotProps={{ paper: { sx: { bgcolor: "rgba(0, 0, 0, 0.94)", backgroundImage: "none" } } }}
     >
       <Stack
         direction="row"
-        alignItems="center"
         spacing={1}
-        sx={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 1, px: 2, pt: "max(12px, env(safe-area-inset-top))", pb: 1.5, color: "#fff" }}
+        sx={{
+          alignItems: "center",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1,
+          px: 2,
+          pt: "max(12px, env(safe-area-inset-top))",
+          pb: 1.5,
+          color: "#fff",
+        }}
       >
         <Typography id={TITLE_ID} component="h2" noWrap sx={{ flex: 1, fontSize: 16, fontWeight: 700 }}>
           {name}
@@ -35,7 +45,7 @@ const PhotoViewer = ({ src, name, onClose }) => {
           onClick={onClose}
           sx={{ color: "#fff", bgcolor: "rgba(255, 255, 255, 0.1)", "&:hover": { bgcolor: "rgba(255, 255, 255, 0.2)" } }}
         >
-          <X size={20} weight="bold" />
+          <XIcon size={20} weight="bold" />
         </IconButton>
       </Stack>
       <Box

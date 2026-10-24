@@ -1,8 +1,7 @@
 import * as Yup from "yup";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Stack, Switch, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+import { Button, Stack, Switch, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
 
 import FormProvider, { RHFBirthdayPicker } from "@/components/hook-form";
@@ -18,7 +17,7 @@ const ChoiceRow = ({ name, label, description }) => (
     name={name}
     render={({ field }) => (
       <SettingRow label={label} description={description}>
-        <Switch checked={field.value} onChange={(event) => field.onChange(event.target.checked)} inputProps={{ "aria-label": label }} />
+        <Switch checked={field.value} onChange={(event) => field.onChange(event.target.checked)} slotProps={{ input: { "aria-label": label } }} />
       </SettingRow>
     )}
   />
@@ -53,9 +52,9 @@ const BirthdayStep = () => {
             description="They can find you in People you may know. You can change both in Settings."
           />
         </SettingsSection>
-        <LoadingButton type="submit" size="large" variant="contained" fullWidth loading={isSaving}>
+        <Button type="submit" size="large" variant="contained" fullWidth loading={isSaving}>
           Continue
-        </LoadingButton>
+        </Button>
       </Stack>
     </FormProvider>
   );

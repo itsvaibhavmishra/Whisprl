@@ -1,6 +1,6 @@
 import { Box, IconButton, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { Minus, Plus } from "phosphor-react";
+import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 
 import { ON_SCRIM, ON_SCRIM_SOFT } from "@/sections/chat/game/scrim";
 import { isTaken } from "@/sections/chat/game/seats";
@@ -36,15 +36,15 @@ const PlayerCount = ({ game, session, onChange }) => {
   const reason = count < max ? reasonAgainst(game, session, count + 1) : null;
 
   return (
-    <Stack spacing={0.4} alignItems="center" sx={{ width: "100%" }}>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ width: "100%" }}>
+    <Stack spacing={0.4} sx={{ alignItems: "center", width: "100%" }}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", width: "100%" }}>
         <Rule />
         <Step label="One player fewer" onClick={count > min && count > seated ? () => onChange(count - 1) : null}>
-          <Minus size={13} weight="bold" />
+          <MinusIcon size={13} weight="bold" />
         </Step>
         <Typography sx={{ minWidth: 70, textAlign: "center", fontSize: 13, fontWeight: 700, color: ON_SCRIM }}>{`${count} players`}</Typography>
         <Step label="One more player" onClick={count < max && !reason ? () => onChange(count + 1) : null}>
-          <Plus size={13} weight="bold" />
+          <PlusIcon size={13} weight="bold" />
         </Step>
         <Rule />
       </Stack>

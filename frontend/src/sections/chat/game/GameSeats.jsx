@@ -7,7 +7,7 @@ import Seat from "@/sections/chat/game/Seat";
 import { mayTake } from "@/sections/chat/game/seats";
 
 const Flourish = ({ colour, isLeading }) => (
-  <Stack direction={isLeading ? "row" : "row-reverse"} alignItems="center" spacing={0.5}>
+  <Stack direction={isLeading ? "row" : "row-reverse"} spacing={0.5} sx={{ alignItems: "center" }}>
     <Box sx={{ width: 5, height: 5, transform: "rotate(45deg)", bgcolor: colour }} />
     <Box sx={{ width: 14, height: 1.5, bgcolor: colour, opacity: 0.8 }} />
   </Stack>
@@ -15,7 +15,7 @@ const Flourish = ({ colour, isLeading }) => (
 
 // two seats facing each other read as a match, so a game can set its pair either side of a Vs
 const Versus = ({ theme }) => (
-  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ alignSelf: "flex-start", mt: 2.4 }}>
+  <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", alignSelf: "flex-start", mt: 2.4 }}>
     <Flourish colour={theme.accent} isLeading />
     <Typography
       sx={{
@@ -45,15 +45,7 @@ const GameSeats = ({ conversation, session, game, meId, isManager, act, onTake, 
     };
 
   return (
-    <Stack
-      direction="row"
-      justifyContent="center"
-      flexWrap={isVersus ? "nowrap" : "wrap"}
-      useFlexGap
-      columnGap={isVersus ? 1 : 3}
-      rowGap={1.5}
-      sx={{ flexShrink: 0 }}
-    >
+    <Stack direction="row" sx={{ justifyContent: "center", flexWrap: isVersus ? "nowrap" : "wrap", columnGap: isVersus ? 1 : 3, rowGap: 1.5, flexShrink: 0 }}>
       {session.seats.map((seat, index) => (
         <Fragment key={index}>
           {isVersus && index === 1 && <Versus theme={game.theme} />}

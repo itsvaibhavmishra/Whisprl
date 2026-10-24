@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, useMediaQuery } from "@mui/material";
-import { m } from "framer-motion";
+import { m } from "motion/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import LoadingScreen from "@/components/LoadingScreen";

@@ -7,7 +7,7 @@ import { DiscardMessage, SendAgain } from "@/redux/slices/actions/chatActions";
 import { attachmentFile, sealedCopyOf, sentMessageIdOf } from "@/utils/attachments";
 
 const ProblemRow = ({ text, children }) => (
-  <Stack direction="row" alignItems="center" spacing={0.5} sx={{ alignSelf: "flex-end" }}>
+  <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", alignSelf: "flex-end" }}>
     <Typography variant="caption" sx={{ color: "error.main" }}>
       {text}
     </Typography>

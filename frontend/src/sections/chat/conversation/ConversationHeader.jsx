@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
-import { ArrowLeft, Info, MagnifyingGlass, Timer, User, X } from "phosphor-react";
-import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { ArrowLeftIcon, InfoIcon, MagnifyingGlassIcon, TimerIcon, UserIcon, XIcon } from "@phosphor-icons/react";
+import { AnimatePresence, m, useReducedMotion } from "motion/react";
 import { shallowEqual, useSelector } from "react-redux";
 
 import ChatAvatar from "@/sections/chat/ChatAvatar";
@@ -93,9 +93,9 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
   return (
     <Stack
       direction="row"
-      alignItems="center"
       spacing={{ xs: 0.5, md: 1 }}
       sx={{
+        alignItems: "center",
         ...GLASS_BAR,
         px: { xs: 0.5, md: 2 },
         pt: { xs: "max(6px, env(safe-area-inset-top))", md: 0 },
@@ -106,16 +106,16 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
     >
       {isPhone && (
         <IconButton aria-label="Back to chats" onClick={closeChat} sx={{ width: 44, height: 44 }}>
-          <ArrowLeft size={22} weight="bold" />
+          <ArrowLeftIcon size={22} weight="bold" />
         </IconButton>
       )}
 
-      <Stack direction="row" alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+      <Stack direction="row" sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
         <AvatarChoices
           name={name}
           ownerId={peer?._id}
           hasStatus={hasStatus}
-          other={{ noun: "profile", label: "View profile", icon: User, onChoose: viewProfile }}
+          other={{ noun: "profile", label: "View profile", icon: UserIcon, onChoose: viewProfile }}
           {...avatarReach}
           sx={{ flexShrink: 0, p: 0.5 }}
         >
@@ -127,13 +127,13 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
           sx={{ flex: 1, minWidth: 0, justifyContent: "flex-start", textAlign: "left", borderRadius: 3, py: 0.5, pl: 1, pr: 1.5 }}
         >
           <Box sx={{ minWidth: 0 }}>
-            <Stack direction="row" alignItems="center" spacing={0.75}>
+            <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
               <Typography noWrap sx={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1.3 }}>
                 {name}
               </Typography>
               {conversation.disappearAfter && (
                 <Box component="span" sx={{ display: "grid", color: "primary.main" }}>
-                  <Timer size={16} weight="bold" aria-label={`Messages disappear after ${durationOf(conversation.disappearAfter)}`} />
+                  <TimerIcon size={16} weight="bold" aria-label={`Messages disappear after ${durationOf(conversation.disappearAfter)}`} />
                 </Box>
               )}
             </Stack>
@@ -152,10 +152,10 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
       </Stack>
 
       <HeaderButton label="Search this chat" isPressed={isSearching} onClick={onToggleSearch}>
-        <MagnifyingGlass size={20} weight="bold" />
+        <MagnifyingGlassIcon size={20} weight="bold" />
       </HeaderButton>
       <HeaderButton id={DETAILS_BUTTON_ID} label="Details" isPressed={details.isInfo} onClick={details.toggle}>
-        <Info size={22} weight={details.isInfo ? "fill" : "bold"} />
+        <InfoIcon size={22} weight={details.isInfo ? "fill" : "bold"} />
       </HeaderButton>
       {/* folds away in step with the details panel opening, so the other buttons glide rather than jump */}
       <AnimatePresence initial={false}>
@@ -169,7 +169,7 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
             style={{ overflow: "hidden", flexShrink: 0 }}
           >
             <HeaderButton label="Close chat" onClick={closeChat}>
-              <X size={20} weight="bold" />
+              <XIcon size={20} weight="bold" />
             </HeaderButton>
           </m.div>
         )}

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Alert, Chip, Stack, Typography } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import { BellRinging } from "phosphor-react";
+import { Alert, Button, Chip, Stack, Typography } from "@mui/material";
+import { BellRingingIcon } from "@phosphor-icons/react";
 import { useDispatch } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -39,7 +38,7 @@ const NotificationsStep = () => {
   return (
     <Stack spacing={3}>
       <Stack spacing={1}>
-        <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography component="h2" sx={{ m: 0, fontSize: 20, fontWeight: 700 }}>
             Turn on notifications
           </Typography>
@@ -52,13 +51,13 @@ const NotificationsStep = () => {
       {refusal ? (
         <Alert severity="info">{refusal}</Alert>
       ) : (
-        <LoadingButton size="large" variant="contained" fullWidth startIcon={<BellRinging weight="bold" />} loading={isSaving} onClick={turnOn}>
+        <Button size="large" variant="contained" fullWidth startIcon={<BellRingingIcon weight="bold" />} loading={isSaving} onClick={turnOn}>
           Turn on notifications
-        </LoadingButton>
+        </Button>
       )}
-      <LoadingButton fullWidth color="inherit" loading={isSkipping} onClick={() => dispatch(SkipSetupStep("notifications"))}>
+      <Button fullWidth color="inherit" loading={isSkipping} onClick={() => dispatch(SkipSetupStep("notifications"))}>
         Skip for now
-      </LoadingButton>
+      </Button>
     </Stack>
   );
 };

@@ -65,7 +65,7 @@ const EvidenceTranscript = ({ evidence }) => (
             ...(entry.isReported && { boxShadow: (theme) => `inset 0 0 0 2px ${alpha(theme.palette.error.main, 0.6)}` }),
           }}
         >
-          <Stack direction="row" alignItems="baseline" spacing={1}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
             <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{nameOf(entry.sender)}</Typography>
             <Typography sx={{ fontSize: 11.5, color: "text.secondary" }}>{dayjs(entry.sentAt).format("D MMM, HH:mm")}</Typography>
             {entry.isReported && <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: "error.main" }}>The reported message</Typography>}

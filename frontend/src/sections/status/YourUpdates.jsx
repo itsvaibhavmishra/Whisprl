@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Button, ButtonBase, IconButton, ListItemIcon, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import { DotsThree, Eye, PaperPlaneTilt, Play, Plus, Trash } from "phosphor-react";
+import { DotsThreeIcon, EyeIcon, PaperPlaneTiltIcon, PlayIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 
 import Pane, { PaneEmpty } from "@/components/Pane";
@@ -42,7 +42,7 @@ const Thumbnail = ({ content }) => (
           bgcolor: "rgba(0, 0, 0, 0.5)",
         }}
       >
-        <Play size={10} weight="fill" />
+        <PlayIcon size={10} weight="fill" />
       </Box>
     )}
   </Box>
@@ -53,7 +53,7 @@ const UpdateRow = ({ status, onPlay, onMore }) => {
   const shared = `Shared ${ageOf(status.createdAt).toLowerCase()}`;
 
   return (
-    <Stack component="li" direction="row" alignItems="center" spacing={0.5} sx={{ listStyle: "none" }}>
+    <Stack component="li" direction="row" spacing={0.5} sx={{ alignItems: "center", listStyle: "none" }}>
       <ButtonBase
         onClick={() => onPlay(status._id)}
         aria-label={`Your update from ${ageOf(status.createdAt)}${status.isPublic ? ", shared with everyone" : ""}, ${seenByLabel(status.views)}${reactions.length ? `, ${reactionsLine(reactions.length)}` : ""}`}
@@ -61,15 +61,15 @@ const UpdateRow = ({ status, onPlay, onMore }) => {
       >
         <Thumbnail content={status.content} />
         <Box sx={{ minWidth: 0, flex: 1, containerType: "inline-size" }}>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Typography noWrap sx={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>
               {shared}
             </Typography>
             {status.isPublic && <EveryonePill />}
           </Stack>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 0.5, color: "text.secondary" }}>
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <Eye size={16} aria-hidden />
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mt: 0.5, color: "text.secondary" }}>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+              <EyeIcon size={16} aria-hidden />
               <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
                 {status.views.length ? `${status.views.length} ${status.views.length === 1 ? "view" : "views"}` : "No views yet"}
               </Typography>
@@ -83,7 +83,7 @@ const UpdateRow = ({ status, onPlay, onMore }) => {
         </Box>
       </ButtonBase>
       <IconButton aria-label="More for this update" aria-haspopup="menu" onClick={(event) => onMore({ anchor: event.currentTarget, status })}>
-        <DotsThree size={22} weight="bold" />
+        <DotsThreeIcon size={22} weight="bold" />
       </IconButton>
     </Stack>
   );
@@ -119,7 +119,7 @@ const YourUpdates = ({ statuses, onWrite, onChooseMedia, onPlay, onBack }) => {
         <PaneEmpty text="Nothing shared in the last 24 hours.">
           <Button
             variant="contained"
-            startIcon={<Plus size={18} weight="bold" />}
+            startIcon={<PlusIcon size={18} weight="bold" />}
             onClick={(event) => setCreateAnchor(event.currentTarget)}
             disabled={!canCreate}
           >
@@ -139,14 +139,14 @@ const YourUpdates = ({ statuses, onWrite, onChooseMedia, onPlay, onBack }) => {
         {more?.status.isPublic && (
           <MenuItem onClick={open("share")}>
             <ListItemIcon>
-              <PaperPlaneTilt size={20} />
+              <PaperPlaneTiltIcon size={20} />
             </ListItemIcon>
             Send to friends
           </MenuItem>
         )}
         <MenuItem onClick={open("delete")} sx={{ color: "error.main" }}>
           <ListItemIcon sx={{ color: "inherit" }}>
-            <Trash size={20} />
+            <TrashIcon size={20} />
           </ListItemIcon>
           Delete
         </MenuItem>

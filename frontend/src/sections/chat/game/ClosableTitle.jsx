@@ -1,5 +1,5 @@
 import { DialogTitle, IconButton, Typography } from "@mui/material";
-import { X } from "phosphor-react";
+import { XIcon } from "@phosphor-icons/react";
 
 const ClosableTitle = ({ title, onClose, sx }) => (
   <DialogTitle component="div" sx={{ pr: 1.5, display: "flex", alignItems: "center", justifyContent: "space-between", ...sx }}>
@@ -7,7 +7,7 @@ const ClosableTitle = ({ title, onClose, sx }) => (
       {title}
     </Typography>
     <IconButton aria-label="Close" onClick={onClose}>
-      <X size={20} weight="bold" />
+      <XIcon size={20} weight="bold" />
     </IconButton>
   </DialogTitle>
 );

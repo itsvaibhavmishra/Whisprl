@@ -55,7 +55,7 @@ const GameList = ({ conversation, onClose }) => {
           <RequestGameCard onClick={() => setRequesting("")} />
         </Box>
       ) : (
-        <Stack alignItems="center" spacing={1.5} sx={{ py: 5, textAlign: "center" }}>
+        <Stack spacing={1.5} sx={{ alignItems: "center", py: 5, textAlign: "center" }}>
           <Typography sx={{ color: "text.secondary" }}>{`No game matches "${query.trim()}"`}</Typography>
           <Button variant="outlined" onClick={() => setRequesting(query.trim())}>{`Request "${query.trim()}"`}</Button>
         </Stack>
@@ -85,7 +85,7 @@ const Scores = ({ conversation, rows, meId }) => (
         return (
           <TableRow key={row.user}>
             <TableCell>
-              <Stack direction="row" alignItems="center" spacing={1.25}>
+              <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
                 {getAvatar(member?.avatar, member?.firstName, 28)}
                 <Typography noWrap sx={{ fontSize: 14, fontWeight: row.user === meId ? 800 : 600 }}>
                   {firstNameIn(conversation, row.user, meId)}
@@ -143,7 +143,13 @@ const GamesDialog = ({ conversation, tab: initialTab = "games", onClose }) => {
   const [tab, setTab] = useState(initialTab);
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth={false} PaperProps={{ sx: { width: { sm: 760, lg: 1180 }, maxWidth: "calc(100% - 32px)", mx: 2 } }}>
+    <Dialog
+      open
+      onClose={onClose}
+      fullWidth
+      maxWidth={false}
+      slotProps={{ paper: { sx: { width: { sm: 760, lg: 1180 }, maxWidth: "calc(100% - 32px)", mx: 2 } } }}
+    >
       <ClosableTitle title="Play a game" onClose={onClose} sx={{ pb: 0 }} />
       <Tabs value={tab} onChange={(_, next) => setTab(next)} sx={{ px: 3 }}>
         <Tab value="games" label="Games" />
