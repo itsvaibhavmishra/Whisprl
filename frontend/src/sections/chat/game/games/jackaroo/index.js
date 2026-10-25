@@ -71,8 +71,13 @@ const jackaroo = {
     },
     {
       heading: "Home",
-      text: "Your home is the lane of four ringed holes in the middle of your side. A marble goes in on an exact count and never runs past it, and a marble parked in front of it blocks the way.",
+      text: "Your home is the lane of four ringed holes in the middle of your side. A marble goes in on an exact count and never runs past it.",
       picture: "home",
+    },
+    {
+      heading: "A shut home",
+      text: "While one of their marbles sits in the hole in front of your home, your home is shut: none of your marbles can go in, and those inside cannot move. Knock that marble out, or wait for it to move on.",
+      picture: "shut",
     },
   ],
   // Eastern Arctic Dubstep by VishwaJai, CC0, from opengameart.org

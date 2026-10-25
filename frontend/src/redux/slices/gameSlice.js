@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { CloseGame, GetLeaderboard, UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
+import { CloseGame, GetLeaderboard, GetOngoingGame, UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
 import { logout } from "@/redux/slices/userSlice";
 
 // a socket watches the game of the one chat on screen, so there is one view at a time
@@ -16,6 +16,8 @@ const initialState = {
   leaderboard: null,
   // the result someone stepped back from, so closing and reopening the panel does not show it again
   dismissedResult: null,
+  // the game this person is in the middle of, wherever it is, which the main pages offer a way back to
+  ongoing: null,
 };
 
 const slice = createSlice({
@@ -48,6 +50,11 @@ const slice = createSlice({
     seatSwitchClosed(state) {
       state.seatSwitch = null;
     },
+    ongoingGameHeard(state, { payload }) {
+      const { conversationId, game } = payload;
+      if (game) state.ongoing = { conversationId, game };
+      else if (state.ongoing?.conversationId === conversationId) state.ongoing = null;
+    },
   },
   extraReducers(builder) {
     builder
@@ -72,11 +79,14 @@ const slice = createSlice({
       .addCase(GetLeaderboard.fulfilled, (state, { payload }) => {
         state.leaderboard = payload;
       })
+      .addCase(GetOngoingGame.fulfilled, (state, { payload }) => {
+        state.ongoing = payload;
+      })
       .addCase(logout, () => initialState);
   },
 });
 
-export const { gameStateReceived, lookersChanged, gameCollapsed, resultDismissed, seatSwitchOffered, seatSwitchClosed } = slice.actions;
+export const { gameStateReceived, lookersChanged, gameCollapsed, resultDismissed, seatSwitchOffered, seatSwitchClosed, ongoingGameHeard } = slice.actions;
 
 export const selectGameSession = (state) => state.game.view?.session ?? null;
 

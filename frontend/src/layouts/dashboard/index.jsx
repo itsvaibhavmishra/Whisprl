@@ -18,8 +18,9 @@ import { DropSavedChats, RestoreSavedChats } from "@/redux/slices/actions/savedC
 import { ConnectSocket } from "@/redux/slices/actions/socketActions";
 import { GetDiscover, GetStatuses } from "@/redux/slices/actions/statusActions";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
-import { PATH_SETUP } from "@/routes/paths";
+import { PATH_DASHBOARD, PATH_SETUP } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
+import OngoingGameBanner from "@/sections/chat/game/OngoingGameBanner";
 import EncryptionGate from "@/sections/encryption/EncryptionGate";
 import { reportErrorsAs } from "@/utils/errorReports";
 import { openNotifiedChat, setChatOpener } from "@/utils/notifications";
@@ -29,6 +30,9 @@ import { listenForPushTaps } from "@/utils/push";
 
 // pages here run up under the status bar and pad themselves below it, so the loader steps below it too
 const PAGE_AREA = { isUnderStatusBar: true };
+
+const { chat, status, contacts, settings } = PATH_DASHBOARD.general;
+const MAIN_PAGES = [chat, status, contacts, settings];
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
@@ -95,7 +99,9 @@ const DashboardLayout = () => {
       <MotionConfig reducedMotion="user">
         <Stack direction={{ xs: "column-reverse", md: "row" }} sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
           <NavRail />
-          <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+          {/* a banner over the status bar leaves the page below nothing to step down for */}
+          <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", "&:has(> [data-ongoing-game])": { "--status-bar-room": "0px" } }}>
+            {MAIN_PAGES.includes(location.pathname.replace(/\/$/, "")) && <OngoingGameBanner />}
             <PageArea value={PAGE_AREA}>
               <Outlet />
             </PageArea>

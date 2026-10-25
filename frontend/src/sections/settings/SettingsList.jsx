@@ -6,7 +6,9 @@ import { Link } from "react-router-dom";
 
 import Wordmark from "@/components/Wordmark";
 import useSettings from "@/hooks/useSettings";
+import PullToRefresh from "@/components/PullToRefresh";
 import { LogoutUser } from "@/redux/slices/actions/authActions";
+import { RefreshSettings } from "@/redux/slices/actions/refreshActions";
 import { PATH_ADMIN } from "@/routes/paths";
 import { CATEGORIES, PROFILE, settingsPathOf } from "@/sections/settings/settingsRoute";
 import getAvatar from "@/utils/avatars";
@@ -93,35 +95,38 @@ const LogOutRow = () => {
   );
 };
 
-const SettingsList = ({ current, isWide }) => (
-  <Stack component="nav" aria-label="Settings" sx={{ height: "100%", bgcolor: "chat.list" }}>
-    <Box sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
-      <Typography component="h1" sx={{ m: 0, minHeight: 44, display: "flex", alignItems: "center" }}>
-        <Wordmark name="Settings" fontSize={30} />
-      </Typography>
-    </Box>
-    <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
-      <ProfileCard isSelected={current === PROFILE.slug} isWide={isWide} />
-      {GROUPS.map((group) => (
-        <Stack key={group[0].slug} component="ul" spacing={0.25} sx={{ m: 0, mt: 2, pt: 2, px: 0, listStyle: "none", borderTop: 1, borderColor: "divider" }}>
-          {group.map((category) => (
-            <li key={category.slug}>
-              <CategoryRow category={category} to={settingsPathOf(category)} isSelected={category.slug === current} isWide={isWide} />
-            </li>
-          ))}
-          {!isWide && group === GROUPS[0] && (
-            <li>
-              <ThemeRow />
-            </li>
-          )}
-        </Stack>
-      ))}
-    </Box>
-    <Box sx={{ px: 1, py: 1.25, borderTop: 1, borderColor: "divider" }}>
-      <AdminRow />
-      <LogOutRow />
-    </Box>
-  </Stack>
-);
+const SettingsList = ({ current, isWide }) => {
+  const dispatch = useDispatch();
+  return (
+    <Stack component="nav" aria-label="Settings" sx={{ height: "100%", bgcolor: "chat.list" }}>
+      <Box sx={{ px: 2, pt: "calc(10px + var(--status-bar-room, env(safe-area-inset-top)))", pb: 1.25 }}>
+        <Typography component="h1" sx={{ m: 0, minHeight: 44, display: "flex", alignItems: "center" }}>
+          <Wordmark name="Settings" fontSize={30} />
+        </Typography>
+      </Box>
+      <PullToRefresh onRefresh={() => dispatch(RefreshSettings())} sx={{ overflowY: "auto", px: 1, pb: 2 }}>
+        <ProfileCard isSelected={current === PROFILE.slug} isWide={isWide} />
+        {GROUPS.map((group) => (
+          <Stack key={group[0].slug} component="ul" spacing={0.25} sx={{ m: 0, mt: 2, pt: 2, px: 0, listStyle: "none", borderTop: 1, borderColor: "divider" }}>
+            {group.map((category) => (
+              <li key={category.slug}>
+                <CategoryRow category={category} to={settingsPathOf(category)} isSelected={category.slug === current} isWide={isWide} />
+              </li>
+            ))}
+            {!isWide && group === GROUPS[0] && (
+              <li>
+                <ThemeRow />
+              </li>
+            )}
+          </Stack>
+        ))}
+      </PullToRefresh>
+      <Box sx={{ px: 1, py: 1.25, borderTop: 1, borderColor: "divider" }}>
+        <AdminRow />
+        <LogOutRow />
+      </Box>
+    </Stack>
+  );
+};
 
 export default SettingsList;

@@ -24,6 +24,12 @@ const isOnOwnStart = (state, marble) => {
   return place.at === "track" && place.index === START[marble.owner];
 };
 
+// another player's marble on the hole in front of a home shuts it, so its owner can neither turn in nor move on inside
+export const blockerOf = (state, owner) => {
+  const occupant = marbleAt(state, HOME_ENTRY[owner]);
+  return occupant && occupant.owner !== owner ? occupant : null;
+};
+
 const homeSlotTaken = (state, owner, slot) => state.players[owner].marbles.some((place) => place.at === "home" && place.slot === slot);
 
 const fitsHome = (state, owner, steps) => {
@@ -39,15 +45,18 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
   const path = [];
   const captured = [];
   let jumped = 0;
+  const blocker = byOwner ? blockerOf(state, marble.owner) : null;
+  // a king knocks out the blocker as it passes, which opens the home for the rest of the same move
+  const isShut = () => Boolean(blocker) && !captured.some((knocked) => sameMarble(knocked.marble, blocker));
   for (let step = 1; step <= steps; step += 1) {
     if (place.at === "home") {
-      if (place.slot + 1 >= HOME_SLOTS || homeSlotTaken(state, marble.owner, place.slot + 1)) return null;
+      if (isShut() || place.slot + 1 >= HOME_SLOTS || homeSlotTaken(state, marble.owner, place.slot + 1)) return null;
       place = { at: "home", slot: place.slot + 1 };
       path.push(place);
       continue;
     }
     if (forward && byOwner && place.index === HOME_ENTRY[marble.owner]) {
-      if (!fitsHome(state, marble.owner, steps - step + 1)) return null;
+      if (isShut() || !fitsHome(state, marble.owner, steps - step + 1)) return null;
       place = { at: "home", slot: 0 };
       path.push(place);
       continue;

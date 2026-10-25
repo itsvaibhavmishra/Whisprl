@@ -6,6 +6,32 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.4] - 2026-10-25
+
+### New
+
+- Pull down on Chats, Status, Contacts or Settings, or up at the end of a chat, to refresh it
+- A game you are playing shows as a banner at the top of the main pages, and tapping it takes you back to it
+- In Jackaroo, a marble sitting in front of the other player's home shuts it: none of their marbles can go in or move inside until it leaves, and the home's holes show crosses
+
+### Improvements
+
+- The Android app opens on your chats and their latest messages straight away, even after the phone closed it or with no connection, and brings them up to date as soon as the server answers
+- Messages that reach the Android app while it is closed are already in their chat when you open it, even before it reconnects
+- Chats load sooner after the app or website opens, since the chat list is fetched while your keys are still being checked
+- The games leaderboard shows everyone's wins across all games, with each game's head to head in its own section
+- Emoji thrown during a game are animated, for everyone at the table
+
+### Fixed
+
+- When encryption cannot start, a button reloads Whisprl instead of only saying to
+- An emoji thrown during a game plays from its start every time
+- An app opened with no connection catches up once it reconnects, instead of staying on what it had
+- The note saying a friend has not opened Whisprl since encryption sits centered above the message box
+- Holding the mic stretches the recording bar across the whole row, so the timer no longer spills out of it
+- Searching in a chat's emoji panel on a phone keeps the panel open above the keyboard, instead of closing it
+- The emoji panel's handle on a phone is easier to grab and follows a quick flick up or down
+
 ## [2.5.3] - 2026-10-24
 
 ### Improvements
@@ -503,6 +529,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.4]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.4
 [2.5.3]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.3
 [2.5.2]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.2
 [2.5.1]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.1

@@ -1,6 +1,6 @@
 import { requestGame } from "#src/services/gameRequestService.js";
 import { leaderboardOf } from "#src/services/gameResultService.js";
-import { actInGame, lookAtGame, reactInGame, stopWatching, watchGame } from "#src/services/gameService.js";
+import { actInGame, lookAtGame, ongoingGameOf, reactInGame, stopWatching, watchGame } from "#src/services/gameService.js";
 
 const answered = async (acknowledge, work) => {
   const reply = typeof acknowledge === "function" ? acknowledge : () => {};
@@ -26,6 +26,10 @@ export const leaveGameOnDisconnect = (io, socket) => stopWatching(io, socket).ca
 
 export const getLeaderboard = async (req, res) => {
   res.status(200).json({ status: "success", leaderboard: await leaderboardOf(req.user._id, req.params.conversation_id) });
+};
+
+export const getOngoingGame = async (req, res) => {
+  res.status(200).json({ status: "success", game: await ongoingGameOf(req.user._id) });
 };
 
 export const sendGameRequest = async (req, res) => {

@@ -11,7 +11,7 @@ import { marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry
 import Hand from "@/sections/chat/game/games/jackaroo/Hand";
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
 import PALETTE, { toneOf } from "@/sections/chat/game/games/jackaroo/palette";
-import { Crowd, Marbles, Marks, Preview, Swirls, Targets } from "@/sections/chat/game/games/jackaroo/Pieces";
+import { Crowd, Marbles, Marks, Preview, ShutHome, Swirls, Targets } from "@/sections/chat/game/games/jackaroo/Pieces";
 import Player from "@/sections/chat/game/games/jackaroo/Players";
 import { BONUS, DEAL, dealStartOf, flyToPile, lengthOf, playOut } from "@/sections/chat/game/games/jackaroo/playback";
 import Prompt from "@/sections/chat/game/games/jackaroo/Prompt";
@@ -43,6 +43,8 @@ const parseMarble = (value) => {
 const homeOf = (places) => places.filter((place) => place.at === "home").length;
 
 // the board as the reference lays it out: the other player off its top right, you off its bottom left, and your cards at the foot
+const NO_HOMES = [];
+
 const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave }) => {
   const meId = useSelector((store) => store.user.user._id);
   useEffect(preloadSounds, []);
@@ -84,6 +86,11 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   // a bonus card joins its hand only when it turns up, so the cards already there make room for it then and not before
   const isBonusFresh = isFresh && Boolean(state.lastPlay?.bonus);
   const hasBonusCome = useHasPassed(isBonusFresh ? timing.arrivedAt + lengthOf(state.lastPlay) + BONUS.appearsAfter : 0);
+  // a home opens or shuts when the marble at its door lands or leaves, not while it is still on its way
+  const hasPlayedOut = useHasPassed(isFresh && state.lastPlay ? timing.arrivedAt + lengthOf(state.lastPlay) : 0);
+  const blockedHomes = state.blockedHomes ?? NO_HOMES;
+  const [shutHomes, setShutHomes] = useState(blockedHomes);
+  if (hasPlayedOut && shutHomes !== blockedHomes) setShutHomes(blockedHomes);
   const bonusSeat = isBonusFresh && !hasBonusCome ? state.lastPlay.seat : null;
   const hand = useMemo(() => (bonusSeat === mySeat ? state.hand.slice(0, -1) : state.hand), [bonusSeat, mySeat, state.hand]);
   useEffect(() => {
@@ -343,6 +350,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
             <Pile ref={pileTopRef} pile={pile} tonesOf={tonesOf} />
             {!isStill && dealAt !== null && hasDealStarted && !hasDeckGone && <Deck key={state.round} left={state.deal.left} dealt={state.deal.each * 2} />}
             {state.pending && <DiscardStamp />}
+            <ShutHome seats={shutHomes} marbles={state.marbles} isTurned={isTurned} />
             <Marbles
               marbles={state.marbles}
               tones={tones}

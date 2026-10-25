@@ -264,6 +264,12 @@ standings when more have. Neither needs anything from a game beyond its `theme`,
 - Emoji thrown at the table go out with `game_react` to everyone at the game for a moment and are
   never stored. The list of emoji is kept on both sides, and the two have to match.
 
+**A game in progress follows its players around the app.** Whoever sits at a game being played,
+in a seat the bot has not taken over, sees a banner in the game's colour at the top of the four
+main pages, and a tap takes them back to it. Each change to a game tells every member of its chat
+with `my_game` whether it is now a game of theirs, and `GET /games/ongoing` answers the same on each
+connection, so the banner needs no watch of its own.
+
 ## Sound
 
 Sound effects are generated in the browser where they can be, so they add no audio to the repo and
