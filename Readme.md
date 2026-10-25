@@ -137,7 +137,8 @@ genuinely appreciated.
 
 Whisprl is dedicated to the public domain under [CC0 1.0](LICENSE): use it, change it, ship
 it, no permission needed. The two sound files noted under **Sound credits** below keep their
-own CC BY-SA 4.0 licence.
+own CC BY-SA 4.0 licence, and the animated reactions under **Emoji credits** keep their CC BY 4.0
+licence.
 
 ---
 
@@ -1121,6 +1122,12 @@ The message sounds in `frontend/public/sounds/` are trimmed and levelled version
 - `elsewhere.mp3`: "message-new-instant" by Guilherme Marçal Silva, from KDE's [Ocean sound theme](https://invent.kde.org/plasma/ocean-sound-theme), under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 The two from Ocean keep their CC BY-SA 4.0 licence in this form. The rest of Whisprl is CC0.
+
+## 😂 Emoji credits
+
+The animated reactions thrown during a game, in `frontend/public/reactions/`, are Google's
+[Noto Emoji Animation](https://googlefonts.github.io/noto-emoji-animation/), scaled down to 128
+pixels, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 <div align="center">
 <img src="https://komarev.com/ghpvc/?username=itsvaibhavmishra&&style=for-the-badge" align="center" />

@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, keyframes } from "@mui/material/styles";
 
+import ReactionEmoji from "@/sections/chat/game/ReactionEmoji";
 import { FLOAT_MS } from "@/sections/chat/game/useRoomChatter";
 import { firstNameIn } from "@/utils/groups";
 
@@ -90,7 +91,7 @@ export const SeatSaying = ({ user, theme, placement = "below" }) => {
           wordBreak: "break-word",
         }}
       >
-        {saying.emoji ?? saying.text}
+        {saying.emoji ? <ReactionEmoji emoji={saying.emoji} size={40} /> : saying.text}
       </Typography>
     </Box>
   ) : null;
@@ -122,7 +123,7 @@ export const Floats = ({ floats, conversation, meId, theme }) => (
             {float.from === meId ? "You" : firstNameIn(conversation, float.from, meId)}
           </Typography>
           <Typography component="span" noWrap sx={{ fontSize: float.emoji ? 22 : 14, fontWeight: 600 }}>
-            {float.emoji ?? float.text}
+            {float.emoji ? <ReactionEmoji emoji={float.emoji} size={28} /> : float.text}
           </Typography>
         </Box>
       </Box>
