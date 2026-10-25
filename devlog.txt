@@ -14,7 +14,6 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
-    - In Jackaroo, a marble sitting in front of the other player's home shuts it: none of their marbles can go in or move inside until it leaves, and the home's holes show crosses
 
   - Improvements:
     - The Android app opens on your chats and their latest messages straight away, even after the phone closed it or with no connection, and brings them up to date as soon as the server answers
@@ -24,6 +23,8 @@
     - Emoji thrown during a game are animated, for everyone at the table
 
   - Fixed:
+    - When encryption cannot start, a button reloads Whisprl instead of only saying to
+    - An emoji thrown during a game plays from its start every time
     - An app opened with no connection catches up once it reconnects, instead of staying on what it had
     - The note saying a friend has not opened Whisprl since encryption sits centered above the message box
     - Holding the mic stretches the recording bar across the whole row, so the timer no longer spills out of it

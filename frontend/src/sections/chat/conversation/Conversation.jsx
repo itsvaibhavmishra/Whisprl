@@ -119,9 +119,19 @@ const shownWhen = (isShown) => ({
 
 const lockedReasonFor = (keyStatus) => {
   if (keyStatus === "checking") return "Getting encryption ready…";
-  if (keyStatus === "failed") return "Encryption could not start. Reload Whisprl to try again.";
+  if (keyStatus === "failed") return "Encryption could not start.";
   if (keyStatus !== "ready") return "Unlock your messages to send one.";
   return null;
+};
+
+// each state that stops sending comes with the one thing that gets past it
+const LockedAction = ({ keyStatus, onUnlock }) => {
+  const action = { locked: { label: "Unlock", onClick: onUnlock }, failed: { label: "Reload Whisprl", onClick: () => window.location.reload() } }[keyStatus];
+  return action ? (
+    <Button size="small" variant="contained" onClick={action.onClick}>
+      {action.label}
+    </Button>
+  ) : null;
 };
 
 const Conversation = () => {
@@ -218,19 +228,7 @@ const Conversation = () => {
       );
     }
     if (lockedReason) {
-      return (
-        <ComposerNotice
-          action={
-            keyStatus === "locked" && (
-              <Button size="small" variant="contained" onClick={() => dispatch(setUnlockOpen(true))}>
-                Unlock
-              </Button>
-            )
-          }
-        >
-          {lockedReason}
-        </ComposerNotice>
-      );
+      return <ComposerNotice action={<LockedAction keyStatus={keyStatus} onUnlock={() => dispatch(setUnlockOpen(true))} />}>{lockedReason}</ComposerNotice>;
     }
     return null;
   };
