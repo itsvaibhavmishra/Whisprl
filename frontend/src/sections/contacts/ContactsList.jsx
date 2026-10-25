@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Button, ButtonBase, IconButton, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { CaretRightIcon, HandWavingIcon, UserPlusIcon } from "@phosphor-icons/react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import { PaneEmpty } from "@/components/Pane";
@@ -12,7 +12,9 @@ import Wordmark from "@/components/Wordmark";
 import useHasSettled from "@/hooks/useHasSettled";
 import useInfiniteScroll from "@/hooks/useInfiniteScroll";
 import useOpenChat from "@/hooks/useOpenChat";
+import PullToRefresh from "@/components/PullToRefresh";
 import { GetRequests } from "@/redux/slices/actions/contactActions";
+import { RefreshContacts } from "@/redux/slices/actions/refreshActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { selectWaitingRequests } from "@/redux/slices/contactSlice";
 import { FIND_PATH, REQUESTS_PATH, isAddressOf, useContactsAddress } from "@/sections/contacts/contactsRoute";
@@ -166,6 +168,7 @@ const NoFriendMatches = ({ query, onLeave }) => (
 );
 
 const ContactsList = ({ isWide }) => {
+  const dispatch = useDispatch();
   const { isRequests, isFinding, handle } = useContactsAddress();
   const meId = useSelector((state) => state.user.user._id);
   const friends = useSelector((state) => state.user.friends);
@@ -222,7 +225,7 @@ const ContactsList = ({ isWide }) => {
 
   return (
     <Stack component="nav" aria-label="Contacts" sx={{ height: "100%", bgcolor: "chat.list" }}>
-      <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
+      <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + var(--status-bar-room, env(safe-area-inset-top)))", pb: 1.25 }}>
         <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
           <Typography component="h1" sx={{ m: 0 }}>
             <Wordmark name="Contacts" fontSize={30} />
@@ -249,12 +252,12 @@ const ContactsList = ({ isWide }) => {
         <SearchPill value={query} onChange={setQuery} label="Search friends" />
       </Stack>
 
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
+      <PullToRefresh onRefresh={() => dispatch(RefreshContacts())} sx={{ overflowY: "auto", px: 1, pb: 2 }}>
         {!needle && <RequestsRow isSelected={isRequests} isWide={isWide} />}
         {birthdays.length > 0 && <BirthdaysThisWeek people={birthdays} onlineFriends={onlineFriends} />}
         {friendsSection()}
         {hasFriends && needle && !shownFriends.length && <NoFriendMatches query={query.trim()} onLeave={() => setQuery("")} />}
-      </Box>
+      </PullToRefresh>
     </Stack>
   );
 };

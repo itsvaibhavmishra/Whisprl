@@ -5,6 +5,8 @@ import { CaretRightIcon, CompassIcon, LockSimpleIcon, XIcon } from "@phosphor-ic
 import { useDispatch, useSelector } from "react-redux";
 
 import Wordmark from "@/components/Wordmark";
+import PullToRefresh from "@/components/PullToRefresh";
+import { RefreshStatus } from "@/redux/slices/actions/refreshActions";
 import { CancelPosting } from "@/redux/slices/actions/statusActions";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import { MIN_VISIBLE_PERCENT } from "@/sections/chat/messages/TransferRing";
@@ -186,6 +188,7 @@ const SkeletonRows = () => (
 );
 
 const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide, isLoading, onOpen, onOpenMine, onOpenDiscover, onWrite, onChooseMedia }) => {
+  const dispatch = useDispatch();
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
   const isPosting = useSelector((state) => state.status.posting !== null);
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -195,7 +198,14 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
     <Stack component="nav" aria-label="Status updates" sx={{ height: "100%", bgcolor: "chat.list" }}>
       <Stack
         direction="row"
-        sx={{ alignItems: "center", justifyContent: "space-between", minHeight: 64, px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          minHeight: 64,
+          px: 2,
+          pt: "calc(10px + var(--status-bar-room, env(safe-area-inset-top)))",
+          pb: 1.25,
+        }}
       >
         <Typography component="h1" sx={{ m: 0 }}>
           <Wordmark name="Status" fontSize={30} />
@@ -203,7 +213,7 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
         <NewUpdateButton onOpen={setMenuAnchor} disabled={!isEncryptionReady || isPosting} />
       </Stack>
 
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2, display: "flex", flexDirection: "column" }}>
+      <PullToRefresh onRefresh={() => dispatch(RefreshStatus())} sx={{ overflowY: "auto", px: 1, pb: 2, display: "flex", flexDirection: "column" }}>
         <Box component="ul" sx={{ m: 0, p: 0, display: "flex", flexDirection: "column", gap: 1 }}>
           <MyStatusRow group={myGroup} isSelected={selected === "yours"} onOpen={onOpenMine} onCreate={setMenuAnchor} />
           <DiscoverRow unseenCount={discoverUnseen} isSelected={selected === "discover"} isWide={isWide} onOpen={onOpenDiscover} />
@@ -227,7 +237,7 @@ const StatusList = ({ myGroup, recent, viewed, discoverUnseen, selected, isWide,
           <LockSimpleIcon size={12} weight="bold" aria-hidden style={{ verticalAlign: "-1px", marginRight: 6 }} />
           Updates you share with friends are end-to-end encrypted
         </Typography>
-      </Box>
+      </PullToRefresh>
 
       <NewUpdateMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)} onWrite={onWrite} onChooseMedia={onChooseMedia} />
     </Stack>

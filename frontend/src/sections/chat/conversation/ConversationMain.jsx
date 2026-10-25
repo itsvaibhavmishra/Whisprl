@@ -22,6 +22,8 @@ import { describeEvent, typingNamesIn } from "@/utils/groups";
 import TypingBubble from "@/sections/chat/messages/TypingBubble";
 import JumpToLatest from "@/sections/chat/conversation/JumpToLatest";
 import useIsLoading from "@/hooks/useIsLoading";
+import usePullToRefresh from "@/hooks/usePullToRefresh";
+import { PullIndicator } from "@/components/PullToRefresh";
 
 const messageTypeOf = (message) => {
   const hasFiles = filesOf(message).length > 0;
@@ -178,6 +180,13 @@ const ConversationMain = () => {
     requestAnimationFrame(jumpToLatest);
   };
 
+  // pulled up past the newest message, the chat fetches its latest page again; an older stretch on screen has its own way down
+  const { pull, isRefreshing } = usePullToRefresh(
+    scrollRef,
+    () => dispatch(GetMessages(activeConversation._id)).then(() => requestAnimationFrame(jumpToLatest)),
+    { edge: "bottom", isEnabled: Boolean(activeConversation) && !hasNewerMessages }
+  );
+
   // the jump finishes after older pages load, so it reads the newest messages and scroll position through refs
   const [highlightedId, setHighlightedId] = useState(null);
   const latest = useRef({});
@@ -237,6 +246,7 @@ const ConversationMain = () => {
           flexDirection: "column",
           overflowY: "scroll",
           overflowAnchor: "none",
+          overscrollBehaviorY: "contain",
           pl: 7,
           pr: { xs: 2.5, md: 4 },
           pt: 1,
@@ -342,6 +352,7 @@ const ConversationMain = () => {
         </Stack>
       </Box>
 
+      <PullIndicator pull={pull} isRefreshing={isRefreshing} edge="bottom" />
       <JumpToLatest
         watchAway={watchAway}
         hasNewerMessages={hasNewerMessages}

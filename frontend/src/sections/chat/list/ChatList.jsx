@@ -8,7 +8,9 @@ import MascotHalo from "@/components/MascotHalo";
 import RequestButton from "@/components/profile/RequestButton";
 import SearchPill from "@/components/SearchPill";
 import Wordmark from "@/components/Wordmark";
+import PullToRefresh from "@/components/PullToRefresh";
 import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
+import { RefreshChats } from "@/redux/slices/actions/refreshActions";
 import { SearchForUsers } from "@/redux/slices/actions/contactActions";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
 import { clearSearchUsers } from "@/redux/slices/contactSlice";
@@ -142,7 +144,7 @@ const ChatList = ({ onNewGroup }) => {
 
   return (
     <Stack component="nav" aria-label="Chats" sx={{ height: "100%", bgcolor: "chat.list" }}>
-      <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + env(safe-area-inset-top))", pb: 1.25 }}>
+      <Stack spacing={1.75} sx={{ px: 2, pt: "calc(10px + var(--status-bar-room, env(safe-area-inset-top)))", pb: 1.25 }}>
         <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
             {isShowingArchived && (
@@ -214,7 +216,7 @@ const ChatList = ({ onNewGroup }) => {
         )}
       </Stack>
 
-      <Box sx={{ flex: 1, overflowY: "auto", px: 1, pb: 2 }}>
+      <PullToRefresh onRefresh={() => dispatch(RefreshChats())} sx={{ overflowY: "auto", px: 1, pb: 2 }}>
         {!hasListLoaded ? (
           <ChatRowSkeletons />
         ) : (
@@ -269,7 +271,7 @@ const ChatList = ({ onNewGroup }) => {
             )}
           </>
         )}
-      </Box>
+      </PullToRefresh>
     </Stack>
   );
 };

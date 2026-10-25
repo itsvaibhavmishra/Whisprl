@@ -68,6 +68,8 @@ export const CloseGame = createApiThunk("game/close", (conversationId, { dispatc
   })
 );
 
+export const GetOngoingGame = createApiThunk("game/ongoing", async () => (await axios.get("/games/ongoing")).data.game, { notifyErrors: false });
+
 export const GetLeaderboard = createApiThunk(
   "game/leaderboard",
   async (conversationId) => ({

@@ -146,10 +146,28 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
   },
 });
 
+// a game is still someone's while it is being played and their seat is not the bot's, which it becomes when they leave it
+export const ongoingFor = (session, userId) =>
+  session?.status === "playing" && session.seats.some((seat) => String(seat.user) === String(userId) && !seat.bot)
+    ? { conversationId: String(session.conversation), game: session.game }
+    : null;
+
 const broadcast = async (io, gameRoom, conversation, session) => {
   gameRoom.revision += 1;
   const sockets = await io.in(audienceOf(conversation._id)).fetchSockets();
   sockets.forEach((socket) => socket.emit("game_state", viewFor(conversation, session, gameRoom, socket.data.userId)));
+  // every member hears whether this is a game of theirs, so the app's main pages can offer the way back without watching it
+  memberRooms(conversation).forEach((userId) =>
+    io.to(userId).emit("my_game", { conversationId: String(conversation._id), game: ongoingFor(session, userId)?.game ?? null })
+  );
+};
+
+export const ongoingGameOf = async (userId) => {
+  const session = await GameSessionModel.findOne({ status: "playing", seats: { $elemMatch: { user: userId, bot: { $ne: true } } } })
+    .sort({ updatedAt: -1 })
+    .select("conversation game status seats")
+    .lean();
+  return ongoingFor(session, userId);
 };
 
 const save = (session) => GameSessionModel.replaceOne({ conversation: session.conversation }, session, { upsert: true });

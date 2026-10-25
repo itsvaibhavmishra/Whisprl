@@ -16,11 +16,11 @@ import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
 import { FriendsChanged, GetRequests, RequestsChanged } from "@/redux/slices/actions/contactActions";
-import { ReceiveGameInvite, ReceiveGameNotice, ReceiveGameReaction, WatchGame } from "@/redux/slices/actions/gameActions";
+import { GetOngoingGame, ReceiveGameInvite, ReceiveGameNotice, ReceiveGameReaction, WatchGame } from "@/redux/slices/actions/gameActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
 import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
-import { gameStateReceived, lookersChanged } from "@/redux/slices/gameSlice";
+import { gameStateReceived, lookersChanged, ongoingGameHeard } from "@/redux/slices/gameSlice";
 import { ReceiveStatus, ReceiveStatusReaction } from "@/redux/slices/actions/statusActions";
 import { notify } from "@/utils/notify";
 import { dropAccessToken } from "@/utils/session";
@@ -61,6 +61,7 @@ const serverEvents = () => ({
   game_notice: ReceiveGameNotice,
   game_lookers: lookersChanged,
   game_reaction: ReceiveGameReaction,
+  my_game: ongoingGameHeard,
 });
 
 const listen = (dispatch, getState) => {
@@ -93,6 +94,8 @@ const listen = (dispatch, getState) => {
     hasConnected = true;
     dispatch(FlushOutbox());
     dispatch(GetRequests());
+    // a game that ended or started while this socket was away told nobody here
+    dispatch(GetOngoingGame());
   });
 
   // socket.io retries a dropped connection by itself, but not one the server refused or closed, so this retries with a renewed token
