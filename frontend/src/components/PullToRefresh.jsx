@@ -5,7 +5,9 @@ import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 
 import usePullToRefresh, { PULL_TO_RELOAD } from "@/hooks/usePullToRefresh";
 
-const spin = keyframes`to { transform: rotate(360deg); }`;
+// a pull let go fully shown leaves the arrow this far round, so the spin carries on from there instead of jumping back
+const READY_TURN = 270;
+const spin = keyframes`from { transform: rotate(${READY_TURN}deg); } to { transform: rotate(${READY_TURN + 360}deg); }`;
 const SIZE = 40;
 
 // the arrow turns as it is pulled into view and fills in once letting go would reload, as a phone's own lists do
@@ -41,7 +43,7 @@ export const PullIndicator = ({ pull, isRefreshing, edge = "top" }) => {
       <Box
         sx={{
           display: "flex",
-          transform: `rotate(${progress * 270}deg)`,
+          transform: `rotate(${progress * READY_TURN}deg)`,
           animation: isRefreshing ? `${spin} 0.8s linear infinite` : "none",
           "@media (prefers-reduced-motion: reduce)": { animation: "none" },
         }}
