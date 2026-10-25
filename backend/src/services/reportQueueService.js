@@ -52,7 +52,14 @@ export const listReports = async ({ filter, page = 0 }) => {
   ]);
 
   // how often the same person has been reported is the clearest signal a single report cannot give
-  const reportedIds = [...new Set(reports.map((report) => report.reportedUser?._id).filter(Boolean).map(String))];
+  const reportedIds = [
+    ...new Set(
+      reports
+        .map((report) => report.reportedUser?._id)
+        .filter(Boolean)
+        .map(String)
+    ),
+  ];
   const openCounts = await ReportModel.aggregate([
     { $match: { ...FILTERS.open, reportedUser: { $in: reportedIds.map((id) => new mongoose.Types.ObjectId(id)) } } },
     { $group: { _id: "$reportedUser", count: { $sum: 1 } } },
@@ -68,10 +75,7 @@ export const listReports = async ({ filter, page = 0 }) => {
 
 const closeReport = async (actor, report_id, outcome) => {
   if (!mongoose.isValidObjectId(report_id)) throw createHttpError.NotFound("No such report");
-  const closed = await ReportModel.findOneAndUpdate(
-    { _id: report_id, outcome: { $exists: false } },
-    { outcome, closedBy: actor._id, closedAt: new Date() }
-  );
+  const closed = await ReportModel.findOneAndUpdate({ _id: report_id, outcome: { $exists: false } }, { outcome, closedBy: actor._id, closedAt: new Date() });
   if (!closed) throw createHttpError.BadRequest("That report has already been dealt with");
   return closed;
 };
@@ -90,9 +94,6 @@ export const markReportActioned = (actor, report_id) => report_id && closeReport
 // revealed messages are private content, so they are kept only as long as a closed case might be looked at again
 export const sweepOldEvidence = async () => {
   const cutoff = new Date(Date.now() - EVIDENCE_KEPT_DAYS * 24 * 60 * 60 * 1000);
-  const { modifiedCount } = await ReportModel.updateMany(
-    { closedAt: { $lt: cutoff }, evidence: { $exists: true } },
-    { $unset: { evidence: 1 } }
-  );
+  const { modifiedCount } = await ReportModel.updateMany({ closedAt: { $lt: cutoff }, evidence: { $exists: true } }, { $unset: { evidence: 1 } });
   return modifiedCount;
 };

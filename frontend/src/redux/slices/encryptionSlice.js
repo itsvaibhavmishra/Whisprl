@@ -1,12 +1,6 @@
 import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 
-import {
-  CreateAccountKey,
-  ForgetDeviceKeys,
-  PrepareEncryption,
-  UnlockWithPasskey,
-  UnlockWithRecoveryKey,
-} from "@/redux/slices/actions/encryptionActions";
+import { CreateAccountKey, ForgetDeviceKeys, PrepareEncryption, UnlockWithPasskey, UnlockWithRecoveryKey } from "@/redux/slices/actions/encryptionActions";
 
 // status: 'checking' | 'setup' | 'locked' | 'ready' | 'failed'
 const initialState = {

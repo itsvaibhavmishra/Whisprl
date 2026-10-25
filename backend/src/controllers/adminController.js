@@ -6,51 +6,28 @@ import { assertConfirmed, confirmationOptions } from "#src/services/passkeyServi
 import { activePeopleOf, overviewOf } from "#src/services/overviewService.js";
 import { addAdmin, changeAccess, listTeam, removeAdmin } from "#src/services/teamService.js";
 
-// -------------------------- Overview --------------------------
-export const getOverview = async (req, res, next) => {
-  try {
-    return res.status(200).json({ status: "success", ...(await overviewOf(req.query.from, req.query.to)) });
-  } catch (error) {
-    next(error);
-  }
+export const getOverview = async (req, res) => {
+  return res.status(200).json({ status: "success", ...(await overviewOf(req.query.from, req.query.to)) });
 };
 
-export const getActivePeople = async (req, res, next) => {
-  try {
-    return res.status(200).json({ status: "success", ...(await activePeopleOf(req.query.from, req.query.to, req.query.page)) });
-  } catch (error) {
-    next(error);
-  }
+export const getActivePeople = async (req, res) => {
+  return res.status(200).json({ status: "success", ...(await activePeopleOf(req.query.from, req.query.to, req.query.page)) });
 };
 
-// -------------------------- People --------------------------
-export const getPeople = async (req, res, next) => {
-  try {
-    const { search, filter = "all", page } = req.query;
-    return res.status(200).json({ status: "success", ...(await listPeople({ search, filter, page })) });
-  } catch (error) {
-    next(error);
-  }
+export const getPeople = async (req, res) => {
+  const { search, filter = "all", page } = req.query;
+  return res.status(200).json({ status: "success", ...(await listPeople({ search, filter, page })) });
 };
 
-// -------------------------- Confirming who is acting --------------------------
-export const getConfirmationOptions = async (req, res, next) => {
-  try {
-    return res.status(200).json({ status: "success", options: await confirmationOptions(req.user) });
-  } catch (error) {
-    next(error);
-  }
+export const getConfirmationOptions = async (req, res) => {
+  return res.status(200).json({ status: "success", options: await confirmationOptions(req.user) });
 };
 
-const withPasskey = (act) => async (req, res, next) => {
-  try {
-    const { confirmation, ...details } = req.body;
-    await assertConfirmed(req.user, confirmation);
-    await act(req, details);
-    return res.status(200).json({ status: "success" });
-  } catch (error) {
-    next(error);
-  }
+const withPasskey = (act) => async (req, res) => {
+  const { confirmation, ...details } = req.body;
+  await assertConfirmed(req.user, confirmation);
+  await act(req, details);
+  return res.status(200).json({ status: "success" });
 };
 
 export const suspend = withPasskey((req, details) => suspendPerson(req.app.get("io"), req.user, req.params.user_id, details));
@@ -59,61 +36,33 @@ export const ban = withPasskey((req, details) => banPerson(req.app.get("io"), re
 
 export const restore = withPasskey((req, details) => restorePerson(req.user, req.params.user_id, details));
 
-// -------------------------- Game requests --------------------------
-export const getGameRequests = async (req, res, next) => {
-  try {
-    const { status, kind, search, page } = req.query;
-    return res.status(200).json({ status: "success", ...(await listGameRequests({ status, kind, search, page })) });
-  } catch (error) {
-    next(error);
-  }
+export const getGameRequests = async (req, res) => {
+  const { status, kind, search, page } = req.query;
+  return res.status(200).json({ status: "success", ...(await listGameRequests({ status, kind, search, page })) });
 };
 
-export const closeGameRequest = async (req, res, next) => {
-  try {
-    await closeGameRequests(req.user, req.params.name_key, req.body.outcome);
-    return res.status(200).json({ status: "success" });
-  } catch (error) {
-    next(error);
-  }
+export const closeGameRequest = async (req, res) => {
+  await closeGameRequests(req.user, req.params.name_key, req.body.outcome);
+  return res.status(200).json({ status: "success" });
 };
 
-// -------------------------- Reports --------------------------
-export const getReports = async (req, res, next) => {
-  try {
-    const { filter = "open", page } = req.query;
-    return res.status(200).json({ status: "success", ...(await listReports({ filter, page })) });
-  } catch (error) {
-    next(error);
-  }
+export const getReports = async (req, res) => {
+  const { filter = "open", page } = req.query;
+  return res.status(200).json({ status: "success", ...(await listReports({ filter, page })) });
 };
 
 // dismissing changes nobody's access, so unlike the others it does not ask for the passkey
-export const dismiss = async (req, res, next) => {
-  try {
-    await dismissReport(req.user, req.params.report_id, req.body);
-    return res.status(200).json({ status: "success" });
-  } catch (error) {
-    next(error);
-  }
+export const dismiss = async (req, res) => {
+  await dismissReport(req.user, req.params.report_id, req.body);
+  return res.status(200).json({ status: "success" });
 };
 
-// -------------------------- Audit log --------------------------
-export const getAuditLog = async (req, res, next) => {
-  try {
-    return res.status(200).json({ status: "success", ...(await listAuditEntries(req.query.before)) });
-  } catch (error) {
-    next(error);
-  }
+export const getAuditLog = async (req, res) => {
+  return res.status(200).json({ status: "success", ...(await listAuditEntries(req.query.before)) });
 };
 
-// -------------------------- Team --------------------------
-export const getTeam = async (req, res, next) => {
-  try {
-    return res.status(200).json({ status: "success", ...(await listTeam()) });
-  } catch (error) {
-    next(error);
-  }
+export const getTeam = async (req, res) => {
+  return res.status(200).json({ status: "success", ...(await listTeam()) });
 };
 
 export const addToTeam = withPasskey((req, details) => addAdmin(req.user, details));

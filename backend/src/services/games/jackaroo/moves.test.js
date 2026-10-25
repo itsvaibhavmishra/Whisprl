@@ -34,10 +34,20 @@ test("bringing a marble out knocks out a rival sitting on your start", () => {
   assert.deepEqual(play.moves[0].captured[0].marble, { owner: 1, id: 0 });
 });
 
-test("a marble jumps one marble in a move, its own too, but never two, and never lands on its own", () => {
+test("a marble jumps one marble in a move, its own too, but never two", () => {
   assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(3), track(5)], hand: [card(3)] }), "move")), [track(6), track(8)]);
   assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(3), track(4)], theirs: [track(5)], hand: [card(3)] }), "move")), [track(7)]);
-  assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(3), track(5)], hand: [card(2)] }), "move")), [track(7)]);
+});
+
+test("landing on your own marble knocks it back to its base, so the marble behind can still move", () => {
+  const plays = playsOf(boardWith({ mine: [track(3), track(5)], theirs: [track(7)], hand: [card(2)] }), "move");
+  const behind = plays.find((play) => play.moves[0].marble.id === 0);
+  assert.deepEqual(behind.moves[0].to, track(5));
+  assert.deepEqual(
+    behind.moves[0].captured.map(({ marble }) => marble),
+    [{ owner: 0, id: 1 }]
+  );
+  assert.equal(plays.length, 2);
 });
 
 test("landing on a rival knocks it back to its base, passing one does not", () => {
@@ -68,9 +78,10 @@ test("a king's thirteen cannot run past home either, but turns into it on an exa
   assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(37)], theirs: [track(40)], hand: [card(13)] }), "sweep")), [home(3)]);
 });
 
-test("a marble parked in front of home is jumped on the way in like any other, but two are not", () => {
-  assert.deepEqual(endsOf(playsOf(boardWith({ mine: [track(44)], theirs: [track(46)], hand: [card(3)] }), "move")), [home(0)]);
-  assert.equal(playsOf(boardWith({ mine: [track(44)], theirs: [track(45), track(46)], hand: [card(3)] }), "move").length, 0);
+test("your own marble parked in front of home is jumped on the way in like any other, but two marbles are not", () => {
+  const firstMarble = (state) => playsOf(state, "move").filter((play) => play.moves[0].marble.id === 0);
+  assert.deepEqual(endsOf(firstMarble(boardWith({ mine: [track(44), track(46)], hand: [card(3)] }))), [home(0)]);
+  assert.equal(firstMarble(boardWith({ mine: [track(44), track(46)], theirs: [track(45)], hand: [card(3)] })).length, 0);
 });
 
 test("a marble in home moves on only by an exact count, and never past its own", () => {
@@ -104,11 +115,11 @@ test("a swirl jumps any marble across, even one it carries past its own home", (
   assert.deepEqual(pushed.moves[0].to, track(28));
 });
 
-test("a jump onto a rival knocks it out, and one onto your own marble cannot be made", () => {
+test("a jump onto a marble knocks it out, your own too", () => {
   const [onRival] = playsOf(boardWith({ mine: [track(13)], theirs: [track(28)], hand: [card(3)] }), "move");
   assert.deepEqual(onRival.moves[0].captured.at(-1).marble, { owner: 1, id: 0 });
   const onOwn = playsOf(boardWith({ mine: [track(13), track(28)], hand: [card(3)] }), "move").find((play) => play.moves[0].marble.id === 0);
-  assert.equal(onOwn, undefined);
+  assert.deepEqual(onOwn.moves[0].captured.at(-1).marble, { owner: 0, id: 1 });
 });
 
 test("a king's thirteen knocks out every marble it passes, your own too", () => {
@@ -175,4 +186,32 @@ test("stuck behind a rival on its start, one card goes a turn, since the rival m
 test("the whole hand goes at once when nothing can change this round", () => {
   assert.deepEqual(kindsOf(boardWith({ mine: [home(3), home(2)], hand: [card(4), card(3)] })), ["discardAll"]);
   assert.deepEqual(kindsOf(boardWith({ mine: [track(21)], theirs: [track(24)], hand: [card(3)], theirHand: [] })), ["discardAll"]);
+});
+
+test("a rival's marble in front of your home shuts it: no marble turns in past it", () => {
+  const moving = (state) => playsOf(state, "move").filter((play) => play.moves[0].marble.owner === 0);
+  assert.deepEqual(endsOf(moving(boardWith({ mine: [track(44)], hand: [card(5)] }))), [home(2)]);
+  assert.equal(moving(boardWith({ mine: [track(44)], theirs: [track(46)], hand: [card(5)] })).length, 0);
+});
+
+test("a shut home holds the marbles already inside it where they are", () => {
+  const plays = playsOf(boardWith({ mine: [home(0)], theirs: [track(46)], hand: [card(2)] }), "move");
+  assert.equal(plays.length, 0);
+  assert.deepEqual(endsOf(playsOf(boardWith({ mine: [home(0)], hand: [card(2)] }), "move")), [home(2)]);
+});
+
+test("landing on the marble that shuts your home knocks it out", () => {
+  const [play] = playsOf(boardWith({ mine: [track(43)], theirs: [track(46)], hand: [card(3)] }), "move");
+  assert.deepEqual(play.moves[0].to, track(46));
+  assert.deepEqual(play.moves[0].captured[0].marble, { owner: 1, id: 0 });
+});
+
+test("a king sweeping the marble that shuts your home off the board goes on into it", () => {
+  const [play] = playsOf(boardWith({ mine: [track(37)], theirs: [track(46)], hand: [card(13)] }), "sweep");
+  assert.deepEqual(play.moves[0].to, home(3));
+});
+
+test("your own marble in front of your home shuts nothing", () => {
+  const insideHome = playsOf(boardWith({ mine: [home(0), track(46)], hand: [card(1)] }), "move").filter((play) => play.moves[0].marble.id === 0);
+  assert.deepEqual(endsOf(insideHome), [home(1)]);
 });

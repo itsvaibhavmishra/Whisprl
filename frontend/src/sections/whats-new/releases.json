@@ -2,6 +2,63 @@
   "upcoming": [],
   "releases": [
     {
+      "version": "2.5.4",
+      "date": "2026-10-25",
+      "highlights": [
+        {
+          "emoji": "⚡",
+          "title": "Opens on your chats",
+          "text": "The Android app shows your chats and newest messages the moment it opens, even offline, with anything that arrived while it was closed already there."
+        },
+        {
+          "emoji": "🔄",
+          "title": "Pull to refresh",
+          "text": "Pull down on Chats, Status, Contacts or Settings, or up at the end of a chat, to bring it up to date."
+        },
+        {
+          "emoji": "🎮",
+          "title": "Games, one tap away",
+          "text": "A banner takes you back to a game in progress, the leaderboard adds up everyone's wins, and thrown emoji now move."
+        }
+      ]
+    },
+    {
+      "version": "2.5.3",
+      "date": "2026-10-24",
+      "highlights": [
+        {
+          "emoji": "🐱",
+          "title": "Someone's typing",
+          "text": "A cat peeks over the typing bubble while they write, then ducks back out of sight."
+        },
+        {
+          "emoji": "😀",
+          "title": "A fresh emoji picker",
+          "text": "The newest emoji, your recent ones first and a skin tone for every hand, even offline in the app."
+        },
+        {
+          "emoji": "⌨️",
+          "title": "Emoji where the keyboard was",
+          "text": "On a phone, emoji open in the keyboard's place and a quick flick shows more. On a computer, they open under the message box."
+        },
+        {
+          "emoji": "💬",
+          "title": "Reactions in one place",
+          "text": "More reactions slides up from below, with your six quick reactions on top to use or change right there."
+        },
+        {
+          "emoji": "🎙️",
+          "title": "Microphone beside the plus",
+          "text": "Hold it to record a voice note, and slide right to cancel."
+        },
+        {
+          "emoji": "😜",
+          "title": "Livelier emoji in games",
+          "text": "Throw laugh, cry, taunt, kiss, cool, angry, shocked, melt or party from a bigger tray where every face moves."
+        }
+      ]
+    },
+    {
       "version": "2.5.2",
       "date": "2026-10-23",
       "highlights": [

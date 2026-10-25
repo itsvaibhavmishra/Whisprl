@@ -51,12 +51,12 @@ const jackaroo = {
     },
     {
       heading: "Moving",
-      text: "A card moves a marble that many holes forward. On the way it can jump one marble, yours or theirs, but never two, and it can't land on your own. Nobody can pass or land on a marble sitting on its own start.",
+      text: "A card moves a marble that many holes forward. On the way it can jump one marble, yours or theirs, but never two. Nobody can pass or land on a marble sitting on its own start.",
       picture: "moving",
     },
     {
       heading: "Knocking out",
-      text: "Land on their marble and it goes back to its base. Knocking a marble out earns you another card to play straight away, and so does a marble reaching the deepest hole still free in your home.",
+      text: "Land on a marble, theirs or your own, and it goes back to its base. Knocking a marble out earns you another card to play straight away, and so does a marble reaching the deepest hole still free in your home.",
       picture: "knockout",
     },
     {
@@ -71,8 +71,13 @@ const jackaroo = {
     },
     {
       heading: "Home",
-      text: "Your home is the lane of four ringed holes in the middle of your side. A marble goes in on an exact count and never runs past it, and a marble parked in front of it blocks the way.",
+      text: "Your home is the lane of four ringed holes in the middle of your side. A marble goes in on an exact count and never runs past it.",
       picture: "home",
+    },
+    {
+      heading: "A shut home",
+      text: "While one of their marbles sits in the hole in front of your home, your home is shut: none of your marbles can go in, and those inside cannot move. Knock that marble out, or wait for it to move on.",
+      picture: "shut",
     },
   ],
   // Eastern Arctic Dubstep by VishwaJai, CC0, from opengameart.org

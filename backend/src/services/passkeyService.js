@@ -1,9 +1,4 @@
-import {
-  generateAuthenticationOptions,
-  generateRegistrationOptions,
-  verifyAuthenticationResponse,
-  verifyRegistrationResponse,
-} from "@simplewebauthn/server";
+import { generateAuthenticationOptions, generateRegistrationOptions, verifyAuthenticationResponse, verifyRegistrationResponse } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
@@ -42,8 +37,7 @@ const summaryOf = ({ _id, credentialId, backedUp, createdAt, lastUsedAt, keyBack
   unlocksMessages: Boolean(keyBackup),
 });
 
-export const listPasskeys = async (user_id) =>
-  (await PasskeyModel.find({ user: user_id }).select("+keyBackup").sort({ createdAt: 1 })).map(summaryOf);
+export const listPasskeys = async (user_id) => (await PasskeyModel.find({ user: user_id }).select("+keyBackup").sort({ createdAt: 1 })).map(summaryOf);
 
 export const passkeyRegistrationOptions = async (user) => {
   const existing = await PasskeyModel.find({ user: user._id }).select("credentialId transports");
@@ -85,9 +79,7 @@ export const registerPasskey = async (user, response) => {
 };
 
 export const removePasskey = async (user_id, passkey_id) => {
-  const { deletedCount } = mongoose.isValidObjectId(passkey_id)
-    ? await PasskeyModel.deleteOne({ _id: passkey_id, user: user_id })
-    : { deletedCount: 0 };
+  const { deletedCount } = mongoose.isValidObjectId(passkey_id) ? await PasskeyModel.deleteOne({ _id: passkey_id, user: user_id }) : { deletedCount: 0 };
   if (!deletedCount) throw createHttpError.NotFound("Passkey not found");
 };
 

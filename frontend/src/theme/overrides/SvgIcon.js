@@ -5,12 +5,12 @@ export default function SvgIcon() {
         fontSizeSmall: {
           width: 20,
           height: 20,
-          fontSize: 'inherit',
+          fontSize: "inherit",
         },
         fontSizeLarge: {
           width: 32,
           height: 32,
-          fontSize: 'inherit',
+          fontSize: "inherit",
         },
       },
     },

@@ -8,7 +8,7 @@ import axios from "@/utils/axios";
 import { forgetDeviceKeys, loadDeviceKeys, saveDeviceKeys } from "@/utils/crypto/keyStore";
 import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
 import { confirmOwner, forgetVaultedKeys, vaultDeviceKeys, vaultedDeviceKeys } from "@/utils/crypto/keyVault";
-import { setDeviceKeys } from "@/utils/crypto/messageCipher";
+import { setDeviceKeys, trackKeyCheck } from "@/utils/crypto/messageCipher";
 import { createRecoveryKey, lockPrivateKey, parseRecoveryKey, unlockPrivateKey } from "@/utils/crypto/recoveryKey";
 import { authenticateWithPasskey, randomChallenge, unlockWithPasskey } from "@/utils/passkeys";
 
@@ -32,38 +32,34 @@ const lockWithNewRecoveryKey = async (privateKey, keyId) => {
   return { recoveryKey, backup: { keyId, ...sealed } };
 };
 
-// ------------- Prepare Encryption -------------
-export const PrepareEncryption = createApiThunk(
-  "encryption/prepare",
-  async (_, { getState }) => {
-    const userId = getState().user.user._id;
-    const [{ data }, stored] = await Promise.all([axios.get("/keys"), loadDeviceKeys(userId)]);
-    const currentKeyId = data.publicKeys.at(-1)?.keyId ?? null;
+const checkKeys = async (getState) => {
+  const userId = getState().user.user._id;
+  const [{ data }, stored] = await Promise.all([axios.get("/keys"), loadDeviceKeys(userId)]);
+  const currentKeyId = data.publicKeys.at(-1)?.keyId ?? null;
 
-    if (!currentKeyId) return { status: "setup", currentKeyId };
+  if (!currentKeyId) return { status: "setup", currentKeyId };
 
-    if (stored?.keyId === currentKeyId) {
-      setDeviceKeys(stored);
-      return { status: "ready", currentKeyId };
-    }
-
-    const vaulted = await vaultedDeviceKeys(userId).catch(() => null);
-    if (vaulted?.keyId === currentKeyId) {
-      await saveDeviceKeys(userId, vaulted);
-      setDeviceKeys(vaulted);
-      return { status: "ready", currentKeyId };
-    }
-
-    return { status: "locked", currentKeyId };
-  },
-  {
-    notifyErrors: false,
-    // a second check finishing after a new key is uploaded but before it is saved here would wrongly lock this browser
-    condition: (_, { getState }) => !selectIsLoading(getState(), PrepareEncryption),
+  if (stored?.keyId === currentKeyId) {
+    setDeviceKeys(stored);
+    return { status: "ready", currentKeyId };
   }
-);
 
-// ------------- Create Account Key -------------
+  const vaulted = await vaultedDeviceKeys(userId).catch(() => null);
+  if (vaulted?.keyId === currentKeyId) {
+    await saveDeviceKeys(userId, vaulted);
+    setDeviceKeys(vaulted);
+    return { status: "ready", currentKeyId };
+  }
+
+  return { status: "locked", currentKeyId };
+};
+
+export const PrepareEncryption = createApiThunk("encryption/prepare", (_, { getState }) => trackKeyCheck(checkKeys(getState)), {
+  notifyErrors: false,
+  // a second check finishing after a new key is uploaded but before it is saved here would wrongly lock this browser
+  condition: (_, { getState }) => !selectIsLoading(getState(), PrepareEncryption),
+});
+
 export const CreateAccountKey = createApiThunk("encryption/create-key", async (_, { getState, dispatch }) => {
   const userId = getState().user.user._id;
   const { publicKey, privateKey } = await generateAccountKeys();
@@ -82,7 +78,6 @@ export const CreateAccountKey = createApiThunk("encryption/create-key", async (_
   return { recoveryKey, currentKeyId: keyId };
 });
 
-// ------------- Unlock With Recovery Key -------------
 export const UnlockWithRecoveryKey = createApiThunk(
   "encryption/unlock",
   async (typedKey, { getState, dispatch, rejectWithValue }) => {
@@ -101,7 +96,6 @@ export const UnlockWithRecoveryKey = createApiThunk(
   { notifyErrors: false }
 );
 
-// ------------- Unlock With Passkey -------------
 export const keepKeyFromPasskey = async (userId, keyBackup, prfSecret) =>
   keepOnThisDevice(userId, { keyId: keyBackup.keyId, privateKey: await unlockWithPasskey(keyBackup, prfSecret) });
 
@@ -124,7 +118,6 @@ export const UnlockWithPasskey = createApiThunk("encryption/unlock-passkey", asy
   refreshChats(dispatch, getState);
 });
 
-// ------------- Replace Recovery Key -------------
 export const ReplaceRecoveryKey = createApiThunk("encryption/replace-recovery-key", async (_, { getState, rejectWithValue }) => {
   if (!(await confirmOwner("Unlock to make a new recovery key"))) return rejectWithValue(null);
   const { keyId, privateKey } = await loadDeviceKeys(getState().user.user._id);
@@ -133,7 +126,6 @@ export const ReplaceRecoveryKey = createApiThunk("encryption/replace-recovery-ke
   return { recoveryKey };
 });
 
-// ------------- Forget Device Keys -------------
 export const ForgetDeviceKeys = createAsyncThunk("encryption/forget", async (userId) => {
   setDeviceKeys(null);
   await forgetDeviceKeys(userId).catch(() => {});

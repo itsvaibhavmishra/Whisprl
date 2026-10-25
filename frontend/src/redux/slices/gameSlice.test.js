@@ -26,7 +26,10 @@ test("closing a game takes it off the screen before the server answers", () => {
 });
 
 test("who has the game on screen comes with each view and with each change, for the chat being watched only", () => {
-  const watched = [WatchGame.pending("watch", CHAT), gameStateReceived({ conversationId: CHAT, revision: 1, session: null, lookers: ["ava"] })].reduce(gameReducer, undefined);
+  const watched = [WatchGame.pending("watch", CHAT), gameStateReceived({ conversationId: CHAT, revision: 1, session: null, lookers: ["ava"] })].reduce(
+    gameReducer,
+    undefined
+  );
   expect(watched.lookers).toEqual(["ava"]);
   expect(gameReducer(watched, lookersChanged({ conversationId: CHAT, users: ["ava", "ben"] })).lookers).toEqual(["ava", "ben"]);
   expect(gameReducer(watched, lookersChanged({ conversationId: "elsewhere", users: [] })).lookers).toEqual(["ava"]);

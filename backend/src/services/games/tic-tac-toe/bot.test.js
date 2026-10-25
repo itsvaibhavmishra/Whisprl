@@ -31,13 +31,22 @@ const over200 = (make) => new Set(Array.from({ length: 200 }, make));
 
 test("a free win is taken even by a bot that is looking away", () => {
   const board = [NOUGHT, NOUGHT, BLANK, CROSS, CROSS, BLANK, CROSS, BLANK, BLANK];
-  assert.equal(withLuck(LOOKING_AWAY, () => botMove({ board }, NOUGHT)), 2);
-  assert.equal(withLuck(PAYING_ATTENTION, () => botMove({ board }, NOUGHT)), 2);
+  assert.equal(
+    withLuck(LOOKING_AWAY, () => botMove({ board }, NOUGHT)),
+    2
+  );
+  assert.equal(
+    withLuck(PAYING_ATTENTION, () => botMove({ board }, NOUGHT)),
+    2
+  );
 });
 
 test("a line it cannot win is blocked, while it is paying attention", () => {
   const board = [CROSS, CROSS, BLANK, BLANK, NOUGHT, BLANK, BLANK, BLANK, BLANK];
-  assert.deepEqual(over200(() => withLuck(PAYING_ATTENTION, () => botMove({ board }, NOUGHT))), new Set([2]));
+  assert.deepEqual(
+    over200(() => withLuck(PAYING_ATTENTION, () => botMove({ board }, NOUGHT))),
+    new Set([2])
+  );
 });
 
 test("looking away, it does not always find that block", () => {
@@ -47,9 +56,15 @@ test("looking away, it does not always find that block", () => {
 });
 
 test("it opens in the centre, and takes the last square when that is all there is", () => {
-  assert.equal(withLuck(PAYING_ATTENTION, () => botMove(setup(), CROSS)), 4);
+  assert.equal(
+    withLuck(PAYING_ATTENTION, () => botMove(setup(), CROSS)),
+    4
+  );
   const board = [CROSS, NOUGHT, CROSS, CROSS, NOUGHT, NOUGHT, NOUGHT, CROSS, BLANK];
-  assert.equal(withLuck(LOOKING_AWAY, () => botMove({ board }, CROSS)), 8);
+  assert.equal(
+    withLuck(LOOKING_AWAY, () => botMove({ board }, CROSS)),
+    8
+  );
 });
 
 test("the bot standing in for someone who left is the weaker of the two", () => {

@@ -9,10 +9,7 @@ export const MAX_EVIDENCE_TEXT = 4000;
 const EVIDENCE_CHECKS = ["verified", "unchecked", "failed"];
 
 // the key opens this one file and nothing else, and it is here only because the reporter chose to send it
-const evidenceFileSchema = mongoose.Schema(
-  { url: { type: String, required: true }, key: String, iv: String, mimeType: String, name: String },
-  { _id: false }
-);
+const evidenceFileSchema = mongoose.Schema({ url: { type: String, required: true }, key: String, iv: String, mimeType: String, name: String }, { _id: false });
 
 // plaintext the reporter's device decrypted and sent on purpose, which is the only way staff can read a chat
 const evidenceSchema = mongoose.Schema(

@@ -15,13 +15,13 @@ export default function Menu(theme) {
           borderRadius: 8,
           minHeight: 40,
           gap: theme.spacing(1.25),
-          '& .MuiListItemIcon-root': {
-            minWidth: 'auto',
-            color: 'inherit',
+          "& .MuiListItemIcon-root": {
+            minWidth: "auto",
+            color: "inherit",
           },
-          '&.Mui-selected': {
+          "&.Mui-selected": {
             backgroundColor: theme.palette.action.selected,
-            '&:hover': {
+            "&:hover": {
               backgroundColor: theme.palette.action.hover,
             },
           },

@@ -38,7 +38,7 @@ const BEFORE_LOADING = { pattern: "cats", palette: "halo" };
 export const coverStyleOf = (profile) => profile.coverStyle ?? BEFORE_LOADING;
 
 export const patternById = (id) => COVER_PATTERNS.find((pattern) => pattern.id === id) ?? COVER_PATTERNS[0];
-export const paletteById = (id) => COVER_PALETTES.find((palette) => palette.id === id) ?? COVER_PALETTES[0];
+const paletteById = (id) => COVER_PALETTES.find((palette) => palette.id === id) ?? COVER_PALETTES[0];
 
 // a small preview draws the doodles darker, or at that size they fade into the ground
 export const coverColorsOf = (paletteId, isNight, isPreview = false) => {

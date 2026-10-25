@@ -1,17 +1,13 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
-import {
-  CreateOpenConversation,
-  GetConversations,
-  GetMessages,
-  LoadNewerMessages,
-  LoadOlderMessages,
-} from "@/redux/slices/actions/chatActions";
+import { CreateOpenConversation, GetConversations, GetMessages, LoadNewerMessages, LoadOlderMessages } from "@/redux/slices/actions/chatActions";
 
 const initialState = {
   conversations: [],
   hasLoadedConversations: false,
   // set when the first list could not load, so an address waiting on it gives up
   hasConversationsFailed: false,
+  // true while the list shown is the one the app saved on this phone, until the server's own arrives
+  isListSaved: false,
   // counts every message that reaches the list, so a list fetched before one arrived knows it is older
   arrivals: 0,
   activeConversation: null,
@@ -104,12 +100,10 @@ const open = (state, conversation, canMessage) => {
 };
 
 // the open chat's messages, or a cached chat's, so a change lands wherever that chat is shown next
-const messagesOf = (state, conversationId) =>
-  state.activeConversation?._id === conversationId ? state.messages : state.cache[conversationId]?.messages;
+const messagesOf = (state, conversationId) => (state.activeConversation?._id === conversationId ? state.messages : state.cache[conversationId]?.messages);
 
 // edits and deletions reach the gathered history too, so search and shared media never show what is gone
-const listsOf = (state, conversationId) =>
-  [messagesOf(state, conversationId), state.history[conversationId]?.messages].filter(Boolean);
+const listsOf = (state, conversationId) => [messagesOf(state, conversationId), state.history[conversationId]?.messages].filter(Boolean);
 
 const conversationsWith = (state, conversationId) =>
   [state.activeConversation, ...state.conversations].filter((conversation) => conversation?._id === conversationId);
@@ -118,14 +112,12 @@ const conversationsWith = (state, conversationId) =>
 const isOlderCopy = (copy, current) => copy.updatedAt < current.updatedAt;
 
 const isSameMessage = (message, other) =>
-  message._id === other._id ||
-  Boolean(message.clientId && message.clientId === other.clientId && message.sender._id === other.sender._id);
+  message._id === other._id || Boolean(message.clientId && message.clientId === other.clientId && message.sender._id === other.sender._id);
 
 // a chat opened from search is not in the list until its first message, so that message adds it
 const moveConversationToTop = (state, conversationId, latestMessage) => {
   const isActive = state.activeConversation?._id === conversationId;
-  const conversation =
-    state.conversations.find((convo) => convo._id === conversationId) ?? (isActive && { ...state.activeConversation });
+  const conversation = state.conversations.find((convo) => convo._id === conversationId) ?? (isActive && { ...state.activeConversation });
   if (!conversation) return;
 
   if (!conversation.latestMessage || conversation.latestMessage._id <= latestMessage._id) {
@@ -146,6 +138,19 @@ const slice = createSlice({
     },
 
     clearConversation: () => initialState,
+
+    // the app opens on the chats it saved on this phone, unless the server's list has already come
+    savedChatsRestored: (state, action) => {
+      if (state.hasLoadedConversations) return;
+      const { conversations, cache, albumReactions } = action.payload;
+      Object.assign(state, { conversations, cache, hasLoadedConversations: true, isListSaved: true });
+      state.albumReactions = { ...albumReactions, ...state.albumReactions };
+    },
+
+    savedChatsDropped: (state) => {
+      if (!state.isListSaved) return;
+      Object.assign(state, closedConversation(), { conversations: [], cache: {}, hasLoadedConversations: false, isListSaved: false });
+    },
 
     openConversation: (state, action) => {
       open(state, action.payload, action.payload.canMessage ?? true);
@@ -171,9 +176,7 @@ const slice = createSlice({
     // a cleared chat drops everything this tab holds of it, so nothing from before shows again, and a deleted one closes too
     chatCleared: (state, action) => {
       const { conversation_id, ...preferences } = action.payload;
-      conversationsWith(state, conversation_id).forEach((conversation) =>
-        Object.assign(conversation, preferences, { latestMessage: null, unread: 0 })
-      );
+      conversationsWith(state, conversation_id).forEach((conversation) => Object.assign(conversation, preferences, { latestMessage: null, unread: 0 }));
       delete state.cache[conversation_id];
       delete state.history[conversation_id];
       if (state.activeConversation?._id !== conversation_id) return;
@@ -194,7 +197,6 @@ const slice = createSlice({
       });
     },
 
-    // ---------- Composer ----------
     setDraft: (state, action) => {
       const { conversationId, text } = action.payload;
       if (text) state.drafts[conversationId] = text;
@@ -282,7 +284,6 @@ const slice = createSlice({
       if (action.payload !== "connected") state.typingConversation = [];
     },
 
-    // ---------- Draft attachments ----------
     addFiles: (state, action) => {
       state.files.push(action.payload);
     },
@@ -306,7 +307,6 @@ const slice = createSlice({
       state.activeFileIndex = action.payload;
     },
 
-    // ---------- Outbox ----------
     queueMessage: (state, action) => {
       state.outbox.push({ status: "sending", error: null, ...action.payload });
     },
@@ -336,9 +336,7 @@ const slice = createSlice({
       const message = action.payload;
       const conversationId = message.conversation;
 
-      state.outbox = state.outbox.filter(
-        (queued) => queued.clientId !== message.clientId || queued.senderId !== message.sender._id
-      );
+      state.outbox = state.outbox.filter((queued) => queued.clientId !== message.clientId || queued.senderId !== message.sender._id);
       moveConversationToTop(state, conversationId, message);
       state.typingConversation = state.typingConversation.filter(
         (typist) => typist.conversation_id !== conversationId || typist.user_id !== message.sender._id
@@ -442,9 +440,7 @@ const slice = createSlice({
 
     updateTypingConvo: (state, action) => {
       const { typing, conversation_id, user_id } = action.payload;
-      const typist = state.typingConversation.find(
-        (convo) => convo.conversation_id === conversation_id && convo.user_id === user_id
-      );
+      const typist = state.typingConversation.find((convo) => convo.conversation_id === conversation_id && convo.user_id === user_id);
       if (typist) typist.typing = typing;
       else state.typingConversation.push({ typing, conversation_id, user_id });
     },
@@ -453,6 +449,7 @@ const slice = createSlice({
     builder
       .addCase(GetConversations.fulfilled, (state, action) => {
         state.hasLoadedConversations = true;
+        state.isListSaved = false;
         const { conversations, arrivalsWhenAsked } = action.payload;
         const held = new Map(state.conversations.map((conversation) => [conversation._id, conversation]));
         const isNewer = (conversation) => held.get(conversation._id)?.arrival > arrivalsWhenAsked;
@@ -487,10 +484,12 @@ const slice = createSlice({
         state.hasFetched = true;
         state.hasNewerMessages = false;
 
-        const overlaps = messages.some((fetched) => state.messages.some((loaded) => loaded._id === fetched._id));
-        const olderLoaded = overlaps ? state.messages.filter((loaded) => loaded._id < messages[0]._id) : [];
+        // messages saved on the phone may have been edited or deleted since, so the fresh page stands in for them all
+        const live = state.messages.filter((loaded) => !loaded.isSaved);
+        const overlaps = messages.some((fetched) => live.some((loaded) => loaded._id === fetched._id));
+        const olderLoaded = overlaps ? live.filter((loaded) => loaded._id < messages[0]._id) : [];
         // a message that arrived while the page was on its way is newer than all of it
-        const arrivedSince = state.messages.filter((loaded) => !messages.length || loaded._id > messages.at(-1)._id);
+        const arrivedSince = live.filter((loaded) => !messages.length || loaded._id > messages.at(-1)._id);
 
         state.messages = [...olderLoaded, ...messages, ...arrivedSince];
         state.hasOlderMessages = olderLoaded.length ? state.hasOlderMessages : hasMore;
@@ -510,9 +509,8 @@ const slice = createSlice({
   },
 });
 
-export const selectActiveOutbox = createSelector(
-  [(state) => state.chat.outbox, (state) => state.chat.activeConversation?._id],
-  (outbox, conversationId) => outbox.filter((queued) => queued.conversationId === conversationId)
+export const selectActiveOutbox = createSelector([(state) => state.chat.outbox, (state) => state.chat.activeConversation?._id], (outbox, conversationId) =>
+  outbox.filter((queued) => queued.conversationId === conversationId)
 );
 
 export const {
@@ -536,6 +534,8 @@ export const {
   commonGroupsLoaded,
   groupUpdated,
   clearConversation: clearChat,
+  savedChatsRestored,
+  savedChatsDropped,
   setConnection,
   conversationListed,
   addFiles,

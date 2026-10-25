@@ -141,12 +141,12 @@ backend/src/services/games/
 
 frontend/src/sections/chat/game/   the canvas: seats, panel, screens, sheets, table talk, sounds
 ├── catalog.js
-├── GamePanel.js, GameRoom.js, GameSeats.js, ...
+├── GamePanel.jsx, GameRoom.jsx, GameSeats.jsx, ...
 └── games/
     └── tic-tac-toe/
         ├── index.js           theme, widths, board, move sound
-        ├── Board.js           renders a view, sends intents
-        ├── RulesArt.js        the pictures on its rules pages, drawn from Board.js's pieces
+        ├── Board.jsx          renders a view, sends intents
+        ├── RulesArt.jsx       the pictures on its rules pages, drawn from Board.jsx's pieces
         └── tiles.json         measured positions, see game-art.md
 
 frontend/public/games/tic-tac-toe/
@@ -263,6 +263,12 @@ standings when more have. Neither needs anything from a game beyond its `theme`,
   `game_look`, and the server counts it per person, so a second tab neither doubles nor ends it.
 - Emoji thrown at the table go out with `game_react` to everyone at the game for a moment and are
   never stored. The list of emoji is kept on both sides, and the two have to match.
+
+**A game in progress follows its players around the app.** Whoever sits at a game being played,
+in a seat the bot has not taken over, sees a banner in the game's colour at the top of the four
+main pages, and a tap takes them back to it. Each change to a game tells every member of its chat
+with `my_game` whether it is now a game of theirs, and `GET /games/ongoing` answers the same on each
+connection, so the banner needs no watch of its own.
 
 ## Sound
 

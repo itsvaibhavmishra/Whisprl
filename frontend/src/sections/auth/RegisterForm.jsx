@@ -1,0 +1,79 @@
+import { useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Button, Stack } from "@mui/material";
+
+import { useDispatch } from "react-redux";
+import { RegisterUser } from "@/redux/slices/actions/authActions";
+
+import { isOldEnough, nameRule, newPasswordRule, signUpBirthdayRule } from "@/utils/formRules";
+import { PATH_AUTH } from "@/routes/paths";
+import FormProvider, { PasswordChecklist, RHFBirthdayPicker, RHFPasswordField, RHFTextField } from "@/components/hook-form";
+import useIsLoading from "@/hooks/useIsLoading";
+
+const RegisterForm = ({ onTooYoung }) => {
+  const isLoading = useIsLoading(RegisterUser);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const recaptchaRef = useRef(null);
+
+  const RegisterSchema = Yup.object().shape({
+    firstName: nameRule("First name"),
+    lastName: nameRule("Last name"),
+
+    email: Yup.string().required("Email Required").email("Invalid Email"),
+
+    birthday: signUpBirthdayRule,
+
+    password: newPasswordRule,
+  });
+
+  const defaultValues = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    birthday: "",
+    password: "",
+  };
+
+  const methods = useForm({
+    mode: "onChange",
+    resolver: yupResolver(RegisterSchema),
+    defaultValues,
+  });
+
+  const { handleSubmit } = methods;
+
+  const onSubmit = async (data) => {
+    if (!isOldEnough(data.birthday)) return onTooYoung();
+    const result = await dispatch(RegisterUser({ ...data, recaptchaRef }));
+    if (RegisterUser.fulfilled.match(result)) navigate(PATH_AUTH.general.verify);
+  };
+
+  return (
+    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+      <Stack spacing={2}>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { md: "flex-start" }, justifyContent: "center" }}>
+          <RHFTextField name="firstName" label="First name" />
+          <RHFTextField name="lastName" label="Last name" />
+        </Stack>
+        <RHFTextField name="email" label="Email address" />
+        <RHFBirthdayPicker name="birthday" label="Birthday" helperText="Friends see the day and month, never the year, and you can hide it." />
+        <RHFPasswordField name="password" label="Password" autoComplete="new-password" />
+        <PasswordChecklist name="password" />
+
+        <ReCAPTCHA ref={recaptchaRef} size="invisible" sitekey={import.meta.env.REACT_APP_RECAPTCHA_CLIENT} theme="dark" />
+
+        <Button loading={isLoading} fullWidth size="large" type="submit" variant="contained" sx={{ mt: 3 }}>
+          Create account
+        </Button>
+      </Stack>
+    </FormProvider>
+  );
+};
+
+export default RegisterForm;

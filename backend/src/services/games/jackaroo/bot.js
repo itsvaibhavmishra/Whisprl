@@ -36,14 +36,15 @@ const scoreMove = (state, seat, move) => {
 };
 
 // cards that rescue a stuck hand are worth keeping when one has to go
-export const cardValue = (card) => {
+const cardValue = (card) => {
   const special = { 1: 8, 2: 6, 4: 5, 5: 4, 7: 7, 10: 5, 11: isRed(card) ? 3 : 6, 12: isRed(card) ? 5 : 3, 13: 9 };
   return special[card.rank] ?? card.rank / 3;
 };
 
 const homeCount = (state, seat) => state.players[seat].marbles.filter((place) => place.at === "home").length;
 
-const finishes = (state, seat, play) => homeCount(state, seat) + (play.moves ?? []).filter((move) => move.marble.owner === seat && move.to.at === "home" && move.from.at !== "home").length === 4;
+const finishes = (state, seat, play) =>
+  homeCount(state, seat) + (play.moves ?? []).filter((move) => move.marble.owner === seat && move.to.at === "home" && move.from.at !== "home").length === 4;
 
 const scorePlay = (state, seat, play) => {
   if (play.kind === "discard") return -cardValue(play.card);
@@ -59,7 +60,8 @@ const scorePlay = (state, seat, play) => {
   return play.moves.reduce((total, move) => total + scoreMove(state, seat, move), 0);
 };
 
-const moveFor = (state, seat, play) => (play.kind === "takeCard" ? { key: keyOf(play), taken: Math.floor(Math.random() * state.players[other(seat)].hand.length) } : { key: keyOf(play) });
+const moveFor = (state, seat, play) =>
+  play.kind === "takeCard" ? { key: keyOf(play), taken: Math.floor(Math.random() * state.players[other(seat)].hand.length) } : { key: keyOf(play) };
 
 // an ordinary player: it weighs each play on its own and never plans a turn ahead, so it can be outplayed
 export const botMove = (state, seat, level = "opponent") => {

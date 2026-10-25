@@ -21,8 +21,7 @@ export const sessionEnded = () => createHttpError(401, "Your session ended, plea
 
 const nextExpiry = () => new Date(Date.now() + SESSION_LIFETIME);
 
-const signToken = (claims, audience, expiresIn) =>
-  jwt.sign(claims, process.env.JWT_ACCESS_SECRET, { algorithm: "HS256", audience, expiresIn });
+const signToken = (claims, audience, expiresIn) => jwt.sign(claims, process.env.JWT_ACCESS_SECRET, { algorithm: "HS256", audience, expiresIn });
 
 const readToken = (token, audience) => jwt.verify(token, process.env.JWT_ACCESS_SECRET, { algorithms: ["HS256"], audience });
 
@@ -85,9 +84,7 @@ export const renewSession = async ({ sessionId, challenge, signature }, platform
     throw createHttpError.BadRequest("That took too long, please try again");
   }
 
-  const session = mongoose.isValidObjectId(sessionId)
-    ? await SessionModel.findOne({ _id: sessionId, expiresAt: { $gt: new Date() } })
-    : null;
+  const session = mongoose.isValidObjectId(sessionId) ? await SessionModel.findOne({ _id: sessionId, expiresAt: { $gt: new Date() } }) : null;
   if (!session || !isSignedBy(session.publicKey, challenge, signature)) throw sessionEnded();
 
   session.expiresAt = nextExpiry();
@@ -100,17 +97,9 @@ export const isSessionActive = (session_id) => SessionModel.exists({ _id: sessio
 
 export const endSession = (session_id) => SessionModel.findByIdAndDelete(session_id);
 
-export const endOtherSessions = (user_id, keep_session_id) =>
-  SessionModel.deleteMany({ user: user_id, _id: { $ne: keep_session_id } });
+export const endOtherSessions = (user_id, keep_session_id) => SessionModel.deleteMany({ user: user_id, _id: { $ne: keep_session_id } });
 
 export const endAllSessions = (user_id) => SessionModel.deleteMany({ user: user_id });
-
-// sessions from before keys can never renew, and the unique index they relied on would refuse new ones
-export const dropKeylessSessions = async () => {
-  const { deletedCount } = await SessionModel.deleteMany({ publicKey: { $exists: false } });
-  await SessionModel.syncIndexes();
-  return deletedCount;
-};
 
 const disconnectSockets = async (io, user_id, shouldClose) => {
   const sockets = await io.in(String(user_id)).fetchSockets();
@@ -118,10 +107,8 @@ const disconnectSockets = async (io, user_id, shouldClose) => {
 };
 
 // a socket is authenticated once, when it connects, so ending a session has to close its sockets too
-export const signOutOtherDevices = (io, user_id, keep_session_id) =>
-  disconnectSockets(io, user_id, (session_id) => session_id !== String(keep_session_id));
+export const signOutOtherDevices = (io, user_id, keep_session_id) => disconnectSockets(io, user_id, (session_id) => session_id !== String(keep_session_id));
 
-export const signOutSession = (io, session) =>
-  disconnectSockets(io, session.user, (session_id) => session_id === String(session._id));
+export const signOutSession = (io, session) => disconnectSockets(io, session.user, (session_id) => session_id === String(session._id));
 
 export const signOutEverywhere = (io, user_id) => io.in(String(user_id)).disconnectSockets(true);

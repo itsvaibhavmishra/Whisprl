@@ -1,14 +1,14 @@
 // Once a card is played, what is left to choose is asked one question at a time, until one of the server's plays remains.
 
-export const sameMarble = (one, two) => Boolean(one && two) && one.owner === two.owner && one.id === two.id;
+const sameMarble = (one, two) => Boolean(one && two) && one.owner === two.owner && one.id === two.id;
 
 // the marble a play starts with: the one that moves first, or the one of yours a swap gives away
-export const actorOf = (option) => option.moves?.[0]?.marble ?? option.swap?.[0] ?? null;
-export const secondOf = (option) => option.moves?.[1]?.marble ?? option.swap?.[1] ?? null;
+const actorOf = (option) => option.moves?.[0]?.marble ?? option.swap?.[0] ?? null;
+const secondOf = (option) => option.moves?.[1]?.marble ?? option.swap?.[1] ?? null;
 const stepsOf = (option) => option.moves?.[0]?.steps ?? null;
 
 // a king, an ace or a two can place a new marble instead of moving one, and a ten can make the other player discard
-export const actionOf = (option) => {
+const actionOf = (option) => {
   if (option.kind === "out") return "new";
   return option.kind === "discardOther" ? "discard" : "move";
 };

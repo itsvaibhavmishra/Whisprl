@@ -9,7 +9,6 @@ const blobUrlToFile = async (blobUrl, fileName) => {
   return new File([blob], fileName, { type: blob.type });
 };
 
-// ------------- Update Profile Thunk -------------
 export const UpdateProfile = createApiThunk(
   "user/update-profile",
   async ({ firstName, lastName, activityStatus, birthday, coverPattern, coverPalette, ...images }, { getState }) => {
@@ -21,7 +20,10 @@ export const UpdateProfile = createApiThunk(
     formData.append("birthday", birthday);
     formData.append("coverPattern", coverPattern);
     formData.append("coverPalette", coverPalette);
-    for (const [kind, removeField] of [["avatar", "removeAvatar"], ["cover", "removeCover"]]) {
+    for (const [kind, removeField] of [
+      ["avatar", "removeAvatar"],
+      ["cover", "removeCover"],
+    ]) {
       if (images[kind].startsWith("blob:")) {
         formData.append(kind, await blobUrlToFile(images[kind], `${kind}.jpg`));
       } else if (!images[kind] && saved[kind]) {
@@ -30,23 +32,22 @@ export const UpdateProfile = createApiThunk(
     }
 
     const { data } = await axios.post("/user/update-profile", formData);
-    Object.values(images).filter((image) => image.startsWith("blob:")).forEach((image) => URL.revokeObjectURL(image));
+    Object.values(images)
+      .filter((image) => image.startsWith("blob:"))
+      .forEach((image) => URL.revokeObjectURL(image));
     notifyResult(data);
     return data;
   }
 );
 
-// ------------- Get My Profile Thunk -------------
 export const GetMyProfile = createApiThunk("user/me", async () => (await axios.get("/user/me")).data, { notifyErrors: false });
 
-// ------------- Change Password Thunk -------------
 export const ChangePassword = createApiThunk("user/change-password", async (passwords) => {
   const { data } = await axios.post("/user/change-password", passwords);
   notifyResult(data);
   return data;
 });
 
-// ------------- Delete Account Thunks -------------
 export const SendDeletionCode = createApiThunk("user/deletion-code", async () => {
   const { data } = await axios.post("/user/deletion/code");
   notifyResult(data);
@@ -61,36 +62,24 @@ export const DeleteAccount = createApiThunk("user/delete-account", async (body, 
   return data;
 });
 
-// ------------- Search Friends Thunk -------------
 export const SearchFriends = createApiThunk(
   "friends/search",
   async ({ keyword, page = 0 }) => (await axios.get("/friends/search", { params: { search: keyword, page } })).data,
   { notifyErrors: false }
 );
 
-// ------------- Get Friends Thunk -------------
 export const GetFriends = createApiThunk("friends/get-friends", async () => (await axios.get("/friends/get-friends")).data, { notifyErrors: false });
 
-// ------------- Get Online Friends Thunk -------------
-export const GetOnlineFriends = createApiThunk(
-  "friends/online-friends",
-  async () => (await axios.get("/friends/online-friends")).data,
-  { notifyErrors: false }
-);
+export const GetOnlineFriends = createApiThunk("friends/online-friends", async () => (await axios.get("/friends/online-friends")).data, {
+  notifyErrors: false,
+});
 
-// ------------- Username -------------
-export const CheckUsername = createApiThunk(
-  "user/check-username",
-  async (username) => (await axios.get("/user/username", { params: { username } })).data,
-  { notifyErrors: false }
-);
+export const CheckUsername = createApiThunk("user/check-username", async (username) => (await axios.get("/user/username", { params: { username } })).data, {
+  notifyErrors: false,
+});
 
-export const UpdateUsername = createApiThunk(
-  "user/update-username",
-  async (username) => (await axios.put("/user/username", { username })).data
-);
+export const UpdateUsername = createApiThunk("user/update-username", async (username) => (await axios.put("/user/username", { username })).data);
 
-// ------------- Quick Reactions -------------
 // shown at once and put back if the server refuses
 export const UpdateQuickReactions = createApiThunk("user/quick-reactions", async (reactions, { dispatch, getState }) => {
   const before = getState().user.user.quickReactions;
@@ -103,7 +92,6 @@ export const UpdateQuickReactions = createApiThunk("user/quick-reactions", async
   }
 });
 
-// ------------- Game Audio -------------
 export const UpdateGameAudio = createApiThunk(
   "user/game-audio",
   async ({ gameId, effects, music }) => (await axios.put(`/user/game-audio/${gameId}`, { effects, music })).data

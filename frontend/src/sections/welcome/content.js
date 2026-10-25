@@ -1,14 +1,14 @@
 import {
-  ChatCircleDots,
-  CircleDashed,
-  ImageSquare,
-  Lightning,
-  LockSimple,
-  Palette,
-  ShieldCheck,
-  UserPlus,
-  UsersThree,
-} from "phosphor-react";
+  ChatCircleDotsIcon,
+  CircleDashedIcon,
+  ImageSquareIcon,
+  LightningIcon,
+  LockSimpleIcon,
+  PaletteIcon,
+  ShieldCheckIcon,
+  UserPlusIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react";
 
 import { COMMUNITY } from "@/config";
 
@@ -31,47 +31,47 @@ export const CONVERSATION = [
 
 export const FEATURES = [
   {
-    Icon: Lightning,
+    Icon: LightningIcon,
     title: "Messages in real time",
     body: "Every message arrives the instant it is sent. No refreshing, no waiting.",
   },
   {
-    Icon: LockSimple,
+    Icon: LockSimpleIcon,
     title: "End-to-end encrypted",
     body: "Messages, photos, videos, voice messages and statuses for friends are locked in your browser before they leave it, so only the people they are for can open them.",
   },
   {
-    Icon: UsersThree,
+    Icon: UsersThreeIcon,
     title: "Group chats",
     body: "Chat with up to 32 friends at once, mention anyone with @, and pin the messages that matter.",
   },
   {
-    Icon: ImageSquare,
+    Icon: ImageSquareIcon,
     title: "Photos, videos and voice messages",
     body: "Send photos and videos together as one gallery, record a voice message, share documents, or send a photo or video that opens only once.",
   },
   {
-    Icon: CircleDashed,
+    Icon: CircleDashedIcon,
     title: "Status",
     body: "Share a photo, a video or a few words with your friends for 24 hours, and see who has seen it.",
   },
   {
-    Icon: ChatCircleDots,
+    Icon: ChatCircleDotsIcon,
     title: "Typing and online status",
     body: "See when a friend is online, and when they are typing back to you.",
   },
   {
-    Icon: UserPlus,
+    Icon: UserPlusIcon,
     title: "Friend requests",
     body: "Find people, send a request, and hear about it the moment it is accepted.",
   },
   {
-    Icon: ShieldCheck,
+    Icon: ShieldCheckIcon,
     title: "Sign in your way",
     body: "Log in with your email or username and a password, a passkey, or your Google, GitHub or LinkedIn account.",
   },
   {
-    Icon: Palette,
+    Icon: PaletteIcon,
     title: "Make it yours",
     body: "Switch between dark and light mode, and pick one of six accent colours.",
   },
@@ -122,17 +122,14 @@ export const FAQS = [
   },
   {
     question: "Is Whisprl open source?",
-    answer:
-      "Yes. The full source code is on GitHub under the CC0 licence, so you can read it, run your own copy or build on it.",
+    answer: "Yes. The full source code is on GitHub under the CC0 licence, so you can read it, run your own copy or build on it.",
   },
   {
     question: "Does Whisprl work on my phone?",
-    answer:
-      "Yes. Whisprl works in any modern browser and fits phones, tablets and desktops alike.",
+    answer: "Yes. Whisprl works in any modern browser and fits phones, tablets and desktops alike.",
   },
   {
     question: "How do I start chatting?",
-    answer:
-      "Sign up with your email, or with Google, GitHub or LinkedIn. Then add your friends and start a conversation with any of them.",
+    answer: "Sign up with your email, or with Google, GitHub or LinkedIn. Then add your friends and start a conversation with any of them.",
   },
 ];

@@ -1,6 +1,5 @@
 import express from "express";
 
-// router imports
 import authRouter from "#src/routes/authRouter.js";
 import userRouter from "#src/routes/userRouter.js";
 import conversationRouter from "#src/routes/conversationRouter.js";

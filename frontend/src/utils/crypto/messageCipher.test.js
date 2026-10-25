@@ -236,7 +236,9 @@ test("the shared vectors open, so the Android app and the web stay in step", asy
 
   const opened = await Promise.all(
     messages.map(({ conversationId, keyId, iv, data, sealedIv, sealedData }) => {
-      const cipher = sealedIv ? { iv, data, senderKeyId: sender.keyId, keys: [{ keyId, iv: sealedIv, data: sealedData }] } : { iv, data, keyIds: [sender.keyId, keyId] };
+      const cipher = sealedIv
+        ? { iv, data, senderKeyId: sender.keyId, keys: [{ keyId, iv: sealedIv, data: sealedData }] }
+        : { iv, data, keyIds: [sender.keyId, keyId] };
       return openMessage({ sender: { _id: sender.id }, cipher }, { _id: conversationId, users: members });
     })
   );

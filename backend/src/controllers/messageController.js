@@ -19,58 +19,36 @@ import { expiryFor } from "#src/services/disappearingService.js";
 import { isGameId } from "#src/services/games/catalog.js";
 import { pushNewMessage } from "#src/services/pushService.js";
 
-// -------------------------- Attach Encrypted File --------------------------
-export const attachFile = async (req, res, next) => {
-  try {
-    const { conversation, message } = await attachSealedFile(req.params.message_id, req.user._id, req.file);
+export const attachFile = async (req, res) => {
+  const { conversation, message } = await attachSealedFile(req.params.message_id, req.user._id, req.file);
 
-    req.app.get("io").to(memberRooms(conversation)).emit("message_updated", message);
+  req.app.get("io").to(memberRooms(conversation)).emit("message_updated", message);
 
-    res.status(200).json({ status: "success", message });
-  } catch (error) {
-    next(error);
-  }
+  res.status(200).json({ status: "success", message });
 };
 
-// -------------------------- Get All Messages --------------------------
-export const getMessages = async (req, res, next) => {
-  try {
-    const conversation = await findMemberConversation(req.params.convo_id, req.user._id);
+export const getMessages = async (req, res) => {
+  const conversation = await findMemberConversation(req.params.convo_id, req.user._id);
 
-    const { before, after, around } = req.query;
-    const page = await getConvoMessages(conversation, req.user._id, { before, after, around });
+  const { before, after, around } = req.query;
+  const page = await getConvoMessages(conversation, req.user._id, { before, after, around });
 
-    res.status(200).json({ status: "success", ...page });
-  } catch (error) {
-    next(error);
-  }
+  res.status(200).json({ status: "success", ...page });
 };
 
-// -------------------------- Waiting Messages --------------------------
-export const getDeliverableMessages = async (req, res, next) => {
-  try {
-    const messages = await findDeliverableMessages(req.user._id);
-    res.status(200).json({ status: "success", messages });
-  } catch (error) {
-    next(error);
-  }
+export const getDeliverableMessages = async (req, res) => {
+  const messages = await findDeliverableMessages(req.user._id);
+  res.status(200).json({ status: "success", messages });
 };
 
-export const resealWaitingMessage = async (req, res, next) => {
-  try {
-    const { conversation, message } = await resealMessage(req.params.message_id, req.user._id, req.body.cipher);
+export const resealWaitingMessage = async (req, res) => {
+  const { conversation, message } = await resealMessage(req.params.message_id, req.user._id, req.body.cipher);
 
-    req.app.get("io").to(memberRooms(conversation)).emit("message_updated", message);
+  req.app.get("io").to(memberRooms(conversation)).emit("message_updated", message);
 
-    res.status(200).json({ status: "success", message });
-  } catch (error) {
-    next(error);
-  }
+  res.status(200).json({ status: "success", message });
 };
 
-// -------------------------------------------------------------------------
-
-// -------------------------- Socket Send Message --------------------------
 export const socketSendMessage = async (socket, payload, acknowledge) => {
   const { convo_id, clientId, cipher, franking, attachment, batch, replyTo, replyToAlbum, forwardOf, viewOnce, game } = payload;
   try {
@@ -104,7 +82,6 @@ export const socketSendMessage = async (socket, payload, acknowledge) => {
   }
 };
 
-// -------------------------- Socket Receipts --------------------------
 const emitReceipt = (socket, conversation_id, receipt, details = {}) =>
   socket.to(conversation_id).emit("receipts", {
     conversation_id,

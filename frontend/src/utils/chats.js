@@ -1,5 +1,4 @@
-export const peerOf = (conversation, meId) =>
-  conversation.users.find((member) => member._id !== meId) ?? conversation.users[0];
+export const peerOf = (conversation, meId) => conversation.users.find((member) => member._id !== meId) ?? conversation.users[0];
 
 export const identityOf = (conversation, meId) => {
   if (conversation.isGroup) return { name: conversation.name, avatar: conversation.picture };
@@ -9,14 +8,14 @@ export const identityOf = (conversation, meId) => {
 };
 
 // the gathered history with anything that arrived since it was gathered, oldest first and each message once
-export const withArrivals = (gathered, messages) =>
-  [...new Map([...(gathered?.messages ?? []), ...messages].map((message) => [message._id, message])).values()];
+export const withArrivals = (gathered, messages) => [
+  ...new Map([...(gathered?.messages ?? []), ...messages].map((message) => [message._id, message])).values(),
+];
 
 export const isMuted = (conversation) => Boolean(conversation.mutedUntil) && new Date(conversation.mutedUntil) > new Date();
 
 // a deleted chat stays out of the list until a message newer than the deletion brings it back
-export const isDeleted = ({ deletedAt, latestMessage }) =>
-  Boolean(deletedAt) && !(latestMessage && new Date(latestMessage.createdAt) > new Date(deletedAt));
+export const isDeleted = ({ deletedAt, latestMessage }) => Boolean(deletedAt) && !(latestMessage && new Date(latestMessage.createdAt) > new Date(deletedAt));
 
 // a live presence update outranks the status the chat list was loaded with
 export const isOnline = (person, onlineFriends) =>

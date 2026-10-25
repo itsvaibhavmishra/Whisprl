@@ -38,7 +38,8 @@ const landed = (grid, board, burst, seat) => {
   return { owners, orbs };
 };
 
-const isSameBoard = (one, other) => one.orbs.every((count, cell) => count === other.orbs[cell]) && one.owners.every((owner, cell) => owner === other.owners[cell]);
+const isSameBoard = (one, other) =>
+  one.orbs.every((count, cell) => count === other.orbs[cell]) && one.owners.every((owner, cell) => owner === other.owners[cell]);
 
 // the server decides what burst and where it stopped; this only replays the rounds it sent, and gives up rather than show something else
 export const framesOf = (before, after) => {

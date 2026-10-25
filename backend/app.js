@@ -1,45 +1,34 @@
 import express from "express";
-
-// security packages
 import cors from "cors";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
 import compression from "compression";
-import createHttpError from "http-errors"; // error handler
+import createHttpError from "http-errors";
 
-// folder/file imports
+import { plainBody } from "#src/middlewares/plainBody.js";
 import router from "#src/routes/index.js";
 import { allowedOrigins } from "#src/utils/allowedOrigins.js";
 import { reportError } from "#src/utils/errorReports.js";
 
-// creating express app
 const app = express();
 
-// Enable trust proxy
+// the host's proxy stands in front, and rate limits need the visitor's own address
 app.set("trust proxy", 1);
 
-// cors setup
 app.use(cors({ origin: allowedOrigins }));
-
-// parsing data to json
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(plainBody);
 
-// security middlewares, rate limits sit on each route
-app.use(helmet()); // general security
-app.use(mongoSanitize()); // sanitization for mongodb
-app.use(compression()); // gzip compression
+// rate limits sit on each route rather than here
+app.use(helmet());
+app.use(compression());
 
-// Index Route
 app.get("/", (req, res) => {
   res.send("Welcome to Whisprl Backend😺");
 });
 
-// using api routes
 app.use("/api", router);
 
-// -------http error handling-------
-app.use(async (req, res, next) => {
+app.use((req, res, next) => {
   next(createHttpError.NotFound("This route does not exist!"));
 });
 
@@ -49,10 +38,7 @@ const CLIENT_ERRORS = {
   CastError: 400,
 };
 
-const statusOf = (error) =>
-  error.status ||
-  CLIENT_ERRORS[error.name] ||
-  (error.code === 11000 ? 409 : 500);
+const statusOf = (error) => error.status || CLIENT_ERRORS[error.name] || (error.code === 11000 ? 409 : 500);
 
 const messageOf = (error, status) => {
   if (error.code === 11000) return "That already exists";
@@ -60,8 +46,7 @@ const messageOf = (error, status) => {
   return "Something went wrong, please try again";
 };
 
-// error handling
-app.use((error, req, res, next) => {
+app.use((error, req, res, _) => {
   const status = statusOf(error);
   if (status >= 500) {
     console.error(error);
@@ -73,11 +58,9 @@ app.use((error, req, res, next) => {
       status: "error",
       message: messageOf(error, status),
       // what the browser should do next, such as renew its token or log in again
-      ...(error.expose &&
-        typeof error.code === "string" && { code: error.code }),
+      ...(error.expose && typeof error.code === "string" && { code: error.code }),
     },
   });
 });
-// ---------------------------------
 
 export default app;

@@ -19,7 +19,7 @@ export const PLACEHOLDER_PROFILE = { firstName: "Whisprl user", lastName: "", av
 
 export const profileOf = (user) => Object.fromEntries(HIDDEN_PROFILE_FIELDS.map((field) => [field, user[field]]).filter(([, value]) => value !== undefined));
 
-export const isSuspended = (user) => Boolean(user.suspendedUntil) && user.suspendedUntil > new Date();
+const isSuspended = (user) => Boolean(user.suspendedUntil) && user.suspendedUntil > new Date();
 
 export const isShutOut = (user) => Boolean(user.bannedAt) || isSuspended(user);
 
@@ -53,9 +53,7 @@ const NOTICES = {
 
 // the action stands whether or not the email arrives, so a failed send is only logged
 const tellPerson = ({ email, firstName }, { subject, heading, body }, reason) =>
-  sendMail(email, subject, accountNoticeMail({ name: firstName, heading, body, reason })).catch(
-    (error) => console.error(`[moderation mail] ${error.message}`)
-  );
+  sendMail(email, subject, accountNoticeMail({ name: firstName, heading, body, reason })).catch((error) => console.error(`[moderation mail] ${error.message}`));
 
 // staff answer to the owner rather than to each other, so nobody here can act on another staff account
 const findTarget = async (actor, user_id) => {
@@ -130,10 +128,7 @@ export const banPerson = async (io, actor, user_id, { reason, reportId }) => {
   // an account already hidden, as one waiting to be deleted is, keeps the real profile it set aside
   const hiddenProfile = target.hiddenProfile ?? profileOf(target);
 
-  await UserModel.updateOne(
-    { _id: target._id },
-    { ...PLACEHOLDER_PROFILE, hiddenProfile, bannedAt: new Date(), $unset: { suspendedUntil: 1, username: 1 } }
-  );
+  await UserModel.updateOne({ _id: target._id }, { ...PLACEHOLDER_PROFILE, hiddenProfile, bannedAt: new Date(), $unset: { suspendedUntil: 1, username: 1 } });
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "banned", target: target._id, reason: given });
   await markReportActioned(actor, reportId);

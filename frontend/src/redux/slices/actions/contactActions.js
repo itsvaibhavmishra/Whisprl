@@ -8,13 +8,8 @@ import axios from "@/utils/axios";
 import { sealNote } from "@/utils/crypto/noteCipher";
 import { notify } from "@/utils/notify";
 
-// ------------- Get User Data Thunk -------------
-export const GetUserData = createApiThunk(
-  "user/getUserData",
-  async (userId) => (await axios.get("/user/getUserData", { params: { userId } })).data
-);
+export const GetUserData = createApiThunk("user/getUserData", async (userId) => (await axios.get("/user/getUserData", { params: { userId } })).data);
 
-// ------------- Remove Friend Thunk -------------
 export const RemoveFriend = createApiThunk("friends/remove-friend", async (friend_id, { dispatch }) => {
   const { data } = await axios.post("/friends/remove-friend", { friend_id });
   dispatch(removeFriend(data));
@@ -22,31 +17,23 @@ export const RemoveFriend = createApiThunk("friends/remove-friend", async (frien
   return data;
 });
 
-// ------------- Find Profile Thunk -------------
-export const FindProfile = createApiThunk(
-  "user/findProfile",
-  async (username) => (await axios.get("/user/getUserData", { params: { username } })).data,
-  { notifyErrors: false }
-);
+export const FindProfile = createApiThunk("user/findProfile", async (username) => (await axios.get("/user/getUserData", { params: { username } })).data, {
+  notifyErrors: false,
+});
 
-// ------------- Find Everyone Thunk -------------
 export const FindEveryone = createApiThunk(
   "user/people",
   async ({ keyword, page = 0 }) => (await axios.get("/user/people", { params: { search: keyword, page } })).data
 );
 
-// ------------- Suggestions Thunks -------------
 export const GetSuggestions = createApiThunk("friends/suggestions", async () => (await axios.get("/friends/suggestions")).data, { notifyErrors: false });
 
 export const HideSuggestion = createApiThunk("friends/hide-suggestion", async (userId) => (await axios.delete(`/friends/suggestions/${userId}`)).data);
 
-// ------------- Get Requests Thunk -------------
 export const GetRequests = createApiThunk("friends/requests", async () => (await axios.get("/friends/requests")).data, { notifyErrors: false });
 
-// ------------- Requests Seen Thunk -------------
 export const SeeRequests = createApiThunk("friends/requests/seen", async () => (await axios.put("/friends/requests/seen")).data, { notifyErrors: false });
 
-// ------------- Search Users Thunk -------------
 export const SearchForUsers = createApiThunk(
   "user/search",
   async ({ keyword, page = 0 }) => (await axios.get("/user/search", { params: { search: keyword, page } })).data,
@@ -60,7 +47,6 @@ const sealedNoteFor = async (userId, text, meId) => {
   return { conversationId: data.conversationId, cipher };
 };
 
-// ------------- Send Request Thunk -------------
 export const SendRequest = createApiThunk("friends/send-request", async ({ userId, text = "" }, { getState }) => {
   const words = text.trim();
   const note = words ? await sealedNoteFor(userId, words, getState().user.user._id) : undefined;
@@ -69,14 +55,12 @@ export const SendRequest = createApiThunk("friends/send-request", async ({ userI
   return data;
 });
 
-// ------------- Cancel Request Thunk -------------
 export const CancelRequest = createApiThunk("friends/cancel-request", async (receiver_id) => {
   const { data } = await axios.post("/friends/cancel-request", { receiver_id });
   notifyResult(data);
   return data;
 });
 
-// ------------- Accept/Reject Request Thunk -------------
 const DECLINE_GRACE_MS = 5000;
 const heldDeclines = new Map();
 

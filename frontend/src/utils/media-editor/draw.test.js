@@ -47,6 +47,14 @@ test("a neon tap gets its glow and its bright core, both filled", () => {
 
 test("a drawn line is still stroked through its points", () => {
   const context = recordingContext();
-  drawStrokes(context, [{ ...tap("Pen"), points: [[0.1, 0.1], [0.4, 0.2]] }]);
+  drawStrokes(context, [
+    {
+      ...tap("Pen"),
+      points: [
+        [0.1, 0.1],
+        [0.4, 0.2],
+      ],
+    },
+  ]);
   expect(namesOf(context.calls)).toEqual(["moveTo", "lineTo", "stroke"]);
 });

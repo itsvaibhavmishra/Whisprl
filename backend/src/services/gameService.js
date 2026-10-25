@@ -48,7 +48,6 @@ const tableOf = (session) => ({ ...session.options, players: session.seats.lengt
 // who is sitting where, so a game can tell the table changed without being told who anyone is
 const seatingOf = (seats) => seats.map((seat) => (seat.user ? String(seat.user) : seat.bot ? "bot" : "")).join("|");
 
-// -------------------------- Game rooms --------------------------
 // who is watching cannot outlive a restart, so game rooms live in memory while the session itself is saved
 const gameRooms = new Map();
 
@@ -106,7 +105,6 @@ const assertNotCoolingDown = (gameRoom, userId) => {
   if (until) throw createHttpError.BadRequest(`You can sit again in ${Math.ceil((until - Date.now()) / 1000)} seconds`);
 };
 
-// -------------------------- Views --------------------------
 const seatView = ({ user, ready, locked, invited, bot, away }) => ({
   user: user ? String(user) : null,
   ready: Boolean(ready),
@@ -148,13 +146,30 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
   },
 });
 
+// a game is still someone's while it is being played and their seat is not the bot's, which it becomes when they leave it
+export const ongoingFor = (session, userId) =>
+  session?.status === "playing" && session.seats.some((seat) => String(seat.user) === String(userId) && !seat.bot)
+    ? { conversationId: String(session.conversation), game: session.game }
+    : null;
+
 const broadcast = async (io, gameRoom, conversation, session) => {
   gameRoom.revision += 1;
   const sockets = await io.in(audienceOf(conversation._id)).fetchSockets();
   sockets.forEach((socket) => socket.emit("game_state", viewFor(conversation, session, gameRoom, socket.data.userId)));
+  // every member hears whether this is a game of theirs, so the app's main pages can offer the way back without watching it
+  memberRooms(conversation).forEach((userId) =>
+    io.to(userId).emit("my_game", { conversationId: String(conversation._id), game: ongoingFor(session, userId)?.game ?? null })
+  );
 };
 
-// -------------------------- Turns --------------------------
+export const ongoingGameOf = async (userId) => {
+  const session = await GameSessionModel.findOne({ status: "playing", seats: { $elemMatch: { user: userId, bot: { $ne: true } } } })
+    .sort({ updatedAt: -1 })
+    .select("conversation game status seats")
+    .lean();
+  return ongoingFor(session, userId);
+};
+
 const save = (session) => GameSessionModel.replaceOne({ conversation: session.conversation }, session, { upsert: true });
 
 const loadSession = (conversationId) => GameSessionModel.findOne({ conversation: conversationId }).lean();
@@ -230,10 +245,13 @@ const syncClock = (io, gameRoom, conversationId, session) => {
   const deadline = deadlineOf(session);
   if (!deadline) return;
 
-  gameRoom.clock = setTimeout(() => {
-    gameRoom.clock = null;
-    reachDeadline(io, conversationId, deadline).catch((error) => console.error(`[games] ${error.message}`));
-  }, Math.max(0, deadline - Date.now()));
+  gameRoom.clock = setTimeout(
+    () => {
+      gameRoom.clock = null;
+      reachDeadline(io, conversationId, deadline).catch((error) => console.error(`[games] ${error.message}`));
+    },
+    Math.max(0, deadline - Date.now())
+  );
 };
 
 const reachDeadline = (io, conversationId, deadline) =>
@@ -248,7 +266,6 @@ const reachDeadline = (io, conversationId, deadline) =>
     await broadcast(io, gameRoom, await ConversationModel.findById(conversationId), next);
   });
 
-// -------------------------- Permissions --------------------------
 const assertGroupManager = (conversation, userId) => {
   if (!conversation.isGroup) throw createHttpError.BadRequest("Only groups manage their seats");
   assertManager(conversation, userId);
@@ -273,7 +290,6 @@ const requirePlaying = (session) => {
   return session;
 };
 
-// -------------------------- Actions --------------------------
 // someone already playing elsewhere chooses to leave that game first, so this only says where
 const assertNotSeatedElsewhere = async (conversation, userId) => {
   const elsewhere = await GameSessionModel.findOne({
@@ -310,7 +326,15 @@ const close = ({ conversation, session, userId }) => {
 const cancel = ({ conversation, session, userId }) => {
   assertGroupManager(conversation, userId);
   requirePlaying(session);
-  return { ...session, status: "lobby", state: undefined, turnStartsAt: undefined, turnEndsAt: undefined, result: undefined, seats: backToLobby(session.seats) };
+  return {
+    ...session,
+    status: "lobby",
+    state: undefined,
+    turnStartsAt: undefined,
+    turnEndsAt: undefined,
+    result: undefined,
+    seats: backToLobby(session.seats),
+  };
 };
 
 const sitDown = async ({ conversation, session, gameRoom, userId, details }) => {
@@ -449,10 +473,13 @@ const announceTable = async (io, conversation, userId, type, before, after) => {
   // between two people, opening a game is asking the other to play
   const [guest] = memberRooms(members, userId);
   io.to(guest).emit("game_invited", { conversationId: String(members._id), game: game.id, from: userId });
-  await pushGameInvite(members, members.users.find((member) => String(member._id) === userId), game.name);
+  await pushGameInvite(
+    members,
+    members.users.find((member) => String(member._id) === userId),
+    game.name
+  );
 };
 
-// -------------------------- Entry points --------------------------
 const playableConversation = async (conversationId, userId) => {
   const conversation = await findMemberConversation(conversationId, userId);
   await assertCanMessage(conversation, userId);
@@ -505,7 +532,8 @@ export const watchGame = async (io, socket, conversationId) => {
   });
 };
 
-const announceLookers = (io, conversationId, gameRoom) => io.to(audienceOf(conversationId)).emit("game_lookers", { conversationId, users: lookersOf(gameRoom) });
+const announceLookers = (io, conversationId, gameRoom) =>
+  io.to(audienceOf(conversationId)).emit("game_lookers", { conversationId, users: lookersOf(gameRoom) });
 
 export const stopWatching = (io, socket) => {
   const id = socket.data.watching;
@@ -535,8 +563,8 @@ export const lookAtGame = (io, socket, isLooking) => {
   });
 };
 
-// the emoji anyone at a game can throw; they are shown and gone, never saved
-const REACTIONS = ["😂", "😮", "😍", "👏", "🔥", "😢", "😡", "👍"];
+// the emoji anyone at a game can throw, the same nine the tray offers; they are shown and gone, never saved
+const REACTIONS = ["😂", "😭", "😜", "😘", "😎", "😡", "😱", "🫠", "🥳"];
 
 export const reactInGame = async (socket, emoji) => {
   const id = socket.data.watching;

@@ -17,11 +17,9 @@ const touchAt = (pointerId, clientX, clientY) => ({
 });
 
 const setup = () => {
-  const onStrokeEnd = jest.fn();
-  const onLiveStroke = jest.fn();
-  const { result } = renderHook(() =>
-    useStageGestures({ size: SIZE, layers: [], brush: BRUSH, onLiveStroke, onStrokeEnd, onLayerChange: jest.fn() })
-  );
+  const onStrokeEnd = vi.fn();
+  const onLiveStroke = vi.fn();
+  const { result } = renderHook(() => useStageGestures({ size: SIZE, layers: [], brush: BRUSH, onLiveStroke, onStrokeEnd, onLayerChange: vi.fn() }));
   return { ...result.current, onStrokeEnd };
 };
 

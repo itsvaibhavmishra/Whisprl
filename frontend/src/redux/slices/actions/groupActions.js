@@ -4,8 +4,7 @@ import { groupUpdated } from "@/redux/slices/chatSlice";
 import axios from "@/utils/axios";
 
 // the same update whether it came back from this tab's request or from another member's change
-export const GroupUpdated = (group) => (dispatch, getState) =>
-  dispatch(groupUpdated({ group, userId: getState().user.user._id }));
+export const GroupUpdated = (group) => (dispatch, getState) => dispatch(groupUpdated({ group, userId: getState().user.user._id }));
 
 const changeGroup = (type, request, message) =>
   createApiThunk(type, async (arg, { dispatch }) => {
@@ -15,7 +14,6 @@ const changeGroup = (type, request, message) =>
     return data;
   });
 
-// ------------- Create Group -------------
 export const CreateGroup = createApiThunk("groups/create", async ({ name, memberIds }, { dispatch }) => {
   const { data } = await axios.post("/groups", { name, member_ids: memberIds });
   dispatch(GroupUpdated(data.group));
@@ -23,7 +21,6 @@ export const CreateGroup = createApiThunk("groups/create", async ({ name, member
   return data;
 });
 
-// ------------- Name and Photo -------------
 const pictureOf = async (blobUrl) => new File([await (await fetch(blobUrl)).blob()], "group.jpg", { type: "image/jpeg" });
 
 export const UpdateGroup = changeGroup(
@@ -38,7 +35,6 @@ export const UpdateGroup = changeGroup(
   "Group updated"
 );
 
-// ------------- Members -------------
 export const AddGroupMembers = changeGroup(
   "groups/add-members",
   ({ groupId, memberIds }) => axios.post(`/groups/${groupId}/members`, { member_ids: memberIds }),
@@ -51,7 +47,6 @@ export const RemoveGroupMember = changeGroup("groups/remove-member", removeMembe
 
 export const LeaveGroup = changeGroup("groups/leave", removeMember, "You left the group");
 
-// ------------- Admins -------------
 export const SetGroupAdmin = changeGroup("groups/set-admin", ({ groupId, userId, makeAdmin }) =>
   makeAdmin ? axios.put(`/groups/${groupId}/admins/${userId}`) : axios.delete(`/groups/${groupId}/admins/${userId}`)
 );

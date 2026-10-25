@@ -1,16 +1,15 @@
 const DATABASE = "whisprl";
 const DEVICE_KEYS = "device-keys";
 const SESSION_KEYS = "session-keys";
-const VERSION = 2;
+const SAVED_CHATS = "saved-chats";
+const VERSION = 3;
 
 const openDatabase = () =>
   new Promise((resolve, reject) => {
     const request = indexedDB.open(DATABASE, VERSION);
     request.onupgradeneeded = () => {
       const database = request.result;
-      [DEVICE_KEYS, SESSION_KEYS]
-        .filter((name) => !database.objectStoreNames.contains(name))
-        .forEach((name) => database.createObjectStore(name));
+      [DEVICE_KEYS, SESSION_KEYS, SAVED_CHATS].filter((name) => !database.objectStoreNames.contains(name)).forEach((name) => database.createObjectStore(name));
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -50,3 +49,9 @@ export const forgetSessionKey = (userId, endedSessionId) =>
     };
     return request;
   });
+
+export const loadSavedChats = (userId) => inStore(SAVED_CHATS, "readonly", (store) => store.get(userId));
+
+export const saveSavedChats = (userId, saved) => inStore(SAVED_CHATS, "readwrite", (store) => store.put(saved, userId));
+
+export const forgetSavedChats = (userId) => inStore(SAVED_CHATS, "readwrite", (store) => store.delete(userId));

@@ -3,7 +3,7 @@ import createHttpError from "http-errors";
 import { coloursFor } from "#src/services/games/colours.js";
 import { MARBLES, START } from "#src/services/games/jackaroo/board.js";
 import { newDeck, shuffled } from "#src/services/games/jackaroo/cards.js";
-import { keyOf, knocksOut, losingPlays, moveMarble, other, placeOf, playsForTurn, settlesHome } from "#src/services/games/jackaroo/moves.js";
+import { blockerOf, keyOf, knocksOut, losingPlays, moveMarble, other, placeOf, playsForTurn, settlesHome } from "#src/services/games/jackaroo/moves.js";
 
 // each deck is dealt over three rounds of these sizes, then a fresh one comes in
 const ROUND_SIZES = [4, 4, 5];
@@ -124,10 +124,13 @@ export const play = (previous, seat, move) => {
   chosen.moves?.forEach((step) => moveMarble(state, step));
   if (chosen.kind === "swap") swapMarbles(state, chosen.swap);
 
+  // where the taken card sat, so its owner's hand can show it leaving
   let lost = null;
+  let lostAt = null;
   if (chosen.kind === "takeCard") {
     const hand = state.players[other(seat)].hand;
     if (!Number.isInteger(move.taken) || move.taken < 0 || move.taken >= hand.length) throw createHttpError.BadRequest("Pick one of their cards");
+    lostAt = move.taken;
     [lost] = hand.splice(move.taken, 1);
     toPile(state, lost, other(seat), true);
   }
@@ -141,11 +144,11 @@ export const play = (previous, seat, move) => {
   // a knock-out or a marble settling in the deepest free hole of its home earns one more card, played straight away
   if (knocksOut(chosen) || settlesHome(state, chosen, seat)) {
     state.players[seat].hand.push(drawCard(state));
-    return record(state, seat, chosen, { bonus: true, lost });
+    return record(state, seat, chosen, { bonus: true, lost, lostAt });
   }
   // the red queen's victim loses their turn along with the card
   const turnEnds = chosen.kind === "takeCard" ? other(seat) : seat;
-  return record(state, seat, chosen, { lost, dealt: passTurn(state, turnEnds) });
+  return record(state, seat, chosen, { lost, lostAt, dealt: passTurn(state, turnEnds) });
 };
 
 // what the round's deal looks like from the table: how many cards the deck held before it, and how many each player got
@@ -190,6 +193,7 @@ export const viewFor = (state, seat) => {
     round: state.round,
     deal: dealOf(state),
     marbles: state.players.map(({ marbles }) => marbles),
+    blockedHomes: [0, 1].filter((owner) => blockerOf(state, owner)),
     hands: state.players.map(({ hand }) => hand.length),
     hand: isPlaying ? state.players[seat].hand : [],
     pile: state.pile,

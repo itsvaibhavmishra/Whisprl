@@ -1,8 +1,7 @@
 // a sender who closed the tab mid-upload never finishes, so after this the file is shown as not sent
 const UPLOAD_GIVE_UP = 15 * 60 * 1000;
 
-export const hasUploadStalled = (message) =>
-  message.attachment?.status === "uploading" && Date.now() - new Date(message.createdAt).getTime() > UPLOAD_GIVE_UP;
+const hasUploadStalled = (message) => message.attachment?.status === "uploading" && Date.now() - new Date(message.createdAt).getTime() > UPLOAD_GIVE_UP;
 
 // one shape for every file a bubble shows, whether it was sent encrypted or as a plain file before
 export const filesOf = (message) => {

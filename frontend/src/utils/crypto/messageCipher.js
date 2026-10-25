@@ -13,6 +13,15 @@ import { decodePayload } from "@/utils/messagePayload";
 
 let deviceKeys = null;
 const conversationKeys = new Map();
+// chats are fetched while this device's keys are still being checked, and wait for that before decrypting anything
+let keysChecked = Promise.resolve();
+
+export const trackKeyCheck = (check) => {
+  keysChecked = check.catch(() => null);
+  return check;
+};
+
+export const whenKeysChecked = () => keysChecked;
 
 export const setDeviceKeys = (keys) => {
   deviceKeys = keys;
@@ -21,13 +30,10 @@ export const setDeviceKeys = (keys) => {
 
 const currentKeyOf = (user) => user?.publicKeys?.at(-1) ?? null;
 
-const peerOf = (conversation, userId) =>
-  conversation.users.find((member) => member._id !== userId) ?? conversation.users[0];
+const peerOf = (conversation, userId) => conversation.users.find((member) => member._id !== userId) ?? conversation.users[0];
 
 const findPublicKey = (conversation, keyId) =>
-  [...conversation.users, ...(conversation.formerUsers ?? [])]
-    .flatMap((member) => member.publicKeys ?? [])
-    .find((entry) => entry.keyId === keyId);
+  [...conversation.users, ...(conversation.formerUsers ?? [])].flatMap((member) => member.publicKeys ?? []).find((entry) => entry.keyId === keyId);
 
 const conversationKeyFor = (conversation, peerKey) => {
   const cacheKey = `${conversation._id}:${deviceKeys.keyId}:${peerKey.keyId}`;
@@ -104,11 +110,13 @@ export const openMessage = async (message, conversation, bind) => {
 export const encryptReaction = (emoji, message, conversation, userId, isForAlbum = false) =>
   encryptMessage(emoji, conversation, userId, reactionBinding(message, isForAlbum));
 
+export const readableText = (plaintext) => {
+  const { text, mentions, contact, statusQuote, emojiScale } = decodePayload(plaintext);
+  return { message: text, mentions, contact, statusQuote, emojiScale, plaintext };
+};
+
 const readableOf = (message, plaintext) => {
-  if (!message.attachment) {
-    const { text, mentions, contact, statusQuote, emojiScale } = decodePayload(plaintext);
-    return { message: text, mentions, contact, statusQuote, emojiScale, plaintext };
-  }
+  if (!message.attachment) return readableText(plaintext);
   const { caption, file } = JSON.parse(plaintext);
   return { message: caption ?? "", file, plaintext };
 };

@@ -13,7 +13,9 @@ const SUGGESTION_FIELDS = "firstName lastName username avatar cover coverStyle a
 const linksOf = async (user) => {
   const others = user.friends.filter((friend_id) => !friend_id.equals(user._id));
   const [friends, groups] = await Promise.all([
-    UserModel.find({ _id: { $in: others } }).select("firstName friends").lean(),
+    UserModel.find({ _id: { $in: others } })
+      .select("firstName friends")
+      .lean(),
     ConversationModel.find({ isGroup: true, users: user._id }).select("name users").lean(),
   ]);
 
@@ -31,10 +33,17 @@ const linksOf = async (user) => {
 const byMostLinks = (one, other) => other.friends.length - one.friends.length || other.groups.length - one.groups.length;
 
 const withoutOpenRequests = async (user, ids) => {
-  const eitherWay = { $or: [{ sender: user._id, recipient: { $in: ids } }, { sender: { $in: ids }, recipient: user._id }] };
+  const eitherWay = {
+    $or: [
+      { sender: user._id, recipient: { $in: ids } },
+      { sender: { $in: ids }, recipient: user._id },
+    ],
+  };
   const [requests, cooldowns] = await Promise.all([
     FriendRequestModel.find(eitherWay).select("sender recipient").lean(),
-    RequestCooldownModel.find({ ...eitherWay, until: { $gt: new Date() } }).select("sender recipient").lean(),
+    RequestCooldownModel.find({ ...eitherWay, until: { $gt: new Date() } })
+      .select("sender recipient")
+      .lean(),
   ]);
   const taken = new Set([...requests, ...cooldowns].flatMap(({ sender, recipient }) => [String(sender), String(recipient)]));
   return ids.filter((person_id) => !taken.has(person_id));
@@ -55,7 +64,12 @@ export const suggestionsFor = async (user) => {
     .sort((one, other) => byMostLinks(links.get(one), links.get(other)))
     .slice(0, CANDIDATE_LIMIT);
 
-  const people = await UserModel.find({ _id: { $in: await withoutOpenRequests(user, ranked) }, verified: true, deletion: { $exists: false }, blocked: { $ne: user._id } })
+  const people = await UserModel.find({
+    _id: { $in: await withoutOpenRequests(user, ranked) },
+    verified: true,
+    deletion: { $exists: false },
+    blocked: { $ne: user._id },
+  })
     .select(SUGGESTION_FIELDS)
     .lean();
 

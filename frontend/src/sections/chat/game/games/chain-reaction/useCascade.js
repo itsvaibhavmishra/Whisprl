@@ -28,10 +28,13 @@ const useCascade = (state, isStill) => {
     const { seat } = state.lastMove;
     setShown({ board: frames[0], flight: null });
     const timers = rounds.map((burst, round) =>
-      setTimeout(() => {
-        playGameSound("pop", round);
-        setShown({ board: emptied(state, frames[round], burst), flight: { burst, seat, ms: roundMs, round } });
-      }, PLACE_MS + round * roundMs)
+      setTimeout(
+        () => {
+          playGameSound("pop", round);
+          setShown({ board: emptied(state, frames[round], burst), flight: { burst, seat, ms: roundMs, round } });
+        },
+        PLACE_MS + round * roundMs
+      )
     );
     timers.push(setTimeout(() => setShown({ board: state, flight: null }), PLACE_MS + rounds.length * roundMs));
     return () => timers.forEach(clearTimeout);

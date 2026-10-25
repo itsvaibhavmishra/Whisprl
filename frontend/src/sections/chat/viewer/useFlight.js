@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { animate, useMotionValue, useReducedMotion } from "framer-motion";
+import { animate, useMotionValue, useReducedMotion } from "motion/react";
 
 const FLIGHT = { type: "spring", stiffness: 380, damping: 36 };
 const STILL = { duration: 0 };
@@ -12,7 +12,12 @@ const isOnScreen = (rect) => Boolean(rect?.width) && rect.bottom > 0 && rect.top
 const restingBoxOf = (frame) => {
   const slide = frame.offsetParent;
   const { left, top } = slide.offsetParent.getBoundingClientRect();
-  return { left: left + slide.offsetLeft + frame.offsetLeft, top: top + slide.offsetTop + frame.offsetTop, width: frame.offsetWidth, height: frame.offsetHeight };
+  return {
+    left: left + slide.offsetLeft + frame.offsetLeft,
+    top: top + slide.offsetTop + frame.offsetTop,
+    width: frame.offsetWidth,
+    height: frame.offsetHeight,
+  };
 };
 
 const offsetsOver = (tile, box) => ({

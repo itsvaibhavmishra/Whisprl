@@ -9,5 +9,4 @@ export const createSessionKeys = async () => {
   return { privateKey, encodedPublicKey: toBase64(await crypto.subtle.exportKey("spki", publicKey)) };
 };
 
-export const signChallenge = async (privateKey, challenge) =>
-  toBase64(await crypto.subtle.sign(SIGNATURE, privateKey, encodeText(challenge)));
+export const signChallenge = async (privateKey, challenge) => toBase64(await crypto.subtle.sign(SIGNATURE, privateKey, encodeText(challenge)));
