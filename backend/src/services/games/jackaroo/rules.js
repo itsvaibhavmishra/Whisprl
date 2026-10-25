@@ -3,7 +3,7 @@ import createHttpError from "http-errors";
 import { coloursFor } from "#src/services/games/colours.js";
 import { MARBLES, START } from "#src/services/games/jackaroo/board.js";
 import { newDeck, shuffled } from "#src/services/games/jackaroo/cards.js";
-import { keyOf, knocksOut, losingPlays, moveMarble, other, placeOf, playsForTurn, settlesHome } from "#src/services/games/jackaroo/moves.js";
+import { blockerOf, keyOf, knocksOut, losingPlays, moveMarble, other, placeOf, playsForTurn, settlesHome } from "#src/services/games/jackaroo/moves.js";
 
 // each deck is dealt over three rounds of these sizes, then a fresh one comes in
 const ROUND_SIZES = [4, 4, 5];
@@ -193,6 +193,7 @@ export const viewFor = (state, seat) => {
     round: state.round,
     deal: dealOf(state),
     marbles: state.players.map(({ marbles }) => marbles),
+    blockedHomes: [0, 1].filter((owner) => blockerOf(state, owner)),
     hands: state.players.map(({ hand }) => hand.length),
     hand: isPlaying ? state.players[seat].hand : [],
     pile: state.pile,

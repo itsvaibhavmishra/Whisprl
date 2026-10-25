@@ -251,6 +251,27 @@ export const Cross = ({ x, y }) => (
   </Box>
 );
 
+// a home shut by the other player's marble at its door: every empty hole in it is crossed out until that marble goes
+export const ShutHome = memo(({ seats, marbles, isTurned }) =>
+  seats.flatMap((seat) =>
+    layout.homes[seat]
+      .map((_, slot) => slot)
+      .filter((slot) => !marbles[seat].some((place) => place.at === "home" && place.slot === slot))
+      .map((slot) => (
+        <Box
+          key={`${seat}-${slot}`}
+          component="svg"
+          viewBox="0 0 20 20"
+          aria-hidden
+          sx={{ ...sprite, ...centredAt(pointOf({ at: "home", slot }, seat, isTurned), SPRITES.marble * 0.6), overflow: "visible" }}
+        >
+          <path d="M5 5L15 15M15 5L5 15" stroke="rgba(255, 240, 215, 0.55)" strokeWidth={5} strokeLinecap="round" />
+          <path d="M5 5L15 15M15 5L5 15" stroke="#4a2a14" strokeWidth={2.8} strokeLinecap="round" />
+        </Box>
+      ))
+  )
+);
+
 const shimmer = keyframes`0%, 100% { transform: scale(0.92); opacity: 0.85; } 50% { transform: scale(1.12); opacity: 1; }`;
 const sheen = keyframes`from { transform: rotate(0deg); } to { transform: rotate(360deg); }`;
 const STILL = { "@media (prefers-reduced-motion: reduce)": { animation: "none" } };

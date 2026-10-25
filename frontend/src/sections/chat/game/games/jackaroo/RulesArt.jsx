@@ -4,7 +4,7 @@ import art from "@/sections/chat/game/games/jackaroo/art";
 import CardFace from "@/sections/chat/game/games/jackaroo/CardFace";
 import { centredAt, pointOf, SPRITES } from "@/sections/chat/game/games/jackaroo/geometry";
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
-import { Cross, Marks, Swirls } from "@/sections/chat/game/games/jackaroo/Pieces";
+import { Cross, Marks, ShutHome, Swirls } from "@/sections/chat/game/games/jackaroo/Pieces";
 
 // you play blue from the bottom against red, as the design's screens show it
 const YOU = 4;
@@ -74,6 +74,15 @@ const SCENES = {
       [track(45), YOU],
     ],
     arrow: [track(45), home(1)],
+  },
+  shut: {
+    crop: { x: 380, y: 585, width: 240, height: 230 },
+    marbles: [
+      [home(3), YOU],
+      [track(46), THEM],
+      [track(43), YOU],
+    ],
+    shut: true,
   },
 };
 
@@ -169,6 +178,7 @@ const BoardWindow = ({ scene }) => {
         ))}
         {scene.arrow && <Arrow from={[scene.arrow[0], 0]} to={[scene.arrow[1], 0]} crop={crop} />}
         {scene.knockout && <Cross {...at(scene.knockout, 1)} />}
+        {scene.shut && <ShutHome seats={[0]} marbles={[scene.marbles.filter(([, tone]) => tone === YOU).map(([place]) => place), []]} isTurned={false} />}
       </Box>
     </Box>
   );
