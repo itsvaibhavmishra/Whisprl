@@ -15,6 +15,15 @@ test("players level on wins, draws and games share a place, and the next place s
   expect(standingsOf(rows, "dots-and-boxes").map(({ place }) => place)).toEqual([1, 1, 3]);
 });
 
+test("you come first among players level with you, whichever order the server sent", () => {
+  const rows = [rowOf("riya", "dots-and-boxes", 3, 1, 7), rowOf("ava", "dots-and-boxes", 3, 1, 7), rowOf("ben", "dots-and-boxes", 1, 0, 7)];
+  expect(standingsOf(rows, "dots-and-boxes", "ava").map(({ user, place }) => [user, place])).toEqual([
+    ["ava", 1],
+    ["riya", 1],
+    ["ben", 3],
+  ]);
+});
+
 test("the same wins over fewer games still ranks ahead", () => {
   const rows = [rowOf("ava", "tic-tac-toe", 4, 0, 5), rowOf("riya", "tic-tac-toe", 4, 0, 9)];
   expect(standingsOf(rows, "tic-tac-toe").map(({ place }) => place)).toEqual([1, 2]);
