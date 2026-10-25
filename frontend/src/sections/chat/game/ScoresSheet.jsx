@@ -167,7 +167,7 @@ const NoScores = ({ game }) => (
   </Stack>
 );
 
-const Scores = (props) => {
+export const Scores = (props) => {
   if (!props.standings.length) return <NoScores game={props.game} />;
   if (props.standings.length === 2) return <HeadToHead {...props} />;
   return (
@@ -194,7 +194,7 @@ const ScoresSheet = ({ conversation, game, onClose }) => {
     <GameSheet theme={game.theme} title={`${game.name} leaderboard`} onClose={onClose}>
       <Box sx={{ minHeight: 0, overflowY: "auto", pt: 1, pb: 1.5 }}>
         {isLoaded ? (
-          <Scores standings={standingsOf(leaderboard.rows, game.id)} game={game} conversation={conversation} meId={meId} />
+          <Scores standings={standingsOf(leaderboard.rows, game.id, meId)} game={game} conversation={conversation} meId={meId} />
         ) : (
           <Box sx={{ display: "grid", placeItems: "center", py: 6 }}>{isLoading && <CircularProgress size={26} sx={{ color: game.theme.accent }} />}</Box>
         )}
