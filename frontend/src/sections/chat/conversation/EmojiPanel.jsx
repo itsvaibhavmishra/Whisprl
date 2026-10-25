@@ -18,6 +18,12 @@ const FLING_SAMPLE_MS = 80;
 const INPUT_GRACE_MS = 300;
 // how far past the list's top a scroll up has to carry before the panel goes back to its own height
 const PULL_BACK = 60;
+// above a keyboard, room for the search and a few rows of what it finds
+const SEARCHING_HEIGHT = 240;
+// a release moving faster than this, in pixels a millisecond, goes the way it was flicked whatever distance it covered
+const FLICK_SPEED = 0.35;
+// only the last moments of a drag say how fast it was let go
+const RELEASE_SAMPLE_MS = 100;
 
 // the conversation above gives up its room as the panel grows, so how far it can go is read from where it sits now
 const tallestOf = (panel, baseHeight) => {
@@ -25,7 +31,15 @@ const tallestOf = (panel, baseHeight) => {
   return Math.max(baseHeight, height + top - KEEP_ABOVE);
 };
 
-const EmojiPanel = ({ baseHeight, autoFocus, pinned, onSelect, onClose }) => {
+// a finger that stopped before lifting carries no speed, so the release goes by where the panel was left
+const upwardSpeedAt = (points, releasedAt) => {
+  const recent = points.filter((point) => releasedAt - point.time < RELEASE_SAMPLE_MS);
+  if (recent.length < 2) return 0;
+  const [first, last] = [recent[0], recent.at(-1)];
+  return (first.y - last.y) / Math.max(last.time - first.time, 1);
+};
+
+const EmojiPanel = ({ baseHeight, isCompact, autoFocus, pinned, onSelect, onSearchingChange, onClose }) => {
   const [height, setHeight] = useState(baseHeight);
   const [isDragging, setIsDragging] = useState(false);
   const drag = useRef(null);
@@ -97,28 +111,38 @@ const EmojiPanel = ({ baseHeight, autoFocus, pinned, onSelect, onClose }) => {
 
   const start = (event) => {
     event.currentTarget.setPointerCapture(event.pointerId);
-    drag.current = { startY: event.clientY, startHeight: height, tallest: tallestOf(panelRef.current, baseHeight) };
+    const point = { y: event.clientY, time: event.timeStamp };
+    drag.current = { startY: event.clientY, startHeight: height, tallest: tallestOf(panelRef.current, baseHeight), points: [point] };
     setIsDragging(true);
   };
   const move = (event) => {
     if (!drag.current) return;
+    const recent = drag.current.points.filter((point) => event.timeStamp - point.time < RELEASE_SAMPLE_MS);
+    drag.current.points = [...recent, { y: event.clientY, time: event.timeStamp }];
     setHeight(Math.min(drag.current.tallest, drag.current.startHeight + drag.current.startY - event.clientY));
   };
-  const end = () => {
+  const end = (event) => {
     if (!drag.current) return;
-    const { tallest } = drag.current;
+    const { tallest, startHeight, points } = drag.current;
     drag.current = null;
     setIsDragging(false);
-    if (height < baseHeight * (1 - CLOSE_PULL)) onClose();
-    else setHeight(height > (baseHeight + tallest) / 2 ? tallest : baseHeight);
+    const upward = upwardSpeedAt(points, event.timeStamp);
+    if (upward > FLICK_SPEED) return setHeight(tallest);
+    if (upward < -FLICK_SPEED) return startHeight > baseHeight ? setHeight(baseHeight) : onClose();
+    if (height < baseHeight * (1 - CLOSE_PULL)) return onClose();
+    setHeight(height > (baseHeight + tallest) / 2 ? tallest : baseHeight);
   };
 
   return (
     <Box
       ref={panelRef}
       onKeyDown={(event) => event.key === "Escape" && onClose()}
+      // picking from the search's results keeps the field focused, so the keyboard stays up for the next one
+      onMouseDown={(event) => !event.target.matches("input") && event.preventDefault()}
+      onFocus={(event) => event.target.matches("input") && onSearchingChange?.(true)}
+      onBlur={(event) => event.target.matches("input") && onSearchingChange?.(false)}
       sx={{
-        height: Math.max(height, 0),
+        height: Math.max(isCompact ? Math.min(height, SEARCHING_HEIGHT) : height, 0),
         display: "flex",
         flexDirection: "column",
         bgcolor: "background.paper",
@@ -136,7 +160,7 @@ const EmojiPanel = ({ baseHeight, autoFocus, pinned, onSelect, onClose }) => {
         onPointerMove={move}
         onPointerUp={end}
         onPointerCancel={end}
-        sx={{ flexShrink: 0, py: 1, display: "grid", placeItems: "center", touchAction: "none", cursor: "grab" }}
+        sx={{ flexShrink: 0, py: "14px", display: "grid", placeItems: "center", touchAction: "none", cursor: "grab" }}
       >
         <Box sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: "text.disabled" }} />
       </Box>

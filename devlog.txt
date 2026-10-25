@@ -24,6 +24,8 @@
     - An app opened with no connection catches up once it reconnects, instead of staying on what it had
     - The note saying a friend has not opened Whisprl since encryption sits centered above the message box
     - Holding the mic stretches the recording bar across the whole row, so the timer no longer spills out of it
+    - Searching in a chat's emoji panel on a phone keeps the panel open above the keyboard, instead of closing it
+    - The emoji panel's handle on a phone is easier to grab and follows a quick flick up or down
 
   - Developers:
 

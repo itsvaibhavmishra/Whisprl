@@ -146,12 +146,14 @@ const Composer = () => {
   const [isPanelWanted, setIsPanelWanted] = useState(false);
   const panelHeight = useRef(0);
   const keyboard = useKeyboardHeight();
-  const isPanelShown = isPanelWanted && (!isSmallScreen || keyboard === 0);
+  // the panel's own search raises the keyboard too, and the panel stays for it, shrunk to sit above
+  const [isSearchingEmoji, setIsSearchingEmoji] = useState(false);
+  const isPanelShown = isPanelWanted && (!isSmallScreen || keyboard === 0 || isSearchingEmoji);
   const keyboardBefore = useRef(keyboard);
   useEffect(() => {
-    if (keyboard && !keyboardBefore.current) setIsPanelWanted(false);
+    if (keyboard && !keyboardBefore.current && !isSearchingEmoji) setIsPanelWanted(false);
     keyboardBefore.current = keyboard;
-  }, [keyboard]);
+  }, [keyboard, isSearchingEmoji]);
   // a press inside, even in a popover the composer opened, reaches the composer through React first, so only one that never did closes the panel
   const insidePress = useRef(null);
   useEffect(() => {
@@ -361,8 +363,8 @@ const Composer = () => {
                   onKeyDown={handleKeyDown}
                   onFocus={() => {
                     setIsFocused(true);
-                    // a phone browser's keyboard lies over the page rather than shrinking it, so the panel goes as soon as typing starts
-                    if (!isApp && isSmallScreen) setIsPanelWanted(false);
+                    // a phone browser's keyboard lies over the page, and one already up for the emoji search rises no further, so the panel goes now
+                    if (isSmallScreen && (!isApp || keyboard)) setIsPanelWanted(false);
                   }}
                   onBlur={() => {
                     setIsFocused(false);
@@ -422,7 +424,14 @@ const Composer = () => {
       </Box>
       {/* it slides away when closed, except on a phone making way for its keyboard, where it goes at once so the field never moves twice */}
       <Collapse in={isPanelShown} enter={false} exit={keyboard === 0} unmountOnExit>
-        <EmojiPanel baseHeight={panelHeight.current} autoFocus={!isSmallScreen} onSelect={(emoji) => insertAtCaret(emoji)} onClose={closePanel} />
+        <EmojiPanel
+          baseHeight={panelHeight.current}
+          isCompact={isSearchingEmoji && keyboard > 0}
+          autoFocus={!isSmallScreen}
+          onSelect={(emoji) => insertAtCaret(emoji)}
+          onSearchingChange={setIsSearchingEmoji}
+          onClose={closePanel}
+        />
       </Collapse>
     </div>
   );
