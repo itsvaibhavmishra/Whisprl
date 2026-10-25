@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "Whisprl Backend",
   "main": "server.js",
   "type": "module",
