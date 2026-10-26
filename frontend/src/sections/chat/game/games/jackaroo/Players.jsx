@@ -4,7 +4,7 @@ import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
-import { SeatSaying } from "@/sections/chat/game/RoomChatter";
+import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
 import { isHere, READY_GREEN } from "@/sections/chat/game/Seat";
 import TurnRing from "@/sections/chat/game/TurnRing";
 import FONTS from "@/sections/chat/game/games/jackaroo/fonts";
@@ -85,6 +85,7 @@ const Face = ({ seat, member, colour, clock, tag, isHere: here, onLeave }) => (
       {seat.bot || seat.away ? <BotFace size={FACE * 0.5} /> : member && getAvatar(member.avatar, member.firstName, FACE)}
     </Box>
     {clock && <TurnClock key={clock.startsAt} startsAt={clock.startsAt} seconds={clock.seconds} colour={colour} />}
+    {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={FACE} />}
     {tag && (
       <Typography
         sx={{

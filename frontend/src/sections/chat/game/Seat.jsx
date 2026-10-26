@@ -6,7 +6,7 @@ import { CheckIcon, DotsThreeIcon, LockSimpleIcon, PlusIcon } from "@phosphor-ic
 
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
-import { SeatSaying } from "@/sections/chat/game/RoomChatter";
+import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
 import getAvatar from "@/utils/avatars";
 import { isOnline } from "@/utils/chats";
 import { firstNameIn, memberOf } from "@/utils/groups";
@@ -81,27 +81,30 @@ const Seat = ({ seat, conversation, meId, theme, size, mark, onTake, onLeave, ma
 
   return (
     <Box sx={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75, width: size + 24, ...MENU_ON_HOVER }}>
-      <ButtonBase
-        disabled={!onClick}
-        onClick={onClick || undefined}
-        aria-label={isMine && onLeave ? "Get up" : `${labelOf(seat, conversation, meId)} seat`}
-        sx={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          display: "grid",
-          placeItems: "center",
-          overflow: "hidden",
-          color: theme.ink,
-          // an empty seat is only an outline, so it reads as a place to sit rather than as someone
-          bgcolor: seat.user || seat.bot ? theme.card : "transparent",
-          border: `2px ${seat.user || seat.bot ? "solid" : "dashed"} ${alpha("#fff", isMine ? 0.95 : 0.6)}`,
-          transition: "transform 160ms ease",
-          "&:hover:not(:disabled)": { transform: "scale(1.06)" },
-        }}
-      >
-        {faceOf(seat, member, size - 4)}
-      </ButtonBase>
+      <Box sx={{ position: "relative" }}>
+        <ButtonBase
+          disabled={!onClick}
+          onClick={onClick || undefined}
+          aria-label={isMine && onLeave ? "Get up" : `${labelOf(seat, conversation, meId)} seat`}
+          sx={{
+            width: size,
+            height: size,
+            borderRadius: "50%",
+            display: "grid",
+            placeItems: "center",
+            overflow: "hidden",
+            color: theme.ink,
+            // an empty seat is only an outline, so it reads as a place to sit rather than as someone
+            bgcolor: seat.user || seat.bot ? theme.card : "transparent",
+            border: `2px ${seat.user || seat.bot ? "solid" : "dashed"} ${alpha("#fff", isMine ? 0.95 : 0.6)}`,
+            transition: "transform 160ms ease",
+            "&:hover:not(:disabled)": { transform: "scale(1.06)" },
+          }}
+        >
+          {faceOf(seat, member, size - 4)}
+        </ButtonBase>
+        {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={size} />}
+      </Box>
       {/* a dot says they are here, and the same dot with a tick says they are here and ready */}
       {(seat.ready || isHere(seat, member, meId, onlineFriends)) && (
         <Box
