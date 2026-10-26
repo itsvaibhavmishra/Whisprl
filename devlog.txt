@@ -16,6 +16,7 @@
   - New:
 
   - Improvements:
+    - After a game ends, everyone sees who is ready to play again
 
   - Fixed:
 

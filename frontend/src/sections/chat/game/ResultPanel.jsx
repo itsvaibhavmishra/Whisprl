@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Box, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { m, useReducedMotion } from "motion/react";
+import { CheckCircleIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { GetLeaderboard } from "@/redux/slices/actions/gameActions";
@@ -11,7 +12,7 @@ import { isChosenBot } from "@/sections/chat/game/seats";
 import { rivalColoursOf } from "@/sections/chat/game/standings";
 import usePending from "@/sections/chat/game/usePending";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
-import { firstNameIn } from "@/utils/groups";
+import { firstNameIn, listOf } from "@/utils/groups";
 
 // a head to head reads only when two people played it, so a fuller table waits for a game with more seats
 const headToHead = (leaderboard, conversation, session, gameId) => {
@@ -63,6 +64,7 @@ const ResultPanel = ({ conversation, session, game, meId, act, onBack }) => {
   }, [dispatch, conversationId]);
 
   const rows = headToHead(leaderboard, conversation, session, game.id);
+  const readyNames = session.seats.filter((seat) => seat.user && seat.user !== meId && seat.ready).map((seat) => firstNameIn(conversation, seat.user, meId));
 
   const rematchLabel = () => {
     if (secondsToStart) return `Starting in ${secondsToStart}`;
@@ -91,6 +93,14 @@ const ResultPanel = ({ conversation, session, game, meId, act, onBack }) => {
       <Typography sx={{ fontSize: 19, fontWeight: 800 }}>{resultLineOf(session.result, conversation, meId)}</Typography>
       {rows && <Score rows={rows} conversation={conversation} theme={theme} meId={meId} />}
       {session.seats.some(isChosenBot) && <Typography sx={{ fontSize: 12, fontWeight: 600, color: alpha(theme.ink, 0.65) }}>{PRACTICE_NOTE}</Typography>}
+      {readyNames.length > 0 && !secondsToStart && (
+        <Stack role="status" direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+          <CheckCircleIcon size={18} weight="fill" color={theme.accent} />
+          <Typography
+            sx={{ fontSize: 14, fontWeight: 700 }}
+          >{`${listOf(readyNames)} ${readyNames.length === 1 ? "is" : "are"} ready to play again`}</Typography>
+        </Stack>
+      )}
       <Stack direction="row" spacing={1}>
         {mySeat && (
           <GameButton
