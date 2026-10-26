@@ -6,6 +6,13 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.5] - 2026-10-26
+
+### Improvements
+
+- After a game ends, everyone sees who is ready to play again
+- An emoji thrown during a game shows over the player's picture, on a dark blur, instead of in a bubble beside it
+
 ## [2.5.4] - 2026-10-25
 
 ### New
@@ -529,6 +536,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.5]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.5
 [2.5.4]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.4
 [2.5.3]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.3
 [2.5.2]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.2
