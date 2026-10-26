@@ -16,8 +16,6 @@
   - New:
 
   - Improvements:
-    - After a game ends, everyone sees who is ready to play again
-    - An emoji thrown during a game shows over the player's picture, on a dark blur, instead of in a bubble beside it
 
   - Fixed:
 
