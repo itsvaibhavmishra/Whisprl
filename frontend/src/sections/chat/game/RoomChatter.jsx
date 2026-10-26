@@ -55,10 +55,44 @@ const STILL = { "@media (prefers-reduced-motion: reduce)": { animation: "none" }
 // what each player just said, by user id, given by the room to whichever seats it draws
 export const SayingsContext = createContext({});
 
+const coverIn = keyframes`
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+`;
+
+// an emoji thrown by a seated player covers their face for a moment, over a dark blur so it reads on any picture
+export const AvatarReaction = ({ user, size }) => {
+  const saying = useContext(SayingsContext)[user];
+  if (!saying?.emoji) return null;
+  return (
+    <Box
+      key={saying.id}
+      role="status"
+      sx={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 3,
+        display: "grid",
+        placeItems: "center",
+        borderRadius: "50%",
+        bgcolor: "rgba(12, 8, 20, 0.5)",
+        backdropFilter: "blur(5px)",
+        WebkitBackdropFilter: "blur(5px)",
+        pointerEvents: "none",
+        animation: `${coverIn} 200ms ease-out`,
+        ...STILL,
+      }}
+    >
+      <ReactionEmoji emoji={saying.emoji} size={Math.round(size * 0.86)} />
+    </Box>
+  );
+};
+
+// words said at the table sit beside the seat; a thrown emoji covers the face instead
 export const SeatSaying = ({ user, theme, placement = "below" }) => {
   const { box, tail } = PLACEMENTS[placement];
   const saying = useContext(SayingsContext)[user];
-  return saying ? (
+  return saying && !saying.emoji ? (
     <Box
       key={saying.id}
       role="status"
@@ -67,8 +101,8 @@ export const SeatSaying = ({ user, theme, placement = "below" }) => {
         zIndex: 3,
         maxWidth: 200,
         width: "max-content",
-        px: saying.emoji ? 1 : 1.5,
-        py: saying.emoji ? 0.25 : 0.75,
+        px: 1.5,
+        py: 0.75,
         borderRadius: 3,
         bgcolor: theme.card,
         color: theme.ink,
@@ -81,7 +115,7 @@ export const SeatSaying = ({ user, theme, placement = "below" }) => {
     >
       <Typography
         sx={{
-          fontSize: saying.emoji ? 26 : 13,
+          fontSize: 13,
           fontWeight: 700,
           lineHeight: 1.35,
           display: "-webkit-box",
@@ -91,7 +125,7 @@ export const SeatSaying = ({ user, theme, placement = "below" }) => {
           wordBreak: "break-word",
         }}
       >
-        {saying.emoji ? <ReactionEmoji emoji={saying.emoji} size={40} /> : saying.text}
+        {saying.text}
       </Typography>
     </Box>
   ) : null;
