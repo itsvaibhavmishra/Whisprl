@@ -3,19 +3,19 @@ import { boxesClosedBy, boxesTouching, openLinesOf, sidesDrawnOn } from "#src/se
 const anyOf = (lines) => lines[Math.floor(Math.random() * lines.length)];
 
 // a line is a gift when it leaves a box on three sides, one move from being taken
-const isSafe = (state, line) => boxesTouching(state.size, line).every((box) => sidesDrawnOn(state, box) < 2);
+const isSafe = (state, line) => boxesTouching(state, line).every((box) => sidesDrawnOn(state, box) < 2);
 
-const closingLineOn = (size, lines) => openLinesOf({ lines }).find((line) => boxesClosedBy({ size, lines }, line).length);
+const closingLineOn = (grid, lines) => openLinesOf({ lines }).find((line) => boxesClosedBy({ ...grid, lines }, line).length);
 
 // how many boxes the next player walks off with, taking every one it can in turn
-const opensHowMany = ({ size, lines }, line) => {
-  let drawn = lines.map((drawnBy, at) => (at === line ? 0 : drawnBy));
+const opensHowMany = (state, line) => {
+  let drawn = state.lines.map((drawnBy, at) => (at === line ? 0 : drawnBy));
   let taken = 0;
-  let closing = closingLineOn(size, drawn);
+  let closing = closingLineOn(state, drawn);
   while (closing !== undefined) {
-    taken += boxesClosedBy({ size, lines: drawn }, closing).length;
+    taken += boxesClosedBy({ ...state, lines: drawn }, closing).length;
     drawn = drawn.map((drawnBy, at) => (at === closing ? 0 : drawnBy));
-    closing = closingLineOn(size, drawn);
+    closing = closingLineOn(state, drawn);
   }
   return taken;
 };

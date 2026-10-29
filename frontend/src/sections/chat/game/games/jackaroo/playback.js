@@ -1,9 +1,11 @@
 // Plays a move out after React has drawn where everything ends up, animating each piece back from where it was on transform and opacity.
 import art from "@/sections/chat/game/games/jackaroo/art";
 import { CARD_RATIO } from "@/sections/chat/game/games/jackaroo/CardFace";
+import { faceOf } from "@/sections/chat/game/games/jackaroo/cards";
 import { THROWS } from "@/sections/chat/game/games/jackaroo/choices";
 import { awesome, dust, glitter, goldBurst, goldWord, removedWhenDone, shake, spawn } from "@/sections/chat/game/games/jackaroo/effects";
 import { marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry";
+import { UNDIMMED } from "@/sections/chat/game/games/jackaroo/Hand";
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
 import { SOUNDS } from "@/sections/chat/game/games/jackaroo/sounds";
 
@@ -285,36 +287,88 @@ const takenToPile = (pileTop, from, delay, { isFaceDown, layer, comesAt = 0 }) =
 
 // the red queen's victim sees their hand laid out over the pile as the taker's pick was, its cards' width and spacing shares of the board
 const SPREAD = { share: 0.28, width: 0.21, step: 0.23 };
-const spreadHand = (hand, stage, lostAt, delay) => {
-  const cards = [...(hand?.querySelectorAll("[data-card]") ?? [])];
+// names the spread a put-down queen leaves held out, so the pick that follows knows to start from there
+const HELD_SPREAD = "held-spread";
+const EASE_OUT = "cubic-bezier(0.2, 0.8, 0.3, 1)";
+
+const cardsIn = (hand) => [...(hand?.querySelectorAll("[data-card]") ?? [])];
+
+const spreadOf = (stage, count) => {
   const board = stage.getBoundingClientRect();
-  const count = cards.length + 1;
   const width = board.width * SPREAD.width;
   const height = width / CARD_RATIO;
   const centre = { x: board.left + (layout.pile.x / layout.board) * board.width, y: board.top + (layout.pile.y / layout.board) * board.height };
   const slotX = (slot) => centre.x + (slot - (count - 1) / 2) * board.width * SPREAD.step;
-  const animations = cards.map((card, index) => {
-    // measured untilted, as the transforms below replace the card's own tilt rather than adding to it
-    const base = getComputedStyle(card).transform;
-    card.style.transform = "none";
-    const box = card.getBoundingClientRect();
-    card.style.transform = "";
-    const scale = width / box.width;
-    const slot = index < lostAt ? index : index + 1;
-    const out = `translate(${slotX(slot) - (box.left + box.width / 2)}px, ${centre.y + height / 2 - box.bottom}px) scale(${scale})`;
-    return card.animate(
-      [
-        { transform: base, easing: "cubic-bezier(0.2, 0.8, 0.3, 1)" },
-        { transform: out, offset: SPREAD.share },
-        { transform: out, offset: 0.55, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
-        { transform: base, offset: 0.85 },
-        { transform: base },
-      ],
-      { duration: TAKEN_MS, delay }
-    );
+  return { width, height, centre, slotX };
+};
+
+// a card's own tilt, and the transform that lays it in a slot of the spread instead, measured untilted since one replaces the other
+const transformsOf = (card, spread, slot) => {
+  const base = getComputedStyle(card).transform;
+  card.style.transform = "none";
+  const box = card.getBoundingClientRect();
+  card.style.transform = "";
+  const out = `translate(${spread.slotX(slot) - (box.left + box.width / 2)}px, ${spread.centre.y + spread.height / 2 - box.bottom}px) scale(${spread.width / box.width})`;
+  return { base, out };
+};
+
+// the moment a red queen goes down its victim's hand goes out over the pile in full colour, and stays there until the pick
+const spreadOut = (hand, stage, delay) => {
+  const cards = cardsIn(hand);
+  const spread = spreadOf(stage, cards.length);
+  const timing = { duration: TAKEN_MS * SPREAD.share, delay, easing: EASE_OUT, fill: "forwards" };
+  const animations = cards.flatMap((card, slot) => {
+    const { base, out } = transformsOf(card, spread, slot);
+    const lift = card.querySelector(".lift");
+    return [
+      card.animate([{ transform: base }, { transform: out }], timing),
+      lift.animate([{ filter: getComputedStyle(lift).filter }, { filter: UNDIMMED }], timing),
+    ];
   });
-  const takenFrom = { left: slotX(lostAt) - width / 2, top: centre.y - height / 2, width, height };
-  return { animations, takenFrom };
+  animations.forEach((animation) => {
+    animation.id = HELD_SPREAD;
+  });
+  return animations;
+};
+
+// the hand goes out, or is already out from its queen, while the taken card leaves its slot, then the rest come back and dim again
+const spreadHand = (hand, stage, lostAt, delay) => {
+  const cards = cardsIn(hand);
+  const held = cards.flatMap((card) => card.getAnimations({ subtree: true }).filter((animation) => animation.id === HELD_SPREAD));
+  held.forEach((animation) => animation.cancel());
+  const isHeld = held.length > 0;
+  const spread = spreadOf(stage, cards.length + 1);
+  const timing = { duration: TAKEN_MS, delay };
+  const animations = cards.flatMap((card, index) => {
+    const { base, out } = transformsOf(card, spread, index < lostAt ? index : index + 1);
+    const lift = card.querySelector(".lift");
+    const dimmed = getComputedStyle(lift).filter;
+    const outAt = isHeld ? 0 : SPREAD.share;
+    return [
+      card.animate(
+        [
+          ...(isHeld ? [] : [{ transform: base, easing: EASE_OUT }]),
+          { transform: out, offset: outAt },
+          { transform: out, offset: 0.55, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+          { transform: base, offset: 0.85 },
+          { transform: base },
+        ],
+        timing
+      ),
+      lift.animate(
+        [
+          ...(isHeld ? [] : [{ filter: dimmed }]),
+          { filter: UNDIMMED, offset: outAt },
+          { filter: UNDIMMED, offset: 0.55 },
+          { filter: dimmed, offset: 0.85 },
+          { filter: dimmed },
+        ],
+        timing
+      ),
+    ];
+  });
+  const takenFrom = { left: spread.slotX(lostAt) - spread.width / 2, top: spread.centre.y - spread.height / 2, width: spread.width, height: spread.height };
+  return { animations, takenFrom, isHeld };
 };
 
 // a player's card of a deal leaves the deck after every card dealt before it, the deal alternating from the leader
@@ -395,11 +449,14 @@ export const playOut = (lastPlay, view, { stage, effects, marbles, pileCards, pl
   const isMineTaken = Boolean(lastPlay.lost) && 1 - lastPlay.seat === view.mySeat && lastPlay.lostAt !== undefined;
   const spread = isMineTaken ? spreadHand(myHand, stage, lastPlay.lostAt, takenAt) : null;
   animations.push(...(spread?.animations ?? []));
+  if (lastPlay.kind === "show" && faceOf(lastPlay.card) === "take" && 1 - lastPlay.seat === view.mySeat) {
+    animations.push(...spreadOut(myHand, stage, thrown ? CARD_MS : 0));
+  }
   const taken = lastPlay.lost
     ? takenToPile(pileCards.at(-1), spread?.takenFrom ?? takenFrom, takenAt, {
         isFaceDown: 1 - lastPlay.seat !== view.mySeat,
         layer: effects,
-        comesAt: spread ? TAKEN_MS * SPREAD.share : 0,
+        comesAt: spread && !spread.isHeld ? TAKEN_MS * SPREAD.share : 0,
       })
     : [];
   animations.push(...[thrown, ...taken].filter(Boolean));

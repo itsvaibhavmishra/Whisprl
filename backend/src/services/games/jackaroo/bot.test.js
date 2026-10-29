@@ -41,11 +41,20 @@ test("made to throw a card away, it gives up the least useful one", () => {
   );
 });
 
-test("its red queen picks one of the cards actually there", () => {
+test("its red queen is put down first, then picks one of the cards actually there", () => {
   const state = gameWith({ hand: [card(12, "H")], theirHand: [card(3), card(8)] });
-  const move = botMove(state, 0, PRACTISED);
-  assert.equal(kindOf(state, move), "takeCard");
+  assert.deepEqual(botMove(state, 0, PRACTISED), { show: "9-12H" });
+  const shown = play(state, 0, { show: "9-12H" });
+  const move = botMove(shown, 0, PRACTISED);
+  assert.equal(kindOf(shown, move), "takeCard");
   assert.ok(move.taken === 0 || move.taken === 1);
+});
+
+test("standing in for a player, it finishes the card they put down, and never puts one down itself", () => {
+  const state = gameWith({ mine: [track(3)], hand: [card(12, "H"), card(9)], theirHand: [card(3), card(8)] });
+  assert.equal(botMove(state, 0, "standIn").show, undefined);
+  const shown = play(state, 0, { show: "9-12H" });
+  assert.equal(kindOf(shown, botMove(shown, 0, "standIn")), "takeCard");
 });
 
 const playedOut = (levels) => {

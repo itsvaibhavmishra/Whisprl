@@ -152,6 +152,34 @@ test("a red queen takes the face-down card its player picked, and its victim los
   assert.equal(turnOf(after), 0);
 });
 
+test("a card put down shows on the pile at once, and its play is finished from there", () => {
+  const state = gameWith({ hand: [card(12, "H"), card(9)], theirHand: [card(5), card(13)] });
+  const shown = play(state, 0, { show: "9-12H" });
+  assert.deepEqual(shown.players[0].hand, [card(9)]);
+  assert.deepEqual(shown.pile.at(-1), { card: card(12, "H"), seat: 0, thrown: false, round: 1 });
+  assert.equal(turnOf(shown), 0);
+  assert.deepEqual(viewFor(shown, 1).shown, { seat: 0, card: card(12, "H") });
+  const [option] = viewFor(shown, 0).options;
+  assert.equal(option.kind, "takeCard");
+  const after = play(shown, 0, { key: option.key, taken: 1 });
+  assert.deepEqual(
+    after.pile.map((entry) => entry.card),
+    [card(12, "H"), card(13)]
+  );
+  assert.equal(after.shown, null);
+  assert.equal(after.lastPlay.shownFirst, true);
+  assert.equal(turnOf(after), 0);
+});
+
+test("a card put down cannot be taken back or swapped for another", () => {
+  const state = gameWith({ mine: [track(3)], hand: [card(11), card(9)], theirHand: [card(5)], theirs: [track(30)] });
+  assert.throws(() => play(state, 0, { show: "9-8S" }), /cannot be played/);
+  const shown = play(state, 0, { show: "9-11S" });
+  assert.throws(() => play(shown, 0, { show: "9-9S" }), /Finish the card/);
+  assert.throws(() => play(shown, 0, { key: optionOf(state, "move", 9).key }), /not allowed/);
+  assert.ok(viewFor(shown, 0).options.every((option) => option.card === "9-11S"));
+});
+
 test("with nothing that can change this round, the whole hand is thrown at once", () => {
   const state = gameWith({ mine: [home(3), home(2)], hand: [card(4), card(3)], theirHand: [card(5)] });
   const after = play(state, 0, { key: optionOf(state, "discardAll").key });

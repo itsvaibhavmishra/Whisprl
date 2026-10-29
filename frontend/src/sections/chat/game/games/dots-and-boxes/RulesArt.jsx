@@ -1,15 +1,17 @@
-import { Box, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 
-import art from "@/sections/chat/game/games/dots-and-boxes/art";
 import { ART, Drawing } from "@/sections/chat/game/games/dots-and-boxes/Board";
 import PALETTE from "@/sections/chat/game/games/dots-and-boxes/palette";
+import SIZES from "@/sections/chat/game/games/dots-and-boxes/sizes";
 
 const COLOURS = [PALETTE[4], PALETTE[0]];
 const INITIALS = ["A", "B"];
 const BLUE = 0;
 const RED = 1;
 
-// the smallest board the game offers, its lines numbered across first and then down, each position one a real game reaches
+// a board smaller than any offered keeps each step easy to read, its lines numbered across first and then down
+const SMALL = { width: 3, height: 3 };
+
 const SCENES = {
   aim: {
     lines: [BLUE, RED, null, BLUE, RED, null, BLUE, null, RED, null, null, null, RED, BLUE, BLUE, null, BLUE, RED, null, null, null, null, null, BLUE],
@@ -29,25 +31,26 @@ const SCENES = {
   },
 };
 
-const Paper = ({ size, lines, boxes, sx }) => (
-  <Box sx={{ position: "relative", aspectRatio: `${ART.width} / ${ART.height}`, ...sx }}>
-    <Box component="img" src={art.board} alt="" sx={{ width: "100%", height: "100%", display: "block" }} />
-    <Drawing size={size} lines={lines} boxes={boxes} colourOf={(seat) => COLOURS[seat]} initialOf={(seat) => INITIALS[seat]} />
-  </Box>
+const Paper = ({ grid, lines, boxes, sx }) => (
+  <Drawing grid={grid} lines={lines} boxes={boxes} colourOf={(seat) => COLOURS[seat]} initialOf={(seat) => INITIALS[seat]} sx={sx} />
 );
 
-const emptyBoard = (size) => ({ size, lines: Array(2 * size * (size + 1)).fill(null), boxes: Array(size * size).fill(null) });
+const emptyBoard = (grid) => ({
+  grid,
+  lines: Array((grid.height + 1) * grid.width + grid.height * (grid.width + 1)).fill(null),
+  boxes: Array(grid.width * grid.height).fill(null),
+});
 
 // the game's own paper and pencil lines, so the rules look like the board they explain
 const DotsAndBoxesRulesArt = ({ picture }) =>
   picture === "sizes" ? (
     <Stack direction="row" spacing={1} sx={{ width: "100%", alignItems: "center" }}>
-      {[3, 4, 5].map((size) => (
-        <Paper key={size} {...emptyBoard(size)} sx={{ flex: 1, minWidth: 0 }} />
+      {Object.entries(SIZES).map(([size, grid]) => (
+        <Paper key={size} {...emptyBoard(grid)} sx={{ flex: grid.width, minWidth: 0 }} />
       ))}
     </Stack>
   ) : (
-    <Paper size={3} {...SCENES[picture]} sx={{ width: `min(100cqw, 100cqh * ${ART.width} / ${ART.height})` }} />
+    <Paper grid={SMALL} {...SCENES[picture]} sx={{ width: `min(100cqw, 100cqh * ${ART.width} / ${ART.height})` }} />
   );
 
 export default DotsAndBoxesRulesArt;

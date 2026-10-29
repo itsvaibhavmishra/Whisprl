@@ -3,7 +3,18 @@ import createHttpError from "http-errors";
 import { coloursFor } from "#src/services/games/colours.js";
 import { MARBLES, START } from "#src/services/games/jackaroo/board.js";
 import { newDeck, shuffled } from "#src/services/games/jackaroo/cards.js";
-import { blockerOf, keyOf, knocksOut, losingPlays, moveMarble, other, placeOf, playsForTurn, settlesHome } from "#src/services/games/jackaroo/moves.js";
+import {
+  blockerOf,
+  keyOf,
+  knocksOut,
+  losingPlays,
+  moveMarble,
+  other,
+  placeOf,
+  playsFor,
+  playsForTurn,
+  settlesHome,
+} from "#src/services/games/jackaroo/moves.js";
 
 // each deck is dealt over three rounds of these sizes, then a fresh one comes in
 const ROUND_SIZES = [4, 4, 5];
@@ -51,6 +62,8 @@ export const setup = (previous, { players = 2, seating = null } = {}) => {
     round: 0,
     // a ten used on the other player makes it their turn until they choose the card they lose
     pending: null,
+    // a card put down before its choices are made, on the pile for both players while its player decides
+    shown: null,
     winner: null,
     plays: 0,
     lastPlay: null,
@@ -60,6 +73,12 @@ export const setup = (previous, { players = 2, seating = null } = {}) => {
 };
 
 export const turnOf = (state) => state.pending?.seat ?? state.turn;
+
+// what the player to move may do now: lose a card to a ten, finish the card they put down, or play any card
+export const turnPlays = (state, seat) => {
+  if (state.pending) return losingPlays(state, seat);
+  return state.shown ? playsFor(state, seat, state.shown.card) : playsForTurn(state, seat);
+};
 
 // once seat's turn is over the turn goes across, stays with whoever still holds cards, and a new round comes when neither does
 const passTurn = (state, seat) => {
@@ -111,16 +130,33 @@ const swapMarbles = (state, [mine, theirs]) => {
   state.players[theirs.owner].marbles[theirs.id] = minePlace;
 };
 
-// move: { key } naming one of the plays the view offered, with { taken } as well for the red queen
+// a card put down cannot be taken back, so it leaves the hand for the pile now and its play is finished later
+const showCard = (state, seat, cardId) => {
+  if (state.shown) throw createHttpError.BadRequest("Finish the card you put down first");
+  const isPlayable = playsForTurn(state, seat).some((option) => option.card?.id === cardId && !THROWN.includes(option.kind));
+  if (!isPlayable) throw createHttpError.BadRequest("That card cannot be played");
+  const card = takeFromHand(state, seat, cardId);
+  toPile(state, card, seat, false);
+  record(state, seat, { card, kind: "show" });
+  state.shown = { seat, card };
+  return state;
+};
+
+// move: { key } naming one of the plays the view offered, with { taken } as well for the red queen, or { show } putting a card down first
 export const play = (previous, seat, move) => {
   if (previous.winner !== null) throw createHttpError.BadRequest("This game is over");
   const state = structuredClone(previous);
   if (state.pending) return loseCard(state, seat, move);
+  if (move?.show !== undefined) return showCard(state, seat, move.show);
 
-  const chosen = playsForTurn(state, seat).find((option) => keyOf(option) === move?.key);
+  const chosen = turnPlays(state, seat).find((option) => keyOf(option) === move?.key);
   if (!chosen) throw createHttpError.BadRequest("That move is not allowed");
-  const cards = chosen.kind === "discardAll" ? state.players[seat].hand.splice(0) : [takeFromHand(state, seat, chosen.card.id)];
-  cards.forEach((card) => toPile(state, card, seat, THROWN.includes(chosen.kind)));
+  const shownFirst = Boolean(state.shown);
+  state.shown = null;
+  if (!shownFirst) {
+    const cards = chosen.kind === "discardAll" ? state.players[seat].hand.splice(0) : [takeFromHand(state, seat, chosen.card.id)];
+    cards.forEach((card) => toPile(state, card, seat, THROWN.includes(chosen.kind)));
+  }
   chosen.moves?.forEach((step) => moveMarble(state, step));
   if (chosen.kind === "swap") swapMarbles(state, chosen.swap);
 
@@ -136,19 +172,21 @@ export const play = (previous, seat, move) => {
   }
   if (chosen.kind === "discardOther") state.pending = { seat: other(seat) };
 
+  // a card shown earlier is already on the pile, so the play shows only what the card does
+  const recorded = (extra = {}) => record(state, seat, chosen, { ...extra, shownFirst });
   if (hasWon(state, seat)) {
     state.winner = seat;
-    return record(state, seat, chosen);
+    return recorded();
   }
-  if (state.pending) return record(state, seat, chosen);
+  if (state.pending) return recorded();
   // a knock-out or a marble settling in the deepest free hole of its home earns one more card, played straight away
   if (knocksOut(chosen) || settlesHome(state, chosen, seat)) {
     state.players[seat].hand.push(drawCard(state));
-    return record(state, seat, chosen, { bonus: true, lost, lostAt });
+    return recorded({ bonus: true, lost, lostAt });
   }
   // the red queen's victim loses their turn along with the card
   const turnEnds = chosen.kind === "takeCard" ? other(seat) : seat;
-  return record(state, seat, chosen, { lost, lostAt, dealt: passTurn(state, turnEnds) });
+  return recorded({ lost, lostAt, dealt: passTurn(state, turnEnds) });
 };
 
 // what the round's deal looks like from the table: how many cards the deck held before it, and how many each player got
@@ -183,11 +221,12 @@ export const viewFor = (state, seat) => {
   const isPlaying = seat === 0 || seat === 1;
   const toMove = turnOf(state);
   const isMyTurn = isPlaying && seat === toMove && state.winner === null;
-  const options = isMyTurn ? (state.pending ? losingPlays(state, seat) : playsForTurn(state, seat)) : [];
+  const options = isMyTurn ? turnPlays(state, seat) : [];
   return {
     colours: state.colours,
     turn: toMove,
     pending: state.pending,
+    shown: state.shown,
     winner: state.winner,
     plays: state.plays,
     round: state.round,
