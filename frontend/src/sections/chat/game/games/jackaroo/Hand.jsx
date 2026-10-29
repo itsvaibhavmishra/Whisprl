@@ -28,6 +28,9 @@ const ALARM = {
 };
 const GLOW = "drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4))";
 const RESTING = "drop-shadow(0 5px 8px rgba(0, 0, 0, 0.45))";
+const DIM = "brightness(0.68) saturate(0.75)";
+// the same filters as a dimmed card's at full strength, so one can be brought up smoothly, as the red queen's spread does
+export const UNDIMMED = `${RESTING} brightness(1) saturate(1)`;
 
 // measured off the design's hand: the outer cards lean out about 7 degrees and sit a little lower, the inner two nearly straight
 const spreadOf = (index, count) => index - (count - 1) / 2;
@@ -64,7 +67,7 @@ const HandCard = memo(({ card, tones, tilt, drop, gap, isPicked, isDim, isEnable
         transform: `translateY(${drop - (isPicked ? 6 : 0)}px) rotate(${tilt}deg)`,
         transformOrigin: "50% 100%",
         // a card that cannot be played is darkened rather than faded, so where it overlaps another nothing shows through
-        filter: isPicked ? GLOW : `${RESTING}${isDim ? " brightness(0.68) saturate(0.75)" : ""}`,
+        filter: isPicked ? GLOW : `${RESTING}${isDim ? ` ${DIM}` : ""}`,
         transition: "transform 180ms ease, filter 180ms ease",
       },
       // the edge follows the card's own rounded corners, which a filter could only blur

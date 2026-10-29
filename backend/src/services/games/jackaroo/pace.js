@@ -1,6 +1,5 @@
 // How long each play takes to show, so the next clock waits for it; the client's jackaroo/playback.js keeps the same numbers.
-import { losingPlays, playsForTurn } from "#src/services/games/jackaroo/moves.js";
-import { turnOf } from "#src/services/games/jackaroo/rules.js";
+import { turnOf, turnPlays } from "#src/services/games/jackaroo/rules.js";
 
 export const PACE = {
   card: 300,
@@ -44,14 +43,16 @@ const boardMs = (lastPlay) => {
 export const playOutMs = (state) => {
   const { lastPlay } = state;
   if (!lastPlay) return PACE.deal;
+  // a card put down only lands on the pile, and its player can choose as soon as it has
+  if (lastPlay.kind === "show") return PACE.card;
   const shown = PACE.card + boardMs(lastPlay) + (lastPlay.bonus ? PACE.bonus : PACE.beat);
   if (state.winner !== null) return shown + PACE.win;
   return lastPlay.dealt ? shown + PACE.deal : shown;
 };
 
 export const thinkMs = (state) => {
-  const seat = turnOf(state);
-  const choices = state.pending ? losingPlays(state, seat) : playsForTurn(state, seat);
-  if (choices.length <= 1) return THINKING.onlyChoice;
+  const choices = turnPlays(state, turnOf(state));
+  // a card already put down is weighed like any choice, so a red queen's pick is not snatched the moment its cards are out
+  if (choices.length <= 1 && !state.shown) return THINKING.onlyChoice;
   return THINKING.least + Math.random() * (THINKING.most - THINKING.least);
 };
