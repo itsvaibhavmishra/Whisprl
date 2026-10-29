@@ -4,6 +4,7 @@ import art from "@/sections/chat/game/games/dots-and-boxes/art";
 import masthead from "@/sections/chat/game/games/dots-and-boxes/masthead.json";
 import PALETTE, { colourOf } from "@/sections/chat/game/games/dots-and-boxes/palette";
 import SizePreview from "@/sections/chat/game/games/dots-and-boxes/SizePreview";
+import SIZES from "@/sections/chat/game/games/dots-and-boxes/sizes";
 
 // a seat index is 0, so a drawn line or a claimed box is counted by what it is not
 const drawnIn = (state) => state?.lines.filter((drawnBy) => drawnBy !== null).length ?? 0;
@@ -33,14 +34,15 @@ const dotsAndBoxes = {
       key: "size",
       label: "Board size",
       choices: [
-        { value: 3, label: "3 × 3", note: "Quick" },
         { value: 4, label: "4 × 4", note: "Standard" },
         { value: 5, label: "5 × 5", note: "Long" },
+        { value: 6, label: "6 × 8", note: "Longest" },
       ],
       Preview: SizePreview,
       // four boxes a player, the same cap the server enforces when the setting arrives
       unavailable: (size, players) => {
-        const most = Math.floor((size * size) / 4);
+        const { width, height } = SIZES[size];
+        const most = Math.floor((width * height) / 4);
         return players > most ? `Up to ${most} players` : null;
       },
     },
@@ -58,7 +60,7 @@ const dotsAndBoxes = {
     { heading: "The end", text: "When every line is drawn, whoever holds the most boxes wins. If the most is shared, it's a draw.", picture: "end" },
     {
       heading: "Board size",
-      text: "Pick a 3 × 3, 4 × 4 or 5 × 5 board before you start. A bigger board makes a longer game and seats more players, four boxes for each.",
+      text: "Pick a 4 × 4, 5 × 5 or 6 × 8 board before you start. A bigger board makes a longer game and seats more players, four boxes for each.",
       picture: "sizes",
     },
   ],

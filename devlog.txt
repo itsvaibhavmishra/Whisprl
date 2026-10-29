@@ -14,10 +14,13 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Dots and Boxes has a 6 × 8 board, taller than it is wide to fill a phone, in place of the 3 × 3
 
   - Improvements:
+    - Dots and Boxes marks the line drawn last, yours or another player's, in the colour of whoever drew it
 
   - Fixed:
+    - The Dots and Boxes paper sits straight instead of leaning, so its edges run with the grid
 
   - Developers:
 
