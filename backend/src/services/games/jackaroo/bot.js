@@ -1,6 +1,7 @@
 import { HOME_ENTRY, LOOP, START } from "#src/services/games/jackaroo/board.js";
 import { isRed } from "#src/services/games/jackaroo/cards.js";
-import { keyOf, losingPlays, other, placeOf, playsForTurn, progressOf } from "#src/services/games/jackaroo/moves.js";
+import { keyOf, losingPlays, other, placeOf, progressOf } from "#src/services/games/jackaroo/moves.js";
+import { turnPlays } from "#src/services/games/jackaroo/rules.js";
 
 // the furthest any single card carries a marble, so a marble this close behind another can land on it
 const REACH = 13;
@@ -63,18 +64,27 @@ const scorePlay = (state, seat, play) => {
 const moveFor = (state, seat, play) =>
   play.kind === "takeCard" ? { key: keyOf(play), taken: Math.floor(Math.random() * state.players[other(seat)].hand.length) } : { key: keyOf(play) };
 
+const choosePlay = (state, seat, plays, level) => {
+  // a win is always taken, because walking past one looks broken rather than kind
+  const winning = plays.find((play) => finishes(state, seat, play));
+  if (winning) return winning;
+  if (Math.random() < DISTRACTED[level]) return anyOf(plays);
+  const scored = plays.map((play) => ({ play, score: scorePlay(state, seat, play) }));
+  const best = Math.max(...scored.map(({ score }) => score));
+  return anyOf(scored.filter(({ score }) => score === best)).play;
+};
+
+const hasChoicesLeft = (plays, play) => play.kind === "takeCard" || plays.filter((option) => option.card?.id === play.card?.id).length > 1;
+
 // an ordinary player: it weighs each play on its own and never plans a turn ahead, so it can be outplayed
 export const botMove = (state, seat, level = "opponent") => {
   if (state.pending) {
     const keep = losingPlays(state, seat).reduce((worst, play) => (cardValue(play.card) < cardValue(worst.card) ? play : worst));
     return { key: keyOf(keep) };
   }
-  const plays = playsForTurn(state, seat);
-  // a win is always taken, because walking past one looks broken rather than kind
-  const winning = plays.find((play) => finishes(state, seat, play));
-  if (winning) return moveFor(state, seat, winning);
-  if (Math.random() < DISTRACTED[level]) return moveFor(state, seat, anyOf(plays));
-  const scored = plays.map((play) => ({ play, score: scorePlay(state, seat, play) }));
-  const best = Math.max(...scored.map(({ score }) => score));
-  return moveFor(state, seat, anyOf(scored.filter(({ score }) => score === best)).play);
+  const plays = turnPlays(state, seat);
+  const chosen = choosePlay(state, seat, plays, level);
+  // a bot playing for itself puts a card with choices down first, as a player does; one standing in for a late player just finishes
+  if (level !== "standIn" && !state.shown && hasChoicesLeft(plays, chosen)) return { show: chosen.card.id };
+  return moveFor(state, seat, chosen);
 };

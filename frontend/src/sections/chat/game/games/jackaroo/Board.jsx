@@ -107,7 +107,9 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   );
   // once a play is sent the hand waits for the server's answer, since a second tap would only be refused
   const [sentAt, setSentAt] = useState(null);
-  const isMyTurn = mySeat !== -1 && state.turn === mySeat && state.winner === null && sentAt !== state.plays && hasTurnStarted;
+  // a card you put down is yours to finish as soon as it lands, so its choices never wait on the clock
+  const shownCard = state.shown?.seat === mySeat ? state.shown.card : null;
+  const isMyTurn = mySeat !== -1 && state.turn === mySeat && state.winner === null && sentAt !== state.plays && (hasTurnStarted || Boolean(shownCard));
   const options = useMemo(() => (isMyTurn ? state.options : []), [isMyTurn, state.options]);
   // once a turn, so a refused play that hands the turn back does not knock again
   const knockedFor = useRef(null);
@@ -121,8 +123,8 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
 
   // a card is picked, played onto the pile, then asked what it still needs; all of it belongs to one play, so the next starts afresh
   const [choice, setChoice] = useState({ plays: state.plays });
-  const chosen = choice.plays === state.plays ? choice : { plays: state.plays };
-  const pickedCard = state.hand.find((card) => card.id === chosen.card);
+  const chosen = choice.plays === state.plays ? choice : { plays: state.plays, ...(shownCard && { card: shownCard.id, isPlayed: true }) };
+  const pickedCard = state.hand.find((card) => card.id === chosen.card) ?? (shownCard?.id === chosen.card ? shownCard : undefined);
   const step = chosen.isPlayed && isMyTurn ? nextStep(options, chosen) : null;
 
   // a refused play is said over the hand, where the turn's own prompts are, and the turn starts over
@@ -132,9 +134,9 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     const timer = setTimeout(() => setRefusal(null), REFUSAL_MS);
     return () => clearTimeout(timer);
   }, [refusal]);
-  const send = async (option, extra = {}) => {
+  const send = async (move) => {
     setSentAt(state.plays);
-    const result = await onMove({ key: option.key, ...extra }, { isQuiet: true });
+    const result = await onMove(move, { isQuiet: true });
     if (result?.meta?.requestStatus === "rejected") {
       setSentAt(null);
       setChoice({ plays: state.plays });
@@ -143,10 +145,11 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     }
   };
 
-  // each answer narrows the card's plays, and the play goes as soon as only one is left; the red queen still has a card to pick
+  // each answer narrows the card's plays, and the play goes as soon as only one is left; a card with choices still to make goes down first
   const choose = (next) => {
     const after = nextStep(options, next);
-    if (after.play && after.play.kind !== "takeCard") send(after.play);
+    if (after.play && after.play.kind !== "takeCard") send({ key: after.play.key });
+    else if (!state.shown) send({ show: next.card });
     setChoice(next);
   };
 
@@ -167,7 +170,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     tappedTo.current = rect;
     setPick({ plays: state.plays, count: state.hands[rival], taken: index, isBack: false });
     setChoice({ ...chosen, taken: index });
-    send(step.play, { taken: index });
+    send({ key: step.play.key, taken: index });
   };
 
   const pickMarble = (value) => {
@@ -221,7 +224,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const previewed = chosen.card && isMyTurn ? narrowed(options, chosen).filter((option) => option.moves?.length === 1) : [];
   // the pile holds this round's cards, the last round's until the deal clears them, and a card just played before the server has it
   const pileRound = dealAt !== null && !hasDealStarted ? state.round - 1 : state.round;
-  const played = chosen.isPlayed && pickedCard ? [{ card: pickedCard, seat: mySeat, thrown: mustThrow, round: state.round }] : [];
+  const played = chosen.isPlayed && pickedCard && !shownCard ? [{ card: pickedCard, seat: mySeat, thrown: mustThrow, round: state.round }] : [];
   const pile = [...state.pile, ...played].filter((entry) => entry.round === pileRound);
 
   const prompt = (() => {
@@ -229,7 +232,8 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     if (mySeat === -1) return state.winner === null && hasTurnStarted ? { text: `${nameOf(seats[state.turn], conversation, meId)}'s turn` } : null;
     if (!isMyTurn) return null;
     if (state.pending) return { text: "Discard a card!", isAlarm: true };
-    if (throwsHand) return { text: "No cards available", isAlarm: true, buttons: [{ label: "Discard all", look: "all", onClick: () => send(throwsHand) }] };
+    if (throwsHand)
+      return { text: "No cards available", isAlarm: true, buttons: [{ label: "Discard all", look: "all", onClick: () => send({ key: throwsHand.key }) }] };
     if (isThrowing) return { text: "No cards available, please discard", isAlarm: true };
     if (step?.actions) {
       const labels = { move: `Move ${pickedCard.rank}`, new: "New marble", discard: "Discard" };
@@ -291,8 +295,8 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
       effects: effectsRef.current,
       marbles: marbles.current,
       pileCards: [...stage.querySelectorAll("[data-pile]")],
-      // a card you played flew to the pile the moment you played it
-      playedFrom: card?.id === flownId.current ? null : handOf(seat),
+      // a card you played flew to the pile the moment you played it, and one put down earlier is already there
+      playedFrom: card?.id === flownId.current || current.lastPlay.shownFirst ? null : handOf(seat),
       // the card you took turns over from wherever it is on its way to the middle, or from the middle once the pick has gone
       takenFrom: seat === mySeat ? (stage.querySelector("[data-taken]")?.getBoundingClientRect() ?? tappedTo.current) : handOf(1 - seat),
       myHand: handRef.current,

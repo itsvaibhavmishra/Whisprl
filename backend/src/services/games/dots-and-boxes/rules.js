@@ -2,63 +2,70 @@ import createHttpError from "http-errors";
 
 import { coloursFor } from "#src/services/games/colours.js";
 
-// boxes a side: a quick game, one with room for chains, and one with room for several players
-export const SIZES = [3, 4, 5];
+// boxes across and down, keyed by the lobby's choice; the longest stands taller than wide, to fill a phone held upright
+export const SIZES = { 4: { width: 4, height: 4 }, 5: { width: 5, height: 5 }, 6: { width: 6, height: 8 } };
 
 const STANDARD = 4;
 // fewer than this and a player has nothing to play for, which is what caps the seats a board holds
 const BOXES_EACH = 4;
 
-export const linesIn = (size) => 2 * size * (size + 1);
+export const linesIn = ({ width, height }) => (height + 1) * width + height * (width + 1);
 
-export const boxesIn = (size) => size * size;
+export const boxesIn = ({ width, height }) => width * height;
 
-export const mostPlayersOn = (size) => Math.floor(boxesIn(size) / BOXES_EACH);
+const isOffered = (size) => Object.hasOwn(SIZES, size);
+
+export const mostPlayersOn = (size) => Math.floor(boxesIn(SIZES[size]) / BOXES_EACH);
 
 // lines are numbered across first then down, so a box's four sides are arithmetic rather than a lookup
-const acrossAt = (size, row, col) => row * size + col;
+const acrossAt = ({ width }, row, col) => row * width + col;
 
-const downAt = (size, row, col) => (size + 1) * size + row * (size + 1) + col;
+const downAt = ({ width, height }, row, col) => (height + 1) * width + row * (width + 1) + col;
 
-export const sidesOfBox = (size, box) => {
-  const row = Math.floor(box / size);
-  const col = box % size;
-  return [acrossAt(size, row, col), acrossAt(size, row + 1, col), downAt(size, row, col), downAt(size, row, col + 1)];
+export const sidesOfBox = (grid, box) => {
+  const row = Math.floor(box / grid.width);
+  const col = box % grid.width;
+  return [acrossAt(grid, row, col), acrossAt(grid, row + 1, col), downAt(grid, row, col), downAt(grid, row, col + 1)];
 };
 
-export const boxesTouching = (size, line) => Array.from({ length: boxesIn(size) }, (_, box) => box).filter((box) => sidesOfBox(size, box).includes(line));
+export const boxesTouching = (grid, line) => Array.from({ length: boxesIn(grid) }, (_, box) => box).filter((box) => sidesOfBox(grid, box).includes(line));
 
 export const openLinesOf = ({ lines }) => lines.flatMap((drawnBy, line) => (drawnBy === null ? [line] : []));
 
-export const sidesDrawnOn = ({ size, lines }, box) => sidesOfBox(size, box).filter((side) => lines[side] !== null).length;
+export const sidesDrawnOn = (state, box) => sidesOfBox(state, box).filter((side) => state.lines[side] !== null).length;
 
 // read before the line is drawn, so it asks whether every other side is already there
-export const boxesClosedBy = ({ size, lines }, line) =>
-  boxesTouching(size, line).filter((box) => sidesOfBox(size, box).every((side) => side === line || lines[side] !== null));
+export const boxesClosedBy = (state, line) =>
+  boxesTouching(state, line).filter((box) => sidesOfBox(state, box).every((side) => side === line || state.lines[side] !== null));
 
 export const scoresOf = ({ boxes, players }) => Array.from({ length: players }, (_, seat) => boxes.filter((owner) => owner === seat).length);
 
 // the engine merges the seat count in as players, so the board and the table are checked together
 export const assertOptions = ({ size, players }) => {
-  if (!SIZES.includes(size)) throw createHttpError.BadRequest("That board size does not exist");
+  if (!isOffered(size)) throw createHttpError.BadRequest("That board size does not exist");
   if (players < 2 || players > mostPlayersOn(size)) {
-    throw createHttpError.BadRequest(`A ${size} by ${size} board seats at most ${mostPlayersOn(size)} players`);
+    const { width, height } = SIZES[size];
+    throw createHttpError.BadRequest(`A ${width} by ${height} board seats at most ${mostPlayersOn(size)} players`);
   }
 };
 
 export const DEFAULTS = { size: STANDARD };
 
 export const setup = (previous, { size = STANDARD, players = 2, seating = null } = {}) => {
-  assertOptions({ size, players });
+  // a lobby still set to a size no longer offered starts on the standard board
+  const offered = isOffered(size) ? size : STANDARD;
+  assertOptions({ size: offered, players });
+  const grid = SIZES[offered];
   // whoever opened the last game does not open this one
   const first = previous ? (previous.first + 1) % players : 0;
   return {
-    size,
+    ...grid,
     players,
     seating,
     colours: coloursFor(previous, players, seating),
-    lines: Array(linesIn(size)).fill(null),
-    boxes: Array(boxesIn(size)).fill(null),
+    lines: Array(linesIn(grid)).fill(null),
+    boxes: Array(boxesIn(grid)).fill(null),
+    lastLine: null,
     turn: first,
     first,
   };
@@ -73,7 +80,7 @@ export const play = (state, seat, line) => {
   const lines = state.lines.map((drawnBy, at) => (at === line ? seat : drawnBy));
   const boxes = closed.length ? state.boxes.map((owner, box) => (closed.includes(box) ? seat : owner)) : state.boxes;
   // closing a box earns another move, so the turn passes only when a line closes nothing
-  return { ...state, lines, boxes, turn: closed.length ? seat : (seat + 1) % state.players };
+  return { ...state, lines, boxes, lastLine: line, turn: closed.length ? seat : (seat + 1) % state.players };
 };
 
 export const outcome = (state) => {

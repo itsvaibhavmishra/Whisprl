@@ -184,7 +184,7 @@ const sweepPlays = (state, seat, card) =>
 
 const hasCardsToLose = (state, seat) => state.players[other(seat)].hand.length > 0;
 
-const playsFor = (state, seat, card) => {
+export const playsFor = (state, seat, card) => {
   switch (card.rank) {
     case 1:
     case 2:

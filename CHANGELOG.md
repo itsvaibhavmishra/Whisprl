@@ -6,6 +6,21 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.6] - 2026-10-30
+
+### New
+
+- Dots and Boxes has a 6 × 8 board, taller than it is wide to fill a phone, in place of the 3 × 3
+
+### Improvements
+
+- Dots and Boxes marks the line drawn last, yours or another player's, in the colour of whoever drew it
+- In Jackaroo a card that needs a choice goes down on the board as soon as it is played, and a red queen lays the other player's cards out at once, sending back the ones not taken
+
+### Fixed
+
+- The Dots and Boxes paper sits straight instead of leaning, so its edges run with the grid
+
 ## [2.5.5] - 2026-10-26
 
 ### Improvements
@@ -536,6 +551,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.6]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.6
 [2.5.5]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.5
 [2.5.4]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.4
 [2.5.3]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.3
