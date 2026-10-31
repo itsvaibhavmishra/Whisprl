@@ -18,6 +18,7 @@ concurrency:
 
 permissions:
   contents: write
+  deployments: write
 
 jobs:
   release:
@@ -52,8 +53,10 @@ jobs:
             echo "kind=test" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+          # every push to production goes live, released or not, since nothing else deploys it
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
           if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then
-            echo "::notice::v$VERSION already released, bump the version to cut a new one."
+            echo "::notice::v$VERSION already released, so this push only deploys. Bump the version to cut a new one."
             exit 0
           fi
           PREVIOUS=$(gh release view --json tagName --jq .tagName 2>/dev/null || true)
@@ -70,9 +73,13 @@ jobs:
           echo "kind=$KIND" >> "$GITHUB_OUTPUT"
 
       - name: Check the secrets and settings
-        if: steps.plan.outputs.version
+        if: steps.plan.outputs.version || steps.plan.outputs.deploy
         env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          DEPLOY: ${{ steps.plan.outputs.deploy }}
           KIND: ${{ steps.plan.outputs.kind }}
+          NORTHFLANK_TOKEN: ${{ secrets.NORTHFLANK_TOKEN }}
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
           LIVE_UPDATE_KEY: ${{ secrets.LIVE_UPDATE_KEY }}
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -80,10 +87,16 @@ jobs:
           RENDER_RC_DEPLOY_HOOK: ${{ secrets.RENDER_RC_DEPLOY_HOOK }}
           RC_API_ORIGIN: ${{ vars.RC_API_ORIGIN }}
         run: |
-          NAMES="LIVE_UPDATE_KEY GOOGLE_SERVICES_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD"
+          NAMES=""
+          if [ -n "$VERSION" ]; then
+            NAMES="LIVE_UPDATE_KEY GOOGLE_SERVICES_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD"
+          fi
           # a test build without the rc backend would quietly talk to production instead
           if [ "$KIND" = test ]; then
             NAMES="$NAMES RENDER_RC_DEPLOY_HOOK RC_API_ORIGIN"
+          fi
+          if [ -n "$DEPLOY" ]; then
+            NAMES="$NAMES NORTHFLANK_TOKEN NETLIFY_TOKEN"
           fi
           for name in $NAMES; do
             if [ -z "${!name}" ]; then
@@ -101,7 +114,7 @@ jobs:
         run: curl --fail --silent --show-error --output /dev/null -X POST "$RENDER_RC_DEPLOY_HOOK&ref=$SHA"
 
       - uses: actions/setup-node@v7
-        if: steps.plan.outputs.version
+        if: steps.plan.outputs.version || steps.plan.outputs.deploy
         with:
           node-version: 24
           cache: npm
@@ -115,13 +128,13 @@ jobs:
           cache: gradle
 
       - name: Install frontend
-        if: steps.plan.outputs.version
+        if: steps.plan.outputs.version || steps.plan.outputs.deploy
         run: npm ci
         working-directory: frontend
 
       # built with the production settings the website uses, and signed with the key whose public half every APK carries
       - name: Build the web app and its live update
-        if: steps.plan.outputs.version
+        if: steps.plan.outputs.version || steps.plan.outputs.deploy
         env:
           KIND: ${{ steps.plan.outputs.kind }}
           LIVE_UPDATE_KEY: ${{ secrets.LIVE_UPDATE_KEY }}
@@ -137,8 +150,8 @@ jobs:
           # a test build takes no live update, so the next release can never swap it onto production code
           REACT_APP_UPDATE_URL: ${{ steps.plan.outputs.kind != 'test' && format('https://github.com/{0}/releases/latest/download/app-update.json', github.repository) || '' }}
         run: |
-          # a test build ships only its APK, so it builds the web app without packaging a live update
-          if [ "$KIND" = test ]; then
+          # a test build ships only its APK and a deploy without a release only the website, so neither packages a live update
+          if [ "$KIND" != web ] && [ "$KIND" != app ]; then
             mkdir -p "$RUNNER_TEMP/release"
             (cd frontend && npm run build)
             exit 0
@@ -187,7 +200,41 @@ jobs:
           (cd android && ./gradlew bundleRelease)
           cp android/app/build/outputs/bundle/release/app-release.aab "$RUNNER_TEMP/release/whisprl-play.aab"
 
+      # a record of each production deploy beside its commit, closed as failed when any part of it does not land
+      - name: Open the deployment
+        id: deployment
+        if: steps.plan.outputs.deploy
+        run: |
+          ID=$(jq -n --arg ref "$GITHUB_SHA" '{ref: $ref, environment: "production", auto_merge: false, required_contexts: []}' |
+            gh api "repos/$GITHUB_REPOSITORY/deployments" --input - --jq .id)
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+          gh api "repos/$GITHUB_REPOSITORY/deployments/$ID/statuses" -f state=in_progress --silent
+
+      # everything is built before anything goes live, and the server goes first so no website or app runs ahead of it
+      - name: Deploy the backend
+        id: backend
+        if: steps.plan.outputs.deploy
+        env:
+          NORTHFLANK_TOKEN: ${{ secrets.NORTHFLANK_TOKEN }}
+          API_ORIGIN: ${{ vars.REACT_APP_API_ORIGIN }}
+        run: scripts/deploy.sh backend "$GITHUB_SHA"
+
+      - name: Note the live website
+        id: live
+        if: steps.plan.outputs.deploy
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: echo "deploy=$(scripts/deploy.sh live-website)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy the website
+        id: website
+        if: steps.plan.outputs.deploy
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: scripts/deploy.sh website frontend/build
+
       - name: Publish the release
+        id: publish
         if: steps.plan.outputs.version && steps.plan.outputs.kind != 'test'
         env:
           VERSION: ${{ steps.plan.outputs.version }}
@@ -203,6 +250,34 @@ jobs:
           python3 scripts/changelog.py section "$VERSION" >> notes.md
           gh release create "v$VERSION" --target "${{ github.sha }}" --title "Whisprl $VERSION" --notes-file notes.md "${ASSETS[@]}"
           gh release delete "test-v$VERSION" --yes 2>/dev/null || true
+
+      # whatever already went out is put back when a later part fails, so production is never left half released
+      - name: Take the release back
+        if: failure() && steps.publish.outcome == 'failure'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: gh release delete "v$VERSION" --cleanup-tag --yes || true
+
+      - name: Put the website back
+        if: failure() && steps.website.outcome != 'skipped' && steps.live.outputs.deploy
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          PREVIOUS: ${{ steps.live.outputs.deploy }}
+        run: scripts/deploy.sh undo-website "$PREVIOUS"
+
+      - name: Put the backend back
+        if: failure() && steps.backend.outcome != 'skipped'
+        env:
+          NORTHFLANK_TOKEN: ${{ secrets.NORTHFLANK_TOKEN }}
+          API_ORIGIN: ${{ vars.REACT_APP_API_ORIGIN }}
+        run: scripts/deploy.sh undo-backend "$(git rev-parse "$GITHUB_SHA^")" "$GITHUB_SHA"
+
+      - name: Close the deployment
+        if: always() && steps.deployment.outputs.id
+        env:
+          ID: ${{ steps.deployment.outputs.id }}
+          STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
+        run: gh api "repos/$GITHUB_REPOSITORY/deployments/$ID/statuses" -f state="$STATE" --silent
 
       # a draft is seen only by the repository's owners and never counts as the latest release, so no installed app reads it
       - name: Publish the test build
