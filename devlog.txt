@@ -18,7 +18,6 @@
   - Improvements:
 
   - Fixed:
-    - In Jackaroo a card's choices show the moment it is played instead of after a wait, and marbles close together are numbered again
 
   - Developers:
 
