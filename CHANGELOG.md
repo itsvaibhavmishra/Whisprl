@@ -6,6 +6,12 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.7] - 2026-10-31
+
+### Fixed
+
+- In Jackaroo a card's choices show the moment it is played instead of after a wait, and marbles close together are numbered again
+
 ## [2.5.6] - 2026-10-30
 
 ### New
@@ -551,6 +557,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.7]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.7
 [2.5.6]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.6
 [2.5.5]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.5
 [2.5.4]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.4

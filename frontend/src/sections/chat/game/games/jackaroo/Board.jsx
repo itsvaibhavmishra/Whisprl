@@ -109,7 +109,9 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const [sentAt, setSentAt] = useState(null);
   // a card you put down is yours to finish as soon as it lands, so its choices never wait on the clock
   const shownCard = state.shown?.seat === mySeat ? state.shown.card : null;
-  const isMyTurn = mySeat !== -1 && state.turn === mySeat && state.winner === null && sentAt !== state.plays && (hasTurnStarted || Boolean(shownCard));
+  // a finish sent before the server had its card down is still on its way while that card shows
+  const isWaiting = sentAt === state.plays || (sentAt === state.plays - 1 && Boolean(shownCard));
+  const isMyTurn = mySeat !== -1 && state.turn === mySeat && state.winner === null && !isWaiting && (hasTurnStarted || Boolean(shownCard));
   const options = useMemo(() => (isMyTurn ? state.options : []), [isMyTurn, state.options]);
   // once a turn, so a refused play that hands the turn back does not knock again
   const knockedFor = useRef(null);
@@ -123,7 +125,11 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
 
   // a card is picked, played onto the pile, then asked what it still needs; all of it belongs to one play, so the next starts afresh
   const [choice, setChoice] = useState({ plays: state.plays });
-  const chosen = choice.plays === state.plays ? choice : { plays: state.plays, ...(shownCard && { card: shownCard.id, isPlayed: true }) };
+  // the server putting your card down is the same play going on, so the choices already made for it carry over
+  if (shownCard && !(choice.plays === state.plays && choice.card === shownCard.id && choice.isPlayed)) {
+    setChoice(choice.card === shownCard.id ? { ...choice, plays: state.plays, isPlayed: true } : { plays: state.plays, card: shownCard.id, isPlayed: true });
+  }
+  const chosen = choice.plays === state.plays ? choice : { plays: state.plays };
   const pickedCard = state.hand.find((card) => card.id === chosen.card) ?? (shownCard?.id === chosen.card ? shownCard : undefined);
   const step = chosen.isPlayed && isMyTurn ? nextStep(options, chosen) : null;
 
@@ -135,7 +141,8 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     return () => clearTimeout(timer);
   }, [refusal]);
   const send = async (move) => {
-    setSentAt(state.plays);
+    // a card put down is answered while its choices are made, so only a finished play holds the hand
+    if (!move.show) setSentAt(state.plays);
     const result = await onMove(move, { isQuiet: true });
     if (result?.meta?.requestStatus === "rejected") {
       setSentAt(null);
@@ -145,11 +152,10 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     }
   };
 
-  // each answer narrows the card's plays, and the play goes as soon as only one is left; a card with choices still to make goes down first
+  // each answer narrows the card's plays, and the play goes as soon as only one is left; the red queen still has a card to pick
   const choose = (next) => {
     const after = nextStep(options, next);
     if (after.play && after.play.kind !== "takeCard") send({ key: after.play.key });
-    else if (!state.shown) send({ show: next.card });
     setChoice(next);
   };
 
@@ -160,7 +166,11 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const playCard = () => {
     playedFrom.current = handRef.current?.querySelector(`[data-card="${chosen.card}"]`)?.getBoundingClientRect() ?? null;
     flownId.current = chosen.card;
-    choose({ ...chosen, isPlayed: true });
+    const next = { ...chosen, isPlayed: true };
+    const after = nextStep(options, next);
+    // a card with choices still to make goes down for both players now, and its choices are made while the server takes it
+    if (!after.play || after.play.kind === "takeCard") send({ show: chosen.card });
+    choose(next);
   };
   // the card you take from them is sent at once and stays lifted until the server shows what it was
   const [pick, setPick] = useState(null);
@@ -372,6 +382,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
                 count={livePick?.count ?? state.hands[rival]}
                 fan={fanRefs.current[rival]}
                 taken={livePick?.taken ?? null}
+                isReady={Boolean(shownCard)}
                 isAnswered={isPickAnswered}
                 isStill={isStill}
                 onTake={take}
