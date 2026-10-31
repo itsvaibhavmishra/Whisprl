@@ -432,9 +432,9 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 - **A release pull request** from `rc` into `production`, labelled `release: web` or
   `release: app`, publishes only a draft APK that only the repository's owners can see (see Trying
   a release on a phone).
-- **Merging into `production`** always redeploys the backend and the website, through the Release
-  workflow (see Deploying production). Whether it also publishes a version depends on the pull
-  request's label:
+- **Merging into `production`** always redeploys the website and the backend, since Netlify and
+  Northflank deploy from the branch itself. Whether it also publishes a version depends on the
+  pull request's label:
 
 | Label | When | Publishes |
 |---|---|---|
@@ -452,29 +452,6 @@ every file it carries is built, so `releases/latest/download/` always has the fi
 the same `versionCode`, so it serves new installs and changes nothing for existing ones. A release
 that fails to build publishes nothing, and running the Release workflow again from the Actions
 tab retries it.
-
-### Deploying production
-
-Neither Northflank nor Netlify deploys `production` by itself: Northflank's CI is off and Netlify's
-auto publishing is stopped, so the Release workflow is the only thing that puts a commit live. It
-builds everything first, then deploys in order with `scripts/deploy.sh`, checking each part landed
-before the next starts:
-
-1. **The backend.** It starts the Northflank build for the merged commit and waits until
-   `GET /api/version` answers with that commit, which Northflank gives the server as
-   `NF_DEPLOYMENT_SHA`.
-2. **The website.** It uploads the build to Netlify, waits until Netlify has it ready, publishes it
-   and checks it is the deploy live.
-3. **The release**, when there is one: the GitHub Release the app updates from.
-
-If any part fails, the workflow puts back whatever already went out (the website's previous deploy,
-then a build of the backend's previous commit), deletes a half-published release, and fails. Each
-run is also a GitHub deployment to `production`, closed as failed or succeeded, so a deploy that
-did not land shows beside its commit. The website and the app never reach anyone before the server
-that answers them.
-
-It needs the `NORTHFLANK_TOKEN` and `NETLIFY_TOKEN` secrets, and refuses to start without them.
-Running the Release workflow again from the Actions tab redeploys `production` as it stands.
 
 Which release a change needs:
 

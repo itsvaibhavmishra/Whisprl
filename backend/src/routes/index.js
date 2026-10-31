@@ -13,11 +13,8 @@ import onboardingRouter from "#src/routes/onboardingRouter.js";
 import adminRouter from "#src/routes/adminRouter.js";
 import gameRouter from "#src/routes/gameRouter.js";
 import pushRouter from "#src/routes/pushRouter.js";
-import { getVersion } from "#src/controllers/versionController.js";
 
 const router = express.Router();
-
-router.get("/version", getVersion);
 
 router.use("/auth", authRouter);
 
