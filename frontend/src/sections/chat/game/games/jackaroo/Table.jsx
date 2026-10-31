@@ -70,7 +70,7 @@ const placesInFan = (fan) =>
   });
 
 // the red queen's pick: each of the other player's cards grows out of its place in their fan to lie face down and large in the board's centre, and the cards not taken fly back
-export const TheirCards = ({ count, fan, taken, isAnswered, isStill, onTake, onBack }) => {
+export const TheirCards = ({ count, fan, taken, isReady, isAnswered, isStill, onTake, onBack }) => {
   const rowRef = useRef(null);
   // the card you take sets off for the middle at once, so the server's answer arrives while it is already moving
   const [shift, setShift] = useState({ x: 0, y: 0 });
@@ -128,7 +128,8 @@ export const TheirCards = ({ count, fan, taken, isAnswered, isStill, onTake, onB
             key={index}
             data-taken={index === taken || undefined}
             aria-label={`Their card ${index + 1}`}
-            disabled={taken !== null}
+            // the queen may still be on its way to the server while they grow in, and a pick can only follow it
+            disabled={!isReady || taken !== null}
             onClick={(event) => take(index, event.currentTarget)}
             sx={{
               width: "21%",
