@@ -177,8 +177,6 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const onPickBack = useCallback(() => setPick((current) => current && { ...current, isBack: true }), []);
   const tappedTo = useRef(null);
   const take = (index, rect) => {
-    // their cards are still growing in while the queen goes down, so a pick waits for the server to have it
-    if (!shownCard) return;
     tappedTo.current = rect;
     setPick({ plays: state.plays, count: state.hands[rival], taken: index, isBack: false });
     setChoice({ ...chosen, taken: index });
@@ -384,6 +382,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
                 count={livePick?.count ?? state.hands[rival]}
                 fan={fanRefs.current[rival]}
                 taken={livePick?.taken ?? null}
+                isReady={Boolean(shownCard)}
                 isAnswered={isPickAnswered}
                 isStill={isStill}
                 onTake={take}
