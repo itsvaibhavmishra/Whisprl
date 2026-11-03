@@ -143,6 +143,9 @@ const showCard = (state, seat, cardId) => {
 };
 
 // move: { key } naming one of the plays the view offered, with { taken } as well for the red queen, or { show } putting a card down first
+// a card put down waits for its choice, so the turn it opened is still going
+export const isMidTurn = (state) => Boolean(state.shown);
+
 export const play = (previous, seat, move) => {
   if (previous.winner !== null) throw createHttpError.BadRequest("This game is over");
   const state = structuredClone(previous);

@@ -32,15 +32,10 @@ const DIM = "brightness(0.68) saturate(0.75)";
 // the same filters as a dimmed card's at full strength, so one can be brought up smoothly, as the red queen's spread does
 export const UNDIMMED = `${RESTING} brightness(1) saturate(1)`;
 
-// measured off the design's hand: the outer cards lean out about 7 degrees and sit a little lower, the inner two nearly straight
-const spreadOf = (index, count) => index - (count - 1) / 2;
-const tiltOf = (index, count) => spreadOf(index, count) * 4.6;
-const dropOf = (index, count) => spreadOf(index, count) ** 2 * 2.2;
-
 // the browser's own drag of an image would take the pointer away and cancel ours, so a card is never dragged that way
 const stopNativeDrag = (event) => event.preventDefault();
 
-const HandCard = memo(({ card, tones, tilt, drop, gap, isPicked, isDim, isEnabled, isAlarmed, pill, onPointerDown, onClick }) => (
+const HandCard = memo(({ card, tones, gap, isPicked, isDim, isEnabled, isAlarmed, pill, onPointerDown, onClick }) => (
   <ButtonBase
     data-card={card.id}
     data-glide={card.id}
@@ -61,11 +56,10 @@ const HandCard = memo(({ card, tones, tilt, drop, gap, isPicked, isDim, isEnable
       borderRadius: "9%",
       touchAction: "none",
       "& img": { pointerEvents: "none", WebkitUserDrag: "none" },
-      // the card is turned and lifted on its own layer, so a drag can move the button freely without undoing the fan
+      // the card lifts on its own layer, so a drag can move the button freely without undoing it
       "& > .lift": {
-        // a picked card keeps its place in the fan and only lifts a little, as the design's picked card does
-        transform: `translateY(${drop - (isPicked ? 6 : 0)}px) rotate(${tilt}deg)`,
-        transformOrigin: "50% 100%",
+        // a picked card keeps its place in the row and only lifts a little, as the design's picked card does
+        transform: `translateY(${isPicked ? -6 : 0}px)`,
         // a card that cannot be played is darkened rather than faded, so where it overlaps another nothing shows through
         filter: isPicked ? GLOW : `${RESTING}${isDim ? ` ${DIM}` : ""}`,
         transition: "transform 180ms ease, filter 180ms ease",
@@ -141,7 +135,7 @@ const dropTargetAt = (clientX, clientY) => {
   return null;
 };
 
-// your cards, fanned until your turn straightens them: one tap lifts a card, a second plays it, or drag it onto the board
+// your cards in a straight row: one tap lifts a card, a second plays it, or drag it onto the board
 const Hand = ({
   cards,
   tones,
@@ -266,7 +260,7 @@ const Hand = ({
 
   // a card played onto the pile leaves the row at once, while its choices are still being made
   const shown = cards.filter((card) => card.id !== awayId);
-  // the design's fan sits edge to edge with the slightest overlap; the reference's row on your turn leaves small gaps
+  // the row sits edge to edge with the slightest overlap, and opens small gaps on your turn
   const gap = isMyTurn ? "3px" : "-1px";
 
   return (
@@ -284,17 +278,15 @@ const Hand = ({
         flexShrink: 0,
       }}
     >
-      {shown.map((card, index) => (
+      {shown.map((card) => (
         <HandCard
           key={card.id}
           card={card}
           tones={tones}
-          tilt={isMyTurn ? 0 : tiltOf(index, shown.length)}
-          drop={isMyTurn ? 0 : dropOf(index, shown.length)}
           gap={gap}
           isPicked={pickedId === card.id}
-          isDim={isMyTurn ? !playableIds.has(card.id) : isGreyed}
-          isEnabled={isMyTurn && playableIds.has(card.id)}
+          isDim={isGreyed || (isMyTurn && !playableIds.has(card.id))}
+          isEnabled={isMyTurn && !isGreyed && playableIds.has(card.id)}
           isAlarmed={isAlarmed}
           pill={isMyTurn ? pills.get(card.id) : null}
           onPointerDown={onPointerDown}

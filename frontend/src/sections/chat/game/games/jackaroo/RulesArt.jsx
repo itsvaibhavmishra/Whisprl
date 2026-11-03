@@ -4,7 +4,7 @@ import art from "@/sections/chat/game/games/jackaroo/art";
 import CardFace from "@/sections/chat/game/games/jackaroo/CardFace";
 import { centredAt, pointOf, SPRITES } from "@/sections/chat/game/games/jackaroo/geometry";
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
-import { Cross, Marks, ShutHome, Swirls } from "@/sections/chat/game/games/jackaroo/Pieces";
+import { Cross, Marks, ShutHome, Swirls, shutHolesOf } from "@/sections/chat/game/games/jackaroo/Pieces";
 
 // you play blue from the bottom against red, as the design's screens show it
 const YOU = 4;
@@ -147,6 +147,7 @@ const Arrow = ({ from, to, crop }) => {
 // a window onto the real board, zoomed to the part a rule is about
 const BoardWindow = ({ scene }) => {
   const { crop } = scene;
+  const shut = scene.shut ? shutHolesOf([0], [scene.marbles.filter(([, tone]) => tone === YOU).map(([place]) => place), []]) : [];
   return (
     <Box
       sx={{
@@ -170,7 +171,7 @@ const BoardWindow = ({ scene }) => {
         }}
       >
         <Box component="img" alt="" src={art.board} sx={{ ...sprite, inset: 0, width: "100%" }} />
-        <Marks tones={TONES} isTurned={false} />
+        <Marks tones={TONES} isTurned={false} shut={shut} />
         <Swirls isTurned={false} isStill />
         {scene.ghost && <Marble place={scene.ghost} tone={YOU} isGhost />}
         {scene.marbles.map(([place, tone]) => (
@@ -178,43 +179,39 @@ const BoardWindow = ({ scene }) => {
         ))}
         {scene.arrow && <Arrow from={[scene.arrow[0], 0]} to={[scene.arrow[1], 0]} crop={crop} />}
         {scene.knockout && <Cross {...at(scene.knockout, 1)} />}
-        {scene.shut && <ShutHome seats={[0]} marbles={[scene.marbles.filter(([, tone]) => tone === YOU).map(([place]) => place), []]} isTurned={false} />}
+        <ShutHome holes={shut} isTurned={false} />
       </Box>
     </Box>
   );
 };
 
-// cards laid out in a gentle fan, as the hand is
+// cards laid out in a straight row, as the hand is
 const Cards = ({ cards, width, picked }) => (
   <Stack direction="row" sx={{ alignItems: "flex-end", justifyContent: "center", height: "100%", pb: 1 }}>
-    {cards.map((shown, index) => {
-      const spread = index - (cards.length - 1) / 2;
-      return (
-        <Box
-          key={shown.id}
-          sx={{
-            width,
-            mx: "-3px",
-            position: "relative",
-            zIndex: shown === picked ? 1 : 0,
-            transform: `translateY(${spread ** 2 * 2 - (shown === picked ? 6 : 0)}px) rotate(${spread * 4.6}deg)`,
-            transformOrigin: "50% 100%",
-            filter: "drop-shadow(0 4px 7px rgba(0, 0, 0, 0.45))",
-            ...(shown === picked && {
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                inset: 0,
-                borderRadius: "6.5% / 4.6%",
-                boxShadow: "0 0 0 2px #9bd5ff, 0 0 0 3.5px rgba(61, 155, 255, 0.9), 0 0 12px 3px rgba(40, 130, 255, 0.7)",
-              },
-            }),
-          }}
-        >
-          <CardFace card={shown} tones={CARD_TONES} />
-        </Box>
-      );
-    })}
+    {cards.map((shown) => (
+      <Box
+        key={shown.id}
+        sx={{
+          width,
+          mx: "-3px",
+          position: "relative",
+          zIndex: shown === picked ? 1 : 0,
+          transform: `translateY(${shown === picked ? -6 : 0}px)`,
+          filter: "drop-shadow(0 4px 7px rgba(0, 0, 0, 0.45))",
+          ...(shown === picked && {
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              borderRadius: "6.5% / 4.6%",
+              boxShadow: "0 0 0 2px #9bd5ff, 0 0 0 3.5px rgba(61, 155, 255, 0.9), 0 0 12px 3px rgba(40, 130, 255, 0.7)",
+            },
+          }),
+        }}
+      >
+        <CardFace card={shown} tones={CARD_TONES} />
+      </Box>
+    ))}
   </Stack>
 );
 

@@ -15,7 +15,7 @@ export const PACE = {
   // a card taken by the red queen flies to its owner and then onto the pile
   taken: 1200,
   // the pause after a play before the next clock, long enough to read what happened
-  beat: 1200,
+  beat: 600,
   // a bonus card turns up after the play, then flies into the hand
   bonus: 2100,
   // the pile clears, the deck deals one card at a time, and the first clock follows

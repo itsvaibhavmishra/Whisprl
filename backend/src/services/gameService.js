@@ -202,12 +202,15 @@ const startGame = (session) => {
   return withTurnClock(started, playOutMsOf(game, state));
 };
 
+// a person's clock runs on through a play that leaves their turn unfinished, while a bot still takes its pause
+const keepsClock = (game, session, state) => Boolean(game.isMidTurn?.(state)) && !isBotPlaying(session.seats[game.turnOf(state)]);
+
 // a finished game goes back to its lobby with the final board and who won still showing
-const played = (session, index, move) => {
+export const played = (session, index, move) => {
   const game = gameOf(session.game);
   const state = game.play(session.state, index, move);
   const outcome = game.outcome(state);
-  if (!outcome) return withTurnClock({ ...session, state }, playOutMsOf(game, state));
+  if (!outcome) return keepsClock(game, session, state) ? { ...session, state } : withTurnClock({ ...session, state }, playOutMsOf(game, state));
   const winners = outcome.winners.map((winningSeat) => {
     const { user, bot } = session.seats[winningSeat];
     return { user: user ? String(user) : null, bot: Boolean(bot) };
