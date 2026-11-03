@@ -10,26 +10,21 @@ const LOOKS = {
   all: { ...BUTTON, px: 2.5, py: 0.6, borderRadius: 99, fontSize: 15, color: "#3b1d0e", background: "linear-gradient(180deg, #ffd889 0%, #f0b860 100%)" },
 };
 
-// what the turn still needs from you, floated just above your cards and centred over them; a watcher's line gets its own row
-const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand }) => (
-  <Stack
-    spacing={1}
-    sx={[
-      { alignItems: "center" },
-      isOverHand
-        ? {
-            position: "absolute",
-            zIndex: 3,
-            bottom: "calc(100% - 12px)",
-            left: "50%",
-            width: "max-content",
-            maxWidth: "calc(100cqw - 16px)",
-            translate: "-50% 0",
-            pointerEvents: "none",
-          }
-        : { minHeight: 40, justifyContent: "center", px: 2, flexShrink: 0 },
-    ]}
-  >
+const FLOATING = { position: "absolute", zIndex: 3, left: "50%", width: "max-content", maxWidth: "calc(100cqw - 16px)", pointerEvents: "none" };
+const PLACES = {
+  aboveCards: { ...FLOATING, bottom: "calc(100% - 12px)", translate: "-50% 0" },
+  overCards: { ...FLOATING, top: "50%", translate: "-50% -50%" },
+  ownRow: { minHeight: 40, justifyContent: "center", px: 2, flexShrink: 0 },
+};
+
+const placeOf = (isOverHand, isOverCards) => {
+  if (!isOverHand) return PLACES.ownRow;
+  return isOverCards ? PLACES.overCards : PLACES.aboveCards;
+};
+
+// what the turn still needs from you, centred on your cards: a choice sits over them, anything else just above; a watcher's line gets its own row
+const Prompt = ({ text, isAlarm = false, buttons = [], isOverHand, isOverCards = false }) => (
+  <Stack spacing={1} sx={[{ alignItems: "center" }, placeOf(isOverHand, isOverCards)]}>
     {text && (
       <Typography
         aria-live="polite"

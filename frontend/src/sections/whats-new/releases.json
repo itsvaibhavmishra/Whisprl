@@ -1,5 +1,16 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "🚀",
+      "title": "Snappier everywhere",
+      "text": "Messages arrive and game moves land much sooner, now that Whisprl's server sits right beside its data."
+    },
+    {
+      "emoji": "🃏",
+      "title": "A tidier Jackaroo table",
+      "text": "Your cards sit in a straight row, a card's choices show right over them, and your clock keeps running while you choose."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.4",

@@ -19,10 +19,22 @@ const pulse = (seconds) => ({ animation: `${beckon} ${seconds}s ease-in-out infi
 
 const sprite = { position: "absolute", display: "block", pointerEvents: "none", userSelect: "none" };
 
-// each seat's home and start are ringed in its colour, the start because nobody may pass a marble sitting there
-const Marks = memo(({ tones, isTurned }) =>
+const NO_HOLES = [];
+
+// the empty holes of each home shut by the other player's marble at its door
+export const shutHolesOf = (seats, marbles) =>
+  seats.flatMap((seat) =>
+    layout.homes[seat]
+      .map((_, slot) => slot)
+      .filter((slot) => !marbles[seat].some((place) => place.at === "home" && place.slot === slot))
+      .map((slot) => ({ seat, slot }))
+  );
+
+// each seat's home and start are ringed in its colour, the start because nobody may pass a marble sitting there; a shut hole greys
+const Marks = memo(({ tones, isTurned, shut = NO_HOLES }) =>
   [0, 1].map((seat) => {
     const places = [...layout.homes[seat].map((_, slot) => ({ at: "home", slot })), { at: "track", index: layout.start[seat] }];
+    const isShut = (place) => place.at === "home" && shut.some((hole) => hole.seat === seat && hole.slot === place.slot);
     return (
       <Box key={seat}>
         {places.map((place) => (
@@ -31,7 +43,13 @@ const Marks = memo(({ tones, isTurned }) =>
             component="img"
             alt=""
             src={art.ring(tones[seat])}
-            sx={{ ...sprite, ...centredAt(pointOf(place, seat, isTurned), SPRITES.mark) }}
+            sx={{
+              ...sprite,
+              ...centredAt(pointOf(place, seat, isTurned), SPRITES.mark),
+              filter: isShut(place) ? "grayscale(1)" : "none",
+              opacity: isShut(place) ? 0.45 : 1,
+              transition: "filter 300ms ease, opacity 300ms ease",
+            }}
           />
         ))}
       </Box>
@@ -252,24 +270,19 @@ export const Cross = ({ x, y }) => (
 );
 
 // a home shut by the other player's marble at its door: every empty hole in it is crossed out until that marble goes
-export const ShutHome = memo(({ seats, marbles, isTurned }) =>
-  seats.flatMap((seat) =>
-    layout.homes[seat]
-      .map((_, slot) => slot)
-      .filter((slot) => !marbles[seat].some((place) => place.at === "home" && place.slot === slot))
-      .map((slot) => (
-        <Box
-          key={`${seat}-${slot}`}
-          component="svg"
-          viewBox="0 0 20 20"
-          aria-hidden
-          sx={{ ...sprite, ...centredAt(pointOf({ at: "home", slot }, seat, isTurned), SPRITES.marble * 0.6), overflow: "visible" }}
-        >
-          <path d="M5 5L15 15M15 5L5 15" stroke="rgba(255, 240, 215, 0.55)" strokeWidth={5} strokeLinecap="round" />
-          <path d="M5 5L15 15M15 5L5 15" stroke="#4a2a14" strokeWidth={2.8} strokeLinecap="round" />
-        </Box>
-      ))
-  )
+export const ShutHome = memo(({ holes, isTurned }) =>
+  holes.map(({ seat, slot }) => (
+    <Box
+      key={`${seat}-${slot}`}
+      component="svg"
+      viewBox="0 0 20 20"
+      aria-hidden
+      sx={{ ...sprite, ...centredAt(pointOf({ at: "home", slot }, seat, isTurned), SPRITES.marble * 0.6), overflow: "visible" }}
+    >
+      <path d="M5 5L15 15M15 5L5 15" stroke="rgba(255, 240, 215, 0.55)" strokeWidth={5} strokeLinecap="round" />
+      <path d="M5 5L15 15M15 5L5 15" stroke="#4a2a14" strokeWidth={2.8} strokeLinecap="round" />
+    </Box>
+  ))
 );
 
 const shimmer = keyframes`0%, 100% { transform: scale(0.92); opacity: 0.85; } 50% { transform: scale(1.12); opacity: 1; }`;

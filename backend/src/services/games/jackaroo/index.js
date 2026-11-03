@@ -1,6 +1,6 @@
 import { botMove } from "#src/services/games/jackaroo/bot.js";
 import { playOutMs, thinkMs } from "#src/services/games/jackaroo/pace.js";
-import { outcome, play, setup, turnOf, viewFor } from "#src/services/games/jackaroo/rules.js";
+import { isMidTurn, outcome, play, setup, turnOf, viewFor } from "#src/services/games/jackaroo/rules.js";
 
 // one against one for now; two against two adds partners and a mode for groups
 const jackaroo = {
@@ -17,6 +17,7 @@ const jackaroo = {
   viewFor,
   playOutMs,
   thinkMs,
+  isMidTurn,
 };
 
 export default jackaroo;
