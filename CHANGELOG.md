@@ -6,6 +6,17 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.8] - 2026-11-03
+
+### Improvements
+
+- The server moved closer to its database, so messages and game moves arrive much faster
+- In Jackaroo your cards sit in a straight row, a card's choices show over your darkened hand, a home shut by the other player greys its empty holes, and the pause after each play is half as long
+
+### Fixed
+
+- In Jackaroo the clock no longer starts over once you put down a card that needs a choice
+
 ## [2.5.7] - 2026-10-31
 
 ### Fixed
@@ -557,6 +568,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.8]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.8
 [2.5.7]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.7
 [2.5.6]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.6
 [2.5.5]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.5

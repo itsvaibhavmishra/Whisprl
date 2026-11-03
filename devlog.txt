@@ -16,11 +16,8 @@
   - New:
 
   - Improvements:
-    - The server moved closer to its database, so messages and game moves arrive much faster
-    - In Jackaroo your cards sit in a straight row, a card's choices show over your darkened hand, a home shut by the other player greys its empty holes, and the pause after each play is half as long
 
   - Fixed:
-    - In Jackaroo the clock no longer starts over once you put down a card that needs a choice
 
   - Developers:
 
