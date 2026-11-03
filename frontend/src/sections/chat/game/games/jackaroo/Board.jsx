@@ -11,7 +11,7 @@ import { marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry
 import Hand from "@/sections/chat/game/games/jackaroo/Hand";
 import layout from "@/sections/chat/game/games/jackaroo/layout.json";
 import PALETTE, { toneOf } from "@/sections/chat/game/games/jackaroo/palette";
-import { Crowd, Marbles, Marks, Preview, ShutHome, Swirls, Targets } from "@/sections/chat/game/games/jackaroo/Pieces";
+import { Crowd, Marbles, Marks, Preview, ShutHome, Swirls, Targets, shutHolesOf } from "@/sections/chat/game/games/jackaroo/Pieces";
 import Player from "@/sections/chat/game/games/jackaroo/Players";
 import { BONUS, DEAL, dealStartOf, flyToPile, lengthOf, playOut } from "@/sections/chat/game/games/jackaroo/playback";
 import Prompt from "@/sections/chat/game/games/jackaroo/Prompt";
@@ -91,6 +91,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const blockedHomes = state.blockedHomes ?? NO_HOMES;
   const [shutHomes, setShutHomes] = useState(blockedHomes);
   if (hasPlayedOut && shutHomes !== blockedHomes) setShutHomes(blockedHomes);
+  const shutHoles = useMemo(() => shutHolesOf(shutHomes, state.marbles), [shutHomes, state.marbles]);
   const bonusSeat = isBonusFresh && !hasBonusCome ? state.lastPlay.seat : null;
   const hand = useMemo(() => (bonusSeat === mySeat ? state.hand.slice(0, -1) : state.hand), [bonusSeat, mySeat, state.hand]);
   useEffect(() => {
@@ -249,6 +250,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
       const labels = { move: `Move ${pickedCard.rank}`, new: "New marble", discard: "Discard" };
       return {
         text: "What do you want to do?",
+        isOverCards: true,
         buttons: step.actions.map((action) => ({ label: labels[action], look: "choice", onClick: () => choose({ ...chosen, action }) })),
       };
     }
@@ -257,6 +259,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     if (step?.steps)
       return {
         text: "Choose steps",
+        isOverCards: true,
         buttons: step.steps.map((steps) => ({ label: String(steps), look: "steps", onClick: () => choose({ ...chosen, steps }) })),
       };
     if (step?.seconds) return { text: "Choose the other marble" };
@@ -358,13 +361,13 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
               sx={{ position: "absolute", inset: `-${SHADOW_SPILL}%`, width: `${100 + SHADOW_SPILL * 2}%`, pointerEvents: "none" }}
             />
             <Box component="img" alt="Jackaroo board" src={art.board} sx={{ position: "absolute", inset: 0, width: "100%", pointerEvents: "none" }} />
-            <Marks tones={tones} isTurned={isTurned} />
+            <Marks tones={tones} isTurned={isTurned} shut={shutHoles} />
             <Swirls isTurned={isTurned} isStill={isStill} />
             <Shoe ref={shoeRef} />
             <Pile ref={pileTopRef} pile={pile} tonesOf={tonesOf} />
             {!isStill && dealAt !== null && hasDealStarted && !hasDeckGone && <Deck key={state.round} left={state.deal.left} dealt={state.deal.each * 2} />}
             {state.pending && <DiscardStamp />}
-            <ShutHome seats={shutHomes} marbles={state.marbles} isTurned={isTurned} />
+            <ShutHome holes={shutHoles} isTurned={isTurned} />
             <Marbles
               marbles={state.marbles}
               tones={tones}
@@ -421,7 +424,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
             awayId={chosen.isPlayed ? chosen.card : null}
             playableIds={playableIds}
             isMyTurn={isMyTurn}
-            isGreyed={!isMyTurn && state.winner === null}
+            isGreyed={(!isMyTurn && state.winner === null) || Boolean(prompt?.isOverCards)}
             isAlarmed={isAlarmed}
             pills={pills}
             onPick={onCard}

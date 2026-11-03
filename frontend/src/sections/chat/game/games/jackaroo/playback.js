@@ -24,7 +24,7 @@ const TAKEN_MS = 1200;
 const HELD = 1.4;
 const BACK_MS = 420;
 const GROW_MS = 560;
-const BEAT_MS = 1200;
+const BEAT_MS = 600;
 // a deal, timed from its start: the deck shows, a card leaves it every gap, alternating from the leader, and the deck goes
 export const DEAL = { firstCardAt: 300, cardGap: 75, flight: 380, deckGoesAt: 1700 };
 // a bonus card turns up a moment after its play has shown, then flies to whoever earned it
