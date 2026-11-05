@@ -5,7 +5,6 @@ import { MAX_EVIDENCE_MESSAGES, MAX_EVIDENCE_TEXT, MAX_REPORT_NOTE, REPORT_REASO
 import { MessageModel, ReportModel, UserModel } from "#src/models/index.js";
 import { matchesFranking } from "#src/utils/franking.js";
 import { findMemberConversation } from "#src/services/conversationService.js";
-import { isCloudinaryFile } from "#src/services/fileUploadService.js";
 
 const assertReason = (reason, note) => {
   if (!REPORT_REASONS.includes(reason)) throw createHttpError.BadRequest("Choose why you are reporting this");
@@ -16,9 +15,12 @@ const assertReason = (reason, note) => {
 
 const asFile = ({ url, key, iv, mimeType, name }) => ({ url, key, iv, mimeType, name });
 
-// an attached file is only ever one Whisprl stored, so a report cannot point the panel somewhere else
-const filesIn = (files) => {
-  const allowed = Array.isArray(files) ? files.filter((file) => isCloudinaryFile(file?.url)).map(asFile) : [];
+const storedUrlsOf = (message) => [message?.attachment?.url, ...(message?.files ?? []).map((file) => file.url)].filter(Boolean);
+
+// a file is kept only if Whisprl stored it for the very message it comes with, so a report cannot point the panel anywhere else
+export const evidenceFilesOf = (files, message) => {
+  const storedUrls = storedUrlsOf(message);
+  const allowed = Array.isArray(files) ? files.filter((file) => storedUrls.includes(file?.url)).map(asFile) : [];
   return allowed.length ? allowed : undefined;
 };
 
@@ -30,12 +32,12 @@ const asEvidence = async (sent, conversation_id) => {
 
   const ids = sent.map(({ message }) => message).filter((id) => mongoose.isValidObjectId(id));
   const saved = await MessageModel.find({ _id: { $in: ids }, conversation: conversation_id })
-    .select("franking")
+    .select("franking attachment files")
     .lean();
-  const frankingOf = new Map(saved.map(({ _id, franking }) => [String(_id), franking]));
+  const savedOf = new Map(saved.map((original) => [String(original._id), original]));
 
   const checkOf = (message, plaintext) => {
-    const franking = frankingOf.get(String(message));
+    const franking = savedOf.get(String(message))?.franking;
     if (!franking) return "unchecked";
     return matchesFranking(plaintext, franking) ? "verified" : "failed";
   };
@@ -45,7 +47,7 @@ const asEvidence = async (sent, conversation_id) => {
     ...(mongoose.isValidObjectId(sender) && { sender }),
     sentAt: new Date(sentAt),
     text: String(text ?? "").slice(0, MAX_EVIDENCE_TEXT),
-    files: filesIn(files),
+    files: evidenceFilesOf(files, savedOf.get(String(message))),
     isReported: Boolean(isReported),
     check: checkOf(message, plaintext),
   }));

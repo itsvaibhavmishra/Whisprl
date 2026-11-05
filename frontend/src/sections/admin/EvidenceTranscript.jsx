@@ -3,7 +3,7 @@ import { Box, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import dayjs from "dayjs";
 
-import { openedFileUrl } from "@/utils/attachments";
+import { MEDIA_TYPES, openedFileUrl } from "@/utils/attachments";
 
 const nameOf = (person) => (person ? `${person.firstName} ${person.lastName}` : "A deleted account");
 
@@ -31,10 +31,11 @@ const EvidenceFile = ({ file }) => {
 
   if (hasFailed) return <Typography sx={{ fontSize: 12.5, color: "text.secondary" }}>{`${file.name ?? "A file"} could not be opened`}</Typography>;
   if (!url) return <Typography sx={{ fontSize: 12.5, color: "text.secondary" }}>Opening the attachment…</Typography>;
-  if (!file.mimeType?.startsWith("image/") && !file.mimeType?.startsWith("video/")) {
+  // the reporter chooses the type, so anything that is not our own media is only ever saved, never opened in this tab
+  if (!MEDIA_TYPES.includes(file.mimeType)) {
     return (
-      <Typography component="a" href={url} download={file.name} sx={{ fontSize: 13, fontWeight: 600 }}>
-        {file.name ?? "Download the file"}
+      <Typography component="a" href={url} download={file.name || "evidence"} sx={{ fontSize: 13, fontWeight: 600 }}>
+        {file.name || "Download the file"}
       </Typography>
     );
   }

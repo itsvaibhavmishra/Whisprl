@@ -18,6 +18,8 @@
   - Improvements:
 
   - Fixed:
+    - A file attached to a report now always downloads in the staff console instead of opening as a page, and a report can only carry files from the messages it includes
+    - Reports keep the photos and files of the messages they include, which were being left out
 
   - Developers:
 
