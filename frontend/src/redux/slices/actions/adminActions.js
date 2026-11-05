@@ -20,7 +20,7 @@ export const GetPeople = createApiThunk(
 );
 
 // the passkey is asked for as the action is taken, so holding the session alone is never enough
-const confirmed = async () => {
+export const confirmWithPasskey = async () => {
   const { data } = await axios.post("/admin/confirm");
   const { response } = await authenticateWithPasskey(data.options);
   return response;
@@ -28,7 +28,7 @@ const confirmed = async () => {
 
 const withPasskey = (type, send, done) =>
   createApiThunk(type, async (args) => {
-    const { data } = await send(args, await confirmed());
+    const { data } = await send(args, await confirmWithPasskey());
     notify({ severity: "success", message: done });
     return data;
   });

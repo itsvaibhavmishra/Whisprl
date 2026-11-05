@@ -198,12 +198,19 @@ const fromOthers = (conversation_ids, reader_id) => ({
   awaitingKey: { $ne: true },
 });
 
+// a receipt shows when someone is online, so a blocked or former friend never gets one, just as they get no typing
+const reachableOf = async (conversation_ids, reader_id) => {
+  const allowed = await Promise.all(conversation_ids.map((conversation_id) => canMessageIn(conversation_id, reader_id)));
+  return conversation_ids.filter((_, position) => allowed[position]);
+};
+
 export const markDelivered = async (conversation_ids, reader_id) => {
   const undelivered = await MessageModel.find({ ...fromOthers(conversation_ids, reader_id), deliveredAt: null }).select("conversation");
-  if (!undelivered.length) return [];
+  const reachable = await reachableOf([...new Set(undelivered.map(({ conversation }) => String(conversation)))], reader_id);
+  if (!reachable.length) return [];
 
-  await MessageModel.updateMany({ _id: { $in: undelivered.map(({ _id }) => _id) } }, { deliveredAt: new Date() });
-  return [...new Set(undelivered.map(({ conversation }) => String(conversation)))];
+  await MessageModel.updateMany({ ...fromOthers(reachable, reader_id), deliveredAt: null }, { deliveredAt: new Date() });
+  return reachable;
 };
 
 // a group keeps one pointer per member to the newest message they have seen, instead of a mark on every message
@@ -218,13 +225,15 @@ export const markSeen = async (conversation_id, reader_id) => {
   const conversation = await ConversationModel.findById(conversation_id).select("isGroup latestMessage");
   if (conversation?.isGroup) return markGroupSeen(conversation, reader_id);
 
+  // a chat with someone blocked still clears its unread count, but sends no receipt and skips the notes they can still add
+  const isReachable = await canMessageIn(conversation_id, reader_id);
   const now = new Date();
   const { modifiedCount } = await MessageModel.updateMany(
-    { ...fromOthers([conversation_id], reader_id), seenAt: null },
+    { ...fromOthers([conversation_id], reader_id), seenAt: null, ...(!isReachable && { event: { $exists: false } }) },
     [{ $set: { seenAt: now, deliveredAt: { $ifNull: ["$deliveredAt", now] } } }],
     { updatePipeline: true }
   );
-  return modifiedCount ? {} : null;
+  return modifiedCount && isReachable ? {} : null;
 };
 
 const ownAttachmentMessage = (message_id, user_id, filter = {}) =>

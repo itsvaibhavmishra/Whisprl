@@ -16,10 +16,15 @@
   - New:
 
   - Improvements:
+    - You get an email whenever a passkey is added to your account, and staff confirm with a passkey before adding or removing one
 
   - Fixed:
     - A file attached to a report now always downloads in the staff console instead of opening as a page, and a report can only carry files from the messages it includes
     - Reports keep the photos and files of the messages they include, which were being left out
+    - A message Whisprl checked in a report now shows exactly what was sent, who sent it and when
+    - Someone you have blocked no longer gets delivered or seen ticks from you
+    - Signing up again with an email still waiting for its code now asks you to log in instead of replacing the password
+    - Deleting a group no longer removes files that were forwarded from it into other chats
 
   - Developers:
 
