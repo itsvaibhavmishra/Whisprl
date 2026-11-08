@@ -281,7 +281,13 @@ const readableBy = (conversation, reader_id, range, clearedAt) => {
     ...range,
     ...(readFrom && { $gte: firstIdAt(readFrom) }),
   };
-  return { conversation: conversation._id, hiddenFor: { $ne: reader_id }, ...(Object.keys(ids).length && { _id: ids }) };
+  // a message past its time is gone to the reader even before the sweep reaches it
+  return {
+    conversation: conversation._id,
+    hiddenFor: { $ne: reader_id },
+    expiresAt: { $not: { $lte: new Date() } },
+    ...(Object.keys(ids).length && { _id: ids }),
+  };
 };
 
 const pageOf = (filter, direction, size) =>

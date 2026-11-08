@@ -1,3 +1,4 @@
+import { matchesFranking } from "@/utils/crypto/franking";
 import {
   decryptBytes,
   decryptText,
@@ -121,10 +122,14 @@ const readableOf = (message, plaintext) => {
   return { message: caption ?? "", file, plaintext };
 };
 
+const frankingKeyOf = (message, plaintext) => (message.attachment ? JSON.parse(plaintext) : decodePayload(plaintext)).frankingKey;
+
 const readContent = async (message, conversation) => {
   if (!message.cipher) return {};
   try {
-    return readableOf(message, await openMessage(message, conversation));
+    const plaintext = await openMessage(message, conversation);
+    if (!(await matchesFranking(frankingKeyOf(message, plaintext), plaintext, message.franking))) throw new Error("The fingerprint does not match");
+    return readableOf(message, plaintext);
   } catch {
     return { message: "", undecryptable: true };
   }
