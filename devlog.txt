@@ -14,6 +14,7 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - The admin overview shows the sign-up journey: how far each new account got, from verifying its email to its first message, and who stopped at each step
 
   - Improvements:
     - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out

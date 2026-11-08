@@ -13,6 +13,7 @@ import Notice from "@/sections/admin/Notice";
 import OverviewFigures from "@/sections/admin/OverviewFigures";
 import PillGroup from "@/sections/admin/PillGroup";
 import PlatformSplit from "@/sections/admin/PlatformSplit";
+import SignUpJourney from "@/sections/admin/SignUpJourney";
 
 // the server's page size, so the next page starts where this list ends
 const PEOPLE_PER_PAGE = 20;
@@ -136,6 +137,13 @@ const Overview = () => {
           <Box component="section" sx={{ minWidth: 0 }}>
             <SectionTitle title="Games played" detail="Games that got going in these days, bot games included." />
             <GamePlays rows={overview.range.games} />
+          </Box>
+          <Box component="section" sx={{ minWidth: 0 }}>
+            <SectionTitle
+              title="Sign-up journey"
+              detail="Accounts made in these days, and how far each got. Only accounts made since this was added are counted."
+            />
+            <SignUpJourney journey={overview.range.journey} range={range} />
           </Box>
         </Box>
       </>

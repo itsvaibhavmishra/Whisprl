@@ -15,6 +15,7 @@ import {
   getOverview,
   getPeople,
   getReports,
+  getStoppedPeople,
   getTeam,
   removeFromTeam,
   restore,
@@ -29,6 +30,8 @@ adminRouter.use(protect, staffOnly);
 adminRouter.route("/overview").get(readLimit(), allow("overview"), getOverview);
 
 adminRouter.route("/active").get(readLimit(), allow("overview"), getActivePeople);
+
+adminRouter.route("/journey/:stage").get(readLimit(), allow("overview"), getStoppedPeople);
 
 adminRouter.route("/people").get(searchLimit(), allow("people"), getPeople);
 

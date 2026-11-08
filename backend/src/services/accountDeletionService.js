@@ -45,6 +45,7 @@ const FORGOTTEN_FIELDS = [
   "skippedSteps",
   "notificationsAllowedAt",
   "agePausedUntil",
+  "journey",
 ];
 
 const assertMayDelete = (user) => {

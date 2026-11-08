@@ -57,6 +57,20 @@ const coverStyleSchema = mongoose.Schema(
 
 const skippedStepSchema = mongoose.Schema({ version: { type: Number, required: true }, at: { type: Date, required: true } }, { _id: false });
 
+const journeySchema = mongoose.Schema(
+  {
+    startedAt: { type: Date, required: true },
+    via: { type: String, enum: ["email", "google", "github", "linkedin"], required: true },
+    verifiedAt: { type: Date },
+    birthdayAt: { type: Date },
+    usernameAt: { type: Date },
+    recoveryKeyAt: { type: Date },
+    firstFriendAt: { type: Date },
+    firstMessageAt: { type: Date },
+  },
+  { _id: false }
+);
+
 const birthdaySchema = mongoose.Schema(
   {
     day: { type: Number, required: true },
@@ -156,13 +170,16 @@ const userSchema = mongoose.Schema(
     agePausedUntil: { type: Date },
     skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
 
-    // the browser holds the permission itself, so this only records that the account has turned them on once
+    // nothing sets it now, but the schema keeps it so deleting an account still clears it from older ones
     notificationsAllowedAt: { type: Date },
 
     // End-to-end encryption: every public key the account has had, newest last
     publicKeys: [publicKeySchema],
     keyBackup: { type: keyBackupSchema, select: false },
     recoveryKeySavedAt: { type: Date },
+
+    // when a new account first reached each step of signing up, read only as counts and lists in the admin overview
+    journey: { type: journeySchema },
   },
   {
     timestamps: true,
@@ -170,6 +187,7 @@ const userSchema = mongoose.Schema(
 );
 
 userSchema.index({ "deletion.dueAt": 1 }, { sparse: true });
+userSchema.index({ "journey.startedAt": 1 }, { sparse: true });
 
 // every stored password was trimmed before hashing, so each one typed is trimmed the same way to match
 userSchema.pre("save", async function () {

@@ -1,5 +1,6 @@
 import createHttpError from "http-errors";
 
+import { markReached } from "#src/services/journeyService.js";
 import { birthdayFrom, isOldEnough } from "#src/utils/accountRules.js";
 
 const AGE_PAUSE_MS = 24 * 60 * 60 * 1000;
@@ -49,8 +50,12 @@ export const saveBirthdayStep = async (user, { birthday, showBirthdayToFriends, 
   if (!born) throw createHttpError.BadRequest("Birthday required");
 
   // too young pauses the account without saying why, so trying an older year has to wait a day
-  if (isOldEnough(born)) user.set({ birthday: born, showBirthdayToFriends, suggestToFriendsOfFriends });
-  else user.agePausedUntil = new Date(Date.now() + AGE_PAUSE_MS);
+  if (isOldEnough(born)) {
+    user.set({ birthday: born, showBirthdayToFriends, suggestToFriendsOfFriends });
+    markReached(user, "birthday");
+  } else {
+    user.agePausedUntil = new Date(Date.now() + AGE_PAUSE_MS);
+  }
   await user.save();
   await settleOnboarding(user);
   return user;
@@ -58,6 +63,7 @@ export const saveBirthdayStep = async (user, { birthday, showBirthdayToFriends, 
 
 export const confirmUsernameStep = async (user) => {
   user.usernameConfirmedAt = new Date();
+  markReached(user, "username");
   await user.save();
   await settleOnboarding(user);
   return user;
@@ -66,6 +72,7 @@ export const confirmUsernameStep = async (user) => {
 export const saveRecoveryKeyStep = async (user) => {
   if (!user.publicKeys.length) throw createHttpError.BadRequest("Make your recovery key first");
   user.recoveryKeySavedAt = new Date();
+  markReached(user, "recoveryKey");
   await user.save();
   await settleOnboarding(user);
   return user;

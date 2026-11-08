@@ -17,6 +17,7 @@ import {
 import { findMemberConversation, memberRooms } from "#src/services/conversationService.js";
 import { expiryFor } from "#src/services/disappearingService.js";
 import { isGameId } from "#src/services/games/catalog.js";
+import { markMessageSent } from "#src/services/journeyService.js";
 import { pushNewMessage } from "#src/services/pushService.js";
 
 export const attachFile = async (req, res) => {
@@ -73,6 +74,7 @@ export const socketSendMessage = async (socket, payload, acknowledge) => {
       socket.to(memberRooms(conversation)).emit("message_received", message);
       // a push that fails must never fail the message it was about
       pushNewMessage(conversation, socket.user, message).catch(() => {});
+      markMessageSent(socket.user, conversation).catch(() => {});
     }
     acknowledge?.({ status: "success", message });
   } catch (error) {

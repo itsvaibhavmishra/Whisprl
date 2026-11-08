@@ -1,6 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { GetActivePeople, GetAuditLog, GetGameRequests, GetOverview, GetPeople, GetReports, GetTeam } from "@/redux/slices/actions/adminActions";
+import {
+  GetActivePeople,
+  GetAuditLog,
+  GetGameRequests,
+  GetOverview,
+  GetPeople,
+  GetReports,
+  GetStoppedPeople,
+  GetTeam,
+} from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
@@ -8,6 +17,8 @@ const initialState = {
   latestOverviewFetch: null,
   activePeople: { list: null, hasMore: false },
   latestActivePeopleFetch: null,
+  stoppedPeople: { list: null, hasMore: false },
+  latestStoppedPeopleFetch: null,
   people: { list: null, total: 0, hasMore: false },
   latestPeopleFetch: null,
   reports: { list: null, total: 0, hasMore: false },
@@ -41,6 +52,15 @@ const slice = createSlice({
         if (action.meta.requestId !== state.latestActivePeopleFetch) return;
         const { people, hasMore } = action.payload;
         state.activePeople = { list: action.meta.arg.page ? [...state.activePeople.list, ...people] : people, hasMore };
+      })
+      .addCase(GetStoppedPeople.pending, (state, action) => {
+        state.latestStoppedPeopleFetch = action.meta.requestId;
+        if (!action.meta.arg.page) state.stoppedPeople = { list: null, hasMore: false };
+      })
+      .addCase(GetStoppedPeople.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.latestStoppedPeopleFetch) return;
+        const { people, hasMore } = action.payload;
+        state.stoppedPeople = { list: action.meta.arg.page ? [...state.stoppedPeople.list, ...people] : people, hasMore };
       })
       .addCase(GetPeople.pending, (state, action) => {
         state.latestPeopleFetch = action.meta.requestId;

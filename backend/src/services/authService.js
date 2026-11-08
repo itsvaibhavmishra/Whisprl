@@ -15,6 +15,7 @@ import { onboardingOf } from "#src/services/onboardingService.js";
 import { permissionsOf, roleOf } from "#src/services/roleService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
 import { availableUsername } from "#src/services/usernameService.js";
+import { markReached, startJourney } from "#src/services/journeyService.js";
 
 export const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;
@@ -37,7 +38,7 @@ export const toSessionUser = async (user) => ({
   showBirthdayToFriends: user.showBirthdayToFriends,
   suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,
   blocked: user.blocked,
-  onboarding: await onboardingOf(user),
+  onboarding: onboardingOf(user),
   createdAt: user.createdAt,
   role: roleOf(user),
   permissions: permissionsOf(user),
@@ -118,6 +119,7 @@ export const registerUser = async ({ email, password, ...typed }) => {
 
   const user = existing ?? new UserModel({ email: address });
   user.set({ firstName, lastName, password, birthday: born, isNewAccount: true });
+  startJourney(user, "email", ["birthday"]);
   user.username ??= await availableUsername(firstName, lastName);
   user.coverStyle ??= randomCoverStyle();
   await user.save();
@@ -184,6 +186,7 @@ export const verifyEmail = async (email, typedCode) => {
 
   user.verified = true;
   user.verification = undefined;
+  markReached(user, "verified");
   await user.save();
 
   return user;

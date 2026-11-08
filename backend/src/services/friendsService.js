@@ -5,6 +5,7 @@ import { ConversationModel, FriendRequestModel, UserModel } from "#src/models/in
 import { blockerBetween, presenceShownTo } from "#src/services/blockService.js";
 import { directConversationIdOf, populateMembers } from "#src/services/conversationService.js";
 import { expiryFor } from "#src/services/disappearingService.js";
+import { markFriendsMade } from "#src/services/journeyService.js";
 import { currentKeyIdOf } from "#src/services/keyService.js";
 import { saveMessage, validateCipher } from "#src/services/messageService.js";
 import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requestCooldownService.js";
@@ -155,6 +156,7 @@ export const answerFriendRequest = async (receiver, sender_id, action) => {
   await Promise.all([
     UserModel.updateOne({ _id: sender_id }, { $addToSet: { friends: receiver._id } }),
     UserModel.updateOne({ _id: receiver._id }, { $addToSet: { friends: sender_id } }),
+    markFriendsMade([sender_id, receiver._id]),
   ]);
   return continueChat(request, receiver);
 };

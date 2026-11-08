@@ -13,6 +13,12 @@ export const GetActivePeople = createApiThunk(
   { notifyErrors: false }
 );
 
+export const GetStoppedPeople = createApiThunk(
+  "admin/journey",
+  async ({ stage, from, to, page }) => (await axios.get(`/admin/journey/${stage}`, { params: { from, to, page } })).data,
+  { notifyErrors: false }
+);
+
 export const GetPeople = createApiThunk(
   "admin/people",
   async ({ search, filter, page }) => (await axios.get("/admin/people", { params: { search, filter, page } })).data,
