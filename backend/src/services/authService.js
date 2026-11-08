@@ -27,6 +27,7 @@ export const toSessionUser = async (user) => ({
   firstName: user.firstName,
   lastName: user.lastName,
   avatar: user.avatar,
+  badge: user.badge,
   email: user.email,
   username: user.username,
   usernameChangedAt: user.usernameChangedAt,

@@ -19,6 +19,13 @@ const assertPermissions = (permissions) => {
 
 const asMember = (user) => ({ ...user, role: roleOf(user), permissions: permissionsOf(user) });
 
+// the owner is whoever OWNER_EMAIL names, so its badge is moved to match at every start
+export const syncOwnerBadge = async () => {
+  const ownerEmail = normalizeEmail(process.env.OWNER_EMAIL);
+  await UserModel.updateMany({ badge: "owner", email: { $ne: ownerEmail } }, { $unset: { badge: 1 } });
+  if (ownerEmail) await UserModel.updateOne({ email: ownerEmail }, { badge: "owner" });
+};
+
 export const listTeam = async () => {
   const ownerEmail = normalizeEmail(process.env.OWNER_EMAIL);
   const found = await UserModel.find({ $or: [{ role: "admin" }, ...(ownerEmail ? [{ email: ownerEmail }] : [])] })
@@ -43,7 +50,7 @@ export const addAdmin = async (actor, { email, permissions, reason }) => {
   if (roleOf(person) !== "user") throw createHttpError.BadRequest("They are already on the team");
   if (isShutOut(person)) throw createHttpError.BadRequest("Give them their access back before adding them");
 
-  await UserModel.updateOne({ _id: person._id }, { role: "admin", permissions: chosen });
+  await UserModel.updateOne({ _id: person._id }, { role: "admin", permissions: chosen, badge: "admin" });
   await recordAction({ actor: actor._id, action: "admin_added", target: person._id, reason: given, permissions: chosen });
 };
 
@@ -60,6 +67,6 @@ export const removeAdmin = async (actor, user_id, { reason }) => {
   const given = assertReason(reason);
   const admin = await findAdmin(user_id);
 
-  await UserModel.updateOne({ _id: admin._id }, { role: "user", $unset: { permissions: 1 } });
+  await UserModel.updateOne({ _id: admin._id }, { role: "user", $unset: { permissions: 1, badge: 1 } });
   await recordAction({ actor: actor._id, action: "admin_removed", target: admin._id, reason: given });
 };

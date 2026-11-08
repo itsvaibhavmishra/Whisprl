@@ -159,11 +159,11 @@ const slice = createSlice({
         state.latestProfileRead = action.meta.requestId;
       })
       .addCase(GetMyProfile.fulfilled, (state, action) => {
-        const { firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
+        const { firstName, lastName, username, usernameChangedAt, avatar, badge, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
         state.accountSummary = summary;
         // a save that landed while this was loading is newer than what it brought back
         if (action.meta.requestId !== state.latestProfileRead) return;
-        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus };
+        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, badge, cover, coverStyle, email, activityStatus };
       })
       .addCase(SearchFriends.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;

@@ -34,6 +34,7 @@ const FORGOTTEN_FIELDS = [
   "usernameChangedAt",
   "usernameConfirmedAt",
   "inviteCode",
+  "badge",
   "birthday",
   "keyBackup",
   "recoveryKeySavedAt",

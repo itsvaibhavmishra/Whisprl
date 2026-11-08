@@ -12,9 +12,9 @@ import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requ
 import { forgetSuggestionsBetween } from "#src/services/suggestionService.js";
 
 const FRIEND_FIELDS =
-  "firstName lastName username avatar cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
+  "firstName lastName username avatar badge cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
 // every key they ever had, so a note still opens after its sender moves to a new one
-const REQUESTER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
+const REQUESTER_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt publicKeys";
 
 const MAX_OPEN_REQUESTS = 30;
 // room for 200 characters once sealed, the limit the browser counts down to

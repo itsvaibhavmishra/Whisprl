@@ -9,6 +9,7 @@ const PASSWORD_COST = 12;
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
 export const PERMISSIONS = ["overview", "people", "reports", "requests", "suspend", "ban", "audit"];
+const BADGES = ["owner", "admin", "official"];
 
 const publicKeySchema = mongoose.Schema(
   {
@@ -135,6 +136,8 @@ const userSchema = mongoose.Schema(
     verified: { type: Boolean, default: false },
     role: { type: String, enum: ROLES, default: "user" },
     permissions: { type: [String], enum: PERMISSIONS, default: undefined },
+    // shown beside the name: owner and admin follow the team, official marks Whisprl's own account
+    badge: { type: String, enum: BADGES },
 
     bannedAt: { type: Date },
     suspendedUntil: { type: Date },

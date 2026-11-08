@@ -27,7 +27,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
+export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt publicKeys";
 
 export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -120,6 +120,7 @@ export const getOwnProfile = async (user) => {
     username: user.username,
     usernameChangedAt: user.usernameChangedAt,
     avatar: user.avatar,
+    badge: user.badge,
     cover: user.cover,
     coverStyle: user.coverStyle,
     email: user.email,
@@ -154,9 +155,9 @@ const PEOPLE_PAGE_SIZE = 20;
 
 const skipFor = (page, size = SEARCH_PAGE_SIZE) => Math.max(0, Number.parseInt(page, 10) || 0) * size;
 
-const SEARCH_FIELDS = "firstName lastName username avatar activityStatus onlineStatus";
+const SEARCH_FIELDS = "firstName lastName username avatar badge activityStatus onlineStatus";
 // presence is for friends, so strangers are found without it
-const STRANGER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt";
+const STRANGER_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt";
 
 // never by email, so nobody can find out whether an address has an account
 const nameOrUsernameFilter = (keyword) => {

@@ -7,6 +7,7 @@ import { deleteDueAccounts } from "#src/services/accountDeletionService.js";
 import { sweepExpiredMessages } from "#src/services/disappearingService.js";
 import { sweepOldEvidence } from "#src/services/reportQueueService.js";
 import { sweepExpiredStatuses } from "#src/services/statusService.js";
+import { syncOwnerBadge } from "#src/services/teamService.js";
 import { flushErrorReports, reportError, startErrorReports } from "#src/utils/errorReports.js";
 
 startErrorReports();
@@ -23,6 +24,7 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("[DB] Connection Success");
+    syncOwnerBadge().catch((error) => console.log(`[DB] Owner badge not synced: ${error.message}`));
     deleteDueAccounts(app.get("io"))
       .then((deleted) => deleted && console.log(`[DB] Deleted ${deleted} accounts that were due while the server was off`))
       .catch((error) => console.log(`[DB] Due accounts not deleted: ${error.message}`));

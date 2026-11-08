@@ -2,7 +2,7 @@ import { memo, Suspense, useCallback, useEffect, useMemo, useState } from "react
 import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha, ThemeProvider } from "@mui/material/styles";
 import { m, useReducedMotion } from "motion/react";
-import { ArrowsInSimpleIcon, BookOpenIcon, SmileyIcon, SpeakerHighIcon, StopIcon, TrophyIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowsInSimpleIcon, BookOpenIcon, SpeakerHighIcon, StopIcon, TrophyIcon, XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -16,6 +16,7 @@ import GameTitle from "@/sections/chat/game/GameTitle";
 import PlayerBar from "@/sections/chat/game/PlayerBar";
 import ResultPanel from "@/sections/chat/game/ResultPanel";
 import ReactionTray from "@/sections/chat/game/ReactionTray";
+import StickerFaceIcon from "@/sections/chat/game/StickerFaceIcon";
 import { Floats, SayingsContext } from "@/sections/chat/game/RoomChatter";
 import RulesSheet from "@/sections/chat/game/RulesSheet";
 import SaveSeatDialog from "@/sections/chat/game/SaveSeatDialog";
@@ -224,10 +225,10 @@ const GameRoom = ({ conversation, session }) => {
           <BarButton label="Sound and music" caption="Sound" theme={theme} onClick={(event) => setSoundAnchor(event.currentTarget)}>
             <SpeakerHighIcon size={20} weight="bold" />
           </BarButton>
-          {/* a phone throws emoji from the bar at its foot; beside the chat on a wide screen, it is here */}
+          {/* a phone throws reactions from the bar at its foot; beside the chat on a wide screen, it is here */}
           <Box sx={{ display: { xs: "none", lg: "inline-flex" } }}>
-            <BarButton label="Throw an emoji" caption="Emoji" theme={theme} onClick={(event) => setReactionAnchor(event.currentTarget)}>
-              <SmileyIcon size={20} weight="bold" />
+            <BarButton label="Throw a reaction" caption="React" theme={theme} onClick={(event) => setReactionAnchor(event.currentTarget)}>
+              <StickerFaceIcon size={20} />
             </BarButton>
           </Box>
           {isManager && isPlaying && (
