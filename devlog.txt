@@ -30,6 +30,7 @@
     - A new account lands on Chats once its email is verified, and the code messages say code instead of OTP
 
   - Fixed:
+    - A chat's notification clears once you read that chat, whether you open it from the notification, inside the app or on another device
     - A profile picture that fails to load shows the person's initial on their colour, instead of a grey letter that looked like an inactive account
 
   - Developers:

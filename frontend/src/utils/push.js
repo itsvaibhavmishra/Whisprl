@@ -33,6 +33,9 @@ export const stopPush = async () => {
   if (await isPushAvailable()) await PushNotifications.unregister();
 };
 
+// the phone posts one notification per chat, tagged with the chat's id
+export const clearPushedChat = (conversationId) => PushNotifications.removeDeliveredNotifications({ notifications: [{ id: 0, tag: conversationId }] });
+
 export const listenForPushTaps = (onOpen) => {
   const listening = PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => onOpen(notification.data.conversationId));
   return () => listening.then((listener) => listener.remove());

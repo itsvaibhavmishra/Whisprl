@@ -1,7 +1,7 @@
 import { SETTINGS_STORAGE_KEY } from "@/config";
 import { summaryOf } from "@/utils/messageSummary";
 import { isApp } from "@/utils/platform";
-import { askForPush, pushPermission } from "@/utils/push";
+import { askForPush, clearPushedChat, pushPermission } from "@/utils/push";
 
 const APP_ICON = `${import.meta.env.BASE_URL}icon-192.png`;
 
@@ -20,6 +20,8 @@ const isSwitchedOn = () => {
 };
 
 let openChat = () => {};
+
+const shownByChat = new Map();
 
 // a notification is clicked from outside React, so the dashboard says how to open a chat
 export const setChatOpener = (opener) => {
@@ -44,4 +46,15 @@ export const notifyArrival = (message, conversation) => {
     openChat(conversation._id);
     notification.close();
   };
+  shownByChat.set(conversation._id, notification);
+};
+
+// a chat read here or on another device has nothing left to tell about
+export const clearChatNotification = (conversationId) => {
+  if (isApp) {
+    clearPushedChat(conversationId).catch(() => {});
+    return;
+  }
+  shownByChat.get(conversationId)?.close();
+  shownByChat.delete(conversationId);
 };
