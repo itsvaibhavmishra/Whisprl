@@ -5,6 +5,7 @@ import { alpha } from "@mui/material/styles";
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
 import TurnRing from "@/sections/chat/game/TurnRing";
+import { sayerAt } from "@/sections/chat/game/useRoomChatter";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
 import { firstNameIn, memberOf } from "@/utils/groups";
@@ -77,7 +78,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
             {faceOf(seat, conversation)}
           </Box>
           {clock && <TurnRing key={clock} endsAt={clock} seconds={isBotPlaying ? null : turnSeconds} colour={clockColour} />}
-          {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={FACE} />}
+          <AvatarReaction user={sayerAt(seat, index)} size={FACE} />
         </Box>
         <Stack sx={{ minWidth: 0, alignItems: "flex-start" }}>
           <Typography noWrap sx={{ maxWidth: "100%", fontSize: 13, fontWeight: 800, color: theme.ink }}>

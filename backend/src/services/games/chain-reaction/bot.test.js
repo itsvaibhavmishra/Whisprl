@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { botMove, DISTRACTED } from "#src/services/games/chain-reaction/bot.js";
-import { legalCellsFor, setup } from "#src/services/games/chain-reaction/rules.js";
+import { botMove, DISTRACTED, momentFor } from "#src/services/games/chain-reaction/bot.js";
+import { legalCellsFor, outcome, play, setup, turnOf } from "#src/services/games/chain-reaction/rules.js";
+import { withSeed } from "#src/services/games/withSeed.js";
 
 // the quick board is 5 wide and 7 tall, so its corners are these four
 const CORNERS = [0, 4, 30, 34];
@@ -78,5 +79,47 @@ test("a bot looking away still plays a legal cell, and a stand-in looks away mor
   const state = midGame({ 0: [1, 1], 34: [0, 1] });
   const picks = timesOver(20, () => withLuck(DISTRACTED_ROLL, () => botMove(state, 0, "standIn")));
   assert.ok(picks.every((cell) => legalCellsFor(state, 0).includes(cell)));
-  assert.ok(DISTRACTED.standIn > DISTRACTED.opponent);
+  assert.ok(DISTRACTED.standIn > DISTRACTED.medium);
+});
+
+const playedOut = (levels) => {
+  let state = setup(null, { size: "quick", players: 2 });
+  while (!outcome(state)) {
+    const seat = turnOf(state);
+    state = play(state, seat, botMove(state, seat, levels[seat]));
+  }
+  return outcome(state).winners[0];
+};
+
+// each side opens half the games, so who goes first does not decide the rate
+const winRate = (games, mine, theirs) => {
+  let wins = 0;
+  for (let game = 0; game < games; game += 1) wins += playedOut(game % 2 ? [mine, theirs] : [theirs, mine]) === (game % 2 ? 0 : 1) ? 1 : 0;
+  return wins / games;
+};
+
+test("each level beats the one below it more often than not, and the expert beats a medium bot nearly always", () => {
+  withSeed(1, () => {
+    assert.ok(winRate(200, "medium", "dumb") > 0.65, "medium did not beat dumb");
+    assert.ok(winRate(300, "pro", "medium") > 0.5, "pro did not beat medium");
+    assert.ok(winRate(40, "expert", "medium") > 0.8, "expert did not beat medium");
+  });
+});
+
+test("an expert answers within its thinking time on the biggest board", () => {
+  let state = setup(null, { size: "long", players: 2 });
+  for (let turn = 0; turn < 30 && !outcome(state); turn += 1) {
+    const seat = turnOf(state);
+    const started = Date.now();
+    state = play(state, seat, botMove(state, seat, "expert"));
+    assert.ok(Date.now() - started < 300, `a move took ${Date.now() - started} ms`);
+  }
+});
+
+test("a bot reacts to a big capture it made, and to a big capture made against it", () => {
+  // the corner bursts into the full edge beside it, which bursts on into three more enemy cells, while one far cell keeps the enemy in
+  const state = midGame({ 0: [0, 1], 1: [1, 2], 2: [1, 1], 5: [1, 1], 6: [1, 1], 34: [1, 1] });
+  const after = play(state, 0, 0);
+  assert.equal(momentFor(state, after, 0), "captured");
+  assert.equal(momentFor(state, after, 1), "lost");
 });

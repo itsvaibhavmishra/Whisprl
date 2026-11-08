@@ -1,4 +1,4 @@
-import { botMove } from "#src/services/games/dots-and-boxes/bot.js";
+import { BOT_REACTIONS, botMove, momentFor } from "#src/services/games/dots-and-boxes/bot.js";
 import { assertOptions, DEFAULTS, outcome, play, setup, turnOf, viewFor } from "#src/services/games/dots-and-boxes/rules.js";
 
 const dotsAndBoxes = {
@@ -14,6 +14,8 @@ const dotsAndBoxes = {
   play,
   outcome,
   botMove,
+  momentFor,
+  reactions: BOT_REACTIONS,
   viewFor,
 };
 

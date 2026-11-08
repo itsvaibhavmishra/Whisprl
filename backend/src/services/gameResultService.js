@@ -20,6 +20,13 @@ export const recordPlay = (before, after) => {
   return GamePlayModel.create({ game: after.game, players: after.seats.filter((seat) => seat.user).map((seat) => seat.user) });
 };
 
+// players who have never had a game of this kind get going, so they are shown its rules as it starts
+export const newcomersTo = async (session) => {
+  const players = session.seats.filter((seat) => seat.user).map((seat) => String(seat.user));
+  const veterans = (await GamePlayModel.distinct("players", { game: session.game, players: { $in: players } })).map(String);
+  return players.filter((player) => !veterans.includes(player));
+};
+
 const isDraw = { $eq: [{ $size: "$winners" }, 0] };
 
 export const leaderboardOf = async (userId, conversationId) => {

@@ -6,7 +6,8 @@ import { findMemberConversation, memberRooms, populateMembers } from "#src/servi
 import { assertManager } from "#src/services/groupService.js";
 import { assertCanMessage, canMessageIn, saveEvent } from "#src/services/messageService.js";
 import { pushGameInvite } from "#src/services/pushService.js";
-import { recordPlay, recordResult } from "#src/services/gameResultService.js";
+import { botLevelFor, recordBotGame } from "#src/services/botRecordService.js";
+import { newcomersTo, recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import {
   backToLobby,
@@ -142,6 +143,7 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
     options: session.options ?? null,
     cooldownUntil: cooldownOf(gameRoom, viewerId),
     state: stateViewFor(session, viewerId),
+    isFirstGame: session.status === "playing" && (session.newcomers ?? []).some((newcomer) => String(newcomer) === viewerId),
     result: session.result ? { ...session.result, showsIn: Math.max(0, new Date(session.result.showsAt ?? 0).getTime() - Date.now()) } : null,
   },
 });
@@ -194,11 +196,16 @@ const withTurnClock = (session, playOutMs = 0) => {
 
 const playOutMsOf = (game, state) => game.playOutMs?.(state) ?? 0;
 
+const startingFactsOf = async (session) => {
+  const [botLevel, newcomers] = await Promise.all([botLevelFor(session), newcomersTo(session)]);
+  return { botLevel, newcomers };
+};
+
 // Ready is agreeing to start, so it clears once the game does
-const startGame = (session) => {
+const startGame = (session, facts) => {
   const game = gameOf(session.game);
   const state = game.setup(session.state, tableOf(session));
-  const started = { ...session, status: "playing", startsAt: undefined, result: undefined, seats: unreadyAll(session.seats), state };
+  const started = { ...session, ...facts, status: "playing", startsAt: undefined, result: undefined, seats: unreadyAll(session.seats), state };
   return withTurnClock(started, playOutMsOf(game, state));
 };
 
@@ -221,6 +228,8 @@ export const played = (session, index, move) => {
     state,
     turnStartsAt: undefined,
     turnEndsAt: undefined,
+    botLevel: undefined,
+    newcomers: undefined,
     // the result is shown once the last play has finished showing, as a turn's clock waits for it
     result: { winners, endedAt: new Date(), showsAt: new Date(Date.now() + playOutMsOf(game, state)) },
     seats: backToLobby(session.seats),
@@ -231,8 +240,38 @@ const playedForAbsent = (session) => {
   const game = gameOf(session.game);
   const index = game.turnOf(session.state);
   // a bot someone chose to face tries harder than one covering for a player who walked away
-  const level = isChosenBot(session.seats[index]) ? "opponent" : "standIn";
+  const level = isChosenBot(session.seats[index]) ? (session.botLevel ?? "medium") : "standIn";
   return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
+};
+
+const BOT_REACTION_CHANCE = 0.5;
+const BOT_REACTION_GAP_MS = 6000;
+const ENDING_REACTIONS = { won: ["🥳", "😎"], lost: ["😭", "😡"], drawn: ["🫠", "😜"] };
+
+const anyOf = (items) => items[Math.floor(Math.random() * items.length)];
+
+const endingFor = (game, state, index) => {
+  const { winners } = game.outcome(state);
+  if (!winners.length) return "drawn";
+  return winners.includes(index) ? "won" : "lost";
+};
+
+// a chosen bot always reacts to how a game ends, and to only some of what happens on the way, never twice in quick succession
+const reactAsBot = (io, gameRoom, conversationId, before, after) => {
+  if (before?.status !== "playing" || !after?.state) return;
+  const game = gameOf(before.game);
+  const isEnding = Boolean(after.result);
+  if (!isEnding && (Date.now() < gameRoom.botReactsAfter || Math.random() > BOT_REACTION_CHANCE)) return;
+  const [reaction] = before.seats.flatMap((seat, index) => {
+    if (!isChosenBot(seat)) return [];
+    const moment = isEnding ? endingFor(game, after.state, index) : game.momentFor?.(before.state, after.state, index);
+    const choices = ENDING_REACTIONS[moment] ?? game.reactions?.[moment];
+    return choices ? [{ seat: index, emoji: anyOf(choices) }] : [];
+  });
+  if (!reaction) return;
+  gameRoom.botReactsAfter = Date.now() + BOT_REACTION_GAP_MS;
+  // thrown once the play has finished showing, so the face matches what just happened on the board
+  setTimeout(() => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...reaction }), playOutMsOf(game, after.state));
 };
 
 const deadlineOf = (session) => {
@@ -262,10 +301,11 @@ const reachDeadline = (io, conversationId, deadline) =>
     const session = await loadSession(conversationId);
     // anything that changed the session since moved its deadline and set a timer of its own
     if (deadlineOf(session) !== deadline) return;
-    const next = session.status === "countdown" ? startGame(session) : playedForAbsent(session);
+    const next = session.status === "countdown" ? startGame(session, await startingFactsOf(session)) : playedForAbsent(session);
     await save(next);
-    await Promise.all([recordPlay(session, next), recordResult(session, next)]);
+    await Promise.all([recordPlay(session, next), recordResult(session, next), recordBotGame(session, next)]);
     syncClock(io, gameRoom, conversationId, next);
+    reactAsBot(io, gameRoom, conversationId, session, next);
     await broadcast(io, gameRoom, await ConversationModel.findById(conversationId), next);
   });
 
@@ -503,10 +543,11 @@ export const actInGame = (io, userId, { conversationId, type, ...details }) => {
     const after = next && settled(next);
     if (after) {
       await save(after);
-      await Promise.all([recordPlay(session, after), recordResult(session, after)]);
+      await Promise.all([recordPlay(session, after), recordResult(session, after), recordBotGame(session, after)]);
     } else await GameSessionModel.deleteOne({ conversation: id });
 
     syncClock(io, gameRoom, id, after);
+    reactAsBot(io, gameRoom, id, session, after);
     await broadcast(io, gameRoom, conversation, after);
     await announceTable(io, conversation, String(userId), type, session, after);
   });

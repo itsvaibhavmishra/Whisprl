@@ -112,6 +112,11 @@ const GameRoom = ({ conversation, session }) => {
   // kept between screens, so the scene does not change size as a game starts and ends
   const [controlsHeight, setControlsHeight] = useState(0);
 
+  // someone who has never played this game is shown its rules as their first one starts
+  useEffect(() => {
+    if (session.isFirstGame) setIsShowingRules(true);
+  }, [session.isFirstGame]);
+
   const game = GAMES[session.game];
   const { theme } = game;
   const isArtReady = useArtReady(game.preload);

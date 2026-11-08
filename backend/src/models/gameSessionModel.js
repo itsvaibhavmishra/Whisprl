@@ -35,6 +35,10 @@ const gameSessionSchema = mongoose.Schema(
     state: { type: mongoose.Schema.Types.Mixed },
     // who won the last game, kept in the lobby until the next one starts
     result: { type: mongoose.Schema.Types.Mixed },
+    // how a chosen bot plays this game, picked as it starts from the players' records and never shown
+    botLevel: { type: String, enum: ["dumb", "medium", "pro", "expert"] },
+    // players starting this game for the first time, who are shown its rules
+    newcomers: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

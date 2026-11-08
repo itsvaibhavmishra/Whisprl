@@ -1,4 +1,4 @@
-import { botMove } from "#src/services/games/chain-reaction/bot.js";
+import { BOT_REACTIONS, botMove, momentFor } from "#src/services/games/chain-reaction/bot.js";
 import { assertOptions, DEFAULTS, outcome, play, setup, turnOf, viewFor } from "#src/services/games/chain-reaction/rules.js";
 
 const chainReaction = {
@@ -13,6 +13,8 @@ const chainReaction = {
   play,
   outcome,
   botMove,
+  momentFor,
+  reactions: BOT_REACTIONS,
   viewFor,
 };
 

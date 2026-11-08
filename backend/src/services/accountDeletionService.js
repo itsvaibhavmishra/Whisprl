@@ -1,6 +1,7 @@
 import createHttpError from "http-errors";
 
 import {
+  BotRecordModel,
   ChatPreferenceModel,
   FriendRequestModel,
   GameRequestModel,
@@ -143,6 +144,7 @@ const deleteAccount = async (io, user_id) => {
     PasskeyChallengeModel.deleteMany({ user: user._id }),
     ChatPreferenceModel.deleteMany({ user: user._id }),
     GameRequestModel.deleteMany({ user: user._id }),
+    BotRecordModel.deleteMany({ user: user._id }),
     FriendRequestModel.deleteMany(theirs),
     RequestCooldownModel.deleteMany(theirs),
     UserModel.updateMany(

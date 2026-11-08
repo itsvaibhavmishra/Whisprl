@@ -1,4 +1,4 @@
-import { placeOf } from "@/sections/chat/game/useRoomChatter";
+import { placeOf, sayerAt } from "@/sections/chat/game/useRoomChatter";
 
 const seats = [{ user: "ava" }, { bot: true }];
 const direct = { _id: "chat", isGroup: false };
@@ -15,4 +15,9 @@ test("in a chat between two, anyone not playing drifts across the game", () => {
 test("in a group, only someone with the game on screen drifts across it", () => {
   expect(placeOf({ from: "ben" }, { conversation: group, seats, lookers: ["ben"] })).toBe("float");
   expect(placeOf({ from: "cleo" }, { conversation: group, seats, lookers: ["ben"] })).toBeNull();
+});
+
+test("a chosen bot's reaction shows at its seat, while a bot covering for a player who left has none of its own", () => {
+  expect(placeOf({ from: "bot:1" }, { conversation: direct, seats, lookers: [] })).toBe("seat");
+  expect(sayerAt({ user: "ava", bot: true }, 0)).toBeNull();
 });
