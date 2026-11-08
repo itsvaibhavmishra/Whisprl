@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 import CrashScreen from "@/components/CrashScreen";
 import ThemeColorPresets from "@/components/theme-settings/ThemeColorPresets";
@@ -7,7 +8,7 @@ import ThemeProvider from "@/theme";
 
 import { ErrorBoundary } from "@/utils/errorReports";
 import HelmetHandler from "@/utils/helmetHandler";
-import { startLiveUpdates } from "@/utils/liveUpdate";
+import { applyStagedUpdate, startLiveUpdates } from "@/utils/liveUpdate";
 import AppToaster from "@/components/AppToaster";
 import ScrollToTop from "@/components/ScrollToTop";
 import AppBackButton from "@/components/AppBackButton";
@@ -30,6 +31,12 @@ const StartedSignal = () => {
   return null;
 };
 
+const UpdateBetweenScreens = () => {
+  const { pathname } = useLocation();
+  useEffect(applyStagedUpdate, [pathname]);
+  return null;
+};
+
 function App() {
   return (
     <>
@@ -42,6 +49,7 @@ function App() {
               <Router />
               <AppLock />
               <StartedSignal />
+              <UpdateBetweenScreens />
             </ErrorBoundary>
           </ThemeColorPresets>
         </LocalizationProvider>
