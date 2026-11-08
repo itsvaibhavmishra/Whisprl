@@ -17,6 +17,7 @@ export const BackToLogin = ({ sx }) => (
   <Link
     component={RouterLink}
     to={PATH_AUTH.general.login}
+    state={{ withEmail: true }}
     color="text.secondary"
     variant="body2"
     underline="hover"

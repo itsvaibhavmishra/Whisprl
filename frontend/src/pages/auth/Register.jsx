@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Link, Typography } from "@mui/material";
+import { Link } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
+import AuthChoices from "@/sections/auth/AuthChoices";
 import AuthHeader from "@/sections/auth/AuthHeader";
 import AuthSocial from "@/sections/auth/AuthSocial";
 import RegisterForm from "@/sections/auth/RegisterForm";
 import SignUpPaused from "@/sections/auth/SignUpPaused";
-import { PATH_AUTH, PATH_DOCS } from "@/routes/paths";
+import { PATH_AUTH } from "@/routes/paths";
 import { isSignUpPaused, pauseSignUp } from "@/utils/signUpPause";
+import { isApp } from "@/utils/platform";
 
 const Register = () => {
   const [isPaused, setIsPaused] = useState(isSignUpPaused);
@@ -27,19 +29,10 @@ const Register = () => {
           Log in
         </Link>
       </AuthHeader>
-      <RegisterForm onTooYoung={refuse} />
-      <Typography variant="body2" sx={{ mt: 2, color: "text.secondary", textAlign: "center", textWrap: "balance" }}>
-        By creating an account, you agree to the{" "}
-        <Link component={RouterLink} to={PATH_DOCS.general.tnc} underline="hover">
-          terms and conditions
-        </Link>{" "}
-        and the{" "}
-        <Link component={RouterLink} to={PATH_DOCS.general.privacy} underline="hover">
-          privacy policy
-        </Link>
-        .
-      </Typography>
-      <AuthSocial />
+      <AuthChoices moreLabel={isApp ? "Sign up with email" : "More ways to sign up"}>
+        <RegisterForm onTooYoung={refuse} />
+        <AuthSocial />
+      </AuthChoices>
     </>
   );
 };

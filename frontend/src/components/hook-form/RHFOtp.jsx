@@ -1,78 +1,58 @@
-import { Stack, TextField } from "@mui/material";
 import { useRef } from "react";
+import { Stack, TextField } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 
 export default function RHFOtp({ keyName = "", helperText, inputs = [], ...other }) {
-  const otpsRef = useRef(null);
-
   const { control, setValue } = useFormContext();
+  const boxes = useRef([]);
 
-  const handleChangeWithNextField = (event, handleChange) => {
-    const { maxLength, name } = event.target;
-    const fieldIndex = name.replace(keyName, "");
+  const nameAt = (position) => `${keyName}${position + 1}`;
 
-    const fieldIntIndex = Number(fieldIndex);
-    const prevField = document.querySelector(`input[name=${keyName}${fieldIntIndex - 1}]`);
-
-    let value = event.target.value.toUpperCase(); // Convert input value to uppercase
-
-    if (value.length === 0 && prevField !== null) {
-      event.preventDefault(); // Prevent the default behavior
-      prevField.focus(); // Move focus to the previous field
-      setValue(name, ""); // Clear the current field's value
-    } else if (value.length > maxLength) {
-      value = value[0];
-    } else if (value.length >= maxLength && fieldIntIndex < 6) {
-      const nextField = document.querySelector(`input[name=${keyName}${fieldIntIndex + 1}]`);
-      if (nextField !== null) {
-        nextField.focus();
-      }
+  // a pasted, autofilled or keyboard-suggested code arrives whole in one box, so it is spread from the first box when complete
+  const fill = (position, typed) => {
+    const digits = typed.replace(/\D/g, "");
+    if (!digits) {
+      setValue(nameAt(position), "", { shouldValidate: true });
+      boxes.current[position - 1]?.focus();
+      return;
     }
-
-    setValue(name, value); // Set the uppercase value using setValue
-
-    handleChange(event);
-  };
-
-  const handlePaste = (event) => {
-    event.preventDefault(); // Prevent the default paste behavior
-
-    const pastedData = event.clipboardData.getData("text");
-    const otpArray = pastedData.split("");
-
-    otpArray.forEach((char, index) => {
-      const fieldName = `${keyName}${index + 1}`;
-      setValue(fieldName, char.toUpperCase()); // Set the uppercase value using setValue
-    });
+    const start = digits.length >= inputs.length ? 0 : position;
+    [...digits].slice(0, inputs.length - start).forEach((digit, offset) => setValue(nameAt(start + offset), digit, { shouldValidate: true }));
+    boxes.current[Math.min(start + digits.length, inputs.length - 1)]?.focus();
   };
 
   return (
-    <Stack direction={"row"} spacing={2} ref={otpsRef} onPaste={handlePaste} sx={{ justifyContent: "center" }}>
-      {inputs.map((name, index) => (
+    <Stack direction="row" spacing={{ xs: 1, sm: 2 }} sx={{ justifyContent: "center" }}>
+      {inputs.map((name, position) => (
         <Controller
           key={name}
-          name={`${keyName}${index + 1}`}
+          name={nameAt(position)}
+          control={control}
           render={({ field, fieldState: { error } }) => (
             <TextField
               {...field}
-              error={!!error}
-              autoFocus={index === 0}
-              placeholder={`-`}
-              onInput={(event) => {
-                event.target.value = event.target.value.toUpperCase();
-                handleChangeWithNextField(event, field.onChange);
+              inputRef={(box) => {
+                field.ref(box);
+                boxes.current[position] = box;
               }}
-              onChange={(event) => {
-                handleChangeWithNextField(event, field.onChange);
-              }}
+              onChange={(event) => fill(position, event.target.value)}
               onFocus={(event) => event.currentTarget.select()}
-              slotProps={{ htmlInput: { maxLength: 1, sx: { textAlign: "center" } } }}
+              error={Boolean(error)}
+              autoFocus={position === 0}
+              placeholder="-"
+              slotProps={{
+                htmlInput: {
+                  inputMode: "numeric",
+                  autoComplete: position === 0 ? "one-time-code" : "off",
+                  "aria-label": `Digit ${position + 1} of ${inputs.length}`,
+                  sx: { textAlign: "center" },
+                },
+              }}
               helperText={error ? error.message : helperText}
               {...other}
             />
           )}
-          control={control}
-        ></Controller>
+        />
       ))}
     </Stack>
   );

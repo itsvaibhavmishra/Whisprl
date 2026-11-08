@@ -1,10 +1,12 @@
 import { Link } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
+import AuthChoices from "@/sections/auth/AuthChoices";
 import AuthHeader from "@/sections/auth/AuthHeader";
 import AuthSocial from "@/sections/auth/AuthSocial";
 import LoginForm from "@/sections/auth/LoginForm";
 import { PATH_AUTH } from "@/routes/paths";
+import { isApp } from "@/utils/platform";
 
 const Login = () => (
   <>
@@ -14,8 +16,10 @@ const Login = () => (
         Create an account
       </Link>
     </AuthHeader>
-    <LoginForm />
-    <AuthSocial />
+    <AuthChoices moreLabel={isApp ? "Log in with email" : "More ways to log in"}>
+      <LoginForm />
+      <AuthSocial />
+    </AuthChoices>
   </>
 );
 

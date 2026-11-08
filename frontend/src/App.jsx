@@ -16,8 +16,6 @@ import AppLock from "@/components/AppLock";
 import OpenAppLinks from "@/components/OpenAppLinks";
 
 import ReactGA from "react-ga4";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 if (import.meta.env.REACT_APP_GA_ID) {
   ReactGA.initialize(import.meta.env.REACT_APP_GA_ID);
@@ -41,18 +39,16 @@ function App() {
   return (
     <>
       <ThemeProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <ThemeColorPresets>
-            <AppToaster />
+        <ThemeColorPresets>
+          <AppToaster />
 
-            <ErrorBoundary fallback={({ error }) => <CrashScreen error={error} />}>
-              <Router />
-              <AppLock />
-              <StartedSignal />
-              <UpdateBetweenScreens />
-            </ErrorBoundary>
-          </ThemeColorPresets>
-        </LocalizationProvider>
+          <ErrorBoundary fallback={({ error }) => <CrashScreen error={error} />}>
+            <Router />
+            <AppLock />
+            <StartedSignal />
+            <UpdateBetweenScreens />
+          </ErrorBoundary>
+        </ThemeColorPresets>
       </ThemeProvider>
 
       <HelmetHandler />

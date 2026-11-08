@@ -1,70 +1,47 @@
 import { Box, Button, Divider } from "@mui/material";
-import { GithubLogoIcon, GoogleLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
-import { useGoogleLogin } from "@react-oauth/google";
+import { GithubLogoIcon, LinkedinLogoIcon } from "@phosphor-icons/react";
 
 import { useDispatch } from "react-redux";
-import { GithubLogin, GoogleLogin, LinkedinLogin } from "@/redux/slices/actions/authActions";
+import { GithubLogin, LinkedinLogin } from "@/redux/slices/actions/authActions";
 
 import { getOAuthCode } from "@/utils/socialLoginHelpers";
-import { signInWithGoogle } from "@/utils/googleSignIn";
 import { notify } from "@/utils/notify";
 import { isApp } from "@/utils/platform";
 
+// GitHub and LinkedIn sign in through a website popup, so the app leaves them out
 const AuthSocial = () => {
   const dispatch = useDispatch();
 
-  const baseURL = window.location.origin;
+  if (isApp) return null;
 
-  const showSnackbar = (socialType) => notify({ severity: "error", message: `Unable to login using ${socialType}` });
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      dispatch(GoogleLogin(tokenResponse.access_token));
-    },
-    onError: (error) => {
-      showSnackbar("google");
-      console.log(error);
-    },
-  });
-
-  const continueWithGoogle = async () => {
-    if (!isApp) return googleLogin();
-
-    const { outcome, idToken } = await signInWithGoogle();
-    if (outcome === "signed-in") dispatch(GoogleLogin(idToken));
-    else if (outcome === "failed") showSnackbar("google");
-  };
-
-  const githubLogin = async () => {
+  const signInWith = (name, url, Login) => async () => {
     try {
-      const code = await getOAuthCode(`https://github.com/login/oauth/authorize?client_id=${import.meta.env.REACT_APP_GITHUB_AUTH_CLIENT_ID}&scope=user`);
-
-      dispatch(GithubLogin(code));
-    } catch (error) {
-      showSnackbar("github");
-      console.log("Github Error:", error.message);
+      dispatch(Login(await getOAuthCode(url)));
+    } catch {
+      notify({ severity: "error", message: `Couldn't continue with ${name}. Try again.` });
     }
   };
 
-  const linkedinLogin = async () => {
-    try {
-      const code = await getOAuthCode(
-        `https://linkedin.com/oauth/v2/authorization?client_id=${import.meta.env.REACT_APP_LINKEDIN_AUTH_CLIENT_ID}&response_type=code&scope=email profile openid&redirect_uri=${baseURL}/auth/login`
-      );
-
-      dispatch(LinkedinLogin(code));
-    } catch (error) {
-      showSnackbar("linkedin");
-      console.log("Linkedin Error:", error.message);
-    }
-  };
-
-  // the app signs in with Google through Android itself, and GitHub and LinkedIn are for the website
   const providers = [
-    { name: "Google", icon: <GoogleLogoIcon weight="bold" color="#DF3E30" />, onClick: continueWithGoogle, isInApp: true },
-    { name: "GitHub", icon: <GithubLogoIcon weight="fill" />, onClick: githubLogin },
-    { name: "LinkedIn", icon: <LinkedinLogoIcon weight="fill" color="#0A66C2" />, onClick: linkedinLogin },
-  ].filter((provider) => provider.isInApp || !isApp);
+    {
+      name: "GitHub",
+      icon: <GithubLogoIcon weight="fill" />,
+      onClick: signInWith(
+        "GitHub",
+        `https://github.com/login/oauth/authorize?client_id=${import.meta.env.REACT_APP_GITHUB_AUTH_CLIENT_ID}&scope=user`,
+        GithubLogin
+      ),
+    },
+    {
+      name: "LinkedIn",
+      icon: <LinkedinLogoIcon weight="fill" color="#0A66C2" />,
+      onClick: signInWith(
+        "LinkedIn",
+        `https://linkedin.com/oauth/v2/authorization?client_id=${import.meta.env.REACT_APP_LINKEDIN_AUTH_CLIENT_ID}&response_type=code&scope=email profile openid&redirect_uri=${window.location.origin}/auth/login`,
+        LinkedinLogin
+      ),
+    },
+  ];
 
   return (
     <>

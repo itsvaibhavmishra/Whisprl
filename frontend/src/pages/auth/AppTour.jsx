@@ -4,6 +4,8 @@ import { Link as RouterLink } from "react-router-dom";
 
 import Wordmark from "@/components/Wordmark";
 import { PATH_AUTH } from "@/routes/paths";
+import AgreeToTerms from "@/sections/auth/AgreeToTerms";
+import ContinueWithGoogle from "@/sections/auth/ContinueWithGoogle";
 import { TOUR } from "@/sections/tour/content";
 
 const TourDots = ({ shown }) => (
@@ -23,9 +25,10 @@ const TourDots = ({ shown }) => (
   </Stack>
 );
 
-// both ways in stay below every slide, so someone signing back in never has to swipe through the tour
+// the ways in stay below every slide, so someone signing back in never has to swipe through the tour
 const AppTour = () => {
   const [shown, setShown] = useState(0);
+  const [isEmailShown, setIsEmailShown] = useState(false);
 
   // the scroll offset is negative right to left, so its size is what counts
   const followSwipe = ({ currentTarget }) => setShown(Math.round(Math.abs(currentTarget.scrollLeft) / currentTarget.clientWidth));
@@ -87,12 +90,30 @@ const AppTour = () => {
       <TourDots shown={shown} />
 
       <Stack spacing={1} sx={{ px: 3 }}>
-        <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained" size="large" fullWidth>
-          Create account
-        </Button>
-        <Button component={RouterLink} to={PATH_AUTH.general.login} size="large" color="inherit" fullWidth>
-          Log in
-        </Button>
+        <ContinueWithGoogle />
+        {isEmailShown ? (
+          <Stack direction="row" spacing={1}>
+            <Button
+              component={RouterLink}
+              to={PATH_AUTH.general.register}
+              state={{ withEmail: true }}
+              variant="outlined"
+              color="inherit"
+              size="large"
+              fullWidth
+            >
+              Sign up
+            </Button>
+            <Button component={RouterLink} to={PATH_AUTH.general.login} state={{ withEmail: true }} variant="outlined" color="inherit" size="large" fullWidth>
+              Log in
+            </Button>
+          </Stack>
+        ) : (
+          <Button size="large" color="inherit" fullWidth onClick={() => setIsEmailShown(true)}>
+            Use email instead
+          </Button>
+        )}
+        <AgreeToTerms sx={{ pt: 1 }} />
       </Stack>
     </Stack>
   );
