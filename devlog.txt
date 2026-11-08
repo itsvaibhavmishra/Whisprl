@@ -16,8 +16,13 @@
   - New:
 
   - Improvements:
+    - The Android app switches to a new version the next time you move between screens, instead of waiting until you leave and reopen it
+    - The typing cat is a little smaller on phones
+    - The recovery key step asks you to tick that you saved your key, with saving it to your password manager next to Continue
 
   - Fixed:
+    - A profile picture that fails to load shows the person's initial on their colour, instead of a grey letter that looked like an inactive account
+    - The passkey step of setup no longer scrolls sideways on narrow phones
 
   - Developers:
 

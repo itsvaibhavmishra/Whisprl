@@ -37,7 +37,7 @@ const DeviceGuide = () => {
     <Box component="section" aria-label="How it works on your device" sx={{ border: 1, borderColor: "divider", borderRadius: 3, overflow: "hidden" }}>
       <Tabs value={open} onChange={(_, index) => setOpen(index)} variant="fullWidth" sx={{ minHeight: 44 }}>
         {DEVICE_GUIDES.map(({ device }, index) => (
-          <Tab key={device} label={device} id={`${id}-tab-${index}`} aria-controls={`${id}-panel`} sx={{ minHeight: 44, textTransform: "none" }} />
+          <Tab key={device} label={device} id={`${id}-tab-${index}`} aria-controls={`${id}-panel`} sx={{ minHeight: 44, minWidth: 0, textTransform: "none" }} />
         ))}
       </Tabs>
       <Typography
