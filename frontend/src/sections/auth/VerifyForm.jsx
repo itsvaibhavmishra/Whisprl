@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AddOtpEmail, SendOTP, VerifyOTP } from "@/redux/slices/actions/authActions";
 
 import FormProvider, { RHFOtp, RHFTextField } from "@/components/hook-form";
-import { PATH_DASHBOARD } from "@/routes/paths";
+import { DEFAULT_PATH } from "@/config";
 import useIsLoading from "@/hooks/useIsLoading";
 
 export const EmailForm = () => {
@@ -111,7 +111,7 @@ const VerifyForm = () => {
         recaptchaRef,
       })
     );
-    if (VerifyOTP.fulfilled.match(result)) navigate(PATH_DASHBOARD.general.profile, { replace: true });
+    if (VerifyOTP.fulfilled.match(result)) navigate(DEFAULT_PATH, { replace: true });
   };
 
   return (

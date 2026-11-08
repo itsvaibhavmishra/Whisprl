@@ -1,11 +1,7 @@
-import { isApp } from "@/utils/platform";
+// setup holds only what Whisprl needs, and anything optional is offered later where it fits
+export const pendingStepsOf = (onboarding) => onboarding?.steps.filter((step) => step.isRequired && step.status === "none") ?? [];
 
-// the app's web view has no passkeys, and the app asks about notifications once per phone instead
-const NOT_IN_APP = ["passkey", "notifications"];
-
-const isOfferedHere = (step) => !(isApp && NOT_IN_APP.includes(step.id));
-
-export const pendingStepsOf = (onboarding) => onboarding?.steps.filter((step) => step.status === "none" && isOfferedHere(step)) ?? [];
+export const isOfferedStep = (onboarding, stepId) => onboarding?.steps.some((step) => step.id === stepId && step.status === "none") ?? false;
 
 export const isPaused = (onboarding) => Boolean(onboarding?.pausedUntil) && new Date(onboarding.pausedUntil) > new Date();
 

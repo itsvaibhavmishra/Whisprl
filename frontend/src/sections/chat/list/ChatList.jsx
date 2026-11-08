@@ -18,7 +18,9 @@ import { clearSearch } from "@/redux/slices/userSlice";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import ChatRow from "@/sections/chat/list/ChatRow";
 import ChatRowSkeletons from "@/sections/chat/list/ChatRowSkeletons";
+import PhotoCard from "@/sections/chat/list/PhotoCard";
 import { identityOf, isDeleted, peerOf } from "@/utils/chats";
+import { isOfferedStep } from "@/utils/onboarding";
 
 const SEARCH_PAUSE_MS = 400;
 
@@ -90,6 +92,7 @@ const ChatList = ({ onNewGroup }) => {
   const activeId = useSelector((state) => state.chat.activeConversation?._id);
   // the list is asked for only once this device's key is loaded, so until then an empty list means nothing yet
   const hasListLoaded = useSelector((state) => state.chat.hasLoadedConversations || state.chat.hasConversationsFailed);
+  const isPhotoOffered = useSelector((state) => isOfferedStep(state.user.user.onboarding, "profile"));
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [isShowingArchived, setIsShowingArchived] = useState(false);
@@ -221,6 +224,7 @@ const ChatList = ({ onNewGroup }) => {
           <ChatRowSkeletons />
         ) : (
           <>
+            {!isShowingArchived && !needle && isPhotoOffered && <PhotoCard />}
             {!isShowingArchived && !needle && archivedCount > 0 && (
               <ButtonBase
                 onClick={() => setIsShowingArchived(true)}

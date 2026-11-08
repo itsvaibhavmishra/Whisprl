@@ -107,7 +107,7 @@ const DashboardLayout = () => {
             </PageArea>
           </Box>
           <EncryptionGate />
-          {isApp && isEncryptionReady && <NotificationsPrompt />}
+          {isEncryptionReady && location.pathname.startsWith(`${chat}/`) && <NotificationsPrompt />}
         </Stack>
       </MotionConfig>
     </MotionLazyContainer>

@@ -37,19 +37,19 @@ export const register = async (req, res) => {
   const user = await registerUser(req.body);
   await sendVerificationCode(user);
 
-  res.status(200).json({ status: "success", message: "OTP Sent" });
+  res.status(200).json({ status: "success", message: "We emailed you a code" });
 };
 
 export const sendOtp = async (req, res) => {
   await resendVerificationCode(req.body.email);
 
-  res.status(200).json({ status: "success", message: "OTP Sent" });
+  res.status(200).json({ status: "success", message: "We emailed you a code" });
 };
 
 export const verifyOTP = async (req, res) => {
   const user = await verifyEmail(req.body.email, req.body.otp);
 
-  await respondWithSession(req, res, user, "OTP verified");
+  await respondWithSession(req, res, user, "Email verified");
 };
 
 export const forgotPassword = async (req, res) => {

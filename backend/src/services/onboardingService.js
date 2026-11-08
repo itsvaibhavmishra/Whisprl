@@ -1,46 +1,40 @@
 import createHttpError from "http-errors";
 
-import { PasskeyModel } from "#src/models/index.js";
 import { birthdayFrom, isOldEnough } from "#src/utils/accountRules.js";
 
 const AGE_PAUSE_MS = 24 * 60 * 60 * 1000;
 
-// an optional step's version rises when it is worth asking again, which brings it back to everyone who skipped it
+// setup asks only the required steps, an optional one is offered later where it fits, and raising its version offers it again
 const STEPS = [
-  { id: "birthday", isRequired: true, isDone: ({ user }) => Boolean(user.birthday) },
-  { id: "username", isRequired: true, isDone: ({ user }) => Boolean(user.usernameConfirmedAt || user.usernameChangedAt) },
-  { id: "messages", isRequired: true, isDone: ({ user }) => Boolean(user.recoveryKeySavedAt) },
-  { id: "passkey", isRequired: false, version: 1, isDone: ({ hasPasskey }) => hasPasskey },
-  { id: "notifications", isRequired: false, version: 1, isDone: ({ user }) => Boolean(user.notificationsAllowedAt) },
-  { id: "profile", isRequired: false, version: 1, isForNewAccounts: true, isDone: ({ user }) => Boolean(user.avatar || user.activityStatus) },
+  { id: "birthday", isRequired: true, isDone: (user) => Boolean(user.birthday) },
+  { id: "username", isRequired: true, isDone: (user) => Boolean(user.usernameConfirmedAt || user.usernameChangedAt) },
+  { id: "messages", isRequired: true, isDone: (user) => Boolean(user.recoveryKeySavedAt) },
+  { id: "profile", isRequired: false, version: 1, isForNewAccounts: true, isDone: (user) => Boolean(user.avatar) },
 ];
 
 const isPaused = (user) => user.agePausedUntil > new Date();
 
 const isSkipped = (step, user) => !step.isRequired && (user.skippedSteps?.get(step.id)?.version ?? 0) >= step.version;
 
-const statusOf = (step, account) => {
-  if (step.isDone(account)) return "done";
-  return isSkipped(step, account.user) ? "skipped" : "none";
+const statusOf = (step, user) => {
+  if (step.isDone(user)) return "done";
+  return isSkipped(step, user) ? "skipped" : "none";
 };
 
-export const onboardingOf = async (user) => {
-  const account = { user, hasPasskey: Boolean(await PasskeyModel.exists({ user: user._id })) };
-  return {
-    isNewAccount: Boolean(user.isNewAccount),
-    pausedUntil: isPaused(user) ? user.agePausedUntil : null,
-    steps: STEPS.filter((step) => !step.isForNewAccounts || user.isNewAccount).map((step) => ({
-      id: step.id,
-      isRequired: step.isRequired,
-      status: statusOf(step, account),
-    })),
-  };
-};
+export const onboardingOf = (user) => ({
+  isNewAccount: Boolean(user.isNewAccount),
+  pausedUntil: isPaused(user) ? user.agePausedUntil : null,
+  steps: STEPS.filter((step) => !step.isForNewAccounts || user.isNewAccount).map((step) => ({
+    id: step.id,
+    isRequired: step.isRequired,
+    status: statusOf(step, user),
+  })),
+});
 
 // an account stops being new the first time it has nothing left to set up
 export const settleOnboarding = async (user) => {
   if (!user.isNewAccount) return;
-  const { steps } = await onboardingOf(user);
+  const { steps } = onboardingOf(user);
   if (steps.some((step) => step.status === "none")) return;
   user.isNewAccount = false;
   await user.save();
@@ -72,13 +66,6 @@ export const confirmUsernameStep = async (user) => {
 export const saveRecoveryKeyStep = async (user) => {
   if (!user.publicKeys.length) throw createHttpError.BadRequest("Make your recovery key first");
   user.recoveryKeySavedAt = new Date();
-  await user.save();
-  await settleOnboarding(user);
-  return user;
-};
-
-export const allowNotificationsStep = async (user) => {
-  user.notificationsAllowedAt = new Date();
   await user.save();
   await settleOnboarding(user);
   return user;
