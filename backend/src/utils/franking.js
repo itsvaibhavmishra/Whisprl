@@ -3,13 +3,20 @@ import crypto from "crypto";
 const STRUCTURED = "\u0001";
 
 // a written message marks its payload as structured content, while an attachment's is plain JSON
-const frankingKeyIn = (plaintext) => {
+const payloadIn = (plaintext) => {
   const json = plaintext.startsWith(STRUCTURED) ? plaintext.slice(STRUCTURED.length) : plaintext;
   try {
-    return JSON.parse(json).frankingKey ?? null;
+    return JSON.parse(json) ?? {};
   } catch {
-    return null;
+    return {};
   }
+};
+
+const frankingKeyIn = (plaintext) => payloadIn(plaintext).frankingKey ?? null;
+
+export const textIn = (plaintext) => {
+  const { text, caption } = payloadIn(plaintext);
+  return String(text ?? caption ?? "");
 };
 
 // the key the sender sealed inside the message has to be the one that makes the fingerprint it sent in the clear

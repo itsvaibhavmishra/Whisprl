@@ -50,7 +50,7 @@ const winnerOf = (state) => {
 
 // the engine merges the seat count in as players, so the board and the table are checked together
 export const assertOptions = ({ size, players }) => {
-  if (!SIZES[size]) throw createHttpError.BadRequest("That board size does not exist");
+  if (!Object.hasOwn(SIZES, size)) throw createHttpError.BadRequest("That board size does not exist");
   if (players < 2 || players > mostPlayersOn(size)) {
     throw createHttpError.BadRequest(`That board seats at most ${mostPlayersOn(size)} players`);
   }

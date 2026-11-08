@@ -4,6 +4,7 @@
 import { webcrypto } from "crypto";
 
 import { fromBase64 } from "@/utils/crypto/encoding";
+import { frankingKey, frankingOf } from "@/utils/crypto/franking";
 import { exportPublicKey, generateAccountKeys, importPrivateKey, keyIdOf } from "@/utils/crypto/keys";
 import { decryptAlbumReactions, decryptMessage, encryptMessage, encryptReaction, openMessage, setDeviceKeys } from "@/utils/crypto/messageCipher";
 import vectors from "@/utils/crypto/messageVectors.json";
@@ -243,4 +244,31 @@ test("the shared vectors open, so the Android app and the web stay in step", asy
     })
   );
   expect(opened).toEqual(messages.map((message) => message.plaintext));
+});
+
+describe("fingerprints", () => {
+  const sendFranked = async (franking) => {
+    const key = frankingKey();
+    const plaintext = encodePayload({ text: "see you at six", frankingKey: key });
+    const sent = await sendFromAlice(plaintext);
+    return { ...sent, franking: await franking(key, plaintext) };
+  };
+
+  test("a message whose fingerprint matches its words opens", async () => {
+    const sent = await sendFranked(frankingOf);
+    setDeviceKeys(deviceOf(bob));
+    expect((await decryptMessage(sent, conversation)).message).toBe("see you at six");
+  });
+
+  test("a message whose fingerprint does not match is not shown, so it can never be reported as forged", async () => {
+    const sent = await sendFranked((key) => frankingOf(key, "something else"));
+    setDeviceKeys(deviceOf(bob));
+    expect(await decryptMessage(sent, conversation)).toEqual(expect.objectContaining({ message: "", undecryptable: true }));
+  });
+
+  test("a message carrying a fingerprint key but no fingerprint is not shown either", async () => {
+    const sent = await sendFranked(async () => undefined);
+    setDeviceKeys(deviceOf(bob));
+    expect((await decryptMessage(sent, conversation)).undecryptable).toBe(true);
+  });
 });

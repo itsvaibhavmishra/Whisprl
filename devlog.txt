@@ -16,8 +16,24 @@
   - New:
 
   - Improvements:
+    - You get an email whenever a passkey is added to your account, and staff confirm with a passkey before adding or removing one
 
   - Fixed:
+    - A file attached to a report now always downloads in the staff console instead of opening as a page, and a report can only carry files from the messages it includes
+    - Reports keep the photos and files of the messages they include, which were being left out
+    - A message Whisprl checked in a report now shows exactly what was sent, who sent it and when
+    - Someone you have blocked no longer gets delivered or seen ticks from you
+    - Signing up again with an email still waiting for its code now asks you to log in instead of replacing the password
+    - Deleting a group no longer removes files that were forwarded from it into other chats
+    - A disappearing message is hidden as soon as its time is up, even before the server clears it
+    - Someone you have blocked can no longer pin or unpin messages in your old chat
+    - A seat left in a chat you can no longer play in no longer stops you joining other games
+    - Leaving or being removed from a group stops its game updates reaching you
+    - Game settings keep only the game's own options, and an unknown board size is refused
+    - An account still waiting on its age check cannot use chats, friends, groups, statuses or games until it is done
+    - Logging out of the Android app stops its notifications, even when the logout could not reach the server
+    - Files saved on Android always land in the Whisprl folder, whatever name the sender gave them
+    - A message whose fingerprint does not match its words shows as one that could not be opened, so it cannot make an honest report look forged
 
   - Developers:
 

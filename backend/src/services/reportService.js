@@ -3,9 +3,8 @@ import mongoose from "mongoose";
 
 import { MAX_EVIDENCE_MESSAGES, MAX_EVIDENCE_TEXT, MAX_REPORT_NOTE, REPORT_REASONS } from "#src/models/reportModel.js";
 import { MessageModel, ReportModel, UserModel } from "#src/models/index.js";
-import { matchesFranking } from "#src/utils/franking.js";
+import { matchesFranking, textIn } from "#src/utils/franking.js";
 import { findMemberConversation } from "#src/services/conversationService.js";
-import { isCloudinaryFile } from "#src/services/fileUploadService.js";
 
 const assertReason = (reason, note) => {
   if (!REPORT_REASONS.includes(reason)) throw createHttpError.BadRequest("Choose why you are reporting this");
@@ -16,11 +15,18 @@ const assertReason = (reason, note) => {
 
 const asFile = ({ url, key, iv, mimeType, name }) => ({ url, key, iv, mimeType, name });
 
-// an attached file is only ever one Whisprl stored, so a report cannot point the panel somewhere else
-const filesIn = (files) => {
-  const allowed = Array.isArray(files) ? files.filter((file) => isCloudinaryFile(file?.url)).map(asFile) : [];
+const storedUrlsOf = (message) => [message?.attachment?.url, ...(message?.files ?? []).map((file) => file.url)].filter(Boolean);
+
+// a file is kept only if Whisprl stored it for the very message it comes with, so a report cannot point the panel anywhere else
+export const evidenceFilesOf = (files, message) => {
+  const storedUrls = storedUrlsOf(message);
+  const allowed = Array.isArray(files) ? files.filter((file) => storedUrls.includes(file?.url)).map(asFile) : [];
   return allowed.length ? allowed : undefined;
 };
+
+// who sent a message and when come from Whisprl's own copy wherever it still has one
+const asSentBy = (original, sender, sentAt) =>
+  original ? { sender: original.sender, sentAt: original.createdAt } : { ...(mongoose.isValidObjectId(sender) && { sender }), sentAt: new Date(sentAt) };
 
 // the reporter's device sends this, so each message is weighed against the fingerprint its sender left
 const asEvidence = async (sent, conversation_id) => {
@@ -30,25 +36,28 @@ const asEvidence = async (sent, conversation_id) => {
 
   const ids = sent.map(({ message }) => message).filter((id) => mongoose.isValidObjectId(id));
   const saved = await MessageModel.find({ _id: { $in: ids }, conversation: conversation_id })
-    .select("franking")
+    .select("franking attachment files sender createdAt")
     .lean();
-  const frankingOf = new Map(saved.map(({ _id, franking }) => [String(_id), franking]));
+  const savedOf = new Map(saved.map((original) => [String(original._id), original]));
 
-  const checkOf = (message, plaintext) => {
-    const franking = frankingOf.get(String(message));
-    if (!franking) return "unchecked";
-    return matchesFranking(plaintext, franking) ? "verified" : "failed";
+  const checkOf = (original, plaintext) => {
+    if (!original?.franking) return "unchecked";
+    return matchesFranking(plaintext, original.franking) ? "verified" : "failed";
   };
 
-  return sent.map(({ message, sender, sentAt, text, files, isReported, plaintext }) => ({
-    ...(mongoose.isValidObjectId(message) && { message }),
-    ...(mongoose.isValidObjectId(sender) && { sender }),
-    sentAt: new Date(sentAt),
-    text: String(text ?? "").slice(0, MAX_EVIDENCE_TEXT),
-    files: filesIn(files),
-    isReported: Boolean(isReported),
-    check: checkOf(message, plaintext),
-  }));
+  return sent.map(({ message, sender, sentAt, text, files, isReported, plaintext }) => {
+    const original = savedOf.get(String(message));
+    const check = checkOf(original, plaintext);
+    return {
+      ...(mongoose.isValidObjectId(message) && { message }),
+      ...asSentBy(original, sender, sentAt),
+      // a checked message shows the words its fingerprint covers, not a second copy the reporter could change
+      text: (check === "verified" ? textIn(plaintext) : String(text ?? "")).slice(0, MAX_EVIDENCE_TEXT),
+      files: evidenceFilesOf(files, original),
+      isReported: Boolean(isReported),
+      check,
+    };
+  });
 };
 
 // someone met outside any chat, like a stranger asking to be friends, is reported on their own

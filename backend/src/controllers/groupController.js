@@ -1,8 +1,11 @@
+import { stopWatchingFor } from "#src/services/gameService.js";
 import { addMembers, announceGroupChange, createGroup, removeMember, setAdmin, updateGroupDetails } from "#src/services/groupService.js";
 
 const handle = (change) => async (req, res) => {
   const result = await change(req);
-  announceGroupChange(req.app.get("io"), result);
+  const io = req.app.get("io");
+  announceGroupChange(io, result);
+  if (result.departed.length) await stopWatchingFor(io, result.departed, result.groupId);
   res.status(200).json({ status: "success", group: result.group });
 };
 
