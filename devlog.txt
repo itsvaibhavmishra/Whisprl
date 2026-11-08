@@ -16,6 +16,7 @@
   - New:
 
   - Improvements:
+    - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out
     - The Android app switches to a new version the next time you move between screens, instead of waiting until you leave and reopen it
     - The typing cat is a little smaller on phones
     - The recovery key step asks you to tick that you saved your key, with saving it to your password manager next to Continue

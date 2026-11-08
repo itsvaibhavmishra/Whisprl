@@ -33,7 +33,7 @@ export const ViewsPill = ({ views, pillRef, onOpen }) => {
       {faces.length > 0 && (
         <Stack direction="row" sx={{ "& > *:not(:first-of-type)": { ml: -1 } }}>
           {faces.map(({ user }) => (
-            <Box key={user._id} sx={{ borderRadius: "50%", border: "2px solid #10141C", display: "grid" }}>
+            <Box key={user._id} sx={{ borderRadius: "50%", border: "2px solid #121316", display: "grid" }}>
               {getAvatar(user.avatar, user.firstName, 24)}
             </Box>
           ))}
