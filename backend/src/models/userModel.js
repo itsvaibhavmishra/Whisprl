@@ -106,6 +106,7 @@ const userSchema = mongoose.Schema(
     username: { type: String, unique: true, sparse: true },
     usernameChangedAt: { type: Date },
     usernameConfirmedAt: { type: Date },
+    inviteCode: { type: String, unique: true, sparse: true, select: false },
     avatar: { type: String },
     cover: { type: String, default: "" },
     // the doodle drawn when there is no cover photo, or once it is removed

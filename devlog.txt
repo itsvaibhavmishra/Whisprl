@@ -15,6 +15,7 @@
 
   - New:
     - The admin overview shows the sign-up journey: how far each new account got, from verifying its email to its first message, and who stopped at each step
+    - Invite friends from Contacts or an empty Chats screen with a link that shows who invited them, and once they have signed up, their profile opens with a friend request one tap away
 
   - Improvements:
     - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out

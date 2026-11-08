@@ -8,6 +8,7 @@ import { PATH_DASHBOARD } from "@/routes/paths";
 import DashboardLayout from "@/layouts/dashboard";
 import StaffOnly from "@/layouts/admin/StaffOnly";
 import AuthLayout from "@/layouts/auth";
+import InviteLayout from "@/layouts/auth/InviteLayout";
 import DocsLayout from "@/layouts/docs";
 import { isApp } from "@/utils/platform";
 
@@ -56,6 +57,7 @@ export default function Router() {
         { path: "reset-password", element: <ResetPasswordPage /> },
       ],
     },
+    { path: "/invite/:code", element: <InviteLayout />, children: [{ index: true, element: <InvitePage /> }] },
     {
       path: "/docs",
       element: <DocsLayout />,
@@ -120,6 +122,7 @@ const Settings = preloadable(() => import("@/pages/dashboard/Settings"));
 const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));
 const AppTourPage = Loadable(lazy(() => import("@/pages/auth/AppTour")));
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/Login")));
+const InvitePage = Loadable(lazy(() => import("@/pages/auth/Invite")));
 const RegisterPage = Loadable(lazy(() => import("@/pages/auth/Register")));
 const VerifyPage = Loadable(lazy(() => import("@/pages/auth/Verify")));
 const ForgotPasswordPage = Loadable(lazy(() => import("@/pages/auth/ForgotPassword")));

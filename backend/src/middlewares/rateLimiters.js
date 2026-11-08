@@ -36,6 +36,7 @@ export const codeLimit = () => limit(15, 10, byIp);
 // a tab refreshes about once per access token, so this leaves room for many people behind one address
 export const sessionLimit = () => limit(15, 300, byIp);
 export const socialLimit = () => limit(15, 20, byIp);
+export const inviteLimit = () => limit(15, 60, byIp);
 
 export const uploadLimit = () => limit(15, 60, byUser);
 export const searchLimit = () => limit(1, 30, byUser);

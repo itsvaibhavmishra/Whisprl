@@ -21,6 +21,10 @@ export const FindProfile = createApiThunk("user/findProfile", async (username) =
   notifyErrors: false,
 });
 
+export const GetInviteCode = createApiThunk("invites/mine", async () => (await axios.get("/invites/mine")).data.code, { notifyErrors: false });
+
+export const GetInviter = createApiThunk("invites/inviter", async (code) => (await axios.get(`/invites/${code}`)).data.inviter, { notifyErrors: false });
+
 export const FindEveryone = createApiThunk(
   "user/people",
   async ({ keyword, page = 0 }) => (await axios.get("/user/people", { params: { search: keyword, page } })).data

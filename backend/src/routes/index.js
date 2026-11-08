@@ -13,6 +13,7 @@ import onboardingRouter from "#src/routes/onboardingRouter.js";
 import adminRouter from "#src/routes/adminRouter.js";
 import gameRouter from "#src/routes/gameRouter.js";
 import pushRouter from "#src/routes/pushRouter.js";
+import inviteRouter from "#src/routes/inviteRouter.js";
 
 const router = express.Router();
 
@@ -41,6 +42,8 @@ router.use("/admin", adminRouter);
 router.use("/games", gameRouter);
 
 router.use("/push", pushRouter);
+
+router.use("/invites", inviteRouter);
 
 router.get("/start-server", (req, res) => {
   res.send("Welcome to Whisprl 😺");

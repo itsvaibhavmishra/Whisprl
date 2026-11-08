@@ -9,6 +9,7 @@ import { PageArea } from "@/components/LoadingScreen";
 import NotificationsPrompt from "@/components/NotificationsPrompt";
 import useSavedChats from "@/hooks/useSavedChats";
 import useSettings from "@/hooks/useSettings";
+import FollowInvite from "@/layouts/dashboard/FollowInvite";
 import NavRail from "@/layouts/dashboard/NavRail";
 import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 import { DeliverWaitingMessages, GetConversations } from "@/redux/slices/actions/chatActions";
@@ -108,6 +109,7 @@ const DashboardLayout = () => {
           </Box>
           <EncryptionGate />
           {isEncryptionReady && location.pathname.startsWith(`${chat}/`) && <NotificationsPrompt />}
+          <FollowInvite />
         </Stack>
       </MotionConfig>
     </MotionLazyContainer>

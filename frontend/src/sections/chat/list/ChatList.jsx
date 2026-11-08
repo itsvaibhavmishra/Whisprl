@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArchiveIcon, ArrowLeftIcon, CaretRightIcon, UsersThreeIcon } from "@phosphor-icons/react";
+import { ArchiveIcon, ArrowLeftIcon, CaretRightIcon, ShareNetworkIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import MascotHalo from "@/components/MascotHalo";
@@ -9,6 +9,7 @@ import RequestButton from "@/components/profile/RequestButton";
 import SearchPill from "@/components/SearchPill";
 import Wordmark from "@/components/Wordmark";
 import PullToRefresh from "@/components/PullToRefresh";
+import useInviteFriends from "@/hooks/useInviteFriends";
 import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 import { RefreshChats } from "@/redux/slices/actions/refreshActions";
 import { SearchForUsers } from "@/redux/slices/actions/contactActions";
@@ -83,6 +84,16 @@ const StrangerRow = ({ person }) => (
   </Box>
 );
 
+const InviteButton = () => {
+  const invite = useInviteFriends();
+
+  return (
+    <Button variant="contained" startIcon={<ShareNetworkIcon weight="bold" />} disabled={!invite} onClick={invite}>
+      Invite friends
+    </Button>
+  );
+};
+
 const ChatList = ({ onNewGroup }) => {
   const dispatch = useDispatch();
   const meId = useSelector((state) => state.user.user._id);
@@ -139,7 +150,7 @@ const ChatList = ({ onNewGroup }) => {
     if (filter === "favourites") return "No favourites yet. Add one from a chat's details.";
     if (filter === "unread") return "You're all caught up.";
     if (filter === "groups") return "No groups yet. Start one with New group.";
-    return "No chats yet. Find a friend in Contacts, or start a group.";
+    return "No chats yet. Invite a friend, find one in Contacts, or start a group.";
   };
 
   const note = emptyNote();
@@ -271,6 +282,7 @@ const ChatList = ({ onNewGroup }) => {
               <Stack spacing={1.5} sx={{ alignItems: "center", px: 3, py: 6, textAlign: "center" }}>
                 {isUnfiltered && <MascotHalo size={120} />}
                 <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.secondary", maxWidth: 260 }}>{note}</Typography>
+                {isUnfiltered && <InviteButton />}
               </Stack>
             )}
           </>
