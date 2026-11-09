@@ -17,6 +17,7 @@ import GameResultModel from "#src/models/gameResultModel.js";
 import GamePlayModel from "#src/models/gamePlayModel.js";
 import GameRequestModel from "#src/models/gameRequestModel.js";
 import BotRecordModel from "#src/models/botRecordModel.js";
+import AnnouncementModel from "#src/models/announcementModel.js";
 
 export {
   UserModel,
@@ -38,4 +39,5 @@ export {
   GamePlayModel,
   GameRequestModel,
   BotRecordModel,
+  AnnouncementModel,
 };

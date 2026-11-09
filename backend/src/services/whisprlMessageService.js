@@ -14,6 +14,14 @@ const chatWith = async (userId) => {
   return populateMembers(conversation);
 };
 
+// a notification shows plain words, so the bold and links a chat draws are taken out
+const unmarked = (text) =>
+  text
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\[([^\]]+)\]\(\/[^)]*\)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const subjectOf = ({ about, name }) => ({ person: name, status: `${name}'s status`, group: name })[about];
 
 // what a notification says for each message worth one; the welcome arrives while someone is already in the app
@@ -22,14 +30,15 @@ const PUSHED_WORDS = {
   reportReceived: (notice) => `We got your report about ${subjectOf(notice)}`,
   reportActioned: (notice) => `We took action on your report about ${subjectOf(notice)}`,
   reportDismissed: (notice) => `We looked at your report about ${subjectOf(notice)}`,
+  announcement: ({ text }) => unmarked(text),
 };
 
-export const sendFromWhisprl = async (io, userId, notice) => {
+export const sendFromWhisprl = async (io, userId, notice, { isPushed = true } = {}) => {
   if (!whisprlAccountId()) return;
   const conversation = await chatWith(userId);
   const { message } = await saveMessage(conversation, { sender: whisprlAccountId(), notice });
   io?.to(String(userId)).emit("message_received", message);
-  const words = PUSHED_WORDS[notice.type]?.(notice);
+  const words = isPushed && PUSHED_WORDS[notice.type]?.(notice);
   if (words) await pushWords(conversation, message.sender, words);
 };
 

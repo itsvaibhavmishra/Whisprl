@@ -20,3 +20,11 @@ test("a dismissed report points at the rules, and suggests blocking a person or 
 test("markup in a reported name is dropped rather than followed", () => {
   expect(reportNotice("reportReceived", "person", "[click](/settings)").text).toContain("**click/settings**");
 });
+
+test("an announcement shows the words staff wrote, with its button, and a plain line in the chat list", () => {
+  const button = { kind: "open", label: "Invite friends", to: "/contacts" };
+  const notice = { type: "announcement", text: "**New:** [invite](/contacts) your friends", button };
+  expect(noticeOf(notice, ME, WHISPRL)).toEqual({ text: notice.text, actions: [button] });
+  expect(noticeOf({ ...notice, button: undefined }, ME, WHISPRL).actions).toEqual([]);
+  expect(summaryOf({ notice })).toBe("New: invite your friends");
+});

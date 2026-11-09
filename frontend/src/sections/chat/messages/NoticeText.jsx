@@ -1,8 +1,9 @@
 import { Box, Link, Typography } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
-const MARKUP = /(\*\*[^*]+\*\*|\[[^\]]+\]\(\/[^)]*\))/;
-const INNER_LINK = /^\[([^\]]+)\]\((\/[^)]*)\)$/;
+// a path that starts with two slashes or a backslash leaves the app, so neither counts as a link
+const MARKUP = /(\*\*[^*]+\*\*|\[[^\]]+\]\(\/(?!\/)[\w\-/@.]*\))/;
+const INNER_LINK = /^\[([^\]]+)\]\((\/(?!\/)[\w\-/@.]*)\)$/;
 
 const inlineOf = (paragraph) =>
   paragraph.split(MARKUP).map((piece, index) => {

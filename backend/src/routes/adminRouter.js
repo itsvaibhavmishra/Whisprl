@@ -9,6 +9,8 @@ import {
   closeGameRequest,
   dismiss,
   getActivePeople,
+  getAnnouncements,
+  getAudienceSizes,
   getAuditLog,
   getConfirmationOptions,
   getGameRequests,
@@ -19,6 +21,7 @@ import {
   getTeam,
   removeFromTeam,
   restore,
+  sendAnnouncement,
   suspend,
 } from "#src/controllers/adminController.js";
 
@@ -51,6 +54,10 @@ adminRouter.route("/reports/:report_id/dismiss").put(writeLimit(), allow("report
 adminRouter.route("/game-requests").get(searchLimit(), allow("requests"), getGameRequests);
 
 adminRouter.route("/game-requests/:name_key/close").put(writeLimit(), allow("requests"), closeGameRequest);
+
+adminRouter.route("/announcements").get(readLimit(), allow("announce"), getAnnouncements).post(writeLimit(), allow("announce"), sendAnnouncement);
+
+adminRouter.route("/announcements/audience").get(readLimit(), allow("announce"), getAudienceSizes);
 
 adminRouter.route("/audit").get(readLimit(), allow("audit"), getAuditLog);
 

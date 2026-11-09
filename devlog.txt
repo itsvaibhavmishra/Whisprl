@@ -24,6 +24,7 @@
     - Opening a game in a chat between two people challenges the other, who answers Play or Not now from the chat; until then their screen stays clear, and the one who asked can play the bot instead
     - Leaving a game against a person or Whisprl counts as a loss and gives them the win, while a game against the bot can be left freely; someone only watching can hide a game but not close it
     - Whisprl lets you know it got your report, and again once it has been looked at, saying whether action was taken but never what
+    - Staff with the new Announce permission can send a message from Whisprl to everyone, or only Android or website users, with an optional button into the app and an optional notification; the admin panel previews it, then shows how many people each one reached
 
   - Improvements:
     - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out, while chats keep the navy behind their messages
@@ -46,6 +47,7 @@
     - Whisprl's messages, like a report update or a friend joining from your invite, arrive as notifications on Android
 
   - Fixed:
+    - A link in Whisprl's messages can only go somewhere in the app, never to another website
     - A chat's notification clears once you read that chat, whether you open it from the notification, inside the app or on another device
     - An emoji sent on its own during a game stays on your side of the chat instead of sliding left under the game's name, and notes and dates in a chat sit in its middle
     - A profile picture that fails to load shows the person's initial on their colour, instead of a grey letter that looked like an inactive account

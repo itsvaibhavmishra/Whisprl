@@ -1,3 +1,4 @@
+import { announce, audienceSizes, listAnnouncements } from "#src/services/announcementService.js";
 import { listAuditEntries } from "#src/services/auditService.js";
 import { closeGameRequests, listGameRequests } from "#src/services/gameRequestService.js";
 import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/services/moderationService.js";
@@ -64,6 +65,20 @@ export const dismiss = async (req, res) => {
 
 export const getAuditLog = async (req, res) => {
   return res.status(200).json({ status: "success", ...(await listAuditEntries(req.query.before)) });
+};
+
+export const getAnnouncements = async (req, res) => {
+  return res.status(200).json({ status: "success", ...(await listAnnouncements(req.query.before)) });
+};
+
+export const getAudienceSizes = async (req, res) => {
+  return res.status(200).json({ status: "success", sizes: await audienceSizes() });
+};
+
+// it changes nobody's access, so like dismissing a report it does not ask for the passkey
+export const sendAnnouncement = async (req, res) => {
+  const announcement = await announce(req.app.get("io"), req.user, req.body);
+  return res.status(200).json({ status: "success", announcement });
 };
 
 export const getTeam = async (req, res) => {

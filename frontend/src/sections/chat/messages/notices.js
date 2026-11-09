@@ -13,7 +13,9 @@ const REPORT_TEXTS = {
 };
 
 // what the app writes into a chat, from what each message is about; **bold** and [words](/path) are all the markup it uses
-export const noticeOf = ({ type, user, name, username, gameName, about }, me, sender) => {
+export const noticeOf = ({ type, user, name, username, gameName, about, text, button }, me, sender) => {
+  // staff write an announcement themselves, markup and all
+  if (type === "announcement") return { text, actions: button?.label ? [button] : [] };
   if (type === "challenge") {
     // the challenger reads what they sent, and only the one challenged is asked to answer
     if (sender._id === me._id) return { text: `You challenged **${plain(name)}** to **${gameName}** 🎮`, actions: [] };
