@@ -8,6 +8,10 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 
 export const MEDIA_TYPES = [...IMAGE_TYPES, ...VIDEO_TYPES];
+const OPENABLE_TYPES = [...MEDIA_TYPES, "audio/webm", "audio/mp4"];
+
+// a blob lives at the app's own address, so one typed as a page would run there; anything but our media stays plain bytes
+const blobTypeOf = (mimeType) => (OPENABLE_TYPES.includes(mimeType?.split(";")[0]) ? mimeType : "application/octet-stream");
 
 export const MAX_ATTACHMENTS = 5;
 export const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024;
@@ -167,14 +171,14 @@ const downloadAndOpen = (sealed) =>
     .then((data) => (sealed.key ? openFile(data, sealed) : data));
 
 // a view-once photo is never kept, so it is downloaded and decrypted only for the moment it is shown
-export const openViewOnceFile = async (sealed) => new Blob([await downloadAndOpen(sealed)], { type: sealed.mimeType });
+export const openViewOnceFile = async (sealed) => new Blob([await downloadAndOpen(sealed)], { type: blobTypeOf(sealed.mimeType) });
 
 // a friend's file is downloaded and decrypted once, however many times it is shown
 const opened = new Map();
 
 export const openedFileUrl = (sealed) => {
   if (!opened.has(sealed.url)) {
-    const opening = downloadAndOpen(sealed).then((bytes) => URL.createObjectURL(new Blob([bytes], { type: sealed.mimeType })));
+    const opening = downloadAndOpen(sealed).then((bytes) => URL.createObjectURL(new Blob([bytes], { type: blobTypeOf(sealed.mimeType) })));
     opening.catch(() => opened.delete(sealed.url));
     opened.set(sealed.url, opening);
   }

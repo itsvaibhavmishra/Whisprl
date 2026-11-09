@@ -117,19 +117,21 @@ export const registerUser = async ({ email, password, ...typed }) => {
   const born = oldEnoughBirthdayFrom(birthday);
   if (await isDisposableEmail(address)) throw createHttpError.BadRequest("Disposable emails are not allowed");
 
-  const existing = await UserModel.findOne({ email: address }).select("+verification");
-  if (existing?.verified) throw createHttpError.Conflict("Email is already registered");
-  // checked before anything is saved, or a refused request would still replace the details a sent code verifies
-  assertCooledDown(existing?.verification?.sentAt, "code");
+  // an account still waiting on its code is never signed up over, or the owner's code would verify someone else's password
+  if (await UserModel.exists({ email: address })) throw createHttpError.Conflict("Email is already registered, please log in");
 
-  const user = existing ?? new UserModel({ email: address });
-  user.set({ firstName, lastName, password, birthday: born, isNewAccount: true });
+  const user = new UserModel({
+    email: address,
+    firstName,
+    lastName,
+    password,
+    birthday: born,
+    isNewAccount: true,
+    username: await availableUsername(firstName, lastName),
+    coverStyle: randomCoverStyle(),
+  });
   startJourney(user, "email", ["birthday"]);
-  user.username ??= await availableUsername(firstName, lastName);
-  user.coverStyle ??= randomCoverStyle();
-  await user.save();
-
-  return user;
+  return user.save();
 };
 
 export const sendVerificationCode = async (user) => {

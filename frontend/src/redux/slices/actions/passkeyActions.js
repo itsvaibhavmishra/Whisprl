@@ -1,7 +1,9 @@
+import { confirmWithPasskey } from "@/redux/slices/actions/adminActions";
 import { createApiThunk, notifyResult, refuse } from "@/redux/slices/actions/apiThunk";
 import axios from "@/utils/axios";
 import { loadDeviceKeys } from "@/utils/crypto/keyStore";
 import { authenticateWithPasskey, createPasskey, lockWithPasskey, randomChallenge } from "@/utils/passkeys";
+import { isStaff } from "@/utils/roles";
 
 export const GetPasskeys = createApiThunk("passkeys/list", async () => (await axios.get("/passkeys")).data, { notifyErrors: false });
 
@@ -24,8 +26,9 @@ export const LinkPasskey = createApiThunk("passkeys/link", async (credentialId, 
 
 export const AddPasskey = createApiThunk("passkeys/add", async (_, { dispatch, getState }) => {
   const { data: registration } = await axios.post("/passkeys/options");
+  const confirmation = registration.confirmation && (await authenticateWithPasskey(registration.confirmation)).response;
   const { response, canUnlock, prfSecret } = await createPasskey(registration.options);
-  const { data } = await axios.post("/passkeys", { response });
+  const { data } = await axios.post("/passkeys", { response, confirmation });
   notifyResult(data);
 
   if (!canUnlock || getState().encryption.status !== "ready") return data;
@@ -35,8 +38,9 @@ export const AddPasskey = createApiThunk("passkeys/add", async (_, { dispatch, g
   return LinkPasskey.fulfilled.match(linked) ? linked.payload : data;
 });
 
-export const RemovePasskey = createApiThunk("passkeys/remove", async (passkeyId) => {
-  const { data } = await axios.delete(`/passkeys/${passkeyId}`);
+export const RemovePasskey = createApiThunk("passkeys/remove", async (passkeyId, { getState }) => {
+  const confirmation = isStaff(getState().user.user.role) ? await confirmWithPasskey() : undefined;
+  const { data } = await axios.delete(`/passkeys/${passkeyId}`, { data: { confirmation } });
   notifyResult(data);
   return data;
 });

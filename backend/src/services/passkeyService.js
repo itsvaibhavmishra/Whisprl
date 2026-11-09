@@ -5,6 +5,9 @@ import mongoose from "mongoose";
 
 import { PasskeyChallengeModel, PasskeyModel } from "#src/models/index.js";
 import { findSessionUser } from "#src/services/authService.js";
+import { sendMail } from "#src/services/mailer.js";
+import { isStaff } from "#src/services/roleService.js";
+import passkeyAddedMail from "#src/templates/mail/passkeyAdded.js";
 
 const CHALLENGE_LIFETIME = 5 * 60 * 1000;
 
@@ -53,10 +56,16 @@ export const passkeyRegistrationOptions = async (user) => {
   });
 
   await rememberChallenge(options.challenge, "register", user._id);
-  return options;
+  return { options, ...(isStaff(user) && existing.length && { confirmation: await confirmationOptions(user) }) };
 };
 
-export const registerPasskey = async (user, response) => {
+// staff actions are vouched for by a passkey, so a staff session alone can never change which passkeys those are
+const assertStaffConfirmed = async (user, confirmation) => {
+  if (isStaff(user) && (await PasskeyModel.exists({ user: user._id }))) await assertConfirmed(user, confirmation);
+};
+
+export const registerPasskey = async (user, response, confirmation) => {
+  await assertStaffConfirmed(user, confirmation);
   const { origin, rpID } = relyingParty();
   const { verified, registrationInfo } = await verifyRegistrationResponse({
     response,
@@ -76,10 +85,14 @@ export const registerPasskey = async (user, response) => {
     transports: credential.transports,
     backedUp: credentialBackedUp,
   });
+  sendMail(user.email, "A passkey was added to your Whisprl account", passkeyAddedMail(user.firstName)).catch((error) =>
+    console.error(`[passkey mail] ${error.message}`)
+  );
 };
 
-export const removePasskey = async (user_id, passkey_id) => {
-  const { deletedCount } = mongoose.isValidObjectId(passkey_id) ? await PasskeyModel.deleteOne({ _id: passkey_id, user: user_id }) : { deletedCount: 0 };
+export const removePasskey = async (user, passkey_id, confirmation) => {
+  await assertStaffConfirmed(user, confirmation);
+  const { deletedCount } = mongoose.isValidObjectId(passkey_id) ? await PasskeyModel.deleteOne({ _id: passkey_id, user: user._id }) : { deletedCount: 0 };
   if (!deletedCount) throw createHttpError.NotFound("Passkey not found");
 };
 

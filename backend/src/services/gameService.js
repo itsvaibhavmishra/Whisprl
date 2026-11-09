@@ -342,12 +342,21 @@ const requirePlaying = (session) => {
   return session;
 };
 
+const isPlayableBy = (conversationId, userId) =>
+  playableConversation(conversationId, userId).then(
+    () => true,
+    () => false
+  );
+
 // only a game being played holds someone, who chooses to leave it first; a seat in another lobby is simply given up for this one
 const leaveOtherTables = async (io, conversation, userId) => {
-  const elsewhere = await GameSessionModel.find({
+  const seated = await GameSessionModel.find({
     conversation: { $ne: conversation._id },
     seats: { $elemMatch: { user: userId, bot: { $ne: true } } },
   }).lean();
+  // a seat left in a chat they can no longer play in, after a block, an unfriend or leaving a group, holds nobody back
+  const playable = await Promise.all(seated.map((session) => isPlayableBy(session.conversation, userId)));
+  const elsewhere = seated.filter((_, position) => playable[position]);
   const playing = elsewhere.find((session) => session.status === "playing");
   if (playing) {
     throw createHttpError(409, "You are already playing another game", {
@@ -471,7 +480,9 @@ const changeSettings = ({ conversation, session, userId, details }) => {
   const game = gameOf(requireLobby(session).game);
   if (!game.options) throw createHttpError.BadRequest("This game has no settings");
   assertMayChangeTable(conversation, session, userId);
-  const options = { ...session.options, ...details.options };
+  // only the game's own settings are kept, whatever else a client sends
+  const chosen = Object.keys(game.options.defaults).filter((key) => Object.hasOwn(details.options ?? {}, key));
+  const options = { ...session.options, ...Object.fromEntries(chosen.map((key) => [key, details.options[key]])) };
   game.options.assert({ ...options, players: session.seats.length });
   // the table changed, so everyone agrees to it again
   return { ...session, options, seats: unreadyAll(session.seats) };
@@ -650,6 +661,12 @@ export const stopWatching = (io, socket) => {
     countIn(gameRoom.lookers, userId, -1);
     announceLookers(io, id, gameRoom);
   });
+};
+
+// someone who leaves a group or is removed from it stops watching its game, which their open sockets would otherwise keep receiving
+export const stopWatchingFor = async (io, userIds, conversationId) => {
+  const sockets = await io.in(userIds.map(String)).fetchSockets();
+  await Promise.all(sockets.filter((socket) => socket.data.watching === String(conversationId)).map((socket) => stopWatching(io, socket)));
 };
 
 export const lookAtGame = (io, socket, isLooking) => {

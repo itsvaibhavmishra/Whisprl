@@ -11,6 +11,8 @@ import axios from "@/utils/axios";
 import { createSessionKeys } from "@/utils/crypto/sessionKeys";
 import { notify } from "@/utils/notify";
 import { authenticateWithPasskey } from "@/utils/passkeys";
+import { isApp } from "@/utils/platform";
+import { stopPush } from "@/utils/push";
 import { forgetChats } from "@/utils/savedChats";
 import { forgetSession, startSession } from "@/utils/session";
 
@@ -67,6 +69,8 @@ export const LinkedinLogin = socialLogin("linkedin");
 export const EndSession = createAsyncThunk("auth/end-session", async ({ keepDeviceKeys = false, sessionId } = {}, { dispatch, getState }) => {
   const userId = getState().user.user._id;
   await forgetSession(userId, sessionId);
+  // the phone gives up its push token here too, since a logout that never reached the server leaves the session sending to it
+  if (isApp) stopPush().catch(() => {});
   dispatch(DisconnectSocket());
   releaseAllAttachments();
   if (!keepDeviceKeys) await dispatch(ForgetDeviceKeys(userId));

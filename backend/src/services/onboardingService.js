@@ -15,6 +15,8 @@ const STEPS = [
 
 const isPaused = (user) => user.agePausedUntil > new Date();
 
+export const hasPassedAgeCheck = (user) => Boolean(user.birthday) && !isPaused(user);
+
 const isSkipped = (step, user) => !step.isRequired && (user.skippedSteps?.get(step.id)?.version ?? 0) >= step.version;
 
 const statusOf = (step, user) => {
