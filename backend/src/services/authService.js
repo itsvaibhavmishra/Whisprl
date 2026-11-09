@@ -16,6 +16,7 @@ import { permissionsOf, roleOf } from "#src/services/roleService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 import { markReached, startJourney } from "#src/services/journeyService.js";
+import { befriendWhisprl } from "#src/services/whisprlService.js";
 
 export const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;
@@ -187,6 +188,7 @@ export const verifyEmail = async (email, typedCode) => {
 
   user.verified = true;
   user.verification = undefined;
+  befriendWhisprl(user);
   markReached(user, "verified");
   await user.save();
 

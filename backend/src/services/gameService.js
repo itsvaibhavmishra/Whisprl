@@ -9,6 +9,7 @@ import { pushGameInvite } from "#src/services/pushService.js";
 import { botLevelFor, recordBotGame } from "#src/services/botRecordService.js";
 import { newcomersTo, recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 import {
   backToLobby,
   comeBack,
@@ -17,8 +18,8 @@ import {
   handToBot,
   invite,
   invitedIndexOf,
+  isBotOpponent,
   isBotPlaying,
-  isChosenBot,
   isEveryoneReady,
   lift,
   missTurn,
@@ -27,6 +28,7 @@ import {
   resized,
   seatBot,
   seatIndexOf,
+  seatWhisprl,
   setLocked,
   setReady,
   sit,
@@ -106,13 +108,14 @@ const assertNotCoolingDown = (gameRoom, userId) => {
   if (until) throw createHttpError.BadRequest(`You can sit again in ${Math.ceil((until - Date.now()) / 1000)} seconds`);
 };
 
-const seatView = ({ user, ready, locked, invited, bot, away }) => ({
+const seatView = ({ user, ready, locked, invited, bot, away, official }) => ({
   user: user ? String(user) : null,
   ready: Boolean(ready),
   locked: Boolean(locked),
   invited: invited ? String(invited) : null,
   bot: Boolean(bot),
   away: Boolean(away),
+  official: Boolean(official),
 });
 
 const stateViewFor = (session, viewerId) => {
@@ -240,7 +243,7 @@ const playedForAbsent = (session) => {
   const game = gameOf(session.game);
   const index = game.turnOf(session.state);
   // a bot someone chose to face tries harder than one covering for a player who walked away
-  const level = isChosenBot(session.seats[index]) ? (session.botLevel ?? "medium") : "standIn";
+  const level = isBotOpponent(session.seats[index]) ? (session.botLevel ?? "medium") : "standIn";
   return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
 };
 
@@ -263,10 +266,12 @@ const reactAsBot = (io, gameRoom, conversationId, before, after) => {
   const isEnding = Boolean(after.result);
   if (!isEnding && (Date.now() < gameRoom.botReactsAfter || Math.random() > BOT_REACTION_CHANCE)) return;
   const [reaction] = before.seats.flatMap((seat, index) => {
-    if (!isChosenBot(seat)) return [];
+    if (!isBotOpponent(seat)) return [];
     const moment = isEnding ? endingFor(game, after.state, index) : game.momentFor?.(before.state, after.state, index);
     const choices = ENDING_REACTIONS[moment] ?? game.reactions?.[moment];
-    return choices ? [{ seat: index, emoji: anyOf(choices) }] : [];
+    // Whisprl reacts as itself, while a chosen bot has no account and is known by its seat
+    const thrower = seat.official ? { user: String(seat.user) } : { seat: index };
+    return choices ? [{ ...thrower, emoji: anyOf(choices) }] : [];
   });
   if (!reaction) return;
   gameRoom.botReactsAfter = Date.now() + BOT_REACTION_GAP_MS;
@@ -356,8 +361,10 @@ const open = async ({ conversation, session, userId, details }) => {
   }
   if (session) throw createHttpError.BadRequest("There is already a game in this chat");
   await assertNotSeatedElsewhere(conversation, userId);
-  // proposing in a chat between two people is taking a seat
-  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: sit(emptySeats(game.minPlayers), 0, userId) };
+  // proposing in a chat between two people is taking a seat, and Whisprl takes the other one itself
+  const seats = sit(emptySeats(game.minPlayers), 0, userId);
+  const peerId = conversation.users.map((member) => String(member._id ?? member)).find((id) => id !== String(userId));
+  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: isWhisprl(peerId) ? seatWhisprl(seats, 1, peerId) : seats };
 };
 
 const close = ({ conversation, session, userId }) => {

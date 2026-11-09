@@ -14,7 +14,10 @@ const RoomBar = ({ theme, onOpenChat }) => {
   const [text, setText] = useState("");
   const [trayAnchor, setTrayAnchor] = useState(null);
   const [pickerAnchor, setPickerAnchor] = useState(null);
+  const [isFocused, setIsFocused] = useState(false);
   const canSend = Boolean(text.trim());
+  // someone in the text box may want to send emoji on their own, so it offers emoji rather than reactions
+  const offersEmoji = Boolean(text) || isFocused || Boolean(pickerAnchor);
 
   const send = (event) => {
     event.preventDefault();
@@ -40,12 +43,20 @@ const RoomBar = ({ theme, onOpenChat }) => {
         <InputBase
           value={text}
           onChange={(event) => setText(event.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder="Say something"
           inputProps={{ "aria-label": "Say something at the table", enterKeyHint: "send", maxLength: 500 }}
           sx={{ flex: 1, minWidth: 0, py: 1, color: theme.ink, fontSize: 15, "& input::placeholder": { color: alpha(theme.ink, 0.65), opacity: 1 } }}
         />
-        {text ? (
-          <IconButton aria-label="Add an emoji" onClick={(event) => setPickerAnchor(event.currentTarget)} sx={{ color: theme.ink }}>
+        {offersEmoji ? (
+          // pressing it leaves the text box focused, or the button would turn back into the sticker under the tap
+          <IconButton
+            aria-label="Add an emoji"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={(event) => setPickerAnchor(event.currentTarget)}
+            sx={{ color: theme.ink }}
+          >
             <SmileyIcon size={22} weight="bold" />
           </IconButton>
         ) : (

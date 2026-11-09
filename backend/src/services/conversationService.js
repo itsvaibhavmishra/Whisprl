@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 import { blockedEitherWay, presenceShownTo, withPresenceHidden } from "#src/services/blockService.js";
 import { preferencesOf } from "#src/services/chatPreferenceService.js";
 import { PUBLIC_PROFILE_FIELDS } from "#src/services/userService.js";
@@ -76,7 +77,9 @@ export const openDirectConversation = async (sender, receiver_id) => {
   const receiver = await UserModel.findOne({ _id: receiver_id, verified: true });
   if (!receiver) throw createHttpError.NotFound("Verified Receiver does not exist");
 
-  const isValidFriendShip = sender.friends.some((id) => id.equals(receiver._id)) && receiver.friends.some((id) => id.equals(sender._id));
+  // Whisprl is everyone's friend without keeping a list, so only the sender's side is asked
+  const isFriendBack = isWhisprl(receiver._id) || receiver.friends.some((id) => id.equals(sender._id));
+  const isValidFriendShip = sender.friends.some((id) => id.equals(receiver._id)) && isFriendBack;
   const members = membersOf(sender._id, receiver._id);
 
   const existing = await findDirectConversation(members);
@@ -124,7 +127,9 @@ const peerAccessOf = async (user, conversations) => {
     blockedEitherWay(user, peerIds),
   ]);
   const isFriend = (id) => user.friends.some((friendId) => friendId.equals(id));
-  const reachable = new Set(friendsBack.filter((id) => isFriend(id) && !blocked.has(String(id))).map(String));
+  // Whisprl keeps no friends list, so it is never found friending back and is counted in here instead
+  const friendlyPeers = [...friendsBack, ...peerIds.filter(isWhisprl)];
+  const reachable = new Set(friendlyPeers.filter((id) => isFriend(id) && !blocked.has(String(id))).map(String));
   return { reachable, blocked };
 };
 

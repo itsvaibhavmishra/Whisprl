@@ -10,6 +10,8 @@ const seatSchema = mongoose.Schema(
     invited: { type: mongoose.Schema.ObjectId, ref: "User" },
     // the player left mid-game, so the seat still counts as theirs while a bot plays it
     bot: { type: Boolean, default: false },
+    // Whisprl's own seat, which the bot plays for its account
+    official: { type: Boolean, default: false },
     // turns missed in a row; two hand the seat to the bot until its player comes back
     missed: { type: Number, default: 0 },
     away: { type: Boolean, default: false },

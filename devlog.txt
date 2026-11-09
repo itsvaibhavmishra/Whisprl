@@ -19,6 +19,7 @@
     - Badges beside names: Owner, Admin and Official, each in its own colour, on profiles, chats and contacts
     - Whisprl Bot plays at four levels, from easy to expert, and quietly picks one for each game from how you have been doing against it
     - Whisprl Bot reacts during games: laughing when it knocks your marble out, shocked when it is about to lose, partying when it wins
+    - Whisprl is everyone's friend: an official account that is always up for a game, sits down ready as soon as you open one, reacts as it plays and keeps score on the leaderboard. It can't be removed or blocked, and it never reads what you send it
 
   - Improvements:
     - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out
@@ -32,11 +33,12 @@
     - Setup asks only for your birthday, username and recovery key. Notifications are asked the first time you open a chat, a photo can be added from a card on Chats, and passkeys stay in Settings
     - The recovery key screen is shorter, with where to keep it one tap away
     - A new account lands on Chats once its email is verified, and the code messages say code instead of OTP
-    - The reaction button in games shows a sticker, and once you start typing at the table it becomes an emoji picker for your message
+    - The reaction button in games shows a sticker, and as soon as you tap the text box at the table it becomes an emoji picker for your message
     - The first time you play a game, its rules open as the game starts
 
   - Fixed:
     - A chat's notification clears once you read that chat, whether you open it from the notification, inside the app or on another device
+    - An emoji sent on its own during a game stays on your side of the chat instead of sliding left under the game's name, and notes and dates in a chat sit in its middle
     - A profile picture that fails to load shows the person's initial on their colour, instead of a grey letter that looked like an inactive account
 
   - Developers:

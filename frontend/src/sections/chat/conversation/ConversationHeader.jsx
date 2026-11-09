@@ -12,6 +12,7 @@ import { DETAILS_SLIDE } from "@/sections/chat/details/DetailsPanel";
 import AvatarChoices from "@/sections/chat/status/AvatarChoices";
 import useLiveStatuses from "@/sections/chat/status/useLiveStatuses";
 import { identityOf, isOnline as isPersonOnline } from "@/utils/chats";
+import { isOfficial } from "@/utils/relationship";
 import { durationOf, membersLabel, typingLabel, typingNamesIn } from "@/utils/groups";
 
 // while this tab is disconnected the friend's status is stale, so the header says what is happening instead
@@ -82,6 +83,7 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
     if (typists.length) return typingLabel(typists, conversation.isGroup);
     if (conversation.isGroup) return membersLabel(conversation);
     if (peer?._id === meId) return "Notes to yourself";
+    if (isOfficial(peer)) return "Always up for a game";
     return isOnline ? "Online" : "Offline";
   };
 

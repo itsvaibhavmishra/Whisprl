@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { FriendRequestModel, UserModel } from "#src/models/index.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { startCooldown } from "#src/services/requestCooldownService.js";
 
 const BLOCKED_FIELDS = "firstName lastName username avatar";
@@ -13,6 +14,7 @@ const assertSomeoneElse = (user, other_id) => {
 // a block withdraws any friend request between the two, and theirs ends with a decline's cooldown so the block stays unseen
 export const blockUser = async (user, other_id) => {
   assertSomeoneElse(user, other_id);
+  assertNotWhisprl(other_id, "Whisprl can't be blocked");
   const other = await UserModel.findById(other_id).select(BLOCKED_FIELDS);
   if (!other) throw createHttpError.NotFound("User does not exist");
 

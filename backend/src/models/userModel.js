@@ -100,10 +100,15 @@ const profileSchema = mongoose.Schema(
   { _id: false }
 );
 
+// Whisprl's own account goes by one name; mongoose calls this with the account as this
+function needsLastName() {
+  return this.badge !== "official";
+}
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
-    lastName: { type: String, required: [true, "Last Name is required"] },
+    lastName: { type: String, required: [needsLastName, "Last Name is required"] },
     username: { type: String, unique: true, sparse: true },
     usernameChangedAt: { type: Date },
     usernameConfirmedAt: { type: Date },

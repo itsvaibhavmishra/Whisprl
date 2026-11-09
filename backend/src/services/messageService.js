@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 import { albumsFor } from "#src/services/albumService.js";
 import { MEMBER_FIELDS, QUOTED_FIELDS, findMemberConversation, firstIdAt, populateMembers } from "#src/services/conversationService.js";
 import { blockerBetween } from "#src/services/blockService.js";
@@ -14,14 +15,12 @@ const MAX_SEALED_KEY_LENGTH = 256;
 
 // validate friendship before sending message
 const validateFriendship = async (sender_id, receiver_id) => {
-  const mutualFriends = await UserModel.countDocuments({
-    $or: [
-      { _id: sender_id, friends: receiver_id },
-      { _id: receiver_id, friends: sender_id },
-    ],
-  });
+  const sides = [{ _id: sender_id, friends: receiver_id }];
+  // Whisprl keeps no friends list, so a message to it needs only the sender's side
+  if (!isWhisprl(receiver_id)) sides.push({ _id: receiver_id, friends: sender_id });
+  const friendsOnBothSides = await UserModel.countDocuments({ $or: sides });
 
-  if (mutualFriends < 2) {
+  if (friendsOnBothSides < sides.length) {
     throw createHttpError.Forbidden("You are no longer friends with this user");
   }
 };

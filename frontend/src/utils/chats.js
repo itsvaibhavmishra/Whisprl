@@ -3,7 +3,8 @@ export const peerOf = (conversation, meId) => conversation.users.find((member) =
 export const identityOf = (conversation, meId) => {
   if (conversation.isGroup) return { name: conversation.name, avatar: conversation.picture };
   const peer = peerOf(conversation, meId);
-  const name = `${peer.firstName} ${peer.lastName}`;
+  // Whisprl and a deleted account have no last name, and the name goes on into labels
+  const name = `${peer.firstName} ${peer.lastName}`.trim();
   return { name: peer._id === meId ? `${name} (You)` : name, avatar: peer.avatar, peer };
 };
 

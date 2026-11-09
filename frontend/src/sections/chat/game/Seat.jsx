@@ -67,9 +67,9 @@ const MENU_ON_HOVER = {
 
 export const READY_GREEN = "#3BB273";
 
-// you and the bot are always here; anyone else is here when the app says they are online
+// you, the bot and Whisprl are always here; anyone else is here when the app says they are online
 export const isHere = (seat, member, meId, onlineFriends) => {
-  if (seat.user === meId || (seat.bot && !seat.user)) return true;
+  if (seat.user === meId || (seat.bot && !seat.user) || seat.official) return true;
   return Boolean(member && isOnline(member, onlineFriends));
 };
 

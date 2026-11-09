@@ -208,6 +208,7 @@ const MessageContainer = ({
     };
 
   const textColor = isMine && !isDeleted ? "#fff" : theme.palette.text.primary;
+  const ownSide = isMine ? "flex-end" : "flex-start";
   // a deleted message keeps only who sent it, since what it answered or passed on went with it
   const quote = !isDeleted && message.replyTo;
   const isForwarded = !isDeleted && message.forwarded;
@@ -260,7 +261,7 @@ const MessageContainer = ({
       <Stack
         direction="row"
         sx={{
-          justifyContent: isMine ? "flex-end" : "flex-start",
+          justifyContent: ownSide,
           alignItems: "center",
           position: "relative",
           mb: hasReactions ? `${REACTIONS_DROP}px` : 0,
@@ -282,7 +283,7 @@ const MessageContainer = ({
             "@media (hover: hover)": { maxWidth: "calc(100% - 96px)" },
             display: "flex",
             flexDirection: "column",
-            alignItems: isMine ? "flex-end" : "flex-start",
+            alignItems: ownSide,
             transform: swipe.offset ? `translateX(${swipe.offset}px)` : "none",
             transition: swipe.offset ? "none" : "transform 180ms ease-out",
           }}
@@ -301,7 +302,8 @@ const MessageContainer = ({
               flexDirection: "column",
               gap: hasHeader ? 0.75 : 0,
               justifyContent: "center",
-              alignItems: "stretch",
+              // with no bubble around it, a lone emoji under a header keeps to the sender's side
+              alignItems: isBare ? ownSide : "stretch",
               width: isFileMsg ? "auto" : "max-content",
               minWidth: 48,
               // capped by its column too, which is narrower than the screen beside a game

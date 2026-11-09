@@ -14,9 +14,11 @@ import { platformOf } from "#src/services/activityService.js";
 import { settleOnboarding } from "#src/services/onboardingService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
 import { settleDeletionAtLogin } from "#src/services/accountDeletionService.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 
 export const respondWithSession = async (req, res, user, message, extra = {}) => {
   assertNotShutOut(user);
+  assertNotWhisprl(user._id, "Nobody signs in to Whisprl's own account");
   const welcomeBack = await settleDeletionAtLogin(req.app.get("io"), user);
   await settleOnboarding(user);
   const session = await startSession(user, req.body.sessionKey, req);

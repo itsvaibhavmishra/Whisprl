@@ -1,12 +1,12 @@
 import { BotRecordModel } from "#src/models/index.js";
 import { levelFor } from "#src/services/games/botLevels.js";
-import { isChosenBot } from "#src/services/games/seats.js";
+import { isBotOpponent } from "#src/services/games/seats.js";
 
-const playersOf = (session) => session.seats.filter((seat) => seat.user).map((seat) => String(seat.user));
+const playersOf = (session) => session.seats.filter((seat) => seat.user && !seat.official).map((seat) => String(seat.user));
 
 // at a table of several, the bot plays to whoever has the fewest games against it
 export const botLevelFor = async (session) => {
-  if (!session.seats.some(isChosenBot)) return undefined;
+  if (!session.seats.some(isBotOpponent)) return undefined;
   const players = playersOf(session);
   const records = await BotRecordModel.find({ user: { $in: players }, game: session.game }).lean();
   const recordOf = (player) => records.find((record) => String(record.user) === player) ?? { played: 0, recent: [] };
@@ -18,9 +18,9 @@ const resultFor = (player, winners) => {
   return winners.some((winner) => winner.user === player) ? "won" : "lost";
 };
 
-// called with the session before and after a change, so only the change that ends a game against a chosen bot is kept
+// called with the session before and after a change, so only the change that ends a game against a bot or Whisprl is kept
 export const recordBotGame = (before, after) => {
-  if (before?.status !== "playing" || !after?.result || !before.seats.some(isChosenBot)) return null;
+  if (before?.status !== "playing" || !after?.result || !before.seats.some(isBotOpponent)) return null;
   return BotRecordModel.bulkWrite(
     playersOf(before).map((player) => ({
       updateOne: {

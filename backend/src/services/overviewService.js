@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 
 import { ActivityModel, ConversationModel, GamePlayModel, MessageModel, UserModel } from "#src/models/index.js";
 import { JOURNEY_STAGES, reachedFieldOf } from "#src/services/journeyService.js";
+import { whisprlAccountId } from "#src/services/whisprlService.js";
 import { isUtcDay, shiftUtcDay, utcDayOf, utcDaysBetween } from "#src/utils/utcDays.js";
 
 const MAX_DAYS = 366;
@@ -71,20 +72,24 @@ const daysAskedFor = (from, to, today) => {
   return days;
 };
 
+// Whisprl's own account and the chats people have with it are not people talking to each other, so the counts leave them out
+const PEOPLE = { verified: true, badge: { $ne: "official" } };
+
 export const overviewOf = async (from, to) => {
   const today = utcDayOf(new Date());
   const days = daysAskedFor(from, to, today);
+  const whisprlChats = await ConversationModel.distinct("_id", { users: whisprlAccountId() });
 
   const [users, conversations, messages, activeToday, activeWeek, activeMonth, activeInRange, signups, active, platforms, games, journey] = await Promise.all([
-    UserModel.countDocuments({ verified: true }),
-    ConversationModel.countDocuments(),
-    MessageModel.countDocuments({ event: { $exists: false } }),
+    UserModel.countDocuments(PEOPLE),
+    ConversationModel.countDocuments({ _id: { $nin: whisprlChats } }),
+    MessageModel.countDocuments({ event: { $exists: false }, conversation: { $nin: whisprlChats } }),
     ActivityModel.countDocuments({ day: today }),
     activeBetween(shiftUtcDay(today, -6), today),
     activeBetween(shiftUtcDay(today, -29), today),
     activeBetween(from, to),
     UserModel.aggregate([
-      { $match: { verified: true, createdAt: { $gte: dayStart(from), $lt: dayStart(shiftUtcDay(to, 1)) } } },
+      { $match: { ...PEOPLE, createdAt: { $gte: dayStart(from), $lt: dayStart(shiftUtcDay(to, 1)) } } },
       { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
     ]),
     ActivityModel.aggregate([{ $match: { day: { $gte: from, $lte: to } } }, { $group: { _id: "$day", count: { $sum: 1 } } }]),

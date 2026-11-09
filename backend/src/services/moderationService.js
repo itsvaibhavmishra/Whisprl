@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { UserModel } from "#src/models/index.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { HIDDEN_PROFILE_FIELDS } from "#src/models/userModel.js";
 import { assertReason, recordAction } from "#src/services/auditService.js";
 import { sendMail } from "#src/services/mailer.js";
@@ -61,6 +62,7 @@ const findTarget = async (actor, user_id) => {
   const target = await UserModel.findById(user_id).select("+hiddenProfile");
   if (!target) throw createHttpError.NotFound("No such account");
   if (isStaff(target)) throw createHttpError.Forbidden("Staff accounts cannot be suspended or banned");
+  assertNotWhisprl(target._id, "Whisprl's own account cannot be suspended or banned");
   if (actor._id.equals(target._id)) throw createHttpError.BadRequest("You cannot do this to your own account");
   return target;
 };

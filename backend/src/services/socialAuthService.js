@@ -7,6 +7,7 @@ import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import { fetchJson } from "#src/utils/fetchJson.js";
 import { markReached, startJourney } from "#src/services/journeyService.js";
 import { availableUsername } from "#src/services/usernameService.js";
+import { befriendWhisprl } from "#src/services/whisprlService.js";
 
 const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn" };
 
@@ -105,6 +106,7 @@ export const signInWithProvider = async (provider, credential) => {
     user.isNewAccount = true;
     user.password = undefined;
     user.verification = undefined;
+    befriendWhisprl(user);
     startJourney(user, provider);
     markReached(user, "verified");
   }

@@ -34,7 +34,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
   const clock = isTurn ? turnEndsAt : null;
   const secondsLeft = useSecondsLeft(clock);
   // a bot's turn is a short pause rather than the full clock, so its ring starts full and drains over that pause
-  const isBotPlaying = Boolean(seat.bot || seat.away);
+  const isBotPlaying = Boolean(seat.bot || seat.away || seat.official);
   const clockColour = !isBotPlaying && secondsLeft !== null && secondsLeft <= HURRY_AT ? HURRY : colour;
   // a player knocked out keeps their place and loses their colour, because a card that vanished would look like they had left
   const isOut = Boolean(game.isOut?.(state, index));

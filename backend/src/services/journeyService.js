@@ -1,4 +1,5 @@
 import { UserModel } from "#src/models/index.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 
 export const JOURNEY_STAGES = ["verified", "birthday", "username", "recoveryKey", "firstFriend", "firstMessage"];
 
@@ -31,7 +32,9 @@ export const markFriendsMade = (userIds) => markReachedById(userIds, "firstFrien
 // a note to yourself isn't using chat, so only a message someone else receives counts
 export const markMessageSent = async (sender, conversation) => {
   if (!isTracked(sender) || sender.journey.firstMessageAt) return;
-  if (conversation.users.every((member) => String(member._id ?? member) === String(sender._id))) return;
+  const others = conversation.users.filter((member) => String(member._id ?? member) !== String(sender._id));
+  // a chat with nobody but yourself or Whisprl is not a first conversation with someone
+  if (others.every((member) => isWhisprl(member._id ?? member))) return;
   sender.journey.firstMessageAt = new Date();
   await markReachedById([sender._id], "firstMessage");
 };

@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, FriendRequestModel, UserModel } from "#src/models/index.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { blockerBetween, presenceShownTo } from "#src/services/blockService.js";
 import { directConversationIdOf, populateMembers } from "#src/services/conversationService.js";
 import { expiryFor } from "#src/services/disappearingService.js";
@@ -164,6 +165,7 @@ export const answerFriendRequest = async (receiver, sender_id, action) => {
 export const unfriend = async (user, friend_id) => {
   assertUserId(friend_id, "friend_id");
   assertNotSelf(user._id, friend_id);
+  assertNotWhisprl(friend_id, "Whisprl stays in everyone's friends");
   if (!isFriendOf(user, friend_id)) throw createHttpError.NotFound("Friend not found in your friends list");
 
   await Promise.all([

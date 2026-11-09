@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 import { MAX_EVIDENCE_MESSAGES, MAX_EVIDENCE_TEXT, MAX_REPORT_NOTE, REPORT_REASONS } from "#src/models/reportModel.js";
 import { MessageModel, ReportModel, UserModel } from "#src/models/index.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { matchesFranking } from "#src/utils/franking.js";
 import { findMemberConversation } from "#src/services/conversationService.js";
 import { isCloudinaryFile } from "#src/services/fileUploadService.js";
@@ -61,6 +62,7 @@ const filePersonReport = async (user, user_id, reason, note) => {
 
 export const fileReport = async (user, { conversation_id, user_id, reason, note = "", evidence }) => {
   assertReason(reason, note);
+  assertNotWhisprl(user_id, "Whisprl can't be reported");
   if (!conversation_id) return filePersonReport(user, user_id, reason, note);
 
   const conversation = await findMemberConversation(conversation_id, user._id);
