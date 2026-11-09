@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { botMove, momentFor } from "#src/services/games/jackaroo/bot.js";
+import { keyOf, playsFor } from "#src/services/games/jackaroo/moves.js";
 import { outcome, play, setup, turnOf, viewFor } from "#src/services/games/jackaroo/rules.js";
 import { withSeed } from "#src/services/games/withSeed.js";
 
@@ -97,4 +98,31 @@ test("a bot reacts when it knocks a marble out, and when its own is knocked out"
   const after = play(state, 0, botMove(state, 0, PRACTISED));
   assert.equal(momentFor(state, after, 0), "knockedOut");
   assert.equal(momentFor(state, after, 1), "knockedBack");
+});
+
+const playThat = (state, seat, isWanted) => ({ key: keyOf(state.players[seat].hand.flatMap((held) => playsFor(state, seat, held)).find(isWanted)) });
+
+test("a bot melts when its card is taken, and the taker gets a cheeky face", () => {
+  const state = gameWith({ mine: [track(3)], hand: [card(12, "H"), card(9)], theirHand: [card(3, "C"), card(8, "C")] });
+  const after = play(state, 0, { ...playThat(state, 0, (option) => option.kind === "takeCard"), taken: 0 });
+  assert.equal(momentFor(state, after, 1), "cardTaken");
+  assert.equal(momentFor(state, after, 0), "tookCard");
+});
+
+test("a bot sobs when its own five knocks out its own marble", () => {
+  const state = gameWith({ mine: [track(3), track(8)], hand: [card(5)] });
+  const ownGoal = (option) => option.moves?.some((move) => move.captured.some(({ marble }) => marble.owner === 0));
+  const after = play(state, 0, playThat(state, 0, ownGoal));
+  assert.equal(momentFor(state, after, 0), "ownGoal");
+});
+
+test("a bot is cool about taking a marble home, and alarmed when its rival does", () => {
+  const state = gameWith({ mine: [track(45)], hand: [card(2)] });
+  const after = play(
+    state,
+    0,
+    playThat(state, 0, (option) => option.moves?.[0].to.at === "home")
+  );
+  assert.equal(momentFor(state, after, 0), "reachedHome");
+  assert.equal(momentFor(state, after, 1), "rivalHome");
 });

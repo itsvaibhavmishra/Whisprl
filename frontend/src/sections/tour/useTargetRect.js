@@ -7,21 +7,22 @@ const isSameRect = (one, other) => one?.top === other?.top && one?.left === othe
 
 // followed every frame, since a page arriving, a list loading or the keyboard can all move the target
 const useTargetRect = (name) => {
-  const [rect, setRect] = useState(null);
+  // kept with the name it was measured for, so a new step never starts from the last step's place
+  const [measured, setMeasured] = useState({ name: null, rect: null });
 
   useEffect(() => {
     if (!name) return undefined;
     let frame;
     const measure = () => {
       const next = visibleTarget(name)?.getBoundingClientRect() ?? null;
-      setRect((previous) => (isSameRect(previous, next) ? previous : next));
+      setMeasured((previous) => (previous.name === name && isSameRect(previous.rect, next) ? previous : { name, rect: next }));
       frame = requestAnimationFrame(measure);
     };
     frame = requestAnimationFrame(measure);
     return () => cancelAnimationFrame(frame);
   }, [name]);
 
-  return name ? rect : null;
+  return measured.name === name ? measured.rect : null;
 };
 
 export default useTargetRect;

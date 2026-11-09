@@ -252,9 +252,9 @@ const playedForAbsent = (session) => {
   return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
 };
 
-const BOT_REACTION_CHANCE = 0.5;
-const BOT_REACTION_GAP_MS = 6000;
-const ENDING_REACTIONS = { won: ["🥳", "😎"], lost: ["😭", "😡"], drawn: ["🫠", "😜"] };
+const BOT_REACTION_CHANCE = 0.7;
+const BOT_REACTION_GAP_MS = 4000;
+const ENDING_REACTIONS = { won: ["🥳", "😎"], lost: ["😭"], drawn: ["🫠", "😜"] };
 
 const anyOf = (items) => items[Math.floor(Math.random() * items.length)];
 

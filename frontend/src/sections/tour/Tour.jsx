@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { FinishTour } from "@/redux/slices/actions/userActions";
+import { gameCollapsed, selectGameSession } from "@/redux/slices/gameSlice";
 import { chatPath } from "@/sections/chat/chatRoute";
 import useChallenge from "@/sections/chat/conversation/useChallenge";
 import { cardPlacement } from "@/sections/tour/placement";
@@ -16,6 +17,7 @@ import { peerOf } from "@/utils/chats";
 import { isOfficial } from "@/utils/relationship";
 
 const RING = 6;
+const LONGEST_WAIT_MS = 1500;
 const DIM = alpha("#000", 0.62);
 
 const useViewport = () => {
@@ -60,6 +62,7 @@ const Tour = () => {
   const meId = useSelector((state) => state.user.user._id);
   const whisprlChat = useSelector((state) => state.chat.conversations.find((chat) => !chat.isGroup && isOfficial(peerOf(chat, meId))));
   const { challenge } = useChallenge(whisprlChat);
+  const isGameOpenWithWhisprl = useSelector((state) => Boolean(selectGameSession(state)) && state.game.watching === whisprlChat?._id);
   const [position, setPosition] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const viewport = useViewport();
@@ -70,11 +73,24 @@ const Tour = () => {
   const page = step.page === WHISPRL_CHAT ? chatPath(whisprlChat._id) : step.page;
   const rect = useTargetRect(step.target);
   const voice = useTourVoice(step.id, isMuted);
+  const [waitedFor, setWaitedFor] = useState(null);
+  // the card waits for what it points at, so it pops up beside it rather than in the middle first, but never for long
+  const isPlaced = !step.target || Boolean(rect) || waitedFor === step.id;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setWaitedFor(step.id), LONGEST_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [step.id]);
 
   // only on moving to a step, so a page that opens on one of its own panes, as Contacts does on a computer, is left there
   useEffect(() => {
     if (page) navigate(page);
   }, [page, navigate]);
+
+  // a game open with Whisprl covers its chat on a phone, so it is hidden, still running, while the tour shows that chat
+  useEffect(() => {
+    if (step.page === WHISPRL_CHAT && isGameOpenWithWhisprl) dispatch(gameCollapsed(true));
+  }, [step.page, isGameOpenWithWhisprl, dispatch]);
 
   const finish = () => dispatch(FinishTour());
   const move = (change) => setPosition((current) => Math.min(Math.max(current + change, 0), steps.length - 1));
@@ -92,19 +108,22 @@ const Tour = () => {
     <Modal open onClose={finish} hideBackdrop>
       <Box onKeyDown={onKeyDown} sx={{ position: "fixed", inset: 0, outline: "none" }}>
         <Spotlight rect={rect} viewport={viewport} />
-        <TourCard
-          step={step}
-          position={position}
-          count={steps.length}
-          placement={cardPlacement(rect, viewport)}
-          voice={voice}
-          isMuted={isMuted}
-          onToggleMute={() => setIsMuted((muted) => !muted)}
-          onBack={() => move(-1)}
-          onNext={() => move(1)}
-          onSkip={finish}
-          onPlay={play}
-        />
+        {isPlaced && (
+          <TourCard
+            key={step.id}
+            step={step}
+            position={position}
+            count={steps.length}
+            placement={cardPlacement(rect, viewport)}
+            voice={voice}
+            isMuted={isMuted}
+            onToggleMute={() => setIsMuted((muted) => !muted)}
+            onBack={() => move(-1)}
+            onNext={() => move(1)}
+            onSkip={finish}
+            onPlay={play}
+          />
+        )}
       </Box>
     </Modal>
   );
