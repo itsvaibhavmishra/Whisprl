@@ -1,32 +1,37 @@
 {
-  "upcoming": [
-    {
-      "emoji": "🐱",
-      "title": "Meet Whisprl",
-      "text": "Whisprl is now everyone's friend here, always up for a game, cheering and groaning as it plays."
-    },
-    {
-      "emoji": "🎮",
-      "title": "Challenge a friend",
-      "text": "Open a game in a chat with a friend, and they can answer Play or Not now right from the chat."
-    },
-    {
-      "emoji": "🔗",
-      "title": "Invite with a link",
-      "text": "Share your invite link, and Whisprl lets you know when a friend joins through it."
-    },
-    {
-      "emoji": "🛡️",
-      "title": "Hear back on reports",
-      "text": "Whisprl tells you when your report arrives, and again once it has been looked at."
-    },
-    {
-      "emoji": "🧭",
-      "title": "A quick tour",
-      "text": "Whisprl shows you around in its own voice, and you can take the tour again from Settings."
-    }
-  ],
+  "upcoming": [],
   "releases": [
+    {
+      "version": "2.5.9",
+      "date": "2026-11-10",
+      "highlights": [
+        {
+          "emoji": "🐱",
+          "title": "Meet Whisprl",
+          "text": "Whisprl is now everyone's friend here, always up for a game, cheering and groaning as it plays."
+        },
+        {
+          "emoji": "🎮",
+          "title": "Challenge a friend",
+          "text": "Open a game in a chat with a friend, and they can answer Play or Not now right from the chat."
+        },
+        {
+          "emoji": "🔗",
+          "title": "Invite with a link",
+          "text": "Share your invite link, and Whisprl lets you know when a friend joins through it."
+        },
+        {
+          "emoji": "🛡️",
+          "title": "Hear back on reports",
+          "text": "Whisprl tells you when your report arrives, and again once it has been looked at."
+        },
+        {
+          "emoji": "🧭",
+          "title": "A quick tour",
+          "text": "Whisprl shows you around in its own voice, and you can take the tour again from Settings."
+        }
+      ]
+    },
     {
       "version": "2.5.8",
       "date": "2026-11-03",
@@ -41,7 +46,8 @@
           "title": "A tidier Jackaroo table",
           "text": "Your cards sit in a straight row, a card's choices show right over them, and your clock keeps running while you choose."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.5.4",
@@ -62,7 +68,8 @@
           "title": "Games, one tap away",
           "text": "A banner takes you back to a game in progress, the leaderboard adds up everyone's wins, and thrown emoji now move."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.5.3",
@@ -98,7 +105,8 @@
           "title": "Livelier emoji in games",
           "text": "Throw laugh, cry, taunt, kiss, cool, angry, shocked, melt or party from a bigger tray where every face moves."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.5.2",
@@ -119,7 +127,8 @@
           "title": "Rules and scores in the game",
           "text": "A game's rules open as pages with pictures, and its leaderboard shows just that game, without leaving it."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.5.0",
@@ -150,7 +159,8 @@
           "title": "Quieter alerts",
           "text": "A short note appears only for what you just did, at the bottom on a phone and the top on a computer."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.4.0",
@@ -181,7 +191,8 @@
           "title": "Status from your camera",
           "text": "Take a photo or record a video for your status straight from the New update menu."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.2.1",
@@ -202,7 +213,8 @@
           "title": "Games in groups",
           "text": "In a group, the owner and admins choose the game, the board and how many play, up to six."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.2.0",
@@ -223,7 +235,8 @@
           "title": "Report a message",
           "text": "Report a message from its menu. The report includes the messages around it, and the dialog tells you what is sent before it goes."
         }
-      ]
+      ],
+      "beta": true
     },
     {
       "version": "2.1.0",
@@ -249,7 +262,8 @@
           "title": "Settings in sections",
           "text": "Your profile, appearance, chats, privacy and security each have a page of their own, on a computer and a phone."
         }
-      ]
+      ],
+      "beta": true
     }
   ]
 }

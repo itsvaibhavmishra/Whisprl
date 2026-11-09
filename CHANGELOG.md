@@ -6,6 +6,71 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.9] - 2026-11-10
+
+### New
+
+- The admin overview shows the sign-up journey: how far each new account got, from verifying its email to its first message, and who stopped at each step
+- Invite friends from Contacts or an empty Chats screen with a link that shows who invited them, and once they have signed up, their profile opens with a friend request one tap away
+- Badges beside names: Owner, Admin and Official, each in its own colour, on profiles, chats and contacts
+- Whisprl Bot plays at four levels, from easy to expert, and quietly picks one for each game from how you have been doing against it
+- Whisprl Bot reacts during games: laughing when it knocks your marble out, shocked when it is about to lose, partying when it wins
+- Whisprl is everyone's friend: an official account that is always up for a game, sits down ready as soon as you open one, reacts as it plays and keeps score on the leaderboard. It can't be removed or blocked, and it never reads what you send it
+- Whisprl welcomes everyone with a challenge, and tells you when someone joins through your invite, with a tap to their profile
+- Opening a game in a chat between two people challenges the other, who answers Play or Not now from the chat; until then their screen stays clear, and the one who asked can play the bot instead
+- Leaving a game against a person or Whisprl counts as a loss and gives them the win, while a game against the bot can be left freely; someone only watching can hide a game but not close it
+- Whisprl lets you know it got your report, and again once it has been looked at, saying whether action was taken but never what
+- Staff with the new Announce permission can send a message from Whisprl to everyone, or only Android or website users, with an optional button into the app and an optional notification; the admin panel previews it, then shows how many people each one reached
+- Announcing a new game takes one tap in the admin panel, which writes the message and adds a button that opens that game against Whisprl
+- Marking a game request as added tells everyone who asked for it, in a message from Whisprl
+- Whisprl wishes you a happy birthday on the day, at 9 in the morning India time, with a notification
+- A short tour from Whisprl, in its own voice, shows everyone around once, Contacts, Status and Chats, and ends with a game of Jackaroo against Whisprl; the voice can be muted, and the tour taken again from Settings
+
+### Improvements
+
+- Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out, while chats keep the navy behind their messages
+- The Android app switches to a new version the next time you move between screens, instead of waiting until you leave and reopen it
+- The typing cat is a little smaller on phones
+- The recovery key step makes saving the key to your password manager the main button, and asks you to tick that you saved it before Continue
+- Signing up and logging in lead with Continue with Google, with email one tap away
+- The Android app opens straight on logging in, and logging in and signing up show the Whisprl mascot above their title
+- Your birthday is picked as a day, a month and a year instead of from a calendar
+- The email code boxes bring up the number pad and take a code pasted or suggested by the keyboard in one go
+- The password rules appear as you start typing and fold away once they are all met, and fields only turn red after you leave them
+- Setup asks only for your birthday, username and recovery key. Notifications are asked the first time you open a chat, a photo can be added from a card on Chats, and passkeys stay in Settings
+- The recovery key screen is shorter, with where to keep it one tap away
+- A new account lands on Chats once its email is verified, and the code messages say code instead of OTP
+- The reaction button in games shows a sticker, and as soon as you tap the text box at the table it becomes an emoji picker for your message
+- The first time you play a game, its rules open as the game starts
+- A game you hide stays hidden when you leave the chat and come back
+- Opening or joining a game moves you out of another game's lobby; only a game you are in the middle of keeps you there
+- Chats with a game open show a controller beside their name
+- Whisprl's messages, like a report update or a friend joining from your invite, arrive as notifications on Android
+- You get an email whenever a passkey is added to your account, and staff confirm with a passkey before adding or removing one
+
+### Fixed
+
+- The privacy policy and child safety page now cover Whisprl's own account and messages, invite links, report updates, birthday wishes, notifications that carry no private words, and which staff actions need a passkey
+- A link in Whisprl's messages can only go somewhere in the app, never to another website
+- A chat's notification clears once you read that chat, whether you open it from the notification, inside the app or on another device
+- An emoji sent on its own during a game stays on your side of the chat instead of sliding left under the game's name, and notes and dates in a chat sit in its middle
+- A profile picture that fails to load shows the person's initial on their colour, instead of a grey letter that looked like an inactive account
+- A file attached to a report now always downloads in the staff console instead of opening as a page, and a report can only carry files from the messages it includes
+- Reports keep the photos and files of the messages they include, which were being left out
+- A message Whisprl checked in a report now shows exactly what was sent, who sent it and when
+- Someone you have blocked no longer gets delivered or seen ticks from you
+- Signing up again with an email still waiting for its code now asks you to log in instead of replacing the password
+- Deleting a group no longer removes files that were forwarded from it into other chats
+- A disappearing message is hidden as soon as its time is up, even before the server clears it
+- Someone you have blocked can no longer pin or unpin messages in your old chat
+- A seat left in a chat you can no longer play in no longer stops you joining other games
+- Leaving or being removed from a group stops its game updates reaching you
+- Game settings keep only the game's own options, and an unknown board size is refused
+- An account still waiting on its age check cannot use chats, friends, groups, statuses or games until it is done
+- Logging out of the Android app stops its notifications, even when the logout could not reach the server
+- Files saved on Android always land in the Whisprl folder, whatever name the sender gave them
+- A message whose fingerprint does not match its words shows as one that could not be opened, so it cannot make an honest report look forged
+
 ## [2.5.8] - 2026-11-03
 
 ### Improvements
@@ -568,6 +633,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.9]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.9
 [2.5.8]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.8
 [2.5.7]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.7
 [2.5.6]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.6
