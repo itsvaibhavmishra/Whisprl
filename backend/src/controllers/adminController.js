@@ -58,7 +58,7 @@ export const getReports = async (req, res) => {
 
 // dismissing changes nobody's access, so unlike the others it does not ask for the passkey
 export const dismiss = async (req, res) => {
-  await dismissReport(req.user, req.params.report_id, req.body);
+  await dismissReport(req.app.get("io"), req.user, req.params.report_id, req.body);
   return res.status(200).json({ status: "success" });
 };
 

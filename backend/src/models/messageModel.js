@@ -34,7 +34,7 @@ export const cipherSchema = mongoose.Schema(
 
 const noticeSchema = mongoose.Schema(
   {
-    type: { type: String, enum: ["welcome", "inviteJoined", "challenge"], required: true },
+    type: { type: String, enum: ["welcome", "inviteJoined", "challenge", "reportReceived", "reportActioned", "reportDismissed"], required: true },
     // who it is about, with the name they had when it was sent
     user: { type: mongoose.Schema.ObjectId, ref: "User" },
     name: { type: String },
@@ -42,6 +42,8 @@ const noticeSchema = mongoose.Schema(
     // a challenge names its game, and keeps the game's name so the chat can say it without the catalog
     game: { type: String },
     gameName: { type: String },
+    // what a report was about, which decides how Whisprl names it back to the reporter
+    about: { type: String, enum: ["person", "status", "group"] },
   },
   { _id: false }
 );

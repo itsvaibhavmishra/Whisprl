@@ -7,11 +7,16 @@ export const isViewOnceOpened = (message, meId) => {
   return senderId === meId ? viewers.length > 0 : viewers.includes(meId) || message.attachment?.status === "opened";
 };
 
+export const reportSubjectOf = ({ about, name }) => ({ person: name, status: `${name}'s status`, group: name })[about];
+
 // Whisprl's own messages carry what they are about, and their words are written here
 const NOTICE_SUMMARIES = {
   welcome: () => "Hi, I'm Whisprl 👋",
   inviteJoined: ({ name }) => `${name} joined Whisprl from your invite 🎉`,
   challenge: ({ gameName }) => `🎮 A challenge to ${gameName}`,
+  reportReceived: (notice) => `We got your report about ${reportSubjectOf(notice)}`,
+  reportActioned: (notice) => `We took action on your report about ${reportSubjectOf(notice)}`,
+  reportDismissed: (notice) => `We looked at your report about ${reportSubjectOf(notice)}`,
 };
 
 export const summaryOf = (message) => {

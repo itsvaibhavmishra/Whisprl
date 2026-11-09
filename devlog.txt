@@ -23,6 +23,7 @@
     - Whisprl welcomes everyone with a challenge, and tells you when someone joins through your invite, with a tap to their profile
     - Opening a game in a chat between two people challenges the other, who answers Play or Not now from the chat; until then their screen stays clear, and the one who asked can play the bot instead
     - Leaving a game against a person or Whisprl counts as a loss and gives them the win, while a game against the bot can be left freely; someone only watching can hide a game but not close it
+    - Whisprl lets you know it got your report, and again once it has been looked at, saying whether action was taken but never what
 
   - Improvements:
     - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out, while chats keep the navy behind their messages
@@ -42,6 +43,7 @@
     - A game you hide stays hidden when you leave the chat and come back
     - Opening or joining a game moves you out of another game's lobby; only a game you are in the middle of keeps you there
     - Chats with a game open show a controller beside their name
+    - Whisprl's messages, like a report update or a friend joining from your invite, arrive as notifications on Android
 
   - Fixed:
     - A chat's notification clears once you read that chat, whether you open it from the notification, inside the app or on another device

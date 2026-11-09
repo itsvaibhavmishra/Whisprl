@@ -51,7 +51,7 @@ export const reactStatus = async (req, res) => {
 };
 
 export const reportStatusUpdate = async (req, res) => {
-  await reportStatus(req.user, req.params.status_id, req.body);
+  await reportStatus(req.app.get("io"), req.user, req.params.status_id, req.body);
   res.status(200).json({ status: "success", message: "Thanks, your report was sent" });
 };
 

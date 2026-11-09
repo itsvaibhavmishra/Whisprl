@@ -1,10 +1,19 @@
+import { PATH_DOCS } from "@/routes/paths";
 import { contactPathOf } from "@/sections/contacts/contactsRoute";
+import { reportSubjectOf } from "@/utils/messageSummary";
 
 // names are typed by people, so any markup in them is dropped rather than followed
 const plain = (name) => name.replace(/[*[\]()]/g, "");
 
+const REPORT_TEXTS = {
+  reportReceived: (subject) => `Thanks for telling us about **${subject}**. We'll look into it, and we never tell anyone who reported them.`,
+  reportActioned: (subject) => `We looked at your report about **${subject}** and took action. Thanks for helping keep Whisprl safe 💙`,
+  reportDismissed: (subject, about) =>
+    `We looked at your report about **${subject}** and didn't find it breaks our [rules](${PATH_DOCS.general.tnc}). If it keeps happening, you can ${about === "group" ? "leave the group" : "block them"}.`,
+};
+
 // what the app writes into a chat, from what each message is about; **bold** and [words](/path) are all the markup it uses
-export const noticeOf = ({ type, user, name, username, gameName }, me, sender) => {
+export const noticeOf = ({ type, user, name, username, gameName, about }, me, sender) => {
   if (type === "challenge") {
     // the challenger reads what they sent, and only the one challenged is asked to answer
     if (sender._id === me._id) return { text: `You challenged **${plain(name)}** to **${gameName}** 🎮`, actions: [] };
@@ -22,6 +31,7 @@ export const noticeOf = ({ type, user, name, username, gameName }, me, sender) =
       actions: [{ kind: "challenge", label: "Challenge Whisprl" }],
     };
   }
+  if (REPORT_TEXTS[type]) return { text: REPORT_TEXTS[type](reportSubjectOf({ about, name: plain(name) }), about), actions: [] };
   if (type === "inviteJoined") {
     const profile = contactPathOf({ _id: user, username });
     return {

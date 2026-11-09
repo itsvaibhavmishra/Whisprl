@@ -116,16 +116,16 @@ export const pushNewMessage = async (conversation, sender, message) => {
   await sendAll(sendable, sessions, pushes);
 };
 
-// an invite carries nothing secret, so its words travel as they are
-export const pushGameInvite = async (conversation, sender, gameName) => {
+// words the server writes itself, like a challenge or Whisprl's messages, carry nothing secret, so they travel as they are
+export const pushWords = async (conversation, sender, text) => {
   const sendable = messagingOrNull();
   if (!sendable) return;
   const sessions = await pushSessionsFor(conversation, sender._id);
   const data = {
     conversationId: String(conversation._id),
     senderId: String(sender._id),
-    title: `${sender.firstName} ${sender.lastName}`,
-    text: `Challenged you to ${gameName}`,
+    title: `${sender.firstName} ${sender.lastName}`.trim(),
+    text,
   };
   await sendAll(
     sendable,
