@@ -17,6 +17,8 @@ import { assertNotShutOut } from "#src/services/moderationService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 import { markReached, startJourney } from "#src/services/journeyService.js";
 import { befriendWhisprl } from "#src/services/whisprlService.js";
+import { welcomeToWhisprl } from "#src/services/whisprlMessageService.js";
+import { reportError } from "#src/utils/errorReports.js";
 
 export const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;
@@ -191,6 +193,8 @@ export const verifyEmail = async (email, typedCode) => {
   befriendWhisprl(user);
   markReached(user, "verified");
   await user.save();
+  // a welcome that fails to send is reported, but never stops the account being verified
+  await welcomeToWhisprl(user._id).catch((error) => reportError(error, user._id));
 
   return user;
 };

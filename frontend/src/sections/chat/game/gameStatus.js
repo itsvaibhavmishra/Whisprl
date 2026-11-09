@@ -35,7 +35,9 @@ export const turnLineOf = (session, conversation, meId) => {
   return seat.away ? `The bot is playing for ${name}` : `${name}'s turn`;
 };
 
-export const resultLineOf = ({ winners }, conversation, meId) => {
+export const resultLineOf = ({ winners, leftBy }, conversation, meId) => {
+  if (leftBy === meId) return "You left, so it counts as a loss";
+  if (leftBy) return `${firstNameIn(conversation, leftBy, meId)} left, so you win`;
   if (!winners.length) return "It's a draw";
   const [winner] = winners;
   return winner.bot ? "The bot won" : `${firstNameIn(conversation, winner.user, meId)} won`;

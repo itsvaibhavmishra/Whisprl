@@ -10,7 +10,7 @@ import { isApp } from "@/utils/platform";
 
 const Login = () => (
   <>
-    <AuthHeader title="Log in to Whisprl">
+    <AuthHeader title="Log in to Whisprl" hasLogo>
       New here?{" "}
       <Link component={RouterLink} to={PATH_AUTH.general.register} underline="hover">
         Create an account

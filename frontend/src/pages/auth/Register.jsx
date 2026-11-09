@@ -23,7 +23,7 @@ const Register = () => {
 
   return (
     <>
-      <AuthHeader title="Create your account">
+      <AuthHeader title="Create your account" hasLogo>
         Already have one?{" "}
         <Link component={RouterLink} to={PATH_AUTH.general.login} underline="hover">
           Log in

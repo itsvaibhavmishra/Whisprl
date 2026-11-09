@@ -8,6 +8,7 @@ import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import AppearanceMenu from "@/components/AppearanceMenu";
 import BrandPanel from "@/layouts/auth/BrandPanel";
 import { StartServer } from "@/redux/slices/actions/authActions";
+import { DEFAULT_AUTH } from "@/config";
 import { PATH_AUTH } from "@/routes/paths";
 import useIsLoading from "@/hooks/useIsLoading";
 import { isApp } from "@/utils/platform";
@@ -36,9 +37,13 @@ const AuthLayout = () => {
     return <Navigate to={"/"} replace />;
   }
 
-  if (pathname.replace(/\/+$/, "") === PATH_AUTH.general.welcome) {
+  const page = pathname.replace(/\/+$/, "");
+  if (page === PATH_AUTH.general.welcome) {
     return <Outlet />;
   }
+  const showsLogo = [PATH_AUTH.general.login, PATH_AUTH.general.register].includes(page);
+  // in the app logging in is the first page, with nothing to go back to
+  const canGoBack = isApp && page !== DEFAULT_AUTH;
 
   const reloadWithFreshState = () => {
     setShowReload(false);
@@ -58,11 +63,12 @@ const AuthLayout = () => {
 
       <Stack sx={{ px: { xs: 2.5, sm: 4 }, pt: { xs: "calc(24px + env(safe-area-inset-top))", md: 6 }, pb: { xs: 3, md: 6 } }}>
         <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
-          {isApp ? (
-            <IconButton component={Link} to={PATH_AUTH.general.welcome} aria-label="Back" sx={{ ml: -1 }}>
+          {canGoBack && (
+            <IconButton component={Link} to={DEFAULT_AUTH} aria-label="Back" sx={{ ml: -1 }}>
               <ArrowLeftIcon size={22} />
             </IconButton>
-          ) : (
+          )}
+          {!isApp && !showsLogo && (
             <Box component={Link} to={PATH_AUTH.general.welcome} sx={{ display: { xs: "flex", md: "none" } }}>
               <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
             </Box>

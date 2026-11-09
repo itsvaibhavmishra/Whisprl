@@ -8,6 +8,7 @@ import {
   CheckIcon,
   ChecksIcon,
   FileTextIcon,
+  GameControllerIcon,
   MicrophoneIcon,
   StarIcon,
   UserIcon,
@@ -19,6 +20,7 @@ import { useSelector } from "react-redux";
 
 import BirthdayCake from "@/components/BirthdayCake";
 import PersonBadge from "@/components/PersonBadge";
+import { GAMES } from "@/sections/chat/game/catalog";
 import useSettings from "@/hooks/useSettings";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import TypingDots from "@/components/TypingDots";
@@ -173,6 +175,11 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
                 {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
               </Typography>
               <PersonBadge badge={peer?.badge} />
+              {GAMES[conversation.tableGame] && (
+                <Box component="span" sx={{ display: "grid", flexShrink: 0, color: "primary.main" }}>
+                  <GameControllerIcon size={16} weight="fill" aria-label={`${GAMES[conversation.tableGame].name} is open here`} />
+                </Box>
+              )}
             </Stack>
             {activityAt && (
               <Typography

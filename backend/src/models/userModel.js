@@ -143,6 +143,9 @@ const userSchema = mongoose.Schema(
     permissions: { type: [String], enum: PERMISSIONS, default: undefined },
     // shown beside the name: owner and admin follow the team, official marks Whisprl's own account
     badge: { type: String, enum: BADGES },
+    whisprlWelcomedAt: { type: Date },
+    // whoever's invite link this account was made through, kept once so the inviter hears of it once
+    invitedBy: { type: mongoose.Schema.ObjectId, ref: "User" },
 
     bannedAt: { type: Date },
     suspendedUntil: { type: Date },

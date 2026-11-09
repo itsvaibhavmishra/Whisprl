@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { ConversationModel, GameSessionModel, MessageModel, UserModel } from "#src/models/index.js";
 import { isWhisprl } from "#src/services/whisprlService.js";
 import { blockedEitherWay, presenceShownTo, withPresenceHidden } from "#src/services/blockService.js";
 import { preferencesOf } from "#src/services/chatPreferenceService.js";
@@ -147,10 +147,14 @@ export const getUserConversations = async (user) => {
     conversations.map((conversation) => conversation._id)
   );
   const preferenceOf = (conversation) => preferences.get(String(conversation._id)) ?? {};
-  const [{ reachable, blocked }, unreadCounts] = await Promise.all([
+  const [{ reachable, blocked }, unreadCounts, tables] = await Promise.all([
     peerAccessOf(user, conversations),
     Promise.all(conversations.map((conversation) => unreadIn(conversation, user._id, preferenceOf(conversation).clearedAt))),
+    GameSessionModel.find({ conversation: { $in: conversations.map((conversation) => conversation._id) } })
+      .select("conversation game")
+      .lean(),
   ]);
+  const tableGameOf = (conversation) => tables.find((table) => table.conversation.equals(conversation._id))?.game ?? null;
 
   return conversations.map((conversation, index) => {
     const preference = preferenceOf(conversation);
@@ -163,6 +167,8 @@ export const getUserConversations = async (user) => {
       latestMessage: isClearedSince(json.latestMessage?.createdAt) ? null : json.latestMessage,
       latestReaction: isClearedSince(json.latestReaction?.at) ? null : json.latestReaction,
       unread: unreadCounts[index],
+      // a game open in the chat, being played or still in its lobby, which the list marks
+      tableGame: tableGameOf(conversation),
       canMessage: conversation.isGroup || reachable.has(String(peerIdOf(conversation, user))),
     };
   });

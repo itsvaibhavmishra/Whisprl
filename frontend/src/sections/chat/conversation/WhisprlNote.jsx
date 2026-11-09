@@ -1,18 +1,12 @@
-import { useState } from "react";
 import { Link } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
 
-import { gameCollapsed, selectGameSession } from "@/redux/slices/gameSlice";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
 import { CENTRED } from "@/sections/chat/conversation/messageColumn";
-import GamesDialog from "@/sections/chat/game/GamesDialog";
+import useChallenge from "@/sections/chat/conversation/useChallenge";
 
 // Whisprl never answers, so the first message sent to it is met with what it will do instead
 const WhisprlNote = ({ conversation }) => {
-  const dispatch = useDispatch();
-  const gameSession = useSelector(selectGameSession);
-  const [isPicking, setIsPicking] = useState(false);
-  const challenge = () => (gameSession ? dispatch(gameCollapsed(false)) : setIsPicking(true));
+  const { challenge, picker } = useChallenge(conversation);
 
   return (
     <>
@@ -22,7 +16,7 @@ const WhisprlNote = ({ conversation }) => {
           Challenge Whisprl
         </Link>
       </ChatNote>
-      {isPicking && <GamesDialog conversation={conversation} onClose={() => setIsPicking(false)} />}
+      {picker}
     </>
   );
 };

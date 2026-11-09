@@ -23,6 +23,8 @@ import { filesOf } from "@/utils/messageFiles";
 import { describeEvent, typingNamesIn } from "@/utils/groups";
 import { isOfficial } from "@/utils/relationship";
 import TypingBubble from "@/sections/chat/messages/TypingBubble";
+import NoticeActions from "@/sections/chat/messages/NoticeActions";
+import { noticeOf } from "@/sections/chat/messages/notices";
 import JumpToLatest from "@/sections/chat/conversation/JumpToLatest";
 import useIsLoading from "@/hooks/useIsLoading";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
@@ -232,8 +234,12 @@ const ConversationMain = () => {
     const didNotUpload = members
       .filter((message) => !message.outboxEntry && message.sender._id === user._id && message.attachment?.status === "uploading")
       .map((message) => <DidNotUpload key={message._id} message={message} />);
-    const problems = [...notSent, ...didNotUpload];
-    return problems.length ? problems : undefined;
+    const noticeActions = members
+      .map((message) => message.notice && noticeOf(message.notice, user, message.sender))
+      .filter(Boolean)
+      .map((notice, index) => <NoticeActions key={index} actions={notice.actions} conversation={activeConversation} />);
+    const below = [...notSent, ...didNotUpload, ...noticeActions];
+    return below.length ? below : undefined;
   };
 
   const tapHandlerFor = (item) => (item.type === "queued" ? undefined : () => toggleDetails(item.message));
@@ -267,7 +273,9 @@ const ConversationMain = () => {
             {!hasOlderMessages && messages.length > 0 && (
               <ChatNote sx={{ maxWidth: 340, px: 1.75, py: 1.25, borderRadius: 1.5, fontSize: 12.5, lineHeight: 1.5, ...CENTRED }}>
                 <LockSimpleIcon size={14} weight="bold" aria-hidden style={{ verticalAlign: "-2px", marginRight: 6 }} />
-                Messages here are end-to-end encrypted. Only the people in this chat can read them.
+                {isOfficial(peer)
+                  ? "What you send Whisprl is end-to-end encrypted and nobody can read it. Whisprl's own messages are the same for everyone."
+                  : "Messages here are end-to-end encrypted. Only the people in this chat can read them."}
               </ChatNote>
             )}
           </Box>

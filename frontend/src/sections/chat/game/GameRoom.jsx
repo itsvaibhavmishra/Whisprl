@@ -38,6 +38,13 @@ const CONFIRMATIONS = {
   close: { title: "Close the game?", text: "Everyone at the table gets up and the game goes away.", action: "Close game" },
   cancel: { title: "End this game?", text: "The game stops here and everyone goes back to the table.", action: "End game" },
   leave: { title: "Leave the game?", text: "A bot plays your seat for the rest of this game.", action: "Leave" },
+  forfeit: { title: "Leave and lose this game?", text: "The other player wins, and it counts on the leaderboard.", action: "Leave" },
+};
+
+// between two people, leaving a game against a person or Whisprl loses it, while one against the bot just closes
+const leaveKindOf = (isGroup, hasOpponent) => {
+  if (isGroup) return "leave";
+  return hasOpponent ? "forfeit" : "close";
 };
 
 // the bar sits over the artwork, so the buttons carry their own backing, in the game's card so its ink reads on it
@@ -151,8 +158,14 @@ const GameRoom = ({ conversation, session }) => {
 
   const isManager = conversation.isGroup && canManage(conversation, meId);
   const isSeatSaved = hasSavedSeat(session, meId);
-  const canClose = !conversation.isGroup || (isManager && !isPlaying);
   const mySeat = session.seats.find((seat) => seat.user === meId);
+  const leaveKind = leaveKindOf(
+    conversation.isGroup,
+    session.seats.some((seat) => seat.user && seat.user !== meId)
+  );
+  // someone watching a game between two people can only hide it
+  const isForfeiting = isPlaying && leaveKind === "forfeit" && Boolean(mySeat);
+  const canClose = conversation.isGroup ? isManager && !isPlaying : Boolean(mySeat) && !isForfeiting;
 
   const act = (action) => dispatch(ActInGame({ conversationId, ...action }));
   // the board is redrawn only for what it shows, so what it is handed keeps one identity across the room's own renders
@@ -163,11 +176,12 @@ const GameRoom = ({ conversation, session }) => {
     },
     [dispatch, conversationId]
   );
-  const onLeave = useCallback(() => setConfirming("leave"), []);
+  const onLeave = useCallback(() => setConfirming(leaveKind), [leaveKind]);
   const confirmed = {
     close: () => dispatch(CloseGame(conversationId)),
     cancel: () => act({ type: "cancel" }),
     leave: () => act({ type: "stand" }),
+    forfeit: () => act({ type: "stand" }),
   };
 
   const room = (
@@ -246,6 +260,11 @@ const GameRoom = ({ conversation, session }) => {
           </BarButton>
           {canClose && (
             <BarButton label="Close game" caption="Close" theme={theme} onClick={() => setConfirming("close")}>
+              <XIcon size={20} weight="bold" />
+            </BarButton>
+          )}
+          {isForfeiting && (
+            <BarButton label="Leave game" caption="Leave" theme={theme} onClick={() => setConfirming("forfeit")}>
               <XIcon size={20} weight="bold" />
             </BarButton>
           )}

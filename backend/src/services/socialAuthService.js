@@ -8,6 +8,8 @@ import { fetchJson } from "#src/utils/fetchJson.js";
 import { markReached, startJourney } from "#src/services/journeyService.js";
 import { availableUsername } from "#src/services/usernameService.js";
 import { befriendWhisprl } from "#src/services/whisprlService.js";
+import { welcomeToWhisprl } from "#src/services/whisprlMessageService.js";
+import { reportError } from "#src/utils/errorReports.js";
 
 const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn" };
 
@@ -115,6 +117,7 @@ export const signInWithProvider = async (provider, credential) => {
   user.username ??= await availableUsername(user.firstName, user.lastName);
   user.coverStyle ??= randomCoverStyle();
   await user.save();
+  await welcomeToWhisprl(user._id).catch((error) => reportError(error, user._id));
 
   return user;
 };

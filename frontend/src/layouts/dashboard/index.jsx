@@ -4,6 +4,8 @@ import { MotionConfig } from "motion/react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector, useStore } from "react-redux";
 
+import { DEFAULT_AUTH } from "@/config";
+
 import MotionLazyContainer from "@/components/animate/MotionLazyContainer";
 import { PageArea } from "@/components/LoadingScreen";
 import NotificationsPrompt from "@/components/NotificationsPrompt";
@@ -89,7 +91,7 @@ const DashboardLayout = () => {
   }, [navigate]);
 
   if (!isLoggedIn || !userId) {
-    return <Navigate to={"/auth/welcome"} replace />;
+    return <Navigate to={DEFAULT_AUTH} replace />;
   }
 
   // setup sends you on to where you were going, so a link opened mid-setup still lands

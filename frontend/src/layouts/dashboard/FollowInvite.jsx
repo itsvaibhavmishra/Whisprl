@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { GetInviter } from "@/redux/slices/actions/contactActions";
+import { JoinThroughInvite } from "@/redux/slices/actions/contactActions";
 import { contactPathOf } from "@/sections/contacts/contactsRoute";
 import { forgetInvite, rememberedInvite } from "@/utils/invite";
 
@@ -15,8 +15,8 @@ const FollowInvite = () => {
   useEffect(() => {
     const code = rememberedInvite();
     if (!code) return;
-    dispatch(GetInviter(code)).then((result) => {
-      if (GetInviter.rejected.match(result)) return;
+    dispatch(JoinThroughInvite(code)).then((result) => {
+      if (JoinThroughInvite.rejected.match(result)) return;
       forgetInvite();
       if (result.payload && result.payload._id !== meId) navigate(contactPathOf(result.payload), { replace: true });
     });

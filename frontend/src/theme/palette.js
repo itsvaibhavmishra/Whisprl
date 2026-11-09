@@ -128,4 +128,23 @@ const palette = {
   },
 };
 
+// inside a chat, dark mode keeps the navy it first had, so bubbles and wallpaper read as before while every other screen is near black
+export const NAVY_CHAT = {
+  text: { primary: "#E9EEF6", secondary: "#93A1B8", disabled: "#7B8AA2" },
+  background: { paper: "#1A2334", default: "#0D1420", neutral: alpha("#93A1B8", 0.12) },
+  divider: alpha("#9FB2D0", 0.1),
+  action: { active: "#93A1B8", ...action("#C8D6EC") },
+  chat: {
+    canvas: "#080D15",
+    raised: "#252F43",
+    sheet: "#1A2334",
+    bubbleIn: "#1E2839",
+    glass: alpha("#0D1420", 0.86),
+    pill: alpha("#1E2839", 0.95),
+    field: "#151E2D",
+    doodle: alpha("#C8D6EC", 0.05),
+    shade: alpha("#000000", 0.45),
+  },
+};
+
 export default palette;

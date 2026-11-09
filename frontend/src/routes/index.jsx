@@ -49,7 +49,7 @@ export default function Router() {
       element: <AuthLayout />,
       children: [
         { element: <Navigate to={DEFAULT_AUTH} replace />, index: true },
-        { path: "welcome", element: isApp ? <AppTourPage /> : <WelcomePage /> },
+        { path: "welcome", element: isApp ? <Navigate to={DEFAULT_AUTH} replace /> : <WelcomePage /> },
         { path: "login", element: <LoginPage /> },
         { path: "register", element: <RegisterPage /> },
         { path: "verify", element: <VerifyPage /> },
@@ -120,7 +120,6 @@ const Settings = preloadable(() => import("@/pages/dashboard/Settings"));
 
 // auth pages
 const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));
-const AppTourPage = Loadable(lazy(() => import("@/pages/auth/AppTour")));
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/Login")));
 const InvitePage = Loadable(lazy(() => import("@/pages/auth/Invite")));
 const RegisterPage = Loadable(lazy(() => import("@/pages/auth/Register")));

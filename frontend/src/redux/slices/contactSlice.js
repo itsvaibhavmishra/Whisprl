@@ -8,6 +8,7 @@ import {
   FindProfile,
   GetInviteCode,
   GetInviter,
+  JoinThroughInvite,
   GetRequests,
   GetSuggestions,
   GetUserData,
@@ -55,6 +56,9 @@ const slice = createSlice({
         state.inviteCode = action.payload;
       })
       .addCase(GetInviter.fulfilled, (state, action) => {
+        state.inviter = action.payload;
+      })
+      .addCase(JoinThroughInvite.fulfilled, (state, action) => {
         state.inviter = action.payload;
       })
       // a burst of changes starts overlapping fetches, and only the newest may land

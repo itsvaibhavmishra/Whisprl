@@ -17,6 +17,8 @@ import MediaMessage from "@/sections/chat/messages/MediaMessage";
 import MessageActions from "@/sections/chat/messages/MessageActions";
 import MessageMeta, { MetaSpacer } from "@/sections/chat/messages/MessageMeta";
 import MessageText from "@/sections/chat/messages/MessageText";
+import NoticeText from "@/sections/chat/messages/NoticeText";
+import { noticeOf } from "@/sections/chat/messages/notices";
 import Reactions, { REACTIONS_DROP } from "@/sections/chat/messages/Reactions";
 import ReplyQuote from "@/sections/chat/messages/ReplyQuote";
 import VideoMessage from "@/sections/chat/messages/VideoMessage";
@@ -93,7 +95,7 @@ const MessageContainer = ({
   const clickTimer = useRef(null);
   const lastClick = useRef(0);
   const wasLongPress = useRef(false);
-  const swipe = useSwipeToReply(isMine ? -1 : 1, () => !message.deletedAt && dispatch(setReplyingTo(message)));
+  const swipe = useSwipeToReply(isMine ? -1 : 1, () => !message.deletedAt && !message.notice && dispatch(setReplyingTo(message)));
 
   useEffect(() => () => clearTimeout(clickTimer.current), []);
 
@@ -111,8 +113,9 @@ const MessageContainer = ({
   const isQuoteOnly = Boolean(statusQuote) && !message.message;
   const isBare = isDeleted || msgType === "emoji" || isQuoteOnly;
   const bareEmojiSize = msgType === "emoji" ? bareEmojiSizeOf(message.message) * emojiScaleOf(message.emojiScale) : undefined;
-  // a deleted message keeps its menu, so anyone can still clear it from their own screen
-  const hasMenu = Boolean(conversation && message._id && !isQueued && !message.event);
+  // a deleted message keeps its menu, so anyone can still clear it from their own screen; Whisprl's own have nothing to answer
+  const hasMenu = Boolean(conversation && message._id && !isQueued && !message.event && !message.notice);
+  const notice = message.notice && noticeOf(message.notice, user, message.sender);
   const canAct = hasMenu && !isDeleted;
 
   // messages written before usernames mention people as @FirstName, so both forms are highlighted
@@ -381,6 +384,8 @@ const MessageContainer = ({
                 )}
                 {message.undecryptable ? (
                   <Typography sx={{ fontSize: 14, fontStyle: "italic", opacity: 0.75 }}>{message.awaitingKey ? WAITING : UNREADABLE}</Typography>
+                ) : notice ? (
+                  <NoticeText text={notice.text} sx={{ fontSize: 15, fontWeight: 500, lineHeight: 1.45 }} />
                 ) : (
                   message.message && (
                     <MessageText

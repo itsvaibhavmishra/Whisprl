@@ -7,8 +7,16 @@ export const isViewOnceOpened = (message, meId) => {
   return senderId === meId ? viewers.length > 0 : viewers.includes(meId) || message.attachment?.status === "opened";
 };
 
+// Whisprl's own messages carry what they are about, and their words are written here
+const NOTICE_SUMMARIES = {
+  welcome: () => "Hi, I'm Whisprl 👋",
+  inviteJoined: ({ name }) => `${name} joined Whisprl from your invite 🎉`,
+  challenge: ({ gameName }) => `🎮 A challenge to ${gameName}`,
+};
+
 export const summaryOf = (message) => {
   if (!message) return "";
+  if (message.notice) return NOTICE_SUMMARIES[message.notice.type]?.(message.notice) ?? "";
   if (message.deletedAt) return "This message was deleted";
   if (message.undecryptable) return message.awaitingKey ? "Message on its way" : "Encrypted message";
   if (message.viewOnce) return message.file?.kind === "video" ? "View once video" : "View once photo";

@@ -1,4 +1,4 @@
-import { inviteCodeOf, inviterOf } from "#src/services/inviteService.js";
+import { inviteCodeOf, inviterOf, joinThroughInvite } from "#src/services/inviteService.js";
 
 export const getMyInviteCode = async (req, res) => {
   res.status(200).json({ status: "success", code: await inviteCodeOf(req.user._id) });
@@ -6,4 +6,8 @@ export const getMyInviteCode = async (req, res) => {
 
 export const getInviter = async (req, res) => {
   res.status(200).json({ status: "success", inviter: await inviterOf(req.params.code) });
+};
+
+export const joinWithInvite = async (req, res) => {
+  res.status(200).json({ status: "success", inviter: await joinThroughInvite(req.app.get("io"), req.user, req.params.code) });
 };

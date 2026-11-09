@@ -125,7 +125,7 @@ export const pushGameInvite = async (conversation, sender, gameName) => {
     conversationId: String(conversation._id),
     senderId: String(sender._id),
     title: `${sender.firstName} ${sender.lastName}`,
-    text: `Wants to play ${gameName}`,
+    text: `Challenged you to ${gameName}`,
   };
   await sendAll(
     sendable,
