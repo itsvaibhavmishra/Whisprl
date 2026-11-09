@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "19 October 2026";
+export const LAST_UPDATED = "10 November 2026";
 
 export const INTRO = [
   "Whisprl does not allow child sexual abuse and exploitation (CSAE) of any kind. These standards apply to everyone who uses Whisprl, on the website and in the Android app.",
@@ -32,7 +32,7 @@ export const SECTIONS = [
     id: "reporting",
     title: "How to report it",
     blocks: [
-      "In Whisprl, report a person, a chat, a group or a status from its menu. Reports go straight to Whisprl's staff.",
+      "In Whisprl, report a person, a chat, a group or a status from its menu. Reports go straight to Whisprl's staff, and Whisprl tells you once yours has been looked at. The person you reported is never told who reported them.",
       "Messages are end-to-end encrypted, so Whisprl cannot see them on its own. When you report a chat, your own device sends the reported message and the ones around it with the report, so staff can see exactly what happened.",
       {
         parts: ["You can also email ", { email: CONTACT_EMAIL }, ". If a child is in immediate danger, contact your local emergency services first."],

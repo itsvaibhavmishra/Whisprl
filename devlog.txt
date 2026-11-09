@@ -51,6 +51,7 @@
     - Whisprl's messages, like a report update or a friend joining from your invite, arrive as notifications on Android
 
   - Fixed:
+    - The privacy policy and child safety page now cover Whisprl's own account and messages, invite links, report updates, birthday wishes, notifications that carry no private words, and which staff actions need a passkey
     - A link in Whisprl's messages can only go somewhere in the app, never to another website
     - A chat's notification clears once you read that chat, whether you open it from the notification, inside the app or on another device
     - An emoji sent on its own during a game stays on your side of the chat instead of sliding left under the game's name, and notes and dates in a chat sit in its middle
