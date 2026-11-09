@@ -27,7 +27,7 @@ const VoiceButton = ({ voice, isMuted, onToggleMute }) => {
 };
 
 const TourCard = ({ step, position, count, placement, voice, isMuted, onToggleMute, onBack, onNext, onSkip, onPlay }) => {
-  const [finishedStep, setFinishedStep] = useState(null);
+  const [isFinished, setIsFinished] = useState(false);
   const isWelcome = position === 0;
   const isLast = position === count - 1;
 
@@ -42,8 +42,9 @@ const TourCard = ({ step, position, count, placement, voice, isMuted, onToggleMu
         borderRadius: 4,
         bgcolor: "background.paper",
         boxShadow: 24,
-        transition: "top 300ms ease, left 300ms ease, bottom 300ms ease",
-        "@media (prefers-reduced-motion: reduce)": { transition: "none" },
+        animation: "tourCardPop 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        "@keyframes tourCardPop": { from: { opacity: 0, scale: "0.9" } },
+        "@media (prefers-reduced-motion: reduce)": { animation: "none" },
       }}
     >
       {isWelcome && (
@@ -52,14 +53,16 @@ const TourCard = ({ step, position, count, placement, voice, isMuted, onToggleMu
         </Box>
       )}
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-start" }}>
-        {!isWelcome && <TourMascot key={step.id} size={52} readLevel={voice.readLevel} />}
-        <Box onClick={() => setFinishedStep(step.id)} sx={{ flex: 1, minWidth: 0, cursor: "pointer" }}>
-          <TypedText key={step.id} text={step.text} duration={voice.duration} isFinished={finishedStep === step.id} />
+        {!isWelcome && <TourMascot size={52} readLevel={voice.readLevel} />}
+        <Box onClick={() => setIsFinished(true)} sx={{ flex: 1, minWidth: 0, cursor: "pointer" }}>
+          <TypedText text={step.text} duration={voice.duration} isFinished={isFinished} />
         </Box>
       </Stack>
 
       <Stack direction="row" sx={{ alignItems: "center", mt: 2, gap: 1 }}>
-        <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: "text.secondary" }}>{`${position + 1} of ${count}`}</Typography>
+        <Typography
+          sx={{ flexShrink: 0, whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 700, color: "text.secondary" }}
+        >{`${position + 1} of ${count}`}</Typography>
         {voice.hasClip && <VoiceButton voice={voice} isMuted={isMuted} onToggleMute={onToggleMute} />}
         <Box sx={{ flex: 1 }} />
         {isLast ? (
