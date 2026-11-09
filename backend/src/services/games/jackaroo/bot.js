@@ -1,7 +1,7 @@
 import { HOME_ENTRY, LOOP, START } from "#src/services/games/jackaroo/board.js";
 import { isRed } from "#src/services/games/jackaroo/cards.js";
 import { keyOf, losingPlays, moveMarble, other, placeOf, progressOf } from "#src/services/games/jackaroo/moves.js";
-import { turnOf, turnPlays } from "#src/services/games/jackaroo/rules.js";
+import { turnPlays } from "#src/services/games/jackaroo/rules.js";
 
 // the furthest any single card carries a marble, so a marble this close behind another can land on it
 const REACH = 13;
@@ -113,15 +113,39 @@ export const botMove = (state, seat, level = "medium") => {
   return moveFor(state, seat, chosen);
 };
 
-export const BOT_REACTIONS = { knockedOut: ["😂", "😜"], knockedBack: ["😭", "😱"], reachedHome: ["😎", "😘"] };
+export const BOT_REACTIONS = {
+  knockedOut: ["😂", "😜"],
+  knockedBack: ["😭", "😱"],
+  ownGoal: ["😭"],
+  reachedHome: ["😎"],
+  rivalHome: ["😱"],
+  cardTaken: ["🫠"],
+  tookCard: ["😜", "😂"],
+  swapped: ["😜", "😎"],
+};
+
+const LOSES_A_CARD = ["takeCard", "discardOther"];
 
 const sentBack = (before, after, owner) =>
   before.players[owner].marbles.some((place, id) => place.at !== "base" && after.players[owner].marbles[id].at === "base");
 
+const arrivedHome = (before, after, owner) =>
+  before.players[owner].marbles.some((place, id) => place.at !== "home" && after.players[owner].marbles[id].at === "home");
+
+// a card put down before its choices are made is not a play yet, so only a play the state newly records counts
+const newPlayIn = (before, after) => (JSON.stringify(after.lastPlay) === JSON.stringify(before.lastPlay) ? null : after.lastPlay);
+
 export const momentFor = (before, after, seat) => {
-  if (sentBack(before, after, seat)) return "knockedBack";
-  if (turnOf(before) !== seat) return null;
+  const play = newPlayIn(before, after);
+  if (!play) return null;
+  const isMine = play.seat === seat;
+  if (sentBack(before, after, seat)) return isMine ? "ownGoal" : "knockedBack";
+  if (!isMine) {
+    if (LOSES_A_CARD.includes(play.kind)) return "cardTaken";
+    return arrivedHome(before, after, other(seat)) ? "rivalHome" : null;
+  }
   if (sentBack(before, after, other(seat))) return "knockedOut";
-  const arrived = before.players[seat].marbles.some((place, id) => place.at !== "home" && after.players[seat].marbles[id].at === "home");
-  return arrived ? "reachedHome" : null;
+  if (arrivedHome(before, after, seat)) return "reachedHome";
+  if (LOSES_A_CARD.includes(play.kind)) return "tookCard";
+  return play.kind === "swap" ? "swapped" : null;
 };
