@@ -1,5 +1,31 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "🐱",
+      "title": "Meet Whisprl",
+      "text": "Whisprl is now everyone's friend here, always up for a game, cheering and groaning as it plays."
+    },
+    {
+      "emoji": "🎮",
+      "title": "Challenge a friend",
+      "text": "Open a game in a chat with a friend, and they can answer Play or Not now right from the chat."
+    },
+    {
+      "emoji": "🔗",
+      "title": "Invite with a link",
+      "text": "Share your invite link, and Whisprl lets you know when a friend joins through it."
+    },
+    {
+      "emoji": "🛡️",
+      "title": "Hear back on reports",
+      "text": "Whisprl tells you when your report arrives, and again once it has been looked at."
+    },
+    {
+      "emoji": "🧭",
+      "title": "A quick tour",
+      "text": "Whisprl shows you around in its own voice, and you can take the tour again from Settings."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.8",
