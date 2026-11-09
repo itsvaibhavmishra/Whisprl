@@ -35,6 +35,7 @@ const PUSHED_WORDS = {
   reportDismissed: (notice) => `We looked at your report about ${subjectOf(notice)}`,
   announcement: ({ text }) => unmarked(text),
   gameAdded: ({ name }) => `You asked for ${name}, and it's here now 🎉`,
+  birthday: ({ name }) => `Happy birthday, ${name} 🎂`,
 };
 
 // the same message to a whole batch of people in a few writes between them, rather than a few each; returns how many it reached

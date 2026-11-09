@@ -41,3 +41,11 @@ test("a game's announcement keeps the game its button opens", () => {
   const button = { kind: "challenge", label: "Challenge Whisprl to Jackaroo", game: "jackaroo" };
   expect(noticeOf({ type: "announcement", text: "New game", button }, ME, WHISPRL).actions).toEqual([button]);
 });
+
+test("a birthday greeting names whoever reads it, with no button", () => {
+  const notice = { type: "birthday", name: "Mei" };
+  const { text, actions } = noticeOf(notice, ME, WHISPRL);
+  expect(text).toMatch(/^Happy birthday, \*\*Mei\*\* 🎂/);
+  expect(actions).toEqual([]);
+  expect(summaryOf({ notice })).toBe("Happy birthday, Mei 🎂");
+});

@@ -36,7 +36,7 @@ const noticeSchema = mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["welcome", "inviteJoined", "challenge", "reportReceived", "reportActioned", "reportDismissed", "announcement", "gameAdded"],
+      enum: ["welcome", "inviteJoined", "challenge", "reportReceived", "reportActioned", "reportDismissed", "announcement", "gameAdded", "birthday"],
       required: true,
     },
     // who it is about, with the name they had when it was sent

@@ -11,6 +11,7 @@ import { syncOwnerBadge } from "#src/services/teamService.js";
 import { ensureWhisprl } from "#src/services/whisprlService.js";
 import { welcomeEveryone } from "#src/services/whisprlMessageService.js";
 import { resumeAnnouncements } from "#src/services/announcementService.js";
+import { greetBirthdays } from "#src/services/birthdayGreetingService.js";
 import { flushErrorReports, reportError, startErrorReports } from "#src/utils/errorReports.js";
 
 startErrorReports();
@@ -44,6 +45,7 @@ mongoose
       sweepExpiredMessages(app.get("io")).catch(sweepFailed);
       sweepExpiredStatuses().catch(sweepFailed);
       sweepOldEvidence().catch(sweepFailed);
+      greetBirthdays(app.get("io")).catch(sweepFailed);
     }, SWEEP_EVERY_MS);
   })
   .catch((err) => {

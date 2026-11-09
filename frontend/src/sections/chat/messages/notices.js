@@ -34,6 +34,9 @@ export const noticeOf = ({ type, user, name, username, gameName, about, text, bu
     };
   }
   if (REPORT_TEXTS[type]) return { text: REPORT_TEXTS[type](reportSubjectOf({ about, name: plain(name) }), about), actions: [] };
+  if (type === "birthday") {
+    return { text: `Happy birthday, **${plain(me.firstName)}** 🎂\n\nHope your day is full of good things. Thanks for being part of Whisprl 💙`, actions: [] };
+  }
   if (type === "gameAdded") {
     return {
       text: `You asked for **${plain(name)}**, and it's here now 🎉\n\nWant to play it? I'm ready when you are.`,

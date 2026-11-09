@@ -144,6 +144,8 @@ const userSchema = mongoose.Schema(
     // shown beside the name: owner and admin follow the team, official marks Whisprl's own account
     badge: { type: String, enum: BADGES },
     whisprlWelcomedAt: { type: Date },
+    // the year Whisprl last wished them a happy birthday, so it never does twice in one
+    birthdayGreetedIn: { type: Number },
     // whoever's invite link this account was made through, kept once so the inviter hears of it once
     invitedBy: { type: mongoose.Schema.ObjectId, ref: "User" },
 
