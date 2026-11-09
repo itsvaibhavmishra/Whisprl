@@ -5,6 +5,7 @@ import { protect } from "#src/middlewares/authMiddleware.js";
 import { codeLimit, readLimit, searchLimit, uploadLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   checkUsernameAvailable,
+  finishTour,
   findPeople,
   getMyProfile,
   updateGameAudio,
@@ -49,6 +50,8 @@ userRouter.route("/game-audio/:game_id").put(protect, writeLimit(), updateGameAu
 userRouter.route("/suggestions").put(protect, writeLimit(), updateSuggestionSetting);
 
 // Whether friends see this person's birthday
+userRouter.route("/tour").put(protect, writeLimit(), finishTour);
+
 userRouter.route("/birthday-visibility").put(protect, writeLimit(), updateBirthdaySetting);
 
 // Delete Account Routes: a code goes to the account's email, and the deletion waits 14 days for a login to cancel it

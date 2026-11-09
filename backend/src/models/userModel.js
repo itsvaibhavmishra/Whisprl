@@ -146,6 +146,8 @@ const userSchema = mongoose.Schema(
     whisprlWelcomedAt: { type: Date },
     // the year Whisprl last wished them a happy birthday, so it never does twice in one
     birthdayGreetedIn: { type: Number },
+    // set once the app's tour is finished or skipped, so it shows once an account rather than once a device
+    touredAt: { type: Date },
     // whoever's invite link this account was made through, kept once so the inviter hears of it once
     invitedBy: { type: mongoose.Schema.ObjectId, ref: "User" },
 

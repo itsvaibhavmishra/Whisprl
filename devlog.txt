@@ -28,6 +28,7 @@
     - Announcing a new game takes one tap in the admin panel, which writes the message and adds a button that opens that game against Whisprl
     - Marking a game request as added tells everyone who asked for it, in a message from Whisprl
     - Whisprl wishes you a happy birthday on the day, at 9 in the morning India time, with a notification
+    - A short tour from Whisprl, in its own voice, shows everyone around once, Contacts, Status and Chats, and ends with a game of Jackaroo against Whisprl; the voice can be muted, and the tour taken again from Settings
 
   - Improvements:
     - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out, while chats keep the navy behind their messages

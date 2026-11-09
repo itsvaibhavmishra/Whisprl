@@ -253,6 +253,8 @@ export const setGameAudio = async (user, gameId, { effects, music }) => {
   return { ...Object.fromEntries(user.gameAudio ?? []), [gameId]: levels };
 };
 
+export const markToured = (user) => UserModel.updateOne({ _id: user._id }, { touredAt: new Date() });
+
 export const setShowBirthdayToFriends = async (user, isShown) => {
   if (typeof isShown !== "boolean") throw createHttpError.BadRequest("Choose on or off");
   await UserModel.updateOne({ _id: user._id }, { showBirthdayToFriends: isShown });

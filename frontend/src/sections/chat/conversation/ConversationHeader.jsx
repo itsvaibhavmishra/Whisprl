@@ -113,7 +113,7 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
         </IconButton>
       )}
 
-      <Stack direction="row" sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
+      <Stack direction="row" data-tour="chat-header" sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
         <AvatarChoices
           name={name}
           ownerId={peer?._id}

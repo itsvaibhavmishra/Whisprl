@@ -43,6 +43,7 @@ export const toSessionUser = async (user) => ({
   suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,
   blocked: user.blocked,
   onboarding: onboardingOf(user),
+  hasToured: Boolean(user.touredAt),
   createdAt: user.createdAt,
   role: roleOf(user),
   permissions: permissionsOf(user),
