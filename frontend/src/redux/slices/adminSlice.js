@@ -1,6 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import { GetActivePeople, GetAuditLog, GetGameRequests, GetOverview, GetPeople, GetReports, GetTeam } from "@/redux/slices/actions/adminActions";
+import {
+  GetActivePeople,
+  GetAnnouncedGames,
+  GetAnnouncements,
+  GetAudienceSizes,
+  GetAuditLog,
+  GetGameRequests,
+  GetOverview,
+  GetPeople,
+  GetReports,
+  GetStoppedPeople,
+  GetTeam,
+} from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
@@ -8,6 +20,8 @@ const initialState = {
   latestOverviewFetch: null,
   activePeople: { list: null, hasMore: false },
   latestActivePeopleFetch: null,
+  stoppedPeople: { list: null, hasMore: false },
+  latestStoppedPeopleFetch: null,
   people: { list: null, total: 0, hasMore: false },
   latestPeopleFetch: null,
   reports: { list: null, total: 0, hasMore: false },
@@ -17,6 +31,9 @@ const initialState = {
   team: null,
   // entries stay null until the first page arrives, so an empty log is told apart from one not read yet
   audit: { entries: null, hasMore: false },
+  announcements: { list: null, hasMore: false },
+  audienceSizes: null,
+  announcedGames: null,
 };
 
 const slice = createSlice({
@@ -41,6 +58,15 @@ const slice = createSlice({
         if (action.meta.requestId !== state.latestActivePeopleFetch) return;
         const { people, hasMore } = action.payload;
         state.activePeople = { list: action.meta.arg.page ? [...state.activePeople.list, ...people] : people, hasMore };
+      })
+      .addCase(GetStoppedPeople.pending, (state, action) => {
+        state.latestStoppedPeopleFetch = action.meta.requestId;
+        if (!action.meta.arg.page) state.stoppedPeople = { list: null, hasMore: false };
+      })
+      .addCase(GetStoppedPeople.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.latestStoppedPeopleFetch) return;
+        const { people, hasMore } = action.payload;
+        state.stoppedPeople = { list: action.meta.arg.page ? [...state.stoppedPeople.list, ...people] : people, hasMore };
       })
       .addCase(GetPeople.pending, (state, action) => {
         state.latestPeopleFetch = action.meta.requestId;
@@ -73,6 +99,16 @@ const slice = createSlice({
         const { entries, hasMore } = action.payload;
         // a page asked for without a starting point is the newest, so it replaces whatever was shown
         state.audit = { entries: action.meta.arg ? [...state.audit.entries, ...entries] : entries, hasMore };
+      })
+      .addCase(GetAnnouncements.fulfilled, (state, action) => {
+        const { announcements, hasMore } = action.payload;
+        state.announcements = { list: action.meta.arg ? [...state.announcements.list, ...announcements] : announcements, hasMore };
+      })
+      .addCase(GetAnnouncedGames.fulfilled, (state, action) => {
+        state.announcedGames = action.payload;
+      })
+      .addCase(GetAudienceSizes.fulfilled, (state, action) => {
+        state.audienceSizes = action.payload;
       })
       .addCase(logout, () => initialState);
   },

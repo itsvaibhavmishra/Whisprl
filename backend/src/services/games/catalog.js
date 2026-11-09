@@ -13,4 +13,6 @@ export const gameOf = (id) => {
   return game;
 };
 
+export const gameNames = () => [...GAMES.values()].map(({ id, name }) => ({ id, name }));
+
 export const isGameId = (id) => typeof id === "string" && GAMES.has(id);

@@ -27,12 +27,15 @@ export const PATH_AUTH = {
 
 export const PATH_SETUP = path(ROOTS_DASHBOARD, "setup");
 
+export const PATH_INVITE = path(ROOTS_DASHBOARD, "invite");
+
 export const PATH_ADMIN = {
   root: path(ROOTS_DASHBOARD, "admin"),
   overview: path(ROOTS_DASHBOARD, "admin/overview"),
   people: path(ROOTS_DASHBOARD, "admin/people"),
   reports: path(ROOTS_DASHBOARD, "admin/reports"),
   requests: path(ROOTS_DASHBOARD, "admin/requests"),
+  announcements: path(ROOTS_DASHBOARD, "admin/announcements"),
   audit: path(ROOTS_DASHBOARD, "admin/audit"),
   team: path(ROOTS_DASHBOARD, "admin/team"),
 };

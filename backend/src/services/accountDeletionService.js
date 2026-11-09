@@ -1,6 +1,7 @@
 import createHttpError from "http-errors";
 
 import {
+  BotRecordModel,
   ChatPreferenceModel,
   FriendRequestModel,
   GameRequestModel,
@@ -33,6 +34,9 @@ const FORGOTTEN_FIELDS = [
   "username",
   "usernameChangedAt",
   "usernameConfirmedAt",
+  "inviteCode",
+  "invitedBy",
+  "badge",
   "birthday",
   "keyBackup",
   "recoveryKeySavedAt",
@@ -45,6 +49,7 @@ const FORGOTTEN_FIELDS = [
   "skippedSteps",
   "notificationsAllowedAt",
   "agePausedUntil",
+  "journey",
 ];
 
 const assertMayDelete = (user) => {
@@ -140,6 +145,7 @@ const deleteAccount = async (io, user_id) => {
     PasskeyChallengeModel.deleteMany({ user: user._id }),
     ChatPreferenceModel.deleteMany({ user: user._id }),
     GameRequestModel.deleteMany({ user: user._id }),
+    BotRecordModel.deleteMany({ user: user._id }),
     FriendRequestModel.deleteMany(theirs),
     RequestCooldownModel.deleteMany(theirs),
     UserModel.updateMany(

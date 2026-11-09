@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { botMove } from "#src/services/games/jackaroo/bot.js";
+import { botMove, momentFor } from "#src/services/games/jackaroo/bot.js";
 import { outcome, play, setup, turnOf, viewFor } from "#src/services/games/jackaroo/rules.js";
+import { withSeed } from "#src/services/games/withSeed.js";
 
 const track = (index) => ({ at: "track", index });
 const home = (slot) => ({ at: "home", slot });
@@ -74,12 +75,26 @@ const winRate = (games, levels) => {
 };
 
 test("bots playing each other always finish, through every rule", () => {
-  for (let game = 0; game < 60; game += 1) playedOut(["opponent", "standIn"]);
+  for (let game = 0; game < 60; game += 1) playedOut(["medium", "standIn"]);
 });
 
 test("a practised player beats it a little more often than not, and beats a stand-in more", () => {
-  const againstOpponent = winRate(400, [PRACTISED, "opponent"]);
-  const againstStandIn = winRate(400, [PRACTISED, "standIn"]);
+  const againstOpponent = withSeed(1, () => winRate(400, [PRACTISED, "medium"]));
+  const againstStandIn = withSeed(2, () => winRate(400, [PRACTISED, "standIn"]));
   assert.ok(againstOpponent > 0.5 && againstOpponent < 0.75, `practised won ${againstOpponent} against the opponent`);
   assert.ok(againstStandIn > againstOpponent - 0.05, `practised won ${againstStandIn} against the stand-in`);
+});
+
+test("a medium bot beats a dumb one, and the expert beats a medium one, more often than not", () => {
+  withSeed(1, () => {
+    assert.ok(winRate(200, ["medium", "dumb"]) > 0.55, "medium did not beat dumb");
+    assert.ok(winRate(200, ["expert", "medium"]) > 0.55, "expert did not beat medium");
+  });
+});
+
+test("a bot reacts when it knocks a marble out, and when its own is knocked out", () => {
+  const state = gameWith({ mine: [track(3)], theirs: [track(9)], hand: [card(6), card(3)] });
+  const after = play(state, 0, botMove(state, 0, PRACTISED));
+  assert.equal(momentFor(state, after, 0), "knockedOut");
+  assert.equal(momentFor(state, after, 1), "knockedBack");
 });

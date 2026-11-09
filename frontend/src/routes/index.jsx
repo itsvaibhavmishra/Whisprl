@@ -8,6 +8,7 @@ import { PATH_DASHBOARD } from "@/routes/paths";
 import DashboardLayout from "@/layouts/dashboard";
 import StaffOnly from "@/layouts/admin/StaffOnly";
 import AuthLayout from "@/layouts/auth";
+import InviteLayout from "@/layouts/auth/InviteLayout";
 import DocsLayout from "@/layouts/docs";
 import { isApp } from "@/utils/platform";
 
@@ -48,7 +49,7 @@ export default function Router() {
       element: <AuthLayout />,
       children: [
         { element: <Navigate to={DEFAULT_AUTH} replace />, index: true },
-        { path: "welcome", element: isApp ? <AppTourPage /> : <WelcomePage /> },
+        { path: "welcome", element: isApp ? <Navigate to={DEFAULT_AUTH} replace /> : <WelcomePage /> },
         { path: "login", element: <LoginPage /> },
         { path: "register", element: <RegisterPage /> },
         { path: "verify", element: <VerifyPage /> },
@@ -56,6 +57,7 @@ export default function Router() {
         { path: "reset-password", element: <ResetPasswordPage /> },
       ],
     },
+    { path: "/invite/:code", element: <InviteLayout />, children: [{ index: true, element: <InvitePage /> }] },
     {
       path: "/docs",
       element: <DocsLayout />,
@@ -81,6 +83,7 @@ export default function Router() {
             { path: "people", element: <PeoplePage /> },
             { path: "reports", element: <ReportsPage /> },
             { path: "requests", element: <GameRequestsPage /> },
+            { path: "announcements", element: <AnnouncementsPage /> },
             { path: "audit", element: <AuditLogPage /> },
             { path: "team", element: <TeamPage /> },
             { path: "*", element: <Navigate to="/404" replace /> },
@@ -118,8 +121,8 @@ const Settings = preloadable(() => import("@/pages/dashboard/Settings"));
 
 // auth pages
 const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));
-const AppTourPage = Loadable(lazy(() => import("@/pages/auth/AppTour")));
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/Login")));
+const InvitePage = Loadable(lazy(() => import("@/pages/auth/Invite")));
 const RegisterPage = Loadable(lazy(() => import("@/pages/auth/Register")));
 const VerifyPage = Loadable(lazy(() => import("@/pages/auth/Verify")));
 const ForgotPasswordPage = Loadable(lazy(() => import("@/pages/auth/ForgotPassword")));
@@ -131,6 +134,7 @@ const OverviewPage = Loadable(lazy(() => import("@/pages/admin/Overview")));
 const PeoplePage = Loadable(lazy(() => import("@/pages/admin/People")));
 const ReportsPage = Loadable(lazy(() => import("@/pages/admin/Reports")));
 const GameRequestsPage = Loadable(lazy(() => import("@/pages/admin/GameRequests")));
+const AnnouncementsPage = Loadable(lazy(() => import("@/pages/admin/Announcements")));
 const AuditLogPage = Loadable(lazy(() => import("@/pages/admin/AuditLog")));
 const TeamPage = Loadable(lazy(() => import("@/pages/admin/Team")));
 

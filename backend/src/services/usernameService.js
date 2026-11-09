@@ -2,6 +2,7 @@ import crypto from "crypto";
 import createHttpError from "http-errors";
 
 import { UserModel } from "#src/models/index.js";
+import { markReached } from "#src/services/journeyService.js";
 import { normalizeUsername, usernameProblemOf } from "#src/utils/accountRules.js";
 
 const RENAME_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -53,6 +54,7 @@ export const changeUsername = async (user, wanted) => {
   }
 
   user.set({ username, usernameChangedAt: new Date() });
+  markReached(user, "username");
   try {
     await user.save();
   } catch (error) {

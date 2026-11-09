@@ -1,14 +1,17 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Box, Stack } from "@mui/material";
 import { MotionConfig } from "motion/react";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector, useStore } from "react-redux";
+
+import { DEFAULT_AUTH } from "@/config";
 
 import MotionLazyContainer from "@/components/animate/MotionLazyContainer";
 import { PageArea } from "@/components/LoadingScreen";
 import NotificationsPrompt from "@/components/NotificationsPrompt";
 import useSavedChats from "@/hooks/useSavedChats";
 import useSettings from "@/hooks/useSettings";
+import FollowInvite from "@/layouts/dashboard/FollowInvite";
 import NavRail from "@/layouts/dashboard/NavRail";
 import { GetOnlineFriends } from "@/redux/slices/actions/userActions";
 import { DeliverWaitingMessages, GetConversations } from "@/redux/slices/actions/chatActions";
@@ -28,6 +31,9 @@ import { needsSetup } from "@/utils/onboarding";
 import { isApp } from "@/utils/platform";
 import { listenForPushTaps } from "@/utils/push";
 
+// fetched only for someone about to see it, so nobody else downloads the tour or Whisprl's voice
+const Tour = lazy(() => import("@/sections/tour/Tour"));
+
 // pages here run up under the status bar and pad themselves below it, so the loader steps below it too
 const PAGE_AREA = { isUnderStatusBar: true };
 
@@ -42,6 +48,8 @@ const DashboardLayout = () => {
   const userId = useSelector((state) => state.user.user._id);
   const isEncryptionReady = useSelector((state) => state.encryption.status === "ready");
   const isSetUp = useSelector((state) => !needsSetup(state.user.user.onboarding));
+  // unknown until the server has said, so an account that has seen it is never shown it again on another device
+  const isTouring = useSelector((state) => state.user.user.hasToured === false || state.user.isReplayingTour) && isEncryptionReady;
   const store = useStore();
   const { notifications } = useSettings();
 
@@ -88,7 +96,7 @@ const DashboardLayout = () => {
   }, [navigate]);
 
   if (!isLoggedIn || !userId) {
-    return <Navigate to={"/auth/welcome"} replace />;
+    return <Navigate to={DEFAULT_AUTH} replace />;
   }
 
   // setup sends you on to where you were going, so a link opened mid-setup still lands
@@ -107,7 +115,13 @@ const DashboardLayout = () => {
             </PageArea>
           </Box>
           <EncryptionGate />
-          {isApp && isEncryptionReady && <NotificationsPrompt />}
+          {isEncryptionReady && !isTouring && location.pathname.startsWith(`${chat}/`) && <NotificationsPrompt />}
+          {isTouring && (
+            <Suspense fallback={null}>
+              <Tour />
+            </Suspense>
+          )}
+          <FollowInvite />
         </Stack>
       </MotionConfig>
     </MotionLazyContainer>

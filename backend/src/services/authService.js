@@ -15,6 +15,10 @@ import { onboardingOf } from "#src/services/onboardingService.js";
 import { permissionsOf, roleOf } from "#src/services/roleService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
 import { availableUsername } from "#src/services/usernameService.js";
+import { markReached, startJourney } from "#src/services/journeyService.js";
+import { befriendWhisprl } from "#src/services/whisprlService.js";
+import { welcomeToWhisprl } from "#src/services/whisprlMessageService.js";
+import { reportError } from "#src/utils/errorReports.js";
 
 export const CODE_LIFETIME = 10 * 60 * 1000;
 const RESET_LIFETIME = 10 * 60 * 1000;
@@ -26,6 +30,7 @@ export const toSessionUser = async (user) => ({
   firstName: user.firstName,
   lastName: user.lastName,
   avatar: user.avatar,
+  badge: user.badge,
   email: user.email,
   username: user.username,
   usernameChangedAt: user.usernameChangedAt,
@@ -37,7 +42,8 @@ export const toSessionUser = async (user) => ({
   showBirthdayToFriends: user.showBirthdayToFriends,
   suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,
   blocked: user.blocked,
-  onboarding: await onboardingOf(user),
+  onboarding: onboardingOf(user),
+  hasToured: Boolean(user.touredAt),
   createdAt: user.createdAt,
   role: roleOf(user),
   permissions: permissionsOf(user),
@@ -114,7 +120,7 @@ export const registerUser = async ({ email, password, ...typed }) => {
   // an account still waiting on its code is never signed up over, or the owner's code would verify someone else's password
   if (await UserModel.exists({ email: address })) throw createHttpError.Conflict("Email is already registered, please log in");
 
-  return UserModel.create({
+  const user = new UserModel({
     email: address,
     firstName,
     lastName,
@@ -124,6 +130,8 @@ export const registerUser = async ({ email, password, ...typed }) => {
     username: await availableUsername(firstName, lastName),
     coverStyle: randomCoverStyle(),
   });
+  startJourney(user, "email", ["birthday"]);
+  return user.save();
 };
 
 export const sendVerificationCode = async (user) => {
@@ -185,7 +193,11 @@ export const verifyEmail = async (email, typedCode) => {
 
   user.verified = true;
   user.verification = undefined;
+  befriendWhisprl(user);
+  markReached(user, "verified");
   await user.save();
+  // a welcome that fails to send is reported, but never stops the account being verified
+  await welcomeToWhisprl(user._id).catch((error) => reportError(error, user._id));
 
   return user;
 };

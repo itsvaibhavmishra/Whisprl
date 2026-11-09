@@ -3,6 +3,7 @@ import { imageSize } from "image-size";
 import mongoose from "mongoose";
 
 import { ConversationModel, FriendRequestModel, MessageModel, UserModel } from "#src/models/index.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import { presenceShownTo } from "#src/services/blockService.js";
@@ -27,7 +28,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
+export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt publicKeys";
 
 export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -68,7 +69,8 @@ const MUTUAL_PREVIEW = 3;
 // everyone counts as their own friend, so both people are left out of what they share
 const mutualFriendsOf = async (viewer, person_id, theirFriends) => {
   const theirs = new Set(theirFriends.map(String));
-  const shared = viewer.friends.filter((friend_id) => theirs.has(String(friend_id)) && !friend_id.equals(viewer._id) && !friend_id.equals(person_id));
+  const isShared = (friend_id) => theirs.has(String(friend_id)) && !friend_id.equals(viewer._id) && !friend_id.equals(person_id) && !isWhisprl(friend_id);
+  const shared = viewer.friends.filter(isShared);
   const people = await UserModel.find({ _id: { $in: shared.slice(0, MUTUAL_PREVIEW) } })
     .select("firstName lastName avatar")
     .lean();
@@ -120,6 +122,7 @@ export const getOwnProfile = async (user) => {
     username: user.username,
     usernameChangedAt: user.usernameChangedAt,
     avatar: user.avatar,
+    badge: user.badge,
     cover: user.cover,
     coverStyle: user.coverStyle,
     email: user.email,
@@ -154,9 +157,9 @@ const PEOPLE_PAGE_SIZE = 20;
 
 const skipFor = (page, size = SEARCH_PAGE_SIZE) => Math.max(0, Number.parseInt(page, 10) || 0) * size;
 
-const SEARCH_FIELDS = "firstName lastName username avatar activityStatus onlineStatus";
+const SEARCH_FIELDS = "firstName lastName username avatar badge activityStatus onlineStatus";
 // presence is for friends, so strangers are found without it
-const STRANGER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt";
+const STRANGER_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt";
 
 // never by email, so nobody can find out whether an address has an account
 const nameOrUsernameFilter = (keyword) => {
@@ -249,6 +252,8 @@ export const setGameAudio = async (user, gameId, { effects, music }) => {
   await UserModel.updateOne({ _id: user._id }, { [`gameAudio.${gameId}`]: levels });
   return { ...Object.fromEntries(user.gameAudio ?? []), [gameId]: levels };
 };
+
+export const markToured = (user) => UserModel.updateOne({ _id: user._id }, { touredAt: new Date() });
 
 export const setShowBirthdayToFriends = async (user, isShown) => {
   if (typeof isShown !== "boolean") throw createHttpError.BadRequest("Choose on or off");

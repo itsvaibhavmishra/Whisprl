@@ -8,7 +8,8 @@ const PASSWORD_COST = 12;
 
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
-export const PERMISSIONS = ["overview", "people", "reports", "requests", "suspend", "ban", "audit"];
+export const PERMISSIONS = ["overview", "people", "reports", "requests", "suspend", "ban", "audit", "announce"];
+const BADGES = ["owner", "admin", "official"];
 
 const publicKeySchema = mongoose.Schema(
   {
@@ -57,6 +58,20 @@ const coverStyleSchema = mongoose.Schema(
 
 const skippedStepSchema = mongoose.Schema({ version: { type: Number, required: true }, at: { type: Date, required: true } }, { _id: false });
 
+const journeySchema = mongoose.Schema(
+  {
+    startedAt: { type: Date, required: true },
+    via: { type: String, enum: ["email", "google", "github", "linkedin"], required: true },
+    verifiedAt: { type: Date },
+    birthdayAt: { type: Date },
+    usernameAt: { type: Date },
+    recoveryKeyAt: { type: Date },
+    firstFriendAt: { type: Date },
+    firstMessageAt: { type: Date },
+  },
+  { _id: false }
+);
+
 const birthdaySchema = mongoose.Schema(
   {
     day: { type: Number, required: true },
@@ -85,13 +100,19 @@ const profileSchema = mongoose.Schema(
   { _id: false }
 );
 
+// Whisprl's own account goes by one name; mongoose calls this with the account as this
+function needsLastName() {
+  return this.badge !== "official";
+}
+
 const userSchema = mongoose.Schema(
   {
     firstName: { type: String, required: [true, "First Name is required"] },
-    lastName: { type: String, required: [true, "Last Name is required"] },
+    lastName: { type: String, required: [needsLastName, "Last Name is required"] },
     username: { type: String, unique: true, sparse: true },
     usernameChangedAt: { type: Date },
     usernameConfirmedAt: { type: Date },
+    inviteCode: { type: String, unique: true, sparse: true, select: false },
     avatar: { type: String },
     cover: { type: String, default: "" },
     // the doodle drawn when there is no cover photo, or once it is removed
@@ -120,6 +141,15 @@ const userSchema = mongoose.Schema(
     verified: { type: Boolean, default: false },
     role: { type: String, enum: ROLES, default: "user" },
     permissions: { type: [String], enum: PERMISSIONS, default: undefined },
+    // shown beside the name: owner and admin follow the team, official marks Whisprl's own account
+    badge: { type: String, enum: BADGES },
+    whisprlWelcomedAt: { type: Date },
+    // the year Whisprl last wished them a happy birthday, so it never does twice in one
+    birthdayGreetedIn: { type: Number },
+    // set once the app's tour is finished or skipped, so it shows once an account rather than once a device
+    touredAt: { type: Date },
+    // whoever's invite link this account was made through, kept once so the inviter hears of it once
+    invitedBy: { type: mongoose.Schema.ObjectId, ref: "User" },
 
     bannedAt: { type: Date },
     suspendedUntil: { type: Date },
@@ -156,13 +186,16 @@ const userSchema = mongoose.Schema(
     agePausedUntil: { type: Date },
     skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
 
-    // the browser holds the permission itself, so this only records that the account has turned them on once
+    // nothing sets it now, but the schema keeps it so deleting an account still clears it from older ones
     notificationsAllowedAt: { type: Date },
 
     // End-to-end encryption: every public key the account has had, newest last
     publicKeys: [publicKeySchema],
     keyBackup: { type: keyBackupSchema, select: false },
     recoveryKeySavedAt: { type: Date },
+
+    // when a new account first reached each step of signing up, read only as counts and lists in the admin overview
+    journey: { type: journeySchema },
   },
   {
     timestamps: true,
@@ -170,6 +203,7 @@ const userSchema = mongoose.Schema(
 );
 
 userSchema.index({ "deletion.dueAt": 1 }, { sparse: true });
+userSchema.index({ "journey.startedAt": 1 }, { sparse: true });
 
 // every stored password was trimmed before hashing, so each one typed is trimmed the same way to match
 userSchema.pre("save", async function () {

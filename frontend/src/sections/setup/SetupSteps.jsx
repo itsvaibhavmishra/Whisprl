@@ -3,9 +3,6 @@ import { Typography } from "@mui/material";
 
 import AuthHeader from "@/sections/auth/AuthHeader";
 import BirthdayStep from "@/sections/setup/BirthdayStep";
-import NotificationsStep from "@/sections/setup/NotificationsStep";
-import PasskeyStep from "@/sections/setup/PasskeyStep";
-import ProfileStep from "@/sections/setup/ProfileStep";
 import ProtectMessagesStep from "@/sections/setup/ProtectMessagesStep";
 import UsernameStep from "@/sections/setup/UsernameStep";
 import { pendingStepsOf } from "@/utils/onboarding";
@@ -14,9 +11,6 @@ const STEP_VIEWS = {
   birthday: BirthdayStep,
   username: UsernameStep,
   messages: ProtectMessagesStep,
-  passkey: PasskeyStep,
-  notifications: NotificationsStep,
-  profile: ProfileStep,
 };
 
 const SetupSteps = ({ onboarding }) => {

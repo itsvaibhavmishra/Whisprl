@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 
 import { SITE_URL } from "@/config";
-import { PATH_DASHBOARD } from "@/routes/paths";
+import { PATH_DASHBOARD, PATH_INVITE } from "@/routes/paths";
 import { notify } from "@/utils/notify";
 import { isApp } from "@/utils/platform";
 
@@ -37,4 +37,11 @@ export const canShareNatively = () => Boolean(navigator.share) && window.matchMe
 export const shareProfile = async (person) => {
   if (!canShareNatively()) return copyProfileLink(person);
   return navigator.share({ title: `${person.firstName} on Whisprl`, url: profileLinkOf(person) }).catch(() => {});
+};
+
+export const shareInvite = async (code) => {
+  const url = `${linkOrigin}${PATH_INVITE}/${code}`;
+  if (canShareNatively()) return navigator.share({ title: "Join me on Whisprl", text: "Let's play and chat on Whisprl", url }).catch(() => {});
+  await navigator.clipboard.writeText(url);
+  notify({ severity: "success", message: "Invite link copied" });
 };

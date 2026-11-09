@@ -9,15 +9,20 @@ import {
   closeGameRequest,
   dismiss,
   getActivePeople,
+  getAnnouncedGames,
+  getAnnouncements,
+  getAudienceSizes,
   getAuditLog,
   getConfirmationOptions,
   getGameRequests,
   getOverview,
   getPeople,
   getReports,
+  getStoppedPeople,
   getTeam,
   removeFromTeam,
   restore,
+  sendAnnouncement,
   suspend,
 } from "#src/controllers/adminController.js";
 
@@ -29,6 +34,8 @@ adminRouter.use(protect, staffOnly);
 adminRouter.route("/overview").get(readLimit(), allow("overview"), getOverview);
 
 adminRouter.route("/active").get(readLimit(), allow("overview"), getActivePeople);
+
+adminRouter.route("/journey/:stage").get(readLimit(), allow("overview"), getStoppedPeople);
 
 adminRouter.route("/people").get(searchLimit(), allow("people"), getPeople);
 
@@ -48,6 +55,12 @@ adminRouter.route("/reports/:report_id/dismiss").put(writeLimit(), allow("report
 adminRouter.route("/game-requests").get(searchLimit(), allow("requests"), getGameRequests);
 
 adminRouter.route("/game-requests/:name_key/close").put(writeLimit(), allow("requests"), closeGameRequest);
+
+adminRouter.route("/announcements").get(readLimit(), allow("announce"), getAnnouncements).post(writeLimit(), allow("announce"), sendAnnouncement);
+
+adminRouter.route("/announcements/audience").get(readLimit(), allow("announce"), getAudienceSizes);
+
+adminRouter.route("/announcements/games").get(readLimit(), allow("announce"), getAnnouncedGames);
 
 adminRouter.route("/audit").get(readLimit(), allow("audit"), getAuditLog);
 

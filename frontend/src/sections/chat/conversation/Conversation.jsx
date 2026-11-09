@@ -8,7 +8,7 @@ import { UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { LookAtGame, OpenGame, UnwatchGame, WatchGame } from "@/redux/slices/actions/gameActions";
 import { selectActiveOutbox } from "@/redux/slices/chatSlice";
 import { setUnlockOpen } from "@/redux/slices/encryptionSlice";
-import { selectGameSession } from "@/redux/slices/gameSlice";
+import { selectGameSession, selectIsGameCollapsed } from "@/redux/slices/gameSlice";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
 import ChatCanvas from "@/sections/chat/ChatCanvas";
 import FileUploadCont from "@/sections/chat/attachments/FileUploadCont";
@@ -146,7 +146,7 @@ const Conversation = () => {
   const [isSearching, setIsSearching] = useState(false);
   const toggleSearch = useCallback(() => setIsSearching((open) => !open), []);
   const gameSession = useSelector(selectGameSession);
-  const isGameHidden = useSelector((state) => state.game.collapsed);
+  const isGameHidden = useSelector(selectIsGameCollapsed);
   const openingGame = useSelector((state) => GAME_IDS.find((game) => selectIsLoading(state, OpenGame, game)));
   const shownSession = gameSession ?? (openingGame && openingSessionOf(openingGame));
   const isGameShown = Boolean(shownSession) && !isGameHidden;

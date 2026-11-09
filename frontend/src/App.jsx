@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 import CrashScreen from "@/components/CrashScreen";
 import ThemeColorPresets from "@/components/theme-settings/ThemeColorPresets";
@@ -7,7 +8,7 @@ import ThemeProvider from "@/theme";
 
 import { ErrorBoundary } from "@/utils/errorReports";
 import HelmetHandler from "@/utils/helmetHandler";
-import { startLiveUpdates } from "@/utils/liveUpdate";
+import { applyStagedUpdate, startLiveUpdates } from "@/utils/liveUpdate";
 import AppToaster from "@/components/AppToaster";
 import ScrollToTop from "@/components/ScrollToTop";
 import AppBackButton from "@/components/AppBackButton";
@@ -15,8 +16,6 @@ import AppLock from "@/components/AppLock";
 import OpenAppLinks from "@/components/OpenAppLinks";
 
 import ReactGA from "react-ga4";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 if (import.meta.env.REACT_APP_GA_ID) {
   ReactGA.initialize(import.meta.env.REACT_APP_GA_ID);
@@ -30,21 +29,26 @@ const StartedSignal = () => {
   return null;
 };
 
+const UpdateBetweenScreens = () => {
+  const { pathname } = useLocation();
+  useEffect(applyStagedUpdate, [pathname]);
+  return null;
+};
+
 function App() {
   return (
     <>
       <ThemeProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <ThemeColorPresets>
-            <AppToaster />
+        <ThemeColorPresets>
+          <AppToaster />
 
-            <ErrorBoundary fallback={({ error }) => <CrashScreen error={error} />}>
-              <Router />
-              <AppLock />
-              <StartedSignal />
-            </ErrorBoundary>
-          </ThemeColorPresets>
-        </LocalizationProvider>
+          <ErrorBoundary fallback={({ error }) => <CrashScreen error={error} />}>
+            <Router />
+            <AppLock />
+            <StartedSignal />
+            <UpdateBetweenScreens />
+          </ErrorBoundary>
+        </ThemeColorPresets>
       </ThemeProvider>
 
       <HelmetHandler />

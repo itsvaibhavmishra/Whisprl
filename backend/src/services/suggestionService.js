@@ -7,7 +7,7 @@ const SUGGESTION_LIMIT = 20;
 // ranked before the slower lookups, with room for the ones those lookups drop
 const CANDIDATE_LIMIT = 100;
 const NAMED_LINKS = 2;
-const SUGGESTION_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt suggestToFriendsOfFriends";
+const SUGGESTION_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt suggestToFriendsOfFriends";
 
 // for each person, the user's friends who are friends with them and the groups they are both in
 const linksOf = async (user) => {

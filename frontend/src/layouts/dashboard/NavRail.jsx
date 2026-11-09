@@ -165,7 +165,17 @@ const SideRail = () => {
           const badge = badges[path] ?? 0;
           const to = path === chat ? chatsLink : path;
           return (
-            <RailItem key={path} component={Link} to={to} onClick={stayIfHere(to)} label={label} isActive={isActive} badge={badge} badgeWord={badgeWord}>
+            <RailItem
+              key={path}
+              component={Link}
+              to={to}
+              onClick={stayIfHere(to)}
+              data-tour={label.toLowerCase()}
+              label={label}
+              isActive={isActive}
+              badge={badge}
+              badgeWord={badgeWord}
+            >
               <CountBadge count={badge}>
                 <Icon size={24} weight={isActive ? "fill" : "regular"} />
               </CountBadge>
@@ -235,7 +245,7 @@ export const TabBar = () => {
         const isActive = isAt(pathname, path);
         const badge = badges[path] ?? 0;
         return (
-          <TabItem key={path} component={Link} to={path} label={label} isActive={isActive} badge={badge} badgeWord={badgeWord}>
+          <TabItem key={path} component={Link} to={path} data-tour={label.toLowerCase()} label={label} isActive={isActive} badge={badge} badgeWord={badgeWord}>
             <CountBadge count={badge}>
               <Icon size={22} weight={isActive ? "fill" : "regular"} />
             </CountBadge>

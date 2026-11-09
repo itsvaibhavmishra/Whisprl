@@ -122,7 +122,7 @@ const ProfileEditor = () => {
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <ProfileIdentity
         size="page"
-        person={{ ...live, _id: user._id, username: user.username, coverStyle: liveCoverStyle }}
+        person={{ ...live, _id: user._id, username: user.username, badge: user.badge, coverStyle: liveCoverStyle }}
         coverAction={<CoverPicker coverStyle={liveCoverStyle} photo={live.cover} onStyleChange={changeCoverStyle} onPhotoChange={changeImage("cover")} />}
         photoAction={<ImageMenu kind="photo" hasImage={!!live.avatar} onChange={changeImage("avatar")} />}
       />

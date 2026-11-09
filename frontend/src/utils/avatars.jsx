@@ -24,11 +24,12 @@ export const avatarLookOf = (name) => ({ initial: (name ?? "").charAt(0).toUpper
 
 export const nameColorOf = (name, mode) => (mode === "dark" ? NIGHT_NAME_COLORS[seedOf(name)] : AVATAR_GRADIENTS[seedOf(name)][0]);
 
+// a picture that fails to load shows the initial on its colour, instead of MUI's grey letter that reads as an inactive account
 export default function getAvatar(avatar, name, size = 40) {
-  if (avatar) return <Avatar src={avatar} alt={name} sx={{ width: size, height: size }} />;
   const { initial, background } = avatarLookOf(name);
   return (
     <Avatar
+      src={avatar || undefined}
       alt={name}
       sx={{
         width: size,

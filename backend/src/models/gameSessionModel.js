@@ -10,6 +10,8 @@ const seatSchema = mongoose.Schema(
     invited: { type: mongoose.Schema.ObjectId, ref: "User" },
     // the player left mid-game, so the seat still counts as theirs while a bot plays it
     bot: { type: Boolean, default: false },
+    // Whisprl's own seat, which the bot plays for its account
+    official: { type: Boolean, default: false },
     // turns missed in a row; two hand the seat to the bot until its player comes back
     missed: { type: Number, default: 0 },
     away: { type: Boolean, default: false },
@@ -35,6 +37,10 @@ const gameSessionSchema = mongoose.Schema(
     state: { type: mongoose.Schema.Types.Mixed },
     // who won the last game, kept in the lobby until the next one starts
     result: { type: mongoose.Schema.Types.Mixed },
+    // how a chosen bot plays this game, picked as it starts from the players' records and never shown
+    botLevel: { type: String, enum: ["dumb", "medium", "pro", "expert"] },
+    // players starting this game for the first time, who are shown its rules
+    newcomers: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

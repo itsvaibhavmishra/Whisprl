@@ -35,7 +35,7 @@ import { encodePayload } from "@/utils/messagePayload";
 import { isMuted } from "@/utils/chats";
 import { emitRoomEvent } from "@/utils/gameRoomEvents";
 import { feel } from "@/utils/haptics";
-import { notifyArrival } from "@/utils/notifications";
+import { clearChatNotification, notifyArrival } from "@/utils/notifications";
 import { playQueuedSound, playSound } from "@/utils/sounds";
 
 const ACK_TIMEOUT = 10000;
@@ -187,6 +187,7 @@ export const AcknowledgeMessages = (conversationId) => (_, getState) => {
   const { chat, encryption } = getState();
   const isRead = encryption.status === "ready" && chat.activeConversation?._id === conversationId && document.visibilityState === "visible";
   socket.emit(isRead ? "messages_seen" : "messages_delivered", conversationId);
+  if (isRead) clearChatNotification(conversationId);
 };
 
 export const StartTyping = (conversationId) => () => socket.emit("start_typing", conversationId);
@@ -410,7 +411,9 @@ export const ReceiveReactionPreview =
 export const ReceiveReceipt = (receipt) => (dispatch, getState) => {
   dispatch(applyReceipt(receipt));
   const { conversation_id, reader, receipt: kind } = receipt;
-  if (kind === "seen" && reader === getState().user.user._id) dispatch(markRead(conversation_id));
+  if (kind !== "seen" || reader !== getState().user.user._id) return;
+  dispatch(markRead(conversation_id));
+  clearChatNotification(conversation_id);
 };
 
 export const ReceiveAlbumUpdate = (album) => async (dispatch, getState) => {

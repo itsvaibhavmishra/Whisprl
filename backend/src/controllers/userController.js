@@ -10,6 +10,7 @@ import {
   searchForUsers,
   setGameAudio,
   setQuickReactions,
+  markToured,
   setShowBirthdayToFriends,
 } from "#src/services/userService.js";
 import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionService.js";
@@ -91,6 +92,11 @@ export const updateQuickReactions = async (req, res) => {
 export const updateSuggestionSetting = async (req, res) => {
   const suggestToFriendsOfFriends = await setSuggestToFriendsOfFriends(req.user, req.body.suggestToFriendsOfFriends);
   return res.status(200).json({ status: "success", suggestToFriendsOfFriends });
+};
+
+export const finishTour = async (req, res) => {
+  await markToured(req.user);
+  return res.status(200).json({ status: "success" });
 };
 
 export const updateBirthdaySetting = async (req, res) => {

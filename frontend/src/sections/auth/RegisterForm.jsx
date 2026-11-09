@@ -41,7 +41,7 @@ const RegisterForm = ({ onTooYoung }) => {
   };
 
   const methods = useForm({
-    mode: "onChange",
+    mode: "onTouched",
     resolver: yupResolver(RegisterSchema),
     defaultValues,
   });
@@ -58,10 +58,10 @@ const RegisterForm = ({ onTooYoung }) => {
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { md: "flex-start" }, justifyContent: "center" }}>
-          <RHFTextField name="firstName" label="First name" />
-          <RHFTextField name="lastName" label="Last name" />
+          <RHFTextField name="firstName" label="First name" autoComplete="given-name" autoFocus />
+          <RHFTextField name="lastName" label="Last name" autoComplete="family-name" />
         </Stack>
-        <RHFTextField name="email" label="Email address" />
+        <RHFTextField name="email" label="Email address" type="email" autoComplete="email" />
         <RHFBirthdayPicker name="birthday" label="Birthday" helperText="Friends see the day and month, never the year, and you can hide it." />
         <RHFPasswordField name="password" label="Password" autoComplete="new-password" />
         <PasswordChecklist name="password" />

@@ -51,6 +51,7 @@ const GameSeats = ({ conversation, session, game, meId, isManager, act, onTake, 
           {isVersus && index === 1 && <Versus theme={game.theme} />}
           <Seat
             seat={seat}
+            index={index}
             conversation={conversation}
             meId={meId}
             theme={game.theme}

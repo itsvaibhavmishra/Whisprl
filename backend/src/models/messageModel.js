@@ -32,6 +32,30 @@ export const cipherSchema = mongoose.Schema(
   { _id: false }
 );
 
+const noticeSchema = mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["welcome", "inviteJoined", "challenge", "reportReceived", "reportActioned", "reportDismissed", "announcement", "gameAdded", "birthday"],
+      required: true,
+    },
+    // who it is about, with the name they had when it was sent
+    user: { type: mongoose.Schema.ObjectId, ref: "User" },
+    name: { type: String },
+    username: { type: String },
+    // a challenge names its game, and keeps the game's name so the chat can say it without the catalog
+    game: { type: String },
+    gameName: { type: String },
+    // what a report was about, which decides how Whisprl names it back to the reporter
+    about: { type: String, enum: ["person", "status", "group"] },
+    // an announcement carries its own words and button, written by staff
+    announcement: { type: mongoose.Schema.ObjectId, ref: "Announcement" },
+    text: { type: String },
+    button: { kind: { type: String }, label: { type: String }, to: { type: String }, game: { type: String } },
+  },
+  { _id: false }
+);
+
 const eventSchema = mongoose.Schema(
   {
     type: {
@@ -99,6 +123,9 @@ const messageSchema = mongoose.Schema(
     // the catalog id of the game it was typed in, so the chat can say where it came from
     game: { type: String },
 
+    // a message the app writes itself, from Whisprl or a game challenge, so it names what it is about instead of carrying sealed text
+    notice: { type: noticeSchema, default: undefined },
+
     // sealed to the sender alone until the recipient has a key, then re-encrypted by the sender's browser
     awaitingKey: { type: Boolean },
 
@@ -141,6 +168,8 @@ const messageSchema = mongoose.Schema(
 messageSchema.index({ conversation: 1, _id: 1 });
 messageSchema.index({ sender: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: "string" } } });
 messageSchema.index({ sender: 1 }, { partialFilterExpression: { awaitingKey: true } });
+// one copy of an announcement in each chat, however often a batch of it is sent
+messageSchema.index({ "notice.announcement": 1, conversation: 1 }, { unique: true, partialFilterExpression: { "notice.announcement": { $exists: true } } });
 messageSchema.index({ expiresAt: 1 }, { partialFilterExpression: { expiresAt: { $exists: true } } });
 
 const MessageModel = mongoose.model("Message", messageSchema);

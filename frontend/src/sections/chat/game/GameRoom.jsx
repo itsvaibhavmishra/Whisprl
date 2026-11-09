@@ -2,7 +2,7 @@ import { memo, Suspense, useCallback, useEffect, useMemo, useState } from "react
 import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha, ThemeProvider } from "@mui/material/styles";
 import { m, useReducedMotion } from "motion/react";
-import { ArrowsInSimpleIcon, BookOpenIcon, SmileyIcon, SpeakerHighIcon, StopIcon, TrophyIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowsInSimpleIcon, BookOpenIcon, SpeakerHighIcon, StopIcon, TrophyIcon, XIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -16,6 +16,7 @@ import GameTitle from "@/sections/chat/game/GameTitle";
 import PlayerBar from "@/sections/chat/game/PlayerBar";
 import ResultPanel from "@/sections/chat/game/ResultPanel";
 import ReactionTray from "@/sections/chat/game/ReactionTray";
+import StickerFaceIcon from "@/sections/chat/game/StickerFaceIcon";
 import { Floats, SayingsContext } from "@/sections/chat/game/RoomChatter";
 import RulesSheet from "@/sections/chat/game/RulesSheet";
 import SaveSeatDialog from "@/sections/chat/game/SaveSeatDialog";
@@ -37,6 +38,13 @@ const CONFIRMATIONS = {
   close: { title: "Close the game?", text: "Everyone at the table gets up and the game goes away.", action: "Close game" },
   cancel: { title: "End this game?", text: "The game stops here and everyone goes back to the table.", action: "End game" },
   leave: { title: "Leave the game?", text: "A bot plays your seat for the rest of this game.", action: "Leave" },
+  forfeit: { title: "Leave and lose this game?", text: "The other player wins, and it counts on the leaderboard.", action: "Leave" },
+};
+
+// between two people, leaving a game against a person or Whisprl loses it, while one against the bot just closes
+const leaveKindOf = (isGroup, hasOpponent) => {
+  if (isGroup) return "leave";
+  return hasOpponent ? "forfeit" : "close";
 };
 
 // the bar sits over the artwork, so the buttons carry their own backing, in the game's card so its ink reads on it
@@ -111,6 +119,11 @@ const GameRoom = ({ conversation, session }) => {
   // kept between screens, so the scene does not change size as a game starts and ends
   const [controlsHeight, setControlsHeight] = useState(0);
 
+  // someone who has never played this game is shown its rules as their first one starts
+  useEffect(() => {
+    if (session.isFirstGame) setIsShowingRules(true);
+  }, [session.isFirstGame]);
+
   const game = GAMES[session.game];
   const { theme } = game;
   const isArtReady = useArtReady(game.preload);
@@ -145,8 +158,14 @@ const GameRoom = ({ conversation, session }) => {
 
   const isManager = conversation.isGroup && canManage(conversation, meId);
   const isSeatSaved = hasSavedSeat(session, meId);
-  const canClose = !conversation.isGroup || (isManager && !isPlaying);
   const mySeat = session.seats.find((seat) => seat.user === meId);
+  const leaveKind = leaveKindOf(
+    conversation.isGroup,
+    session.seats.some((seat) => seat.user && seat.user !== meId)
+  );
+  // someone watching a game between two people can only hide it
+  const isForfeiting = isPlaying && leaveKind === "forfeit" && Boolean(mySeat);
+  const canClose = conversation.isGroup ? isManager && !isPlaying : Boolean(mySeat) && !isForfeiting;
 
   const act = (action) => dispatch(ActInGame({ conversationId, ...action }));
   // the board is redrawn only for what it shows, so what it is handed keeps one identity across the room's own renders
@@ -157,11 +176,12 @@ const GameRoom = ({ conversation, session }) => {
     },
     [dispatch, conversationId]
   );
-  const onLeave = useCallback(() => setConfirming("leave"), []);
+  const onLeave = useCallback(() => setConfirming(leaveKind), [leaveKind]);
   const confirmed = {
     close: () => dispatch(CloseGame(conversationId)),
     cancel: () => act({ type: "cancel" }),
     leave: () => act({ type: "stand" }),
+    forfeit: () => act({ type: "stand" }),
   };
 
   const room = (
@@ -224,10 +244,10 @@ const GameRoom = ({ conversation, session }) => {
           <BarButton label="Sound and music" caption="Sound" theme={theme} onClick={(event) => setSoundAnchor(event.currentTarget)}>
             <SpeakerHighIcon size={20} weight="bold" />
           </BarButton>
-          {/* a phone throws emoji from the bar at its foot; beside the chat on a wide screen, it is here */}
+          {/* a phone throws reactions from the bar at its foot; beside the chat on a wide screen, it is here */}
           <Box sx={{ display: { xs: "none", lg: "inline-flex" } }}>
-            <BarButton label="Throw an emoji" caption="Emoji" theme={theme} onClick={(event) => setReactionAnchor(event.currentTarget)}>
-              <SmileyIcon size={20} weight="bold" />
+            <BarButton label="Throw a reaction" caption="React" theme={theme} onClick={(event) => setReactionAnchor(event.currentTarget)}>
+              <StickerFaceIcon size={20} />
             </BarButton>
           </Box>
           {isManager && isPlaying && (
@@ -240,6 +260,11 @@ const GameRoom = ({ conversation, session }) => {
           </BarButton>
           {canClose && (
             <BarButton label="Close game" caption="Close" theme={theme} onClick={() => setConfirming("close")}>
+              <XIcon size={20} weight="bold" />
+            </BarButton>
+          )}
+          {isForfeiting && (
+            <BarButton label="Leave game" caption="Leave" theme={theme} onClick={() => setConfirming("forfeit")}>
               <XIcon size={20} weight="bold" />
             </BarButton>
           )}

@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { UserModel } from "#src/models/index.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { HIDDEN_PROFILE_FIELDS } from "#src/models/userModel.js";
 import { assertReason, recordAction } from "#src/services/auditService.js";
 import { sendMail } from "#src/services/mailer.js";
@@ -61,6 +62,7 @@ const findTarget = async (actor, user_id) => {
   const target = await UserModel.findById(user_id).select("+hiddenProfile");
   if (!target) throw createHttpError.NotFound("No such account");
   if (isStaff(target)) throw createHttpError.Forbidden("Staff accounts cannot be suspended or banned");
+  assertNotWhisprl(target._id, "Whisprl's own account cannot be suspended or banned");
   if (actor._id.equals(target._id)) throw createHttpError.BadRequest("You cannot do this to your own account");
   return target;
 };
@@ -117,7 +119,7 @@ export const suspendPerson = async (io, actor, user_id, { until, reason, reportI
   await UserModel.updateOne({ _id: target._id }, { suspendedUntil: endsAt });
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "suspended", target: target._id, reason: given });
-  await markReportActioned(actor, reportId);
+  await markReportActioned(io, actor, reportId);
   tellPerson(target, NOTICES.suspended(endsAt), given);
 };
 
@@ -131,7 +133,7 @@ export const banPerson = async (io, actor, user_id, { reason, reportId }) => {
   await UserModel.updateOne({ _id: target._id }, { ...PLACEHOLDER_PROFILE, hiddenProfile, bannedAt: new Date(), $unset: { suspendedUntil: 1, username: 1 } });
   await shutOut(io, target._id);
   await recordAction({ actor: actor._id, action: "banned", target: target._id, reason: given });
-  await markReportActioned(actor, reportId);
+  await markReportActioned(io, actor, reportId);
   tellPerson(target, NOTICES.banned(), given);
 };
 

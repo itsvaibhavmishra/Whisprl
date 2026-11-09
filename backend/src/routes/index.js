@@ -14,6 +14,7 @@ import adminRouter from "#src/routes/adminRouter.js";
 import gameRouter from "#src/routes/gameRouter.js";
 import pushRouter from "#src/routes/pushRouter.js";
 import { protect, requireAgeCheck } from "#src/middlewares/authMiddleware.js";
+import inviteRouter from "#src/routes/inviteRouter.js";
 
 const router = express.Router();
 // everything shared with other people waits for the age check that setup asks for
@@ -44,6 +45,8 @@ router.use("/admin", adminRouter);
 router.use("/games", ...withOthers, gameRouter);
 
 router.use("/push", pushRouter);
+
+router.use("/invites", inviteRouter);
 
 router.get("/start-server", (req, res) => {
   res.send("Welcome to Whisprl 😺");

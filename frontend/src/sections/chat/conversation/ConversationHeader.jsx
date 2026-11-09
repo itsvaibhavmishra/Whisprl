@@ -5,12 +5,14 @@ import { AnimatePresence, m, useReducedMotion } from "motion/react";
 import { shallowEqual, useSelector } from "react-redux";
 
 import ChatAvatar from "@/sections/chat/ChatAvatar";
+import PersonBadge from "@/components/PersonBadge";
 import TypingDots from "@/components/TypingDots";
 import { DETAILS_BUTTON_ID, useCloseChat, useDetailsToggle } from "@/sections/chat/chatRoute";
 import { DETAILS_SLIDE } from "@/sections/chat/details/DetailsPanel";
 import AvatarChoices from "@/sections/chat/status/AvatarChoices";
 import useLiveStatuses from "@/sections/chat/status/useLiveStatuses";
 import { identityOf, isOnline as isPersonOnline } from "@/utils/chats";
+import { isOfficial } from "@/utils/relationship";
 import { durationOf, membersLabel, typingLabel, typingNamesIn } from "@/utils/groups";
 
 // while this tab is disconnected the friend's status is stale, so the header says what is happening instead
@@ -81,6 +83,7 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
     if (typists.length) return typingLabel(typists, conversation.isGroup);
     if (conversation.isGroup) return membersLabel(conversation);
     if (peer?._id === meId) return "Notes to yourself";
+    if (isOfficial(peer)) return "Always up for a game";
     return isOnline ? "Online" : "Offline";
   };
 
@@ -110,7 +113,7 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
         </IconButton>
       )}
 
-      <Stack direction="row" sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
+      <Stack direction="row" data-tour="chat-header" sx={{ alignItems: "center", flex: 1, minWidth: 0 }}>
         <AvatarChoices
           name={name}
           ownerId={peer?._id}
@@ -131,6 +134,7 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
               <Typography noWrap sx={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1.3 }}>
                 {name}
               </Typography>
+              <PersonBadge badge={peer?.badge} />
               {conversation.disappearAfter && (
                 <Box component="span" sx={{ display: "grid", color: "primary.main" }}>
                   <TimerIcon size={16} weight="bold" aria-label={`Messages disappear after ${durationOf(conversation.disappearAfter)}`} />

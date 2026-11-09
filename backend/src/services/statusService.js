@@ -190,11 +190,11 @@ export const reactToStatus = async (user, status_id, cipher) => {
 };
 
 // only an update for everyone can be reported, since nobody but its audience can read any other
-export const reportStatus = async (user, status_id, report) => {
+export const reportStatus = async (io, user, status_id, report) => {
   if (!mongoose.isValidObjectId(status_id)) throw createHttpError.NotFound(STATUS_GONE);
   const status = await StatusModel.findOne({ _id: status_id, isPublic: true, ...visibleTo(user) }).select("owner");
   if (!status || (await blockedEitherWay(user, [status.owner])).size) throw createHttpError.NotFound(STATUS_GONE);
-  await fileStatusReport(user, status, report);
+  await fileStatusReport(io, user, status, report);
 };
 
 export const removeStatus = async (user, status_id) => {

@@ -187,7 +187,7 @@ const StatusViewer = ({ ownerIds, startOwnerId, startStatusId, onClose }) => {
       slotProps={{
         paper: {
           "aria-label": "Status",
-          sx: { position: "relative", overflow: "hidden", bgcolor: "#06090E", border: 0, boxShadow: "none", backgroundImage: "none" },
+          sx: { position: "relative", overflow: "hidden", bgcolor: "#060708", border: 0, boxShadow: "none", backgroundImage: "none" },
         },
       }}
     >

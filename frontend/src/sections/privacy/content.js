@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL, PORTFOLIO_URL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "19 October 2026";
+export const LAST_UPDATED = "10 November 2026";
 
 export const INTRO = [
   "This privacy policy covers Whisprl, the free chat app at whisprl.netlify.app and on Android, run by ",
@@ -31,10 +31,10 @@ export const SECTIONS = [
       {
         list: [
           "your name, email address and password when you sign up. Signing in with Google, GitHub or LinkedIn gives Whisprl your name, email address and profile picture from that account instead of a password",
-          "your birthday, to check you are at least 13. Friends see the day and month, never the year, unless you hide it",
+          "your birthday, to check you are at least 13 and so Whisprl can wish you a happy birthday. Friends see the day and month, never the year, unless you hide it",
           "a username, profile picture, cover and status line, which other people on Whisprl can see",
           "the messages, photos, videos, voice messages, documents, reactions and statuses you send",
-          "reports you make, with any messages you choose to attach",
+          "reports you make, with any messages you choose to attach. Whisprl tells you when a report arrives and, once it has been looked at, whether action was taken, never what",
           "game requests you send: the game's name, and any links and details you add",
           "the reason you give, and any note, if you delete your account",
         ],
@@ -50,7 +50,9 @@ export const SECTIONS = [
           "your friends, friend requests, blocked people, groups and conversations, and settings such as muted chats, disappearing messages and who sees your status",
           "whether you are online, which your friends can see",
           "who has viewed each status, shown only to the person who posted it",
-          "the games you play in a chat: who sits where, every move and the result",
+          "the games you play in a chat: who sits where, every move and the result, and how your games against Whisprl and its bot go, which sets how hard they play",
+          "whose invite link you joined through, if you did, so Whisprl can tell them you joined",
+          "whether you have taken the app's tour, so it is shown only once",
           "the days you open Whisprl, which staff see only as a count of active people",
           "for each device you log in on, the kind of browser or device it is and, in the Android app, a token for sending it notifications",
           "the public half of your encryption keys, of each device's login key and of any passkey you add. A public key can only lock a message or check a sign-in, never open or make one",
@@ -66,6 +68,7 @@ export const SECTIONS = [
     blocks: [
       "Messages, photos, videos, voice messages, documents, reactions and statuses shared with friends are locked on your device before they leave it, with keys only the people in that conversation hold. Whisprl's servers and Cloudinary store them locked, and nobody who runs Whisprl can open them.",
       "Some things are not encrypted, because everyone they are shown to has to be able to see them: profile pictures and covers, a group's name and picture, statuses shared with everyone, and messages sent before encryption arrived. Games are not encrypted either, because the server referees each one so nobody can cheat. The chat beside a game still is.",
+      "Whisprl, the app's own account, is in everyone's chats. What you send it is encrypted like any other message, and nobody can read it. What it sends you, such as a welcome, a birthday wish, news of a game or an update on a report you made, is written by Whisprl itself and is not encrypted.",
       "Staff only ever see a message when someone in that conversation reports it. Their own device then opens the reported message and the ones around it and sends them with the report, which the report dialog says before anything is sent.",
       "In the Android app, your encryption key is also kept in Google's Block Store, so reinstalling the app does not lock your messages. With a screen lock on your phone, that copy reaches Google's backup end-to-end encrypted, so Google cannot read it either. Logging out deletes it.",
     ],
@@ -77,7 +80,7 @@ export const SECTIONS = [
       {
         list: [
           "the microphone, only while you record a voice message",
-          "notifications, to tell you about new messages. Each notification arrives still encrypted and is opened on your phone",
+          "notifications, to tell you about new messages. A message from someone you talk to arrives still encrypted and is opened on your phone. A game invite or a message from Whisprl, which holds nothing private, arrives as it is",
           "your fingerprint, face or screen lock, to confirm it is you before making a new recovery key. Whisprl never sees them, only whether Android confirmed you",
         ],
       },
@@ -102,7 +105,7 @@ export const SECTIONS = [
           "MongoDB Atlas, which stores the server's database",
           "Cloudinary, which stores the files you send, encrypted, and profile pictures, covers and statuses shared with everyone, which are not",
           "Gmail, which sends your codes and account emails, so it receives your email address",
-          "Firebase Cloud Messaging, by Google, which delivers notifications to the Android app. A notification carries your message still encrypted",
+          "Firebase Cloud Messaging, by Google, which delivers notifications to the Android app. A notification of a message from someone you talk to carries it still encrypted, while a game invite or a message from Whisprl carries its words as they are",
           "Google, GitHub and LinkedIn, if you sign in with them",
           "Google reCAPTCHA, on sign-up and log-in, to keep bots out. It receives information about your device and how you use the page",
           "Google Analytics, to count visits and see which pages are used. It receives the pages you open and information about your device, never your messages",
@@ -116,7 +119,7 @@ export const SECTIONS = [
     title: "Who else sees it",
     blocks: [
       "The people you talk to see what you send them, your profile, and whether you are online. Your email address is never shown to anyone.",
-      "Staff, meaning the owner and any admins, can see account details other than passwords, the reports and game requests sent to them, and what the server holds unencrypted, so they can keep Whisprl safe. Every staff action needs a passkey and is recorded.",
+      "Staff, meaning the owner and any admins, can see account details other than passwords, the reports and game requests sent to them, and what the server holds unencrypted, so they can keep Whisprl safe. They can also send a message from Whisprl to everyone. Suspending, banning or restoring an account and changing who is on the staff need a passkey, and those actions, dismissing a report and sending a message from Whisprl are all recorded.",
       "Whisprl does not sell your data or share it for advertising. It discloses data only when the law requires it, and even then it cannot hand over what it cannot read.",
     ],
   },
@@ -155,7 +158,7 @@ export const SECTIONS = [
     id: "security",
     title: "How it is protected",
     blocks: [
-      "Everything travels over HTTPS. Messages and files between friends are end-to-end encrypted. Passwords and codes are stored only as one-way hashes. Each login is tied to a key your device keeps and never shares, so a stolen token alone cannot keep someone signed in. Staff need a passkey for every action, and every action is recorded.",
+      "Everything travels over HTTPS. Messages and files between friends are end-to-end encrypted. Passwords and codes are stored only as one-way hashes. Each login is tied to a key your device keeps and never shares, so a stolen token alone cannot keep someone signed in. Staff need a passkey to suspend, ban or restore an account or to change who is on the staff, and those actions are recorded.",
     ],
   },
   {

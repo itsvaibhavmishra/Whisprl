@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Box, Button, Skeleton, Stack, Typography } from "@mui/material";
-import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
+import { Alert, Box, Button, Checkbox, Collapse, FormControlLabel, Link, Skeleton, Stack, Typography } from "@mui/material";
+import { CaretDownIcon, CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
@@ -8,7 +8,6 @@ import { CreateAccountKey, PrepareEncryption, ReplaceRecoveryKey } from "@/redux
 import { ConfirmRecoveryKeySaved } from "@/redux/slices/actions/onboardingActions";
 import RecoveryKeyBox, { KEEP_RECOVERY_KEY, keepRecoveryKey } from "@/sections/encryption/RecoveryKeyBox";
 import UnlockDialog from "@/sections/encryption/UnlockDialog";
-import CopiedKeyDialog from "@/sections/setup/CopiedKeyDialog";
 import { deviceNoun, isApp } from "@/utils/platform";
 
 const WHERE_TO_KEEP_IT = [
@@ -17,23 +16,46 @@ const WHERE_TO_KEEP_IT = [
   { place: "On paper", how: "kept with your important papers, never in shared photos or notes" },
 ].filter((keeping) => !(isApp && keeping.isWebOnly));
 
-const KeepingPlaces = () => (
-  <Box component="section" aria-labelledby="keeping-places-title">
-    <Typography id="keeping-places-title" component="h3" sx={{ m: 0, fontSize: 14, fontWeight: 700 }}>
-      Where to keep it
-    </Typography>
-    <Box component="ul" sx={{ m: 0, mt: 1, pl: 2.5, display: "grid", gap: 0.75 }}>
-      {WHERE_TO_KEEP_IT.map(({ place, how }) => (
-        <Typography key={place} component="li" variant="body2" sx={{ color: "text.secondary" }}>
-          <Box component="strong" sx={{ color: "text.primary", fontWeight: 600 }}>
-            {place}
-          </Box>
-          , {how}.
-        </Typography>
-      ))}
+// folded away so the screen holds only the key and what to do with it, for whoever wants the detail
+const KeepingPlaces = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Box>
+      <Link
+        component="button"
+        type="button"
+        variant="body2"
+        underline="hover"
+        aria-expanded={isOpen}
+        aria-controls="keeping-places"
+        onClick={() => setIsOpen(!isOpen)}
+        sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontWeight: 600 }}
+      >
+        Where to keep it
+        <CaretDownIcon size={14} weight="bold" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 200ms ease" }} />
+      </Link>
+      <Collapse in={isOpen} id="keeping-places">
+        <Box component="ul" sx={{ m: 0, mt: 1, pl: 2.5, display: "grid", gap: 0.75 }}>
+          {WHERE_TO_KEEP_IT.map(({ place, how }) => (
+            <Typography key={place} component="li" variant="body2" sx={{ color: "text.secondary" }}>
+              <Box component="strong" sx={{ color: "text.primary", fontWeight: 600 }}>
+                {place}
+              </Box>
+              , {how}.
+            </Typography>
+          ))}
+        </Box>
+        {isApp && (
+          <Typography variant="body2" sx={{ mt: 1.5, color: "text.secondary" }}>
+            This phone also keeps your key, so reinstalling Whisprl won&apos;t lock your messages while your Google backup is on. Your recovery key is for
+            everywhere else.
+          </Typography>
+        )}
+      </Collapse>
     </Box>
-  </Box>
-);
+  );
+};
 
 const BEFORE_THE_KEY = {
   setup: `Whisprl makes the key that locks your messages, and a recovery key that opens them on a new ${deviceNoun}.`,
@@ -46,13 +68,11 @@ const SavedKey = ({ recoveryKey }) => {
   const dispatch = useDispatch();
   const username = useSelector((state) => state.user.user.username);
   const isConfirming = useIsLoading(ConfirmRecoveryKeySaved);
-  const [isKept, setIsKept] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isCheckingCopy, setIsCheckingCopy] = useState(false);
-  const confirm = () => dispatch(ConfirmRecoveryKeySaved());
 
   const keep = async () => {
-    if (await keepRecoveryKey(recoveryKey, username)) setIsKept(true);
+    if (await keepRecoveryKey(recoveryKey, username)) setIsSaved(true);
   };
 
   const copy = async () => {
@@ -62,37 +82,44 @@ const SavedKey = ({ recoveryKey }) => {
 
   return (
     <Stack spacing={2.5}>
-      <RecoveryKeyBox recoveryKey={recoveryKey} />
-      <Stack direction={isApp ? "column" : "row"} spacing={1}>
-        <Button variant="contained" startIcon={<KEEP_RECOVERY_KEY.Icon />} onClick={keep} sx={{ flex: 1 }}>
-          {KEEP_RECOVERY_KEY.label}
-        </Button>
-        <Button variant="outlined" color="inherit" startIcon={isCopied ? <CheckIcon /> : <CopyIcon />} onClick={copy} sx={{ flex: 1 }}>
+      <Stack spacing={1}>
+        <RecoveryKeyBox recoveryKey={recoveryKey} />
+        <Button color="inherit" startIcon={isCopied ? <CheckIcon /> : <CopyIcon />} onClick={copy} sx={{ alignSelf: "flex-start" }}>
           {isCopied ? "Copied" : "Copy"}
         </Button>
       </Stack>
       <Alert severity="warning">
         If you lose this key, and no passkey unlocks your messages, you can&apos;t open them on a new {deviceNoun}. Whisprl can&apos;t recover it for you.
       </Alert>
-      {isApp && (
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          This phone also keeps your key, so reinstalling Whisprl won&apos;t lock your messages while your Google backup is on. Your recovery key is for
-          everywhere else.
-        </Typography>
-      )}
       <KeepingPlaces />
-      {/* a key only copied may never have been pasted anywhere, so it is asked about once more before going on */}
-      <Button
-        size="large"
-        variant="contained"
-        fullWidth
-        disabled={!isKept && !isCopied}
-        loading={isConfirming}
-        onClick={isKept ? confirm : () => setIsCheckingCopy(true)}
-      >
-        Continue
-      </Button>
-      {isCheckingCopy && <CopiedKeyDialog isContinuing={isConfirming} onBack={() => setIsCheckingCopy(false)} onContinue={confirm} />}
+      <Stack spacing={1.5}>
+        <Button
+          size="large"
+          fullWidth
+          variant={isSaved ? "outlined" : "contained"}
+          color={isSaved ? "inherit" : "primary"}
+          startIcon={<KEEP_RECOVERY_KEY.Icon />}
+          onClick={keep}
+        >
+          {KEEP_RECOVERY_KEY.label}
+        </Button>
+        <FormControlLabel
+          sx={{ alignItems: "flex-start" }}
+          control={<Checkbox checked={isSaved} onChange={(event) => setIsSaved(event.target.checked)} sx={{ mt: -0.75 }} />}
+          label={<Typography variant="body2">I have saved my recovery key somewhere safe</Typography>}
+        />
+        <Button
+          size="large"
+          fullWidth
+          variant={isSaved ? "contained" : "outlined"}
+          color={isSaved ? "primary" : "inherit"}
+          disabled={!isSaved}
+          loading={isConfirming}
+          onClick={() => dispatch(ConfirmRecoveryKeySaved())}
+        >
+          Continue
+        </Button>
+      </Stack>
     </Stack>
   );
 };

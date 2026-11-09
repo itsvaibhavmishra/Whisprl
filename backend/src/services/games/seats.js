@@ -22,6 +22,9 @@ export const emptySeats = (count) => Array.from({ length: count }, () => vacated
 // a bot someone chose to play has a seat of its own, unlike one covering for a person who left
 export const isChosenBot = (seat) => Boolean(seat.bot && !seat.user);
 
+// a chosen bot or Whisprl itself: always ready, played by the bot, and sitting on between games
+export const isBotOpponent = (seat) => isChosenBot(seat) || Boolean(seat.official);
+
 // a bot only keeps someone company, so it leaves once the last person has
 const withoutLoneBots = (seats) => (seats.some((seat) => seat.user) ? seats : seats.map((seat) => (isChosenBot(seat) ? vacated(seat) : seat)));
 
@@ -48,6 +51,8 @@ export const seatBot = (seats, index) => {
   return replaceAt(seats, index, { locked: false, bot: true, ready: true });
 };
 
+export const seatWhisprl = (seats, index, whisprlId) => replaceAt(seats, index, { locked: false, user: whisprlId, ready: true, official: true });
+
 export const unseatBot = (seats, index) => {
   const seat = seatAt(seats, index);
   if (!isChosenBot(seat)) throw createHttpError.BadRequest("No bot is sitting there");
@@ -73,7 +78,7 @@ export const setReady = (seats, userId, ready) => {
 };
 
 // a chosen bot is always ready, so it never holds a game up
-export const unreadyAll = (seats) => seats.map((seat) => ({ ...seat, ready: isChosenBot(seat) }));
+export const unreadyAll = (seats) => seats.map((seat) => ({ ...seat, ready: isBotOpponent(seat) }));
 
 export const setLocked = (seats, index, locked) => {
   const seat = seatAt(seats, index);
@@ -96,7 +101,7 @@ export const handToBot = (seats, userId) => {
   return replaceAt(seats, index, { ...seats[index], bot: true, ready: false });
 };
 
-export const isBotPlaying = (seat) => Boolean(seat.bot || seat.away);
+export const isBotPlaying = (seat) => Boolean(seat.bot || seat.away || seat.official);
 
 // a second missed turn in a row hands the seat to the bot until its player comes back
 export const missTurn = (seats, index) => {
@@ -123,7 +128,7 @@ export const isEveryoneReady = (seats, minPlayers) => {
 export const backToLobby = (seats) =>
   withoutLoneBots(
     seats.map((seat) => {
-      if (isChosenBot(seat)) return seat;
+      if (isBotOpponent(seat)) return seat;
       if (seat.bot) return vacated(seat);
       return seat.user ? { user: seat.user, locked: Boolean(seat.locked), ready: false } : seat;
     })

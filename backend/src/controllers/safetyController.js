@@ -24,6 +24,6 @@ export const unblock = async (req, res) => {
 };
 
 export const report = async (req, res) => {
-  await fileReport(req.user, req.body);
+  await fileReport(req.app.get("io"), req.user, req.body);
   res.status(200).json({ status: "success", message: "Thanks, your report was sent" });
 };

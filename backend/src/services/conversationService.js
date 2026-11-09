@@ -1,7 +1,8 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
-import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { ConversationModel, GameSessionModel, MessageModel, UserModel } from "#src/models/index.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 import { blockedEitherWay, presenceShownTo, withPresenceHidden } from "#src/services/blockService.js";
 import { preferencesOf } from "#src/services/chatPreferenceService.js";
 import { PUBLIC_PROFILE_FIELDS } from "#src/services/userService.js";
@@ -76,7 +77,9 @@ export const openDirectConversation = async (sender, receiver_id) => {
   const receiver = await UserModel.findOne({ _id: receiver_id, verified: true });
   if (!receiver) throw createHttpError.NotFound("Verified Receiver does not exist");
 
-  const isValidFriendShip = sender.friends.some((id) => id.equals(receiver._id)) && receiver.friends.some((id) => id.equals(sender._id));
+  // Whisprl is everyone's friend without keeping a list, so only the sender's side is asked
+  const isFriendBack = isWhisprl(receiver._id) || receiver.friends.some((id) => id.equals(sender._id));
+  const isValidFriendShip = sender.friends.some((id) => id.equals(receiver._id)) && isFriendBack;
   const members = membersOf(sender._id, receiver._id);
 
   const existing = await findDirectConversation(members);
@@ -124,7 +127,9 @@ const peerAccessOf = async (user, conversations) => {
     blockedEitherWay(user, peerIds),
   ]);
   const isFriend = (id) => user.friends.some((friendId) => friendId.equals(id));
-  const reachable = new Set(friendsBack.filter((id) => isFriend(id) && !blocked.has(String(id))).map(String));
+  // Whisprl keeps no friends list, so it is never found friending back and is counted in here instead
+  const friendlyPeers = [...friendsBack, ...peerIds.filter(isWhisprl)];
+  const reachable = new Set(friendlyPeers.filter((id) => isFriend(id) && !blocked.has(String(id))).map(String));
   return { reachable, blocked };
 };
 
@@ -142,10 +147,14 @@ export const getUserConversations = async (user) => {
     conversations.map((conversation) => conversation._id)
   );
   const preferenceOf = (conversation) => preferences.get(String(conversation._id)) ?? {};
-  const [{ reachable, blocked }, unreadCounts] = await Promise.all([
+  const [{ reachable, blocked }, unreadCounts, tables] = await Promise.all([
     peerAccessOf(user, conversations),
     Promise.all(conversations.map((conversation) => unreadIn(conversation, user._id, preferenceOf(conversation).clearedAt))),
+    GameSessionModel.find({ conversation: { $in: conversations.map((conversation) => conversation._id) } })
+      .select("conversation game")
+      .lean(),
   ]);
+  const tableGameOf = (conversation) => tables.find((table) => table.conversation.equals(conversation._id))?.game ?? null;
 
   return conversations.map((conversation, index) => {
     const preference = preferenceOf(conversation);
@@ -158,6 +167,8 @@ export const getUserConversations = async (user) => {
       latestMessage: isClearedSince(json.latestMessage?.createdAt) ? null : json.latestMessage,
       latestReaction: isClearedSince(json.latestReaction?.at) ? null : json.latestReaction,
       unread: unreadCounts[index],
+      // a game open in the chat, being played or still in its lobby, which the list marks
+      tableGame: tableGameOf(conversation),
       canMessage: conversation.isGroup || reachable.has(String(peerIdOf(conversation, user))),
     };
   });

@@ -49,7 +49,7 @@ const LoginForm = () => {
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2}>
-        <RHFTextField name="identifier" label="Email or username" autoComplete="username" />
+        <RHFTextField name="identifier" label="Email or username" autoComplete="username" autoFocus />
         <RHFPasswordField name="password" label="Password" autoComplete="current-password" />
       </Stack>
       <Stack sx={{ alignItems: "flex-end", mt: 1.5 }}>

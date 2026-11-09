@@ -2,18 +2,20 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, FriendRequestModel, UserModel } from "#src/models/index.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { blockerBetween, presenceShownTo } from "#src/services/blockService.js";
 import { directConversationIdOf, populateMembers } from "#src/services/conversationService.js";
 import { expiryFor } from "#src/services/disappearingService.js";
+import { markFriendsMade } from "#src/services/journeyService.js";
 import { currentKeyIdOf } from "#src/services/keyService.js";
 import { saveMessage, validateCipher } from "#src/services/messageService.js";
 import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requestCooldownService.js";
 import { forgetSuggestionsBetween } from "#src/services/suggestionService.js";
 
 const FRIEND_FIELDS =
-  "firstName lastName username avatar cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
+  "firstName lastName username avatar badge cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
 // every key they ever had, so a note still opens after its sender moves to a new one
-const REQUESTER_FIELDS = "firstName lastName username avatar cover coverStyle activityStatus createdAt publicKeys";
+const REQUESTER_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt publicKeys";
 
 const MAX_OPEN_REQUESTS = 30;
 // room for 200 characters once sealed, the limit the browser counts down to
@@ -155,6 +157,7 @@ export const answerFriendRequest = async (receiver, sender_id, action) => {
   await Promise.all([
     UserModel.updateOne({ _id: sender_id }, { $addToSet: { friends: receiver._id } }),
     UserModel.updateOne({ _id: receiver._id }, { $addToSet: { friends: sender_id } }),
+    markFriendsMade([sender_id, receiver._id]),
   ]);
   return continueChat(request, receiver);
 };
@@ -162,6 +165,7 @@ export const answerFriendRequest = async (receiver, sender_id, action) => {
 export const unfriend = async (user, friend_id) => {
   assertUserId(friend_id, "friend_id");
   assertNotSelf(user._id, friend_id);
+  assertNotWhisprl(friend_id, "Whisprl stays in everyone's friends");
   if (!isFriendOf(user, friend_id)) throw createHttpError.NotFound("Friend not found in your friends list");
 
   await Promise.all([

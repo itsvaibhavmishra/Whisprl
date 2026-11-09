@@ -1,5 +1,6 @@
 import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 import {
+  FinishTour,
   GetFriends,
   GetMyProfile,
   GetOnlineFriends,
@@ -26,6 +27,8 @@ const initialState = {
     activityStatus: "",
   },
   accountSummary: null,
+  // apart from the saved user, so a session renewal saying the tour was seen cannot close one being replayed
+  isReplayingTour: false,
   latestProfileRead: null,
   latestOnboardingRead: null,
   passkeys: [],
@@ -44,6 +47,10 @@ const slice = createSlice({
     // update user information
     updateUser: (state, action) => {
       state.user = { ...state.user, ...action.payload };
+    },
+
+    tourRestarted: (state) => {
+      state.isReplayingTour = true;
     },
 
     // update online users
@@ -147,6 +154,11 @@ const slice = createSlice({
       .addCase(UpdateBirthdaySetting.rejected, (state, action) => {
         state.user.showBirthdayToFriends = !action.meta.arg;
       })
+      // the tour closes at once, whether or not the server has heard yet
+      .addCase(FinishTour.pending, (state) => {
+        state.user.hasToured = true;
+        state.isReplayingTour = false;
+      })
       .addCase(GetOnboarding.pending, (state, action) => {
         state.latestOnboardingRead = action.meta.requestId;
       })
@@ -159,11 +171,11 @@ const slice = createSlice({
         state.latestProfileRead = action.meta.requestId;
       })
       .addCase(GetMyProfile.fulfilled, (state, action) => {
-        const { firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
+        const { firstName, lastName, username, usernameChangedAt, avatar, badge, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
         state.accountSummary = summary;
         // a save that landed while this was loading is newer than what it brought back
         if (action.meta.requestId !== state.latestProfileRead) return;
-        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, cover, coverStyle, email, activityStatus };
+        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, badge, cover, coverStyle, email, activityStatus };
       })
       .addCase(SearchFriends.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;
@@ -190,6 +202,6 @@ const slice = createSlice({
   },
 });
 
-export const { updateUser, updateOnlineUsers, removeFriend, clearSearch, logout } = slice.actions;
+export const { updateUser, tourRestarted, updateOnlineUsers, removeFriend, clearSearch, logout } = slice.actions;
 
 export default slice.reducer;

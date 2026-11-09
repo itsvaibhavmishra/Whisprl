@@ -1,4 +1,4 @@
-import { botMove } from "#src/services/games/tic-tac-toe/bot.js";
+import { BOT_REACTIONS, botMove, momentFor } from "#src/services/games/tic-tac-toe/bot.js";
 import { outcome, play, setup, turnOf, viewFor } from "#src/services/games/tic-tac-toe/rules.js";
 
 const ticTacToe = {
@@ -12,6 +12,8 @@ const ticTacToe = {
   play,
   outcome,
   botMove,
+  momentFor,
+  reactions: BOT_REACTIONS,
   viewFor,
 };
 

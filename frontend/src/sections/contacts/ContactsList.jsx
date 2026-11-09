@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Box, Button, ButtonBase, IconButton, Skeleton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { CaretRightIcon, HandWavingIcon, UserPlusIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, HandWavingIcon, ShareNetworkIcon, UserPlusIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -11,6 +11,7 @@ import SearchPill from "@/components/SearchPill";
 import Wordmark from "@/components/Wordmark";
 import useHasSettled from "@/hooks/useHasSettled";
 import useInfiniteScroll from "@/hooks/useInfiniteScroll";
+import useInviteFriends from "@/hooks/useInviteFriends";
 import useOpenChat from "@/hooks/useOpenChat";
 import PullToRefresh from "@/components/PullToRefresh";
 import { GetRequests } from "@/redux/slices/actions/contactActions";
@@ -53,6 +54,58 @@ const SectionLabel = ({ label, count }) => (
   </Typography>
 );
 
+const rowSx = (isSelected) => ({
+  width: "100%",
+  gap: 1.5,
+  px: 1,
+  py: 1,
+  borderRadius: 3,
+  justifyContent: "flex-start",
+  textAlign: "left",
+  bgcolor: isSelected ? (theme) => alpha(theme.palette.primary.main, 0.12) : "transparent",
+  "&:hover": { bgcolor: (theme) => alpha(theme.palette.primary.main, isSelected ? 0.16 : 0.06) },
+  "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.main", outlineOffset: -2 },
+});
+
+const RowIcon = ({ children }) => (
+  <Box
+    sx={{
+      width: AVATAR_SIZE,
+      height: AVATAR_SIZE,
+      flexShrink: 0,
+      borderRadius: "50%",
+      display: "grid",
+      placeItems: "center",
+      color: "primary.main",
+      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
+    }}
+  >
+    {children}
+  </Box>
+);
+
+const RowText = ({ title, detail, isBold }) => (
+  <Box sx={{ minWidth: 0, flex: 1 }}>
+    <Typography sx={{ fontSize: 15, fontWeight: isBold ? 800 : 700, letterSpacing: "-0.01em" }}>{title}</Typography>
+    <Typography noWrap component="p" sx={{ m: 0, mt: 0.25, fontSize: 13, fontWeight: 500, color: "text.secondary" }}>
+      {detail}
+    </Typography>
+  </Box>
+);
+
+const InviteRow = () => {
+  const invite = useInviteFriends();
+
+  return (
+    <ButtonBase onClick={invite} disabled={!invite} sx={rowSx(false)}>
+      <RowIcon>
+        <ShareNetworkIcon size={24} weight="duotone" />
+      </RowIcon>
+      <RowText title="Invite friends" detail="Play games and chat together" />
+    </ButtonBase>
+  );
+};
+
 const RequestsRow = ({ isSelected, isWide }) => {
   const incoming = useSelector(selectWaitingRequests);
   const outgoing = useSelector((state) => state.contact.outgoing);
@@ -67,43 +120,11 @@ const RequestsRow = ({ isSelected, isWide }) => {
   };
 
   return (
-    <ButtonBase
-      component={Link}
-      to={REQUESTS_PATH}
-      aria-current={isSelected ? "page" : undefined}
-      sx={{
-        width: "100%",
-        gap: 1.5,
-        px: 1,
-        py: 1,
-        borderRadius: 3,
-        justifyContent: "flex-start",
-        textAlign: "left",
-        bgcolor: isSelected ? (theme) => alpha(theme.palette.primary.main, 0.12) : "transparent",
-        "&:hover": { bgcolor: (theme) => alpha(theme.palette.primary.main, isSelected ? 0.16 : 0.06) },
-        "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.main", outlineOffset: -2 },
-      }}
-    >
-      <Box
-        sx={{
-          width: AVATAR_SIZE,
-          height: AVATAR_SIZE,
-          flexShrink: 0,
-          borderRadius: "50%",
-          display: "grid",
-          placeItems: "center",
-          color: "primary.main",
-          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
-        }}
-      >
+    <ButtonBase component={Link} to={REQUESTS_PATH} aria-current={isSelected ? "page" : undefined} sx={rowSx(isSelected)}>
+      <RowIcon>
         <HandWavingIcon size={24} weight="duotone" />
-      </Box>
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography sx={{ fontSize: 15, fontWeight: waiting ? 800 : 700, letterSpacing: "-0.01em" }}>Requests</Typography>
-        <Typography noWrap component="p" sx={{ m: 0, mt: 0.25, fontSize: 13, fontWeight: 500, color: "text.secondary" }}>
-          {detail()}
-        </Typography>
-      </Box>
+      </RowIcon>
+      <RowText title="Requests" detail={detail()} isBold={waiting > 0} />
       {waiting > 0 && (
         <>
           <Box
@@ -254,6 +275,7 @@ const ContactsList = ({ isWide }) => {
 
       <PullToRefresh onRefresh={() => dispatch(RefreshContacts())} sx={{ overflowY: "auto", px: 1, pb: 2 }}>
         {!needle && <RequestsRow isSelected={isRequests} isWide={isWide} />}
+        {!needle && <InviteRow />}
         {birthdays.length > 0 && <BirthdaysThisWeek people={birthdays} onlineFriends={onlineFriends} />}
         {friendsSection()}
         {hasFriends && needle && !shownFriends.length && <NoFriendMatches query={query.trim()} onLeave={() => setQuery("")} />}

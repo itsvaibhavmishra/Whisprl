@@ -4,6 +4,7 @@ import { m } from "motion/react";
 import { Link } from "react-router-dom";
 
 import BirthdayCake from "@/components/BirthdayCake";
+import PersonBadge from "@/components/PersonBadge";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import AvatarChoices from "@/sections/chat/status/AvatarChoices";
 import useLiveStatuses from "@/sections/chat/status/useLiveStatuses";
@@ -78,15 +79,18 @@ const PersonRow = ({ person, isSelected = false, isOnline = false, detail, actio
       >
         <ChatAvatar src={person.avatar} name={person.firstName} size={AVATAR_SIZE} isOnline={isOnline} statuses={statuses} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography noWrap sx={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>
-            {name}
-            <BirthdayCake personId={person._id} />
-            {isOnline && (
-              <Box component="span" sx={SPOKEN_ONLY}>
-                , online
-              </Box>
-            )}
-          </Typography>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+            <Typography noWrap sx={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>
+              {name}
+              <BirthdayCake personId={person._id} />
+              {isOnline && (
+                <Box component="span" sx={SPOKEN_ONLY}>
+                  , online
+                </Box>
+              )}
+            </Typography>
+            <PersonBadge badge={person.badge} />
+          </Stack>
           {person.username && (
             <Typography noWrap component="p" sx={{ m: 0, mt: 0.25, fontSize: 13, fontWeight: 500, color: "text.secondary" }}>
               @{person.username}

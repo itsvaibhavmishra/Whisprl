@@ -13,13 +13,18 @@ import { GetMessages, LoadNewerMessages, LoadOlderMessages } from "@/redux/slice
 import { RevealMessage } from "@/redux/slices/actions/messageActions";
 import { focusMessage, selectActiveOutbox } from "@/redux/slices/chatSlice";
 import ChatNote from "@/sections/chat/conversation/ChatNote";
+import { CENTRED, EDGE_GUTTER, PHOTO_GUTTER } from "@/sections/chat/conversation/messageColumn";
 import MessageSkeletons from "@/sections/chat/conversation/MessageSkeletons";
+import WhisprlNote from "@/sections/chat/conversation/WhisprlNote";
 import { notify } from "@/utils/notify";
 import { formatDayLabel } from "@/utils/formatMessageTime";
 import { bareEmojiSizeOf } from "@/utils/emoji";
 import { filesOf } from "@/utils/messageFiles";
 import { describeEvent, typingNamesIn } from "@/utils/groups";
+import { isOfficial } from "@/utils/relationship";
 import TypingBubble from "@/sections/chat/messages/TypingBubble";
+import NoticeActions from "@/sections/chat/messages/NoticeActions";
+import { noticeOf } from "@/sections/chat/messages/notices";
 import JumpToLatest from "@/sections/chat/conversation/JumpToLatest";
 import useIsLoading from "@/hooks/useIsLoading";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
@@ -38,7 +43,7 @@ const joinsRun = (item) => Boolean(item) && item.type !== "event" && !bareEmojiS
 const dayOf = (message) => new Date(message.createdAt).toDateString();
 
 const DayLabel = ({ children }) => (
-  <Box data-day-label sx={{ position: "sticky", top: 10, zIndex: 2, alignSelf: "center", my: 1, pointerEvents: "none" }}>
+  <Box data-day-label sx={{ position: "sticky", top: 10, zIndex: 2, alignSelf: "center", my: 1, pointerEvents: "none", ...CENTRED }}>
     <Typography
       component="p"
       sx={{
@@ -91,6 +96,8 @@ const ConversationMain = () => {
 
   const items = displayItemsOf(messages, outbox, user, albumReactions);
   const confirmed = items.filter((item) => !item.entry);
+  const firstToWhisprl =
+    isOfficial(peer) && !hasOlderMessages ? confirmed.find((item) => item.type !== "event" && item.message.sender._id === user._id)?.message._id : null;
 
   // only a message arriving at the newest end rises in, so opening a chat or loading history never animates
   const known = useRef({ keys: null, wasShowingLatest: false });
@@ -227,8 +234,12 @@ const ConversationMain = () => {
     const didNotUpload = members
       .filter((message) => !message.outboxEntry && message.sender._id === user._id && message.attachment?.status === "uploading")
       .map((message) => <DidNotUpload key={message._id} message={message} />);
-    const problems = [...notSent, ...didNotUpload];
-    return problems.length ? problems : undefined;
+    const noticeActions = members
+      .map((message) => message.notice && noticeOf(message.notice, user, message.sender))
+      .filter(Boolean)
+      .map((notice, index) => <NoticeActions key={index} actions={notice.actions} conversation={activeConversation} />);
+    const below = [...notSent, ...didNotUpload, ...noticeActions];
+    return below.length ? below : undefined;
   };
 
   const tapHandlerFor = (item) => (item.type === "queued" ? undefined : () => toggleDetails(item.message));
@@ -247,8 +258,8 @@ const ConversationMain = () => {
           overflowY: "scroll",
           overflowAnchor: "none",
           overscrollBehaviorY: "contain",
-          pl: 7,
-          pr: { xs: 2.5, md: 4 },
+          pl: `${PHOTO_GUTTER}px`,
+          pr: { xs: `${EDGE_GUTTER.xs}px`, md: `${EDGE_GUTTER.md}px` },
           pt: 1,
           pb: 0.5,
           ...floatingDayLabelStyles,
@@ -260,9 +271,11 @@ const ConversationMain = () => {
           <Box ref={topRef} sx={{ display: "flex", justifyContent: "center", minHeight: 24, py: 1 }}>
             {isLoadingOlder && <CircularProgress size={20} aria-label="Loading older messages" />}
             {!hasOlderMessages && messages.length > 0 && (
-              <ChatNote sx={{ maxWidth: 340, px: 1.75, py: 1.25, borderRadius: 1.5, fontSize: 12.5, lineHeight: 1.5 }}>
+              <ChatNote sx={{ maxWidth: 340, px: 1.75, py: 1.25, borderRadius: 1.5, fontSize: 12.5, lineHeight: 1.5, ...CENTRED }}>
                 <LockSimpleIcon size={14} weight="bold" aria-hidden style={{ verticalAlign: "-2px", marginRight: 6 }} />
-                Messages here are end-to-end encrypted. Only the people in this chat can read them.
+                {isOfficial(peer)
+                  ? "What you send Whisprl is end-to-end encrypted and nobody can read it. Whisprl's own messages are the same for everyone."
+                  : "Messages here are end-to-end encrypted. Only the people in this chat can read them."}
               </ChatNote>
             )}
           </Box>
@@ -301,7 +314,9 @@ const ConversationMain = () => {
                   return (
                     <Fragment key={keyOf(message)}>
                       {unreadLine}
-                      <ChatNote data-message-key={keyOf(message)}>{describeEvent(message, activeConversation, user._id)}</ChatNote>
+                      <ChatNote data-message-key={keyOf(message)} sx={CENTRED}>
+                        {describeEvent(message, activeConversation, user._id)}
+                      </ChatNote>
                     </Fragment>
                   );
                 }
@@ -339,6 +354,7 @@ const ConversationMain = () => {
                       marker={item.type === "queued" ? null : markerFor(message)}
                       onToggleDetails={tapHandlerFor(item)}
                     />
+                    {message._id === firstToWhisprl && <WhisprlNote conversation={activeConversation} />}
                   </Fragment>
                 );
               })}

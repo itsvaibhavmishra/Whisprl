@@ -12,6 +12,7 @@ import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { identityOf } from "@/utils/chats";
 import { evidenceAround } from "@/utils/reportEvidence";
 import { DAY_SECONDS, canManage, durationOf } from "@/utils/groups";
+import { isOfficial } from "@/utils/relationship";
 
 const DISAPPEAR_CHOICES = [null, DAY_SECONDS, 7 * DAY_SECONDS, 90 * DAY_SECONDS];
 
@@ -56,7 +57,7 @@ const ChatControls = ({ conversation }) => {
           />
           <ControlRow icon={EraserIcon} label="Clear chat" isDanger onClick={() => setDialog("clear")} />
           {!conversation.isGroup && <ControlRow icon={TrashIcon} label="Delete chat" isDanger onClick={() => setDialog("delete")} />}
-          {person && <SafetyRows person={person} conversationId={conversationId} />}
+          {person && !isOfficial(person) && <SafetyRows person={person} conversationId={conversationId} />}
           {conversation.isGroup && <ControlRow icon={FlagIcon} label="Report group" isDanger onClick={() => setDialog("report")} />}
         </List>
       </DetailsSection>

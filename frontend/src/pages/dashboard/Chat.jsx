@@ -11,6 +11,7 @@ import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import EmptyChat from "@/sections/chat/EmptyChat";
 import Conversation from "@/sections/chat/conversation/Conversation";
+import ChatTheme from "@/sections/chat/conversation/ChatTheme";
 import DetailsPanel from "@/sections/chat/details/DetailsPanel";
 import CreateGroupDialog from "@/sections/chat/group/CreateGroupDialog";
 import ChatList from "@/sections/chat/list/ChatList";
@@ -45,7 +46,13 @@ const Chat = () => {
   useBackPreview(isPreviewable);
 
   const conversationPane = () => {
-    if (isChatOpen) return <Conversation />;
+    if (isChatOpen) {
+      return (
+        <ChatTheme>
+          <Conversation />
+        </ChatTheme>
+      );
+    }
     if (isStartingChat || chatId) return <LoadingScreen fromChat />;
     return <EmptyChat onNewGroup={openGroupDialog} />;
   };
