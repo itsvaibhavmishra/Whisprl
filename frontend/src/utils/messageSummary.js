@@ -26,6 +26,7 @@ const NOTICE_SUMMARIES = {
   reportActioned: (notice) => `We took action on your report about ${reportSubjectOf(notice)}`,
   reportDismissed: (notice) => `We looked at your report about ${reportSubjectOf(notice)}`,
   announcement: ({ text }) => unmarked(text),
+  gameAdded: ({ name }) => `You asked for ${name}, and it's here now 🎉`,
 };
 
 export const summaryOf = (message) => {

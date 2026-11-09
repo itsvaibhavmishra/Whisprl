@@ -9,6 +9,7 @@ import {
   closeGameRequest,
   dismiss,
   getActivePeople,
+  getAnnouncedGames,
   getAnnouncements,
   getAudienceSizes,
   getAuditLog,
@@ -58,6 +59,8 @@ adminRouter.route("/game-requests/:name_key/close").put(writeLimit(), allow("req
 adminRouter.route("/announcements").get(readLimit(), allow("announce"), getAnnouncements).post(writeLimit(), allow("announce"), sendAnnouncement);
 
 adminRouter.route("/announcements/audience").get(readLimit(), allow("announce"), getAudienceSizes);
+
+adminRouter.route("/announcements/games").get(readLimit(), allow("announce"), getAnnouncedGames);
 
 adminRouter.route("/audit").get(readLimit(), allow("audit"), getAuditLog);
 

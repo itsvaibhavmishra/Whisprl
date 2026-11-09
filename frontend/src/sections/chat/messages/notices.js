@@ -34,6 +34,12 @@ export const noticeOf = ({ type, user, name, username, gameName, about, text, bu
     };
   }
   if (REPORT_TEXTS[type]) return { text: REPORT_TEXTS[type](reportSubjectOf({ about, name: plain(name) }), about), actions: [] };
+  if (type === "gameAdded") {
+    return {
+      text: `You asked for **${plain(name)}**, and it's here now 🎉\n\nWant to play it? I'm ready when you are.`,
+      actions: [{ kind: "challenge", label: "Challenge Whisprl" }],
+    };
+  }
   if (type === "inviteJoined") {
     const profile = contactPathOf({ _id: user, username });
     return {

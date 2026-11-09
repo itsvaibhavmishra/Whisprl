@@ -103,10 +103,12 @@ const SENDER_FIELDS = ["_id", "firstName", "lastName", "avatar"];
 const senderSummaryOf = (member) => Object.fromEntries(SENDER_FIELDS.map((field) => [field, member[field]]));
 
 // who hid a message is nobody else's business, so it never leaves the server
-export const toClientMessage = (message, conversation) => {
+export const clientMessageOf = (message, sender) => {
   const { hiddenFor, ...visible } = message.toObject();
-  return { ...visible, sender: senderSummaryOf(senderOf(conversation, message.sender)) };
+  return { ...visible, sender: senderSummaryOf(sender) };
 };
+
+export const toClientMessage = (message, conversation) => clientMessageOf(message, senderOf(conversation, message.sender));
 
 export const withQuote = (message) => (message.replyTo ? message.populate("replyTo", QUOTED_FIELDS) : message);
 
@@ -130,6 +132,12 @@ export const linksOf = async (conversation, user_id, { replyTo, replyToAlbum, fo
 const findSentMessage = (sender_id, clientId) => (isClientId(clientId) ? MessageModel.findOne({ sender: sender_id, clientId }) : null);
 
 // takes the conversation with its members loaded, so naming the sender needs no further query
+// only ever moves forward, so two members sending at once cannot leave the older message as the preview
+const movedToLatest = (message) => ({
+  filter: { _id: message.conversation, $or: [{ latestMessage: null }, { latestMessage: { $lt: message._id } }] },
+  update: { latestMessage: message._id },
+});
+
 export const saveMessage = async (conversation, msgData) => {
   const message = new MessageModel({ ...msgData, conversation: conversation._id });
 
@@ -142,12 +150,22 @@ export const saveMessage = async (conversation, msgData) => {
     return { message: toClientMessage(await withQuote(original), conversation), isNew: false };
   }
 
-  // only ever moves forward, so two members sending at once cannot leave the older message as the preview
-  await ConversationModel.updateOne(
-    { _id: conversation._id, $or: [{ latestMessage: null }, { latestMessage: { $lt: message._id } }] },
-    { latestMessage: message._id }
-  );
+  const { filter, update } = movedToLatest(message);
+  await ConversationModel.updateOne(filter, update);
   return { message: toClientMessage(await withQuote(message), conversation), isNew: true };
+};
+
+// a chat that already has this notice refuses a second copy, so a batch sent again lands only where it is missing
+const savedDespiteCopies = (error) => {
+  if (!error.insertedDocs || !error.writeErrors?.every((writeError) => writeError.err?.code === 11000)) throw error;
+  return error.insertedDocs;
+};
+
+export const saveNoticeInEach = async (conversations, sender, notice) => {
+  const drafts = conversations.map((conversation) => ({ conversation: conversation._id, sender, notice }));
+  const messages = await MessageModel.insertMany(drafts, { ordered: false }).catch(savedDespiteCopies);
+  if (messages.length) await ConversationModel.bulkWrite(messages.map((message) => ({ updateOne: movedToLatest(message) })));
+  return messages;
 };
 
 export const saveEvent = (group, actor_id, type, { users = [], name, seconds } = {}) =>

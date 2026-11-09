@@ -19,7 +19,7 @@ const NoticeActions = ({ actions, conversation }) => {
   if (!shown.length) return null;
 
   const runOf = (action) => {
-    if (action.kind === "challenge") return challenge;
+    if (action.kind === "challenge") return () => challenge(action.game);
     if (action.kind === "accept" || action.kind === "decline")
       return () => dispatch(AnswerInvite({ conversationId: conversation._id, accept: action.kind === "accept" }));
     return () => navigate(action.to);

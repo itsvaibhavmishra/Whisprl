@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 import {
   GetActivePeople,
+  GetAnnouncedGames,
   GetAnnouncements,
   GetAudienceSizes,
   GetAuditLog,
@@ -32,6 +33,7 @@ const initialState = {
   audit: { entries: null, hasMore: false },
   announcements: { list: null, hasMore: false },
   audienceSizes: null,
+  announcedGames: null,
 };
 
 const slice = createSlice({
@@ -101,6 +103,9 @@ const slice = createSlice({
       .addCase(GetAnnouncements.fulfilled, (state, action) => {
         const { announcements, hasMore } = action.payload;
         state.announcements = { list: action.meta.arg ? [...state.announcements.list, ...announcements] : announcements, hasMore };
+      })
+      .addCase(GetAnnouncedGames.fulfilled, (state, action) => {
+        state.announcedGames = action.payload;
       })
       .addCase(GetAudienceSizes.fulfilled, (state, action) => {
         state.audienceSizes = action.payload;

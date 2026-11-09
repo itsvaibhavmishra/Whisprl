@@ -28,3 +28,16 @@ test("an announcement shows the words staff wrote, with its button, and a plain 
   expect(noticeOf({ ...notice, button: undefined }, ME, WHISPRL).actions).toEqual([]);
   expect(summaryOf({ notice })).toBe("New: invite your friends");
 });
+
+test("someone who asked for a game hears it arrived, in their own spelling, with a challenge to Whisprl", () => {
+  const notice = { type: "gameAdded", name: "ludo [king]" };
+  const { text, actions } = noticeOf(notice, ME, WHISPRL);
+  expect(text).toMatch(/^You asked for \*\*ludo king\*\*, and it's here now/);
+  expect(actions).toEqual([{ kind: "challenge", label: "Challenge Whisprl" }]);
+  expect(summaryOf({ notice })).toBe("You asked for ludo [king], and it's here now 🎉");
+});
+
+test("a game's announcement keeps the game its button opens", () => {
+  const button = { kind: "challenge", label: "Challenge Whisprl to Jackaroo", game: "jackaroo" };
+  expect(noticeOf({ type: "announcement", text: "New game", button }, ME, WHISPRL).actions).toEqual([button]);
+});

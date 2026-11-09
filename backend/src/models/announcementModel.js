@@ -4,7 +4,7 @@ import { MAX_AUDIT_REASON } from "#src/models/auditEntryModel.js";
 
 // the audit log keeps every announcement word for word, so one can never outgrow it
 export const MAX_ANNOUNCEMENT = MAX_AUDIT_REASON;
-export const MAX_BUTTON_LABEL = 30;
+export const MAX_BUTTON_LABEL = 40;
 export const AUDIENCES = ["everyone", "android", "web"];
 
 // never edited once sent, since everyone it reached already has its words
@@ -16,12 +16,14 @@ const announcementSchema = mongoose.Schema(
       kind: { type: String, enum: ["challenge", "open"] },
       label: { type: String, maxlength: MAX_BUTTON_LABEL },
       to: { type: String },
+      // a challenge to one game opens it straight away, and marks that game as announced
+      game: { type: String },
     },
     audience: { type: String, enum: AUDIENCES, required: true },
     isPushed: { type: Boolean, default: false },
     audienceSize: { type: Number, required: true },
     reached: { type: Number, default: 0 },
-    // the last person it was handed to, so a restart carries on after them
+    // where the last finished batch ended, so a restart carries on from there
     lastSentTo: { type: mongoose.Schema.ObjectId },
     finishedAt: { type: Date },
   },

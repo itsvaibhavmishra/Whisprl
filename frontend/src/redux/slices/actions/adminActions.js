@@ -93,6 +93,10 @@ export const GetAudienceSizes = createApiThunk("admin/audienceSizes", async () =
   notifyErrors: false,
 });
 
+export const GetAnnouncedGames = createApiThunk("admin/announcedGames", async () => (await axios.get("/admin/announcements/games")).data.games, {
+  notifyErrors: false,
+});
+
 export const SendAnnouncement = createApiThunk("admin/announce", async (announcement) => {
   const { data } = await axios.post("/admin/announcements", announcement);
   notify({ severity: "success", message: "Sending. Whisprl is delivering it now" });

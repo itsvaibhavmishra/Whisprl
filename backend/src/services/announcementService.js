@@ -4,10 +4,12 @@ import mongoose from "mongoose";
 import { ActivityModel, AnnouncementModel, UserModel } from "#src/models/index.js";
 import { AUDIENCES, MAX_ANNOUNCEMENT, MAX_BUTTON_LABEL } from "#src/models/announcementModel.js";
 import { recordAction } from "#src/services/auditService.js";
-import { sendFromWhisprl } from "#src/services/whisprlMessageService.js";
+import { gameNames, isGameId } from "#src/services/games/catalog.js";
+import { sendFromWhisprlToEach } from "#src/services/whisprlMessageService.js";
 import { reportError } from "#src/utils/errorReports.js";
 
 const PAGE_SIZE = 20;
+const BATCH_SIZE = 500;
 const IN_APP_PATH = /^\/(?!\/)[\w\-/@.]*$/;
 const RECIPIENTS = { verified: true, deletedAt: { $exists: false }, bannedAt: { $exists: false }, badge: { $ne: "official" } };
 // a day noted before platforms were recorded was on the website, as the overview counts it
@@ -23,31 +25,37 @@ export const audienceSizes = async () => {
   return Object.fromEntries(AUDIENCES.map((audience, index) => [audience, sizes[index]]));
 };
 
+export const announcedGames = async () => {
+  const announced = new Set(await AnnouncementModel.distinct("button.game"));
+  return gameNames().map((game) => ({ ...game, isAnnounced: announced.has(game.id) }));
+};
+
 const buttonFrom = (button) => {
   if (!button) return undefined;
   const label = String(button.label ?? "").trim();
   if (!label) throw createHttpError.BadRequest("Give the button a label");
   if (label.length > MAX_BUTTON_LABEL) throw createHttpError.BadRequest(`Keep the button label under ${MAX_BUTTON_LABEL} characters`);
-  if (button.kind === "challenge") return { kind: "challenge", label };
+  if (button.kind === "challenge") return { kind: "challenge", label, ...(isGameId(button.game) && { game: button.game }) };
   if (button.kind === "open" && IN_APP_PATH.test(button.to)) return { kind: "open", label, to: button.to };
   throw createHttpError.BadRequest("Choose where the button goes");
 };
 
-const noticeOf = ({ text, button }) => ({ type: "announcement", text, ...(button?.kind && { button }) });
+const noticeOf = ({ _id, text, button }) => ({ type: "announcement", announcement: _id, text, ...(button?.kind && { button }) });
 
-// claimed before each person is sent it, so two servers carrying on together never send anyone the same announcement twice
+// progress is saved after each batch, so a restart sends the unfinished batch again and a chat that has it already is skipped
 const deliver = async (io, announcement) => {
-  let lastSentTo = announcement.lastSentTo ?? null;
-  const waiting = UserModel.find({ $and: [await recipientsOf(announcement.audience), lastSentTo ? { _id: { $gt: lastSentTo } } : {}] })
-    .sort({ _id: 1 })
-    .select("_id")
-    .lean()
-    .cursor();
-  for await (const { _id } of waiting) {
-    const claimed = await AnnouncementModel.updateOne({ _id: announcement._id, lastSentTo }, { lastSentTo: _id, $inc: { reached: 1 } });
-    if (!claimed.modifiedCount) return;
-    lastSentTo = _id;
-    await sendFromWhisprl(io, _id, noticeOf(announcement), { isPushed: announcement.isPushed }).catch((error) => reportError(error, _id));
+  const notice = noticeOf(announcement);
+  const recipients = await recipientsOf(announcement.audience);
+  const batchAfter = (lastSentTo) =>
+    UserModel.find({ $and: [recipients, lastSentTo ? { _id: { $gt: lastSentTo } } : {}] })
+      .sort({ _id: 1 })
+      .limit(BATCH_SIZE)
+      .select("_id")
+      .lean();
+  for (let batch = await batchAfter(announcement.lastSentTo); batch.length; batch = await batchAfter(batch.at(-1)._id)) {
+    const userIds = batch.map(({ _id }) => _id);
+    const reached = await sendFromWhisprlToEach(io, userIds, notice, { isPushed: announcement.isPushed });
+    await AnnouncementModel.updateOne({ _id: announcement._id }, { lastSentTo: batch.at(-1)._id, $inc: { reached } });
   }
   await AnnouncementModel.updateOne({ _id: announcement._id }, { finishedAt: new Date() });
 };

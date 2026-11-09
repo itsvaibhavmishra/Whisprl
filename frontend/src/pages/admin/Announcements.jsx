@@ -3,7 +3,7 @@ import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material"
 import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
-import { GetAnnouncements, GetAudienceSizes } from "@/redux/slices/actions/adminActions";
+import { GetAnnouncedGames, GetAnnouncements, GetAudienceSizes } from "@/redux/slices/actions/adminActions";
 import AnnouncementForm from "@/sections/admin/AnnouncementForm";
 import Notice from "@/sections/admin/Notice";
 import SentAnnouncement from "@/sections/admin/SentAnnouncement";
@@ -14,6 +14,7 @@ const Announcements = () => {
   const dispatch = useDispatch();
   const { list, hasMore } = useSelector((state) => state.admin.announcements);
   const sizes = useSelector((state) => state.admin.audienceSizes);
+  const games = useSelector((state) => state.admin.announcedGames);
   const isLoading = useIsLoading(GetAnnouncements);
   const [hasFailed, setHasFailed] = useState(false);
   const isSending = Boolean(list?.some((announcement) => !announcement.finishedAt));
@@ -21,6 +22,7 @@ const Announcements = () => {
   const refresh = useCallback(() => {
     dispatch(GetAnnouncements()).then((result) => setHasFailed(GetAnnouncements.rejected.match(result)));
     dispatch(GetAudienceSizes());
+    dispatch(GetAnnouncedGames());
   }, [dispatch]);
 
   useEffect(refresh, [refresh]);
@@ -76,7 +78,7 @@ const Announcements = () => {
         A message from Whisprl, in everyone's chat with it. Anyone who has muted that chat gets it without a notification.
       </Typography>
 
-      <AnnouncementForm sizes={sizes} onSent={refresh} />
+      <AnnouncementForm sizes={sizes} games={games} onSent={refresh} />
 
       <Typography component="h2" sx={{ m: 0, mt: 6, fontSize: 20, fontWeight: 800 }}>
         Sent

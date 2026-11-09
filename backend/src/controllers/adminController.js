@@ -1,4 +1,4 @@
-import { announce, audienceSizes, listAnnouncements } from "#src/services/announcementService.js";
+import { announce, announcedGames, audienceSizes, listAnnouncements } from "#src/services/announcementService.js";
 import { listAuditEntries } from "#src/services/auditService.js";
 import { closeGameRequests, listGameRequests } from "#src/services/gameRequestService.js";
 import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/services/moderationService.js";
@@ -48,7 +48,7 @@ export const getGameRequests = async (req, res) => {
 };
 
 export const closeGameRequest = async (req, res) => {
-  await closeGameRequests(req.user, req.params.name_key, req.body.outcome);
+  await closeGameRequests(req.app.get("io"), req.user, req.params.name_key, req.body.outcome);
   return res.status(200).json({ status: "success" });
 };
 
@@ -73,6 +73,10 @@ export const getAnnouncements = async (req, res) => {
 
 export const getAudienceSizes = async (req, res) => {
   return res.status(200).json({ status: "success", sizes: await audienceSizes() });
+};
+
+export const getAnnouncedGames = async (req, res) => {
+  return res.status(200).json({ status: "success", games: await announcedGames() });
 };
 
 // it changes nobody's access, so like dismissing a report it does not ask for the passkey

@@ -556,7 +556,7 @@ const challenge = async (io, members, challenger, guest, game) => {
   const { message } = await saveMessage(members, { sender: challenger._id, notice });
   io.to(memberRooms(members)).emit("message_received", message);
   io.to(String(guest._id)).emit("game_invited", { conversationId: String(members._id), game: game.id, from: String(challenger._id) });
-  await pushWords(members, challenger, `Challenged you to ${game.name}`);
+  await pushWords([members], challenger, `Challenged you to ${game.name}`);
 };
 
 const announceTable = async (io, conversation, userId, type, before, after) => {

@@ -25,6 +25,8 @@
     - Leaving a game against a person or Whisprl counts as a loss and gives them the win, while a game against the bot can be left freely; someone only watching can hide a game but not close it
     - Whisprl lets you know it got your report, and again once it has been looked at, saying whether action was taken but never what
     - Staff with the new Announce permission can send a message from Whisprl to everyone, or only Android or website users, with an optional button into the app and an optional notification; the admin panel previews it, then shows how many people each one reached
+    - Announcing a new game takes one tap in the admin panel, which writes the message and adds a button that opens that game against Whisprl
+    - Marking a game request as added tells everyone who asked for it, in a message from Whisprl
 
   - Improvements:
     - Dark mode is near black instead of navy, with neutral greys, so the cyan accent stands out, while chats keep the navy behind their messages
