@@ -33,7 +33,7 @@ const ResetPasswordForm = () => {
   };
 
   const methods = useForm({
-    mode: "onChange",
+    mode: "onTouched",
     resolver: yupResolver(NewPasswordSchema),
     defaultValues,
   });
@@ -42,7 +42,7 @@ const ResetPasswordForm = () => {
 
   const onSubmit = async (data) => {
     const result = await dispatch(ResetPassword({ ...data, token: queryParameters.get("code") }));
-    if (ResetPassword.fulfilled.match(result)) navigate(PATH_AUTH.general.login);
+    if (ResetPassword.fulfilled.match(result)) navigate(PATH_AUTH.general.login, { state: { withEmail: true } });
   };
 
   return (

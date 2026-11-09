@@ -8,6 +8,8 @@ import {
   emptySeats,
   handToBot,
   invite,
+  isBotOpponent,
+  isBotPlaying,
   isChosenBot,
   isEveryoneReady,
   lift,
@@ -17,6 +19,7 @@ import {
   resized,
   withSeatCount,
   seatBot,
+  seatWhisprl,
   setLocked,
   setReady,
   sit,
@@ -167,4 +170,18 @@ test("a person takes a bot's seat over, and the bot stays for the next game", ()
   assert.deepEqual(sit(withBot, 1, BIANCA)[1], { user: BIANCA, ready: false, locked: false });
   assert.equal(isChosenBot(backToLobby(withBot)[1]), true);
   assert.equal(isChosenBot(handToBot(withBot, ARIA)[0]), false);
+});
+
+test("Whisprl's own seat is always ready, played by the bot, and stays seated between games", () => {
+  const seats = seatWhisprl(sit(emptySeats(2), 0, "ava"), 1, "whisprl");
+  assert.ok(isBotOpponent(seats[1]) && isBotPlaying(seats[1]) && !isChosenBot(seats[1]));
+  assert.equal(unreadyAll(seats)[1].ready, true);
+  assert.deepEqual(backToLobby(seats)[1], seats[1]);
+  assert.ok(!isEveryoneReady(seats, 2));
+  assert.ok(
+    isEveryoneReady(
+      seats.map((seat) => ({ ...seat, ready: true })),
+      2
+    )
+  );
 });

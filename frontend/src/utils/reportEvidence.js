@@ -8,9 +8,10 @@ const asEvidence = (message, reportedId) => ({
   sender: message.sender?._id ?? message.sender,
   sentAt: message.createdAt,
   text: message.message ?? "",
+  // an encrypted file keeps its address and key under sealed
   files: filesOf(message)
-    .filter((file) => file.url)
-    .map(({ url, key, iv, mimeType, name }) => ({ url, key, iv, mimeType, name })),
+    .map(({ sealed, url, mimeType, fileName }) => ({ url: sealed?.url ?? url, key: sealed?.key, iv: sealed?.iv, mimeType, name: fileName }))
+    .filter((file) => file.url),
   isReported: message._id === reportedId,
   plaintext: message.plaintext,
 });

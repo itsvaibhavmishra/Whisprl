@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { ReportModel } from "#src/models/index.js";
 import { MAX_REPORT_NOTE } from "#src/models/reportModel.js";
 import { recordAction } from "#src/services/auditService.js";
+import { tellReporter } from "#src/services/whisprlMessageService.js";
 
 const PAGE_SIZE = 20;
 const EVIDENCE_KEPT_DAYS = 90;
@@ -73,23 +74,26 @@ export const listReports = async ({ filter, page = 0 }) => {
   };
 };
 
-const closeReport = async (actor, report_id, outcome) => {
+const OUTCOME_NOTICES = { actioned: "reportActioned", dismissed: "reportDismissed" };
+
+const closeReport = async (io, actor, report_id, outcome) => {
   if (!mongoose.isValidObjectId(report_id)) throw createHttpError.NotFound("No such report");
   const closed = await ReportModel.findOneAndUpdate({ _id: report_id, outcome: { $exists: false } }, { outcome, closedBy: actor._id, closedAt: new Date() });
   if (!closed) throw createHttpError.BadRequest("That report has already been dealt with");
+  await tellReporter(io, closed, OUTCOME_NOTICES[outcome]);
   return closed;
 };
 
-export const dismissReport = async (actor, report_id, { reason = "" }) => {
+export const dismissReport = async (io, actor, report_id, { reason = "" }) => {
   const given = String(reason).trim();
   if (given.length > MAX_REPORT_NOTE) throw createHttpError.BadRequest(`Keep the reason under ${MAX_REPORT_NOTE} characters`);
 
-  const report = await closeReport(actor, report_id, "dismissed", given);
+  const report = await closeReport(io, actor, report_id, "dismissed");
   await recordAction({ actor: actor._id, action: "report_dismissed", target: report.reportedUser, reason: given });
 };
 
 // acting on a report closes it, so the queue follows what was actually done rather than needing a second step
-export const markReportActioned = (actor, report_id) => report_id && closeReport(actor, report_id, "actioned");
+export const markReportActioned = (io, actor, report_id) => report_id && closeReport(io, actor, report_id, "actioned");
 
 // revealed messages are private content, so they are kept only as long as a closed case might be looked at again
 export const sweepOldEvidence = async () => {

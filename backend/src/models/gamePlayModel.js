@@ -10,6 +10,7 @@ const gamePlaySchema = mongoose.Schema(
 );
 
 gamePlaySchema.index({ createdAt: 1 });
+gamePlaySchema.index({ players: 1, game: 1 });
 
 const GamePlayModel = mongoose.model("GamePlay", gamePlaySchema);
 

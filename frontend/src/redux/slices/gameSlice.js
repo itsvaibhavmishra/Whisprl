@@ -11,7 +11,8 @@ const initialState = {
   view: null,
   // who has this game on screen rather than minimised, which decides whose messages float across it
   lookers: [],
-  collapsed: false,
+  // whether each chat's game was opened or minimised by hand, which holds on coming back until the game closes
+  panelChoices: {},
   seatSwitch: null,
   leaderboard: null,
   // the result someone stepped back from, so closing and reopening the panel does not show it again
@@ -31,6 +32,7 @@ const slice = createSlice({
         if (state.view && state.view.revision >= payload.revision) return;
         state.view = payload;
         state.lookers = payload.lookers ?? [];
+        if (!payload.session) delete state.panelChoices[payload.conversationId];
       },
       // stamped on arrival, so a wait the server sends in milliseconds counts from here, whatever this phone's clock says
       prepare: (payload) => ({ payload: { ...payload, receivedAt: Date.now() } }),
@@ -39,7 +41,7 @@ const slice = createSlice({
       if (payload.conversationId === state.watching) state.lookers = payload.users;
     },
     gameCollapsed(state, { payload }) {
-      state.collapsed = payload;
+      state.panelChoices[state.watching] = !payload;
     },
     resultDismissed(state, { payload }) {
       state.dismissedResult = payload;
@@ -63,7 +65,6 @@ const slice = createSlice({
         state.watching = meta.arg;
         state.view = null;
         state.lookers = [];
-        state.collapsed = false;
       })
       .addCase(WatchGame.fulfilled, (state) => {
         state.watchCount += 1;
@@ -90,10 +91,19 @@ export const { gameStateReceived, lookersChanged, gameCollapsed, resultDismissed
 
 export const selectGameSession = (state) => state.game.view?.session ?? null;
 
+// someone not at a table between two people sees its game only once they open it, so a challenge never fills their screen
+const isShownUntouched = (session, meId, isGroup) => isGroup || Boolean(session?.seats?.some((seat) => seat.user === meId));
+
+export const selectIsGameCollapsed = ({ game, user, chat }) => {
+  const choice = game.panelChoices[game.watching];
+  if (choice !== undefined) return !choice;
+  return !isShownUntouched(game.view?.session, user.user._id, chat.activeConversation?.isGroup);
+};
+
 export const selectViewReceivedAt = (state) => state.game.view?.receivedAt ?? 0;
 
 // the game of a chat, while that chat is open and its game is on screen rather than minimised
-export const selectGameOnScreen = ({ game }, conversationId) =>
-  game.watching === conversationId && game.view?.session && !game.collapsed ? game.view.session.game : null;
+export const selectGameOnScreen = (state, conversationId) =>
+  state.game.watching === conversationId && state.game.view?.session && !selectIsGameCollapsed(state) ? state.game.view.session.game : null;
 
 export default slice.reducer;

@@ -31,11 +31,16 @@ export const saveDeviceToken = async (sessionId, token) => {
 
 export const forgetDeviceToken = (sessionId) => SessionModel.updateOne({ _id: sessionId }, { $unset: { pushToken: 1 } });
 
-const unmutedRecipients = async (conversation, senderId) => {
-  const recipients = memberRooms(conversation, senderId);
-  const muted = await ChatPreferenceModel.find({ conversation: conversation._id, user: { $in: recipients }, mutedUntil: { $gt: new Date() } }).distinct("user");
-  const mutedIds = new Set(muted.map(String));
-  return recipients.filter((userId) => !mutedIds.has(userId));
+const unmutedRecipients = async (conversations, senderId) => {
+  const muted = await ChatPreferenceModel.find({ conversation: { $in: conversations.map(({ _id }) => _id) }, mutedUntil: { $gt: new Date() } })
+    .select("conversation user")
+    .lean();
+  const mutedPairs = new Set(muted.map(({ conversation, user }) => `${conversation}:${user}`));
+  return conversations.flatMap((conversation) =>
+    memberRooms(conversation, senderId)
+      .filter((userId) => !mutedPairs.has(`${conversation._id}:${userId}`))
+      .map((userId) => ({ userId, conversation }))
+  );
 };
 
 const currentKeyIdsOf = async (userIds) => {
@@ -84,8 +89,12 @@ export const pushDataFor = (conversation, sender, message, recipientId, keyId) =
   return Buffer.byteLength(JSON.stringify(sealed)) <= MOST_DATA_BYTES ? sealed : named;
 };
 
-const pushSessionsFor = async (conversation, senderId) =>
-  SessionModel.find({ user: { $in: await unmutedRecipients(conversation, senderId) }, pushToken: { $exists: true } }).select("user pushToken");
+const pushTargetsFor = async (conversations, senderId) => {
+  const recipients = await unmutedRecipients(conversations, senderId);
+  const sessions = await SessionModel.find({ user: { $in: recipients.map(({ userId }) => userId) }, pushToken: { $exists: true } }).select("user pushToken");
+  const sessionsOf = Map.groupBy(sessions, (session) => String(session.user));
+  return recipients.flatMap(({ userId, conversation }) => (sessionsOf.get(userId) ?? []).map((session) => ({ session, conversation })));
+};
 
 // high priority wakes a sleeping phone, which Android allows for something its owner is then shown
 const pushTo = (session, conversation, data) => ({ token: session.pushToken, data, android: { priority: "high", collapseKey: String(conversation._id) } });
@@ -105,7 +114,7 @@ const sendAll = async (sendable, sessions, pushes) => {
 export const pushNewMessage = async (conversation, sender, message) => {
   const sendable = messagingOrNull();
   if (!sendable) return;
-  const sessions = await pushSessionsFor(conversation, sender._id);
+  const sessions = (await pushTargetsFor([conversation], sender._id)).map(({ session }) => session);
   if (!sessions.length) return;
 
   const keyIds = await currentKeyIdsOf(sessions.map((session) => session.user));
@@ -116,20 +125,18 @@ export const pushNewMessage = async (conversation, sender, message) => {
   await sendAll(sendable, sessions, pushes);
 };
 
-// an invite carries nothing secret, so its words travel as they are
-export const pushGameInvite = async (conversation, sender, gameName) => {
+// words the server writes itself, like a challenge or Whisprl's messages, carry nothing secret, so they travel as they are
+export const pushWords = async (conversations, sender, text) => {
   const sendable = messagingOrNull();
   if (!sendable) return;
-  const sessions = await pushSessionsFor(conversation, sender._id);
-  const data = {
-    conversationId: String(conversation._id),
-    senderId: String(sender._id),
-    title: `${sender.firstName} ${sender.lastName}`,
-    text: `Wants to play ${gameName}`,
-  };
+  const targets = await pushTargetsFor(conversations, sender._id);
+  const words = { senderId: String(sender._id), title: `${sender.firstName} ${sender.lastName}`.trim(), text };
+  const pushes = targets.map(({ session, conversation }) =>
+    pushTo(session, conversation, { ...words, conversationId: String(conversation._id), recipientId: String(session.user) })
+  );
   await sendAll(
     sendable,
-    sessions,
-    sessions.map((session) => pushTo(session, conversation, { ...data, recipientId: String(session.user) }))
+    targets.map(({ session }) => session),
+    pushes
   );
 };

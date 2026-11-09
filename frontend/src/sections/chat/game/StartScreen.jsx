@@ -84,7 +84,7 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
   const mySeat = session.seats.find((seat) => seat.user === meId);
   const freeSeat = session.seats.findIndex((seat) => mayTake(seat, meId));
   const botSeat = session.seats.findIndex(isChosenBot);
-  const seatForBot = session.seats.findIndex(mayHoldBot);
+  const seatForBot = session.seats.findIndex((seat) => mayHoldBot(seat, conversation.isGroup));
   const [isReady, setReady] = usePending(Boolean(mySeat?.ready), (ready) => act({ type: "ready", ready }));
   const toggleReady = () => setReady(!isReady);
   // the same people the server lets set the table up: whoever is sitting, or a group's manager

@@ -105,25 +105,45 @@ const palette = {
   dark: {
     ...COMMON,
     mode: "dark",
-    text: { primary: "#E9EEF6", secondary: "#93A1B8", disabled: "#7B8AA2" },
-    background: { paper: "#1A2334", default: "#0D1420", neutral: alpha("#93A1B8", 0.12) },
-    divider: alpha("#9FB2D0", 0.1),
-    action: { active: "#93A1B8", ...action("#C8D6EC") },
+    // near black with only a trace of the mascot's cool blue, so the cyan accent stands out without the screen reading as navy
+    text: { primary: "#ECEEF2", secondary: "#9BA1AB", disabled: "#737A85" },
+    background: { paper: "#17191D", default: "#0E1013", neutral: alpha("#9BA1AB", 0.12) },
+    divider: alpha("#FFFFFF", 0.08),
+    action: { active: "#9BA1AB", ...action("#D6DAE1") },
     // each step up is a little lighter, so what floats reads as nearer: canvas, list, field, bubble, raised
     chat: {
-      rail: "#080C14",
-      list: "#0D1420",
-      canvas: "#080D15",
-      raised: "#252F43",
-      sheet: "#1A2334",
-      bubbleIn: "#1E2839",
-      glass: alpha("#0D1420", 0.86),
-      pill: alpha("#1E2839", 0.95),
-      field: "#151E2D",
+      rail: "#08090B",
+      list: "#0E1013",
+      canvas: "#0A0B0D",
+      raised: "#24272D",
+      sheet: "#17191D",
+      bubbleIn: "#1C1F24",
+      glass: alpha("#0E1013", 0.86),
+      pill: alpha("#1C1F24", 0.95),
+      field: "#16181C",
       edge: alpha("#FFFFFF", 0.06),
-      doodle: alpha("#C8D6EC", 0.05),
-      shade: alpha("#000000", 0.45),
+      doodle: alpha("#D6DAE1", 0.045),
+      shade: alpha("#000000", 0.5),
     },
+  },
+};
+
+// inside a chat, dark mode keeps the navy it first had, so bubbles and wallpaper read as before while every other screen is near black
+export const NAVY_CHAT = {
+  text: { primary: "#E9EEF6", secondary: "#93A1B8", disabled: "#7B8AA2" },
+  background: { paper: "#1A2334", default: "#0D1420", neutral: alpha("#93A1B8", 0.12) },
+  divider: alpha("#9FB2D0", 0.1),
+  action: { active: "#93A1B8", ...action("#C8D6EC") },
+  chat: {
+    canvas: "#080D15",
+    raised: "#252F43",
+    sheet: "#1A2334",
+    bubbleIn: "#1E2839",
+    glass: alpha("#0D1420", 0.86),
+    pill: alpha("#1E2839", 0.95),
+    field: "#151E2D",
+    doodle: alpha("#C8D6EC", 0.05),
+    shade: alpha("#000000", 0.45),
   },
 };
 

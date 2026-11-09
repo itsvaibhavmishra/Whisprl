@@ -3,6 +3,8 @@ import validator from "validator";
 
 import { GameRequestModel } from "#src/models/index.js";
 import { MAX_REQUEST_DETAILS, MAX_REQUEST_LINK, MAX_REQUEST_LINKS, MAX_REQUEST_NAME, REQUEST_KINDS, REQUEST_STATUSES } from "#src/models/gameRequestModel.js";
+import { sendFromWhisprl } from "#src/services/whisprlMessageService.js";
+import { reportError } from "#src/utils/errorReports.js";
 import { nameKeyOf, searchScore } from "#src/utils/textSearch.js";
 
 const PAGE_SIZE = 20;
@@ -106,11 +108,21 @@ export const listGameRequests = async ({ status = "open", kind = "all", search =
   };
 };
 
-export const closeGameRequests = async (actor, nameKey, outcome) => {
+// each person who asked hears it arrived, named the way they spelled it, and only once however often they asked
+const tellRequesters = (io, requests) => {
+  const spellings = new Map(requests.map(({ user, name }) => [String(user), name]));
+  return Promise.all([...spellings].map(([user, name]) => sendFromWhisprl(io, user, { type: "gameAdded", name }).catch((error) => reportError(error, user))));
+};
+
+export const closeGameRequests = async (io, actor, nameKey, outcome) => {
   if (!OUTCOMES.includes(outcome)) throw createHttpError.BadRequest("Mark it added or dismissed");
+  const requests = await GameRequestModel.find({ nameKey: String(nameKey), status: "open" })
+    .select("user name")
+    .lean();
   const { modifiedCount } = await GameRequestModel.updateMany(
-    { nameKey: String(nameKey), status: "open" },
+    { _id: { $in: requests.map((request) => request._id) }, status: "open" },
     { status: outcome, closedBy: actor._id, closedAt: new Date() }
   );
   if (!modifiedCount) throw createHttpError.BadRequest("Those requests have already been dealt with");
+  if (outcome === "added") await tellRequesters(io, requests);
 };

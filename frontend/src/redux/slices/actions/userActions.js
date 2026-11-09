@@ -102,6 +102,8 @@ export const UpdateSuggestionSetting = createApiThunk(
   async (suggestToFriendsOfFriends) => (await axios.put("/user/suggestions", { suggestToFriendsOfFriends })).data
 );
 
+export const FinishTour = createApiThunk("user/tour", () => axios.put("/user/tour"), { notifyErrors: false });
+
 export const UpdateBirthdaySetting = createApiThunk(
   "user/birthday-visibility",
   async (showBirthdayToFriends) => (await axios.put("/user/birthday-visibility", { showBirthdayToFriends })).data

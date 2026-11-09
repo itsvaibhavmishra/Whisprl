@@ -9,7 +9,7 @@ const Verify = () => (
   <>
     <AuthHeader title="Verify your email">
       We send a 6-digit code to your inbox. Already verified?{" "}
-      <Link component={RouterLink} to={PATH_AUTH.general.login} underline="hover">
+      <Link component={RouterLink} to={PATH_AUTH.general.login} state={{ withEmail: true }} underline="hover">
         Log in
       </Link>
     </AuthHeader>

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import useIsLoading from "@/hooks/useIsLoading";
 import getAvatar from "@/utils/avatars";
+import { isOfficial } from "@/utils/relationship";
 
 const fullNameOf = (friend) => `${friend.firstName} ${friend.lastName}`;
 
@@ -23,8 +24,9 @@ const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true,
 
   const toggle = (friendId) => onChange(selected.includes(friendId) ? selected.filter((id) => id !== friendId) : [...selected, friendId]);
 
+  // Whisprl joins no group and has nothing to be shown or sent
   const choosable = friends
-    .filter((friend) => friend._id !== user._id && !excludeIds.includes(friend._id))
+    .filter((friend) => friend._id !== user._id && !excludeIds.includes(friend._id) && !isOfficial(friend))
     .filter((friend) => fullNameOf(friend).toLowerCase().includes(query.trim().toLowerCase()));
 
   return (

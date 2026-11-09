@@ -1,9 +1,10 @@
+import { announce, announcedGames, audienceSizes, listAnnouncements } from "#src/services/announcementService.js";
 import { listAuditEntries } from "#src/services/auditService.js";
 import { closeGameRequests, listGameRequests } from "#src/services/gameRequestService.js";
 import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/services/moderationService.js";
 import { dismissReport, listReports } from "#src/services/reportQueueService.js";
 import { assertConfirmed, confirmationOptions } from "#src/services/passkeyService.js";
-import { activePeopleOf, overviewOf } from "#src/services/overviewService.js";
+import { activePeopleOf, overviewOf, stoppedPeopleOf } from "#src/services/overviewService.js";
 import { addAdmin, changeAccess, listTeam, removeAdmin } from "#src/services/teamService.js";
 
 export const getOverview = async (req, res) => {
@@ -12,6 +13,11 @@ export const getOverview = async (req, res) => {
 
 export const getActivePeople = async (req, res) => {
   return res.status(200).json({ status: "success", ...(await activePeopleOf(req.query.from, req.query.to, req.query.page)) });
+};
+
+export const getStoppedPeople = async (req, res) => {
+  const { from, to, page } = req.query;
+  return res.status(200).json({ status: "success", ...(await stoppedPeopleOf(req.params.stage, from, to, page)) });
 };
 
 export const getPeople = async (req, res) => {
@@ -42,7 +48,7 @@ export const getGameRequests = async (req, res) => {
 };
 
 export const closeGameRequest = async (req, res) => {
-  await closeGameRequests(req.user, req.params.name_key, req.body.outcome);
+  await closeGameRequests(req.app.get("io"), req.user, req.params.name_key, req.body.outcome);
   return res.status(200).json({ status: "success" });
 };
 
@@ -53,12 +59,30 @@ export const getReports = async (req, res) => {
 
 // dismissing changes nobody's access, so unlike the others it does not ask for the passkey
 export const dismiss = async (req, res) => {
-  await dismissReport(req.user, req.params.report_id, req.body);
+  await dismissReport(req.app.get("io"), req.user, req.params.report_id, req.body);
   return res.status(200).json({ status: "success" });
 };
 
 export const getAuditLog = async (req, res) => {
   return res.status(200).json({ status: "success", ...(await listAuditEntries(req.query.before)) });
+};
+
+export const getAnnouncements = async (req, res) => {
+  return res.status(200).json({ status: "success", ...(await listAnnouncements(req.query.before)) });
+};
+
+export const getAudienceSizes = async (req, res) => {
+  return res.status(200).json({ status: "success", sizes: await audienceSizes() });
+};
+
+export const getAnnouncedGames = async (req, res) => {
+  return res.status(200).json({ status: "success", games: await announcedGames() });
+};
+
+// it changes nobody's access, so like dismissing a report it does not ask for the passkey
+export const sendAnnouncement = async (req, res) => {
+  const announcement = await announce(req.app.get("io"), req.user, req.body);
+  return res.status(200).json({ status: "success", announcement });
 };
 
 export const getTeam = async (req, res) => {

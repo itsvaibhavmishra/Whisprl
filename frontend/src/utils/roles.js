@@ -10,6 +10,7 @@ export const PERMISSIONS = [
   { value: "suspend", label: "Suspend", description: "Suspend people, and lift suspensions" },
   { value: "ban", label: "Ban", description: "Ban people, and lift bans" },
   { value: "audit", label: "Audit log", description: "Read everything staff have done" },
+  { value: "announce", label: "Announcements", description: "Send a message from Whisprl to everyone" },
 ];
 
 export const permissionLabel = (value) => PERMISSIONS.find((permission) => permission.value === value)?.label ?? value;

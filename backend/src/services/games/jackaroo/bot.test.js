@@ -1,8 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { botMove } from "#src/services/games/jackaroo/bot.js";
+import { botMove, momentFor } from "#src/services/games/jackaroo/bot.js";
+import { keyOf, playsFor } from "#src/services/games/jackaroo/moves.js";
 import { outcome, play, setup, turnOf, viewFor } from "#src/services/games/jackaroo/rules.js";
+import { withSeed } from "#src/services/games/withSeed.js";
 
 const track = (index) => ({ at: "track", index });
 const home = (slot) => ({ at: "home", slot });
@@ -74,12 +76,53 @@ const winRate = (games, levels) => {
 };
 
 test("bots playing each other always finish, through every rule", () => {
-  for (let game = 0; game < 60; game += 1) playedOut(["opponent", "standIn"]);
+  for (let game = 0; game < 60; game += 1) playedOut(["medium", "standIn"]);
 });
 
 test("a practised player beats it a little more often than not, and beats a stand-in more", () => {
-  const againstOpponent = winRate(400, [PRACTISED, "opponent"]);
-  const againstStandIn = winRate(400, [PRACTISED, "standIn"]);
+  const againstOpponent = withSeed(1, () => winRate(400, [PRACTISED, "medium"]));
+  const againstStandIn = withSeed(2, () => winRate(400, [PRACTISED, "standIn"]));
   assert.ok(againstOpponent > 0.5 && againstOpponent < 0.75, `practised won ${againstOpponent} against the opponent`);
   assert.ok(againstStandIn > againstOpponent - 0.05, `practised won ${againstStandIn} against the stand-in`);
+});
+
+test("a medium bot beats a dumb one, and the expert beats a medium one, more often than not", () => {
+  withSeed(1, () => {
+    assert.ok(winRate(200, ["medium", "dumb"]) > 0.55, "medium did not beat dumb");
+    assert.ok(winRate(200, ["expert", "medium"]) > 0.55, "expert did not beat medium");
+  });
+});
+
+test("a bot reacts when it knocks a marble out, and when its own is knocked out", () => {
+  const state = gameWith({ mine: [track(3)], theirs: [track(9)], hand: [card(6), card(3)] });
+  const after = play(state, 0, botMove(state, 0, PRACTISED));
+  assert.equal(momentFor(state, after, 0), "knockedOut");
+  assert.equal(momentFor(state, after, 1), "knockedBack");
+});
+
+const playThat = (state, seat, isWanted) => ({ key: keyOf(state.players[seat].hand.flatMap((held) => playsFor(state, seat, held)).find(isWanted)) });
+
+test("a bot melts when its card is taken, and the taker gets a cheeky face", () => {
+  const state = gameWith({ mine: [track(3)], hand: [card(12, "H"), card(9)], theirHand: [card(3, "C"), card(8, "C")] });
+  const after = play(state, 0, { ...playThat(state, 0, (option) => option.kind === "takeCard"), taken: 0 });
+  assert.equal(momentFor(state, after, 1), "cardTaken");
+  assert.equal(momentFor(state, after, 0), "tookCard");
+});
+
+test("a bot sobs when its own five knocks out its own marble", () => {
+  const state = gameWith({ mine: [track(3), track(8)], hand: [card(5)] });
+  const ownGoal = (option) => option.moves?.some((move) => move.captured.some(({ marble }) => marble.owner === 0));
+  const after = play(state, 0, playThat(state, 0, ownGoal));
+  assert.equal(momentFor(state, after, 0), "ownGoal");
+});
+
+test("a bot is cool about taking a marble home, and alarmed when its rival does", () => {
+  const state = gameWith({ mine: [track(45)], hand: [card(2)] });
+  const after = play(
+    state,
+    0,
+    playThat(state, 0, (option) => option.moves?.[0].to.at === "home")
+  );
+  assert.equal(momentFor(state, after, 0), "reachedHome");
+  assert.equal(momentFor(state, after, 1), "rivalHome");
 });

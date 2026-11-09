@@ -46,7 +46,7 @@ export const ReactInGame = createApiThunk("game/react", (emoji, { getState }) =>
 
 export const ReceiveGameReaction = (reaction) => (_, getState) => {
   if (reaction.conversationId !== getState().game.watching) return;
-  emitRoomEvent({ conversationId: reaction.conversationId, from: reaction.user, emoji: reaction.emoji });
+  emitRoomEvent({ conversationId: reaction.conversationId, from: reaction.user ?? `bot:${reaction.seat}`, emoji: reaction.emoji });
 };
 
 // named by the game alone, so the panel can show which one is opening; it opens in the chat being watched
@@ -100,13 +100,15 @@ export const ReceiveGameInvite = (invite) => async (_, getState) => {
   // asked for here rather than imported, so naming a game in a toast does not put every game in the first bundle
   const { GAMES } = await import("@/sections/chat/game/catalog");
   const gameName = GAMES[invite.game]?.name ?? "a game";
-  const message = conversation.isGroup ? `${from} saved you a seat at ${gameName} in ${conversation.name}` : `${from} wants to play ${gameName}`;
+  const message = conversation.isGroup ? `${from} saved you a seat at ${gameName} in ${conversation.name}` : `${from} challenged you to ${gameName}`;
   notify({ severity: "info", message, action: { label: "Join", onClick: () => openNotifiedChat(invite.conversationId) } });
 };
 
 export const ReceiveGameNotice = (notice) => (_, getState) => {
   const { chat, user } = getState();
   const conversation = chat.activeConversation;
-  if (notice.type !== "invite_declined" || conversation?._id !== notice.conversationId) return;
-  notify({ severity: "info", message: `${firstNameIn(conversation, notice.user, user.user._id)} turned down the seat` });
+  // whoever turned it down already knows, so only the one who asked hears of it
+  if (notice.type !== "invite_declined" || conversation?._id !== notice.conversationId || notice.user === user.user._id) return;
+  const name = firstNameIn(conversation, notice.user, user.user._id);
+  notify({ severity: "info", message: conversation.isGroup ? `${name} turned down the seat` : `${name} said not now. You can play the bot instead` });
 };

@@ -11,7 +11,7 @@ const MAX_BACKUP_LENGTH = 1024;
 
 const bytesOf = (value) => (typeof value === "string" && validator.isBase64(value) ? Buffer.from(value, "base64") : null);
 
-const keyIdOf = (publicKey) => crypto.createHash("sha256").update(Buffer.from(publicKey, "base64")).digest("hex").slice(0, 16);
+export const keyIdOf = (publicKey) => crypto.createHash("sha256").update(Buffer.from(publicKey, "base64")).digest("hex").slice(0, 16);
 
 export const isSealed = (sealed, maxLength) => {
   const { iv, data } = sealed ?? {};

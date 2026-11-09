@@ -13,17 +13,17 @@ export const getPasskeys = async (req, res) => {
 };
 
 export const getRegistrationOptions = async (req, res) => {
-  res.status(200).json({ status: "success", options: await passkeyRegistrationOptions(req.user) });
+  res.status(200).json({ status: "success", ...(await passkeyRegistrationOptions(req.user)) });
 };
 
 export const addPasskey = async (req, res) => {
-  await registerPasskey(req.user, req.body.response);
+  await registerPasskey(req.user, req.body.response, req.body.confirmation);
 
   res.status(200).json({ status: "success", message: "Passkey added", passkeys: await listPasskeys(req.user._id) });
 };
 
 export const deletePasskey = async (req, res) => {
-  await removePasskey(req.user._id, req.params.passkey_id);
+  await removePasskey(req.user, req.params.passkey_id, req.body?.confirmation);
 
   res.status(200).json({ status: "success", message: "Passkey removed", passkeys: await listPasskeys(req.user._id) });
 };

@@ -2,10 +2,11 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { AlbumModel, ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { memberRooms, populateMembers } from "#src/services/conversationService.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { blockedEitherWay } from "#src/services/blockService.js";
-import { saveEvent } from "#src/services/messageService.js";
+import { deleteFilesNoLongerUsed, saveEvent } from "#src/services/messageService.js";
 import { validateProfileImage } from "#src/services/userService.js";
 
 const MAX_GROUP_SIZE = 32;
@@ -42,6 +43,7 @@ const findGroup = async (group_id, user_id) => {
 const addableFriends = async (user, user_ids) => {
   const ids = [...new Set((Array.isArray(user_ids) ? user_ids : []).map(String))].filter((id) => mongoose.isValidObjectId(id) && id !== String(user._id));
   if (!ids.every((id) => isIn(user.friends, id))) throw createHttpError.BadRequest("You can only add your friends");
+  ids.forEach((id) => assertNotWhisprl(id, "Whisprl doesn't join groups"));
   const blocked = await blockedEitherWay(user, ids);
   if (ids.some((id) => blocked.has(id))) throw createHttpError.BadRequest("You can't add some of these friends");
 
@@ -134,10 +136,10 @@ const successorOf = (group) => {
 
 const deleteGroup = async (group) => {
   const withFiles = await MessageModel.find({ conversation: group._id, "attachment.url": { $exists: true } }).select("attachment");
-  const files = withFiles.map(({ attachment }) => attachment.url);
-  if (isCloudinaryFile(group.picture)) files.push(group.picture);
-  await Promise.allSettled(files.map((file) => deleteFile(file)));
   await Promise.all([MessageModel.deleteMany({ conversation: group._id }), AlbumModel.deleteMany({ conversation: group._id })]);
+  // a file forwarded out of this group is shared with that copy, so only files nothing else uses are removed
+  await deleteFilesNoLongerUsed(withFiles.map(({ attachment }) => attachment.url));
+  if (isCloudinaryFile(group.picture)) await deleteFile(group.picture).catch(() => {});
   await group.deleteOne();
 };
 

@@ -150,3 +150,8 @@ test("random games always end with one winner, and no orb is ever made or lost",
     assert.equal(outcome(state).winners.length, 1);
   }
 });
+
+test("a board size is only one of the game's own, never a name every object inherits", () => {
+  assert.throws(() => assertOptions({ size: "constructor", players: 2 }), /does not exist/);
+  assert.throws(() => assertOptions({ size: "toString", players: 2 }), /does not exist/);
+});

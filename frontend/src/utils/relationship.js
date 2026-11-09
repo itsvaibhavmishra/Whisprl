@@ -15,5 +15,7 @@ export const relationshipWith = (userId, { meId, blocked, friends, incoming, out
   return cooldown ? { state: "cooldown", until: cooldown.until } : { state: "none" };
 };
 
+export const isOfficial = (person) => person?.badge === "official";
+
 // rounded up, as the server rounds it, and never "0 h"
 export const waitLabel = (until, now = Date.now()) => `Ask again in ${Math.max(1, Math.ceil((new Date(until) - now) / HOUR_MS))} h`;

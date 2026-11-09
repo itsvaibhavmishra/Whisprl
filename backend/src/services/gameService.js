@@ -4,10 +4,12 @@ import mongoose from "mongoose";
 import { ConversationModel, GameSessionModel } from "#src/models/index.js";
 import { findMemberConversation, memberRooms, populateMembers } from "#src/services/conversationService.js";
 import { assertManager } from "#src/services/groupService.js";
-import { assertCanMessage, canMessageIn, saveEvent } from "#src/services/messageService.js";
-import { pushGameInvite } from "#src/services/pushService.js";
-import { recordPlay, recordResult } from "#src/services/gameResultService.js";
+import { assertCanMessage, canMessageIn, saveEvent, saveMessage } from "#src/services/messageService.js";
+import { pushWords } from "#src/services/pushService.js";
+import { botLevelFor, recordBotGame } from "#src/services/botRecordService.js";
+import { newcomersTo, recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 import {
   backToLobby,
   comeBack,
@@ -16,8 +18,8 @@ import {
   handToBot,
   invite,
   invitedIndexOf,
+  isBotOpponent,
   isBotPlaying,
-  isChosenBot,
   isEveryoneReady,
   lift,
   missTurn,
@@ -26,6 +28,7 @@ import {
   resized,
   seatBot,
   seatIndexOf,
+  seatWhisprl,
   setLocked,
   setReady,
   sit,
@@ -105,13 +108,14 @@ const assertNotCoolingDown = (gameRoom, userId) => {
   if (until) throw createHttpError.BadRequest(`You can sit again in ${Math.ceil((until - Date.now()) / 1000)} seconds`);
 };
 
-const seatView = ({ user, ready, locked, invited, bot, away }) => ({
+const seatView = ({ user, ready, locked, invited, bot, away, official }) => ({
   user: user ? String(user) : null,
   ready: Boolean(ready),
   locked: Boolean(locked),
   invited: invited ? String(invited) : null,
   bot: Boolean(bot),
   away: Boolean(away),
+  official: Boolean(official),
 });
 
 const stateViewFor = (session, viewerId) => {
@@ -142,6 +146,7 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
     options: session.options ?? null,
     cooldownUntil: cooldownOf(gameRoom, viewerId),
     state: stateViewFor(session, viewerId),
+    isFirstGame: session.status === "playing" && (session.newcomers ?? []).some((newcomer) => String(newcomer) === viewerId),
     result: session.result ? { ...session.result, showsIn: Math.max(0, new Date(session.result.showsAt ?? 0).getTime() - Date.now()) } : null,
   },
 });
@@ -158,7 +163,7 @@ const broadcast = async (io, gameRoom, conversation, session) => {
   sockets.forEach((socket) => socket.emit("game_state", viewFor(conversation, session, gameRoom, socket.data.userId)));
   // every member hears whether this is a game of theirs, so the app's main pages can offer the way back without watching it
   memberRooms(conversation).forEach((userId) =>
-    io.to(userId).emit("my_game", { conversationId: String(conversation._id), game: ongoingFor(session, userId)?.game ?? null })
+    io.to(userId).emit("my_game", { conversationId: String(conversation._id), game: ongoingFor(session, userId)?.game ?? null, table: session?.game ?? null })
   );
 };
 
@@ -194,11 +199,16 @@ const withTurnClock = (session, playOutMs = 0) => {
 
 const playOutMsOf = (game, state) => game.playOutMs?.(state) ?? 0;
 
+const startingFactsOf = async (session) => {
+  const [botLevel, newcomers] = await Promise.all([botLevelFor(session), newcomersTo(session)]);
+  return { botLevel, newcomers };
+};
+
 // Ready is agreeing to start, so it clears once the game does
-const startGame = (session) => {
+const startGame = (session, facts) => {
   const game = gameOf(session.game);
   const state = game.setup(session.state, tableOf(session));
-  const started = { ...session, status: "playing", startsAt: undefined, result: undefined, seats: unreadyAll(session.seats), state };
+  const started = { ...session, ...facts, status: "playing", startsAt: undefined, result: undefined, seats: unreadyAll(session.seats), state };
   return withTurnClock(started, playOutMsOf(game, state));
 };
 
@@ -206,33 +216,71 @@ const startGame = (session) => {
 const keepsClock = (game, session, state) => Boolean(game.isMidTurn?.(state)) && !isBotPlaying(session.seats[game.turnOf(state)]);
 
 // a finished game goes back to its lobby with the final board and who won still showing
+// a finished game goes back to its lobby with the final board and who won still showing
+const finished = (session, state, winningSeats, { showsInMs = 0, leftBy } = {}) => ({
+  ...session,
+  status: "lobby",
+  state,
+  turnStartsAt: undefined,
+  turnEndsAt: undefined,
+  botLevel: undefined,
+  newcomers: undefined,
+  result: {
+    winners: winningSeats.map((seat) => ({ user: session.seats[seat].user ? String(session.seats[seat].user) : null, bot: Boolean(session.seats[seat].bot) })),
+    seats: winningSeats,
+    leftBy,
+    endedAt: new Date(),
+    // shown once the last play has finished showing, as a turn's clock waits for it
+    showsAt: new Date(Date.now() + showsInMs),
+  },
+  seats: backToLobby(session.seats),
+});
+
 export const played = (session, index, move) => {
   const game = gameOf(session.game);
   const state = game.play(session.state, index, move);
   const outcome = game.outcome(state);
   if (!outcome) return keepsClock(game, session, state) ? { ...session, state } : withTurnClock({ ...session, state }, playOutMsOf(game, state));
-  const winners = outcome.winners.map((winningSeat) => {
-    const { user, bot } = session.seats[winningSeat];
-    return { user: user ? String(user) : null, bot: Boolean(bot) };
-  });
-  return {
-    ...session,
-    status: "lobby",
-    state,
-    turnStartsAt: undefined,
-    turnEndsAt: undefined,
-    // the result is shown once the last play has finished showing, as a turn's clock waits for it
-    result: { winners, endedAt: new Date(), showsAt: new Date(Date.now() + playOutMsOf(game, state)) },
-    seats: backToLobby(session.seats),
-  };
+  return finished(session, state, outcome.winners, { showsInMs: playOutMsOf(game, state) });
 };
 
 const playedForAbsent = (session) => {
   const game = gameOf(session.game);
   const index = game.turnOf(session.state);
   // a bot someone chose to face tries harder than one covering for a player who walked away
-  const level = isChosenBot(session.seats[index]) ? "opponent" : "standIn";
+  const level = isBotOpponent(session.seats[index]) ? (session.botLevel ?? "medium") : "standIn";
   return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
+};
+
+const BOT_REACTION_CHANCE = 0.7;
+const BOT_REACTION_GAP_MS = 4000;
+const ENDING_REACTIONS = { won: ["🥳", "😎"], lost: ["😭"], drawn: ["🫠", "😜"] };
+
+const anyOf = (items) => items[Math.floor(Math.random() * items.length)];
+
+const endingFor = ({ seats }, index) => {
+  if (!seats.length) return "drawn";
+  return seats.includes(index) ? "won" : "lost";
+};
+
+// a chosen bot always reacts to how a game ends, and to only some of what happens on the way, never twice in quick succession
+const reactAsBot = (io, gameRoom, conversationId, before, after) => {
+  if (before?.status !== "playing" || !after?.state) return;
+  const game = gameOf(before.game);
+  const isEnding = Boolean(after.result);
+  if (!isEnding && (Date.now() < gameRoom.botReactsAfter || Math.random() > BOT_REACTION_CHANCE)) return;
+  const [reaction] = before.seats.flatMap((seat, index) => {
+    if (!isBotOpponent(seat)) return [];
+    const moment = isEnding ? endingFor(after.result, index) : game.momentFor?.(before.state, after.state, index);
+    const choices = ENDING_REACTIONS[moment] ?? game.reactions?.[moment];
+    // Whisprl reacts as itself, while a chosen bot has no account and is known by its seat
+    const thrower = seat.official ? { user: String(seat.user) } : { seat: index };
+    return choices ? [{ ...thrower, emoji: anyOf(choices) }] : [];
+  });
+  if (!reaction) return;
+  gameRoom.botReactsAfter = Date.now() + BOT_REACTION_GAP_MS;
+  // thrown once the play has finished showing, so the face matches what just happened on the board
+  setTimeout(() => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...reaction }), playOutMsOf(game, after.state));
 };
 
 const deadlineOf = (session) => {
@@ -262,10 +310,11 @@ const reachDeadline = (io, conversationId, deadline) =>
     const session = await loadSession(conversationId);
     // anything that changed the session since moved its deadline and set a timer of its own
     if (deadlineOf(session) !== deadline) return;
-    const next = session.status === "countdown" ? startGame(session) : playedForAbsent(session);
+    const next = session.status === "countdown" ? startGame(session, await startingFactsOf(session)) : playedForAbsent(session);
     await save(next);
-    await Promise.all([recordPlay(session, next), recordResult(session, next)]);
+    await Promise.all([recordPlay(session, next), recordResult(session, next), recordBotGame(session, next)]);
     syncClock(io, gameRoom, conversationId, next);
+    reactAsBot(io, gameRoom, conversationId, session, next);
     await broadcast(io, gameRoom, await ConversationModel.findById(conversationId), next);
   });
 
@@ -293,19 +342,32 @@ const requirePlaying = (session) => {
   return session;
 };
 
-// someone already playing elsewhere chooses to leave that game first, so this only says where
-const assertNotSeatedElsewhere = async (conversation, userId) => {
-  const elsewhere = await GameSessionModel.findOne({
+const isPlayableBy = (conversationId, userId) =>
+  playableConversation(conversationId, userId).then(
+    () => true,
+    () => false
+  );
+
+// only a game being played holds someone, who chooses to leave it first; a seat in another lobby is simply given up for this one
+const leaveOtherTables = async (io, conversation, userId) => {
+  const seated = await GameSessionModel.find({
     conversation: { $ne: conversation._id },
     seats: { $elemMatch: { user: userId, bot: { $ne: true } } },
   }).lean();
-  if (!elsewhere) return;
-  throw createHttpError(409, "You are already sitting in another game", {
-    details: { code: "seated_elsewhere", conversationId: String(elsewhere.conversation), game: elsewhere.game },
-  });
+  // a seat left in a chat they can no longer play in, after a block, an unfriend or leaving a group, holds nobody back
+  const playable = await Promise.all(seated.map((session) => isPlayableBy(session.conversation, userId)));
+  const elsewhere = seated.filter((_, position) => playable[position]);
+  const playing = elsewhere.find((session) => session.status === "playing");
+  if (playing) {
+    throw createHttpError(409, "You are already playing another game", {
+      details: { code: "seated_elsewhere", conversationId: String(playing.conversation), game: playing.game },
+    });
+  }
+  // a table that closed in the meantime has nobody left to stand up from
+  await Promise.all(elsewhere.map((lobby) => actInGame(io, userId, { conversationId: String(lobby.conversation), type: "stand" }).catch(() => {})));
 };
 
-const open = async ({ conversation, session, userId, details }) => {
+const open = async ({ io, conversation, session, userId, details }) => {
   const game = gameOf(details.game);
   assertRunsGames(conversation, userId);
   const options = game.options?.defaults;
@@ -315,14 +377,31 @@ const open = async ({ conversation, session, userId, details }) => {
     return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: resized(session?.seats ?? [], game.minPlayers) };
   }
   if (session) throw createHttpError.BadRequest("There is already a game in this chat");
-  await assertNotSeatedElsewhere(conversation, userId);
-  // proposing in a chat between two people is taking a seat
-  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: sit(emptySeats(game.minPlayers), 0, userId) };
+  await leaveOtherTables(io, conversation, userId);
+  // proposing in a chat between two people is taking a seat and saving the other for them, which Whisprl takes itself
+  const seats = sit(emptySeats(game.minPlayers), 0, userId);
+  const peerId = conversation.users.map((member) => String(member._id ?? member)).find((id) => id !== String(userId));
+  return {
+    conversation: conversation._id,
+    game: game.id,
+    status: "lobby",
+    options,
+    seats: isWhisprl(peerId) ? seatWhisprl(seats, 1, peerId) : invite(seats, 1, peerId),
+  };
 };
 
+// someone else at a table between two people, a person or Whisprl, who would be left with a game nobody finished
+const hasOpponent = (session, userId) => session.seats.some((seat) => seat.user && String(seat.user) !== String(userId));
+
+// between two people only someone at the table closes it, and a game against anyone but the bot is left instead, which loses it
 const close = ({ conversation, session, userId }) => {
   requireSession(session);
-  assertRunsGames(conversation, userId);
+  if (conversation.isGroup) {
+    assertRunsGames(conversation, userId);
+    return null;
+  }
+  if (seatIndexOf(session.seats, userId) === -1) throw createHttpError.BadRequest("Only someone playing can close the game");
+  if (session.status === "playing" && hasOpponent(session, userId)) throw createHttpError.BadRequest("Leave the game instead, which counts as a loss");
   return null;
 };
 
@@ -340,16 +419,25 @@ const cancel = ({ conversation, session, userId }) => {
   };
 };
 
-const sitDown = async ({ conversation, session, gameRoom, userId, details }) => {
+const sitDown = async ({ io, conversation, session, gameRoom, userId, details }) => {
   requireLobby(session);
   assertNotCoolingDown(gameRoom, userId);
-  await assertNotSeatedElsewhere(conversation, userId);
+  await leaveOtherTables(io, conversation, userId);
   // someone new at the table means everyone agrees again
   return { ...session, seats: unreadyAll(sit(session.seats, details.index, userId)) };
 };
 
-const standUp = ({ session, userId }) => {
+// leaving a game of two, against a person or Whisprl, hands them the win; a bigger table plays on with a bot in the seat
+const forfeits = (session, userId) => session.seats.length === 2 && hasOpponent(session, userId);
+
+const standUp = ({ conversation, session, userId }) => {
   requireSession(session);
+  // a game against the bot alone is left with nothing owed, so it simply closes
+  if (session.status === "playing" && !conversation.isGroup && !hasOpponent(session, userId)) return null;
+  if (session.status === "playing" && forfeits(session, userId)) {
+    const leaving = seatIndexOf(session.seats, userId);
+    return finished(session, session.state, [1 - leaving], { leftBy: String(userId) });
+  }
   if (session.status === "playing") {
     const next = { ...session, seats: handToBot(session.seats, userId) };
     return isTurnOf(session, seatIndexOf(session.seats, userId)) ? withTurnClock(next) : next;
@@ -381,7 +469,9 @@ const assertMayChangeTable = (conversation, session, userId) => {
 
 const changeBot = ({ conversation, session, userId, details }) => {
   assertMayChangeTable(conversation, requireLobby(session), userId);
-  const seats = details.seated ? seatBot(session.seats, details.index) : unseatBot(session.seats, details.index);
+  // between two people, choosing the bot takes back a challenge nobody has answered yet
+  const open = conversation.isGroup || !details.seated ? session.seats : setLocked(session.seats, details.index, false);
+  const seats = details.seated ? seatBot(open, details.index) : unseatBot(session.seats, details.index);
   return { ...session, seats: unreadyAll(seats) };
 };
 
@@ -390,7 +480,9 @@ const changeSettings = ({ conversation, session, userId, details }) => {
   const game = gameOf(requireLobby(session).game);
   if (!game.options) throw createHttpError.BadRequest("This game has no settings");
   assertMayChangeTable(conversation, session, userId);
-  const options = { ...session.options, ...details.options };
+  // only the game's own settings are kept, whatever else a client sends
+  const chosen = Object.keys(game.options.defaults).filter((key) => Object.hasOwn(details.options ?? {}, key));
+  const options = { ...session.options, ...Object.fromEntries(chosen.map((key) => [key, details.options[key]])) };
   game.options.assert({ ...options, players: session.seats.length });
   // the table changed, so everyone agrees to it again
   return { ...session, options, seats: unreadyAll(session.seats) };
@@ -433,14 +525,19 @@ const inviteToSeat = ({ io, conversation, session, gameRoom, userId, details }) 
   return next;
 };
 
-const answerInvite = ({ io, conversation, session, gameRoom, userId, details }) => {
+const answerInvite = async ({ io, conversation, session, gameRoom, userId, details }) => {
   requireSession(session);
   const index = invitedIndexOf(session.seats, userId);
   if (index === -1) throw createHttpError.BadRequest("That invite was withdrawn");
 
-  if (details.accept) return sitDown({ conversation, session, gameRoom, userId, details: { index } });
+  // accepting is agreeing to play, so the seat taken is ready too
+  if (details.accept) {
+    const seated = await sitDown({ io, conversation, session, gameRoom, userId, details: { index } });
+    return { ...seated, seats: setReady(seated.seats, userId, true) };
+  }
   io.to(audienceOf(conversation._id)).emit("game_notice", { conversationId: String(conversation._id), type: "invite_declined", user: userId });
-  return { ...session, seats: declineInvite(session.seats, userId) };
+  // turned down between two people, the seat is freed, so the one who asked can play the bot instead
+  return { ...session, seats: conversation.isGroup ? declineInvite(session.seats, userId) : setLocked(session.seats, index, false) };
 };
 
 const ACTIONS = {
@@ -464,23 +561,33 @@ const ACTIONS = {
 // only a table opening and closing earn a line in the chat, so playing a game does not fill it
 const TABLE_EVENTS = { open: "game_opened", close: "game_closed" };
 
+// between two people opening a game is a challenge, answered from the message it sends
+const challenge = async (io, members, challenger, guest, game) => {
+  const notice = { type: "challenge", user: guest._id, name: guest.firstName, game: game.id, gameName: game.name };
+  const { message } = await saveMessage(members, { sender: challenger._id, notice });
+  io.to(memberRooms(members)).emit("message_received", message);
+  io.to(String(guest._id)).emit("game_invited", { conversationId: String(members._id), game: game.id, from: String(challenger._id) });
+  await pushWords([members], challenger, `Challenged you to ${game.name}`);
+};
+
 const announceTable = async (io, conversation, userId, type, before, after) => {
   const eventType = TABLE_EVENTS[type];
   if (!eventType || (type === "open" && before)) return;
   const game = gameOf((after ?? before).game);
   const members = await populateMembers(conversation);
+  const guest = !members.isGroup && members.users.find((member) => String(member._id) !== userId);
+  if (type === "open" && guest && !isWhisprl(guest._id)) {
+    await challenge(
+      io,
+      members,
+      members.users.find((member) => String(member._id) === userId),
+      guest,
+      game
+    );
+    return;
+  }
   const { message } = await saveEvent(members, userId, eventType, { name: game.name });
   io.to(memberRooms(members)).emit("message_received", message);
-  if (type !== "open" || members.isGroup) return;
-
-  // between two people, opening a game is asking the other to play
-  const [guest] = memberRooms(members, userId);
-  io.to(guest).emit("game_invited", { conversationId: String(members._id), game: game.id, from: userId });
-  await pushGameInvite(
-    members,
-    members.users.find((member) => String(member._id) === userId),
-    game.name
-  );
 };
 
 const playableConversation = async (conversationId, userId) => {
@@ -503,10 +610,11 @@ export const actInGame = (io, userId, { conversationId, type, ...details }) => {
     const after = next && settled(next);
     if (after) {
       await save(after);
-      await Promise.all([recordPlay(session, after), recordResult(session, after)]);
+      await Promise.all([recordPlay(session, after), recordResult(session, after), recordBotGame(session, after)]);
     } else await GameSessionModel.deleteOne({ conversation: id });
 
     syncClock(io, gameRoom, id, after);
+    reactAsBot(io, gameRoom, id, session, after);
     await broadcast(io, gameRoom, conversation, after);
     await announceTable(io, conversation, String(userId), type, session, after);
   });
@@ -553,6 +661,12 @@ export const stopWatching = (io, socket) => {
     countIn(gameRoom.lookers, userId, -1);
     announceLookers(io, id, gameRoom);
   });
+};
+
+// someone who leaves a group or is removed from it stops watching its game, which their open sockets would otherwise keep receiving
+export const stopWatchingFor = async (io, userIds, conversationId) => {
+  const sockets = await io.in(userIds.map(String)).fetchSockets();
+  await Promise.all(sockets.filter((socket) => socket.data.watching === String(conversationId)).map((socket) => stopWatching(io, socket)));
 };
 
 export const lookAtGame = (io, socket, isLooking) => {

@@ -8,6 +8,7 @@ import { GAMES } from "@/sections/chat/game/catalog";
 
 const labelOf = (session, meId, name) => {
   if (session.status !== "playing") return `${name} is open`;
+  if (!session.seats.some((seat) => seat.user === meId)) return `Watch ${name}`;
   return session.seats[session.turn]?.user === meId ? `Your turn in ${name}` : `Back to ${name}`;
 };
 

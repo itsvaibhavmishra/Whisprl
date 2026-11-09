@@ -9,7 +9,7 @@ import {
   populateMembers,
   unpinMessage,
 } from "#src/services/conversationService.js";
-import { saveEvent } from "#src/services/messageService.js";
+import { findSendableConversation, saveEvent } from "#src/services/messageService.js";
 
 export const createOpenConversation = async (req, res) => {
   const { conversation, isValidFriendShip, isNew } = await openDirectConversation(req.user, req.body.receiver_id);
@@ -30,7 +30,9 @@ export const getConversations = async (req, res) => {
 export const announcePins = async (io, conversation) =>
   io.to(memberRooms(conversation)).emit("pins_updated", { conversation_id: conversation._id, pins: await pinsOf(conversation) });
 
+// a blocked or former friend keeps the old chat to read, but can no longer change its pins
 export const pin = async (req, res) => {
+  await findSendableConversation(req.params.convo_id, req.user._id);
   const { conversation, isNew } = await pinMessage(req.params.convo_id, req.user._id, req.params.message_id);
   const io = req.app.get("io");
 
@@ -43,6 +45,7 @@ export const pin = async (req, res) => {
 };
 
 export const unpin = async (req, res) => {
+  await findSendableConversation(req.params.convo_id, req.user._id);
   const conversation = await unpinMessage(req.params.convo_id, req.user._id, req.params.message_id);
   await announcePins(req.app.get("io"), conversation);
   res.status(200).json({ status: "success" });

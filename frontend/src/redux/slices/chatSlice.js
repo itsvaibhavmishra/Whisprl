@@ -1,5 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { CreateOpenConversation, GetConversations, GetMessages, LoadNewerMessages, LoadOlderMessages } from "@/redux/slices/actions/chatActions";
+import { ongoingGameHeard } from "@/redux/slices/gameSlice";
 
 const initialState = {
   conversations: [],
@@ -447,6 +448,11 @@ const slice = createSlice({
   },
   extraReducers(builder) {
     builder
+      .addCase(ongoingGameHeard, (state, { payload }) => {
+        conversationsWith(state, payload.conversationId).forEach((conversation) => {
+          conversation.tableGame = payload.table ?? null;
+        });
+      })
       .addCase(GetConversations.fulfilled, (state, action) => {
         state.hasLoadedConversations = true;
         state.isListSaved = false;

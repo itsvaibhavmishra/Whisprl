@@ -5,6 +5,7 @@ import { alpha } from "@mui/material/styles";
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
 import TurnRing from "@/sections/chat/game/TurnRing";
+import { sayerAt } from "@/sections/chat/game/useRoomChatter";
 import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
 import { firstNameIn, memberOf } from "@/utils/groups";
@@ -33,7 +34,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
   const clock = isTurn ? turnEndsAt : null;
   const secondsLeft = useSecondsLeft(clock);
   // a bot's turn is a short pause rather than the full clock, so its ring starts full and drains over that pause
-  const isBotPlaying = Boolean(seat.bot || seat.away);
+  const isBotPlaying = Boolean(seat.bot || seat.away || seat.official);
   const clockColour = !isBotPlaying && secondsLeft !== null && secondsLeft <= HURRY_AT ? HURRY : colour;
   // a player knocked out keeps their place and loses their colour, because a card that vanished would look like they had left
   const isOut = Boolean(game.isOut?.(state, index));
@@ -77,7 +78,7 @@ const PlayerCard = ({ seat, index, conversation, game, state, meId, isTurn, turn
             {faceOf(seat, conversation)}
           </Box>
           {clock && <TurnRing key={clock} endsAt={clock} seconds={isBotPlaying ? null : turnSeconds} colour={clockColour} />}
-          {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={FACE} />}
+          <AvatarReaction user={sayerAt(seat, index)} size={FACE} />
         </Box>
         <Stack sx={{ minWidth: 0, alignItems: "flex-start" }}>
           <Typography noWrap sx={{ maxWidth: "100%", fontSize: 13, fontWeight: 800, color: theme.ink }}>

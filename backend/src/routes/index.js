@@ -13,34 +13,40 @@ import onboardingRouter from "#src/routes/onboardingRouter.js";
 import adminRouter from "#src/routes/adminRouter.js";
 import gameRouter from "#src/routes/gameRouter.js";
 import pushRouter from "#src/routes/pushRouter.js";
+import { protect, requireAgeCheck } from "#src/middlewares/authMiddleware.js";
+import inviteRouter from "#src/routes/inviteRouter.js";
 
 const router = express.Router();
+// everything shared with other people waits for the age check that setup asks for
+const withOthers = [protect, requireAgeCheck];
 
 router.use("/auth", authRouter);
 
 router.use("/user", userRouter);
 
-router.use("/conversation", conversationRouter);
+router.use("/conversation", ...withOthers, conversationRouter);
 
-router.use("/message", messageRouter);
+router.use("/message", ...withOthers, messageRouter);
 
-router.use("/friends", friendsRouter);
+router.use("/friends", ...withOthers, friendsRouter);
 
 router.use("/keys", keyRouter);
 
 router.use("/passkeys", passkeyRouter);
 
-router.use("/groups", groupRouter);
+router.use("/groups", ...withOthers, groupRouter);
 
-router.use("/status", statusRouter);
+router.use("/status", ...withOthers, statusRouter);
 
 router.use("/onboarding", onboardingRouter);
 
 router.use("/admin", adminRouter);
 
-router.use("/games", gameRouter);
+router.use("/games", ...withOthers, gameRouter);
 
 router.use("/push", pushRouter);
+
+router.use("/invites", inviteRouter);
 
 router.get("/start-server", (req, res) => {
   res.send("Welcome to Whisprl 😺");

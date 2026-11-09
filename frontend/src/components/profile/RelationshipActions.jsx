@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Button, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { ChatCircleDotsIcon, PencilSimpleIcon, ShareNetworkIcon, UserPlusIcon } from "@phosphor-icons/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 import RequestComposer from "@/components/profile/RequestComposer";
 import RequestNote from "@/components/profile/RequestNote";
 import useIsLoading from "@/hooks/useIsLoading";
 import useOpenChat from "@/hooks/useOpenChat";
-import { AcceptRejectRequest, CancelRequest, DeclineRequest } from "@/redux/slices/actions/contactActions";
+import { AcceptRejectRequest, CancelRequest, DeclineRequest, SendRequest } from "@/redux/slices/actions/contactActions";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { shareProfile } from "@/sections/contacts/contactsRoute";
 import { waitLabel } from "@/utils/relationship";
@@ -37,6 +37,8 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
   const [isComposing, setIsComposing] = useState(startWithComposer);
   const isAnswering = useIsLoading(AcceptRejectRequest);
   const isCancelling = useIsLoading(CancelRequest, person._id);
+  const isSending = useIsLoading(SendRequest);
+  const isInviter = useSelector((state) => state.contact.inviter?._id === person._id);
   const { firstName } = person;
   const { request } = relationship;
 
@@ -93,6 +95,21 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
     case "blocked":
       return <Helper>You blocked {firstName}. Unblock them to message or send a request.</Helper>;
     default:
+      if (isInviter) {
+        return (
+          <Stack spacing={1.5} sx={{ alignItems: "start" }}>
+            <Helper>{firstName} invited you to Whisprl.</Helper>
+            <Button
+              variant="contained"
+              startIcon={<UserPlusIcon weight="bold" />}
+              loading={isSending}
+              onClick={() => dispatch(SendRequest({ userId: person._id }))}
+            >
+              Send request
+            </Button>
+          </Stack>
+        );
+      }
       return isComposing ? (
         <RequestComposer person={person} onSent={() => setIsComposing(false)} onCancel={() => setIsComposing(false)} />
       ) : (

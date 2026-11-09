@@ -1,4 +1,4 @@
-import { botMove } from "#src/services/games/jackaroo/bot.js";
+import { BOT_REACTIONS, botMove, momentFor } from "#src/services/games/jackaroo/bot.js";
 import { playOutMs, thinkMs } from "#src/services/games/jackaroo/pace.js";
 import { isMidTurn, outcome, play, setup, turnOf, viewFor } from "#src/services/games/jackaroo/rules.js";
 
@@ -14,6 +14,8 @@ const jackaroo = {
   play,
   outcome,
   botMove,
+  momentFor,
+  reactions: BOT_REACTIONS,
   viewFor,
   playOutMs,
   thinkMs,

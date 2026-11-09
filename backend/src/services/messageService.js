@@ -2,6 +2,7 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, MessageModel, UserModel } from "#src/models/index.js";
+import { isWhisprl } from "#src/services/whisprlService.js";
 import { albumsFor } from "#src/services/albumService.js";
 import { MEMBER_FIELDS, QUOTED_FIELDS, findMemberConversation, firstIdAt, populateMembers } from "#src/services/conversationService.js";
 import { blockerBetween } from "#src/services/blockService.js";
@@ -14,14 +15,12 @@ const MAX_SEALED_KEY_LENGTH = 256;
 
 // validate friendship before sending message
 const validateFriendship = async (sender_id, receiver_id) => {
-  const mutualFriends = await UserModel.countDocuments({
-    $or: [
-      { _id: sender_id, friends: receiver_id },
-      { _id: receiver_id, friends: sender_id },
-    ],
-  });
+  const sides = [{ _id: sender_id, friends: receiver_id }];
+  // Whisprl keeps no friends list, so a message to it needs only the sender's side
+  if (!isWhisprl(receiver_id)) sides.push({ _id: receiver_id, friends: sender_id });
+  const friendsOnBothSides = await UserModel.countDocuments({ $or: sides });
 
-  if (mutualFriends < 2) {
+  if (friendsOnBothSides < sides.length) {
     throw createHttpError.Forbidden("You are no longer friends with this user");
   }
 };
@@ -104,10 +103,12 @@ const SENDER_FIELDS = ["_id", "firstName", "lastName", "avatar"];
 const senderSummaryOf = (member) => Object.fromEntries(SENDER_FIELDS.map((field) => [field, member[field]]));
 
 // who hid a message is nobody else's business, so it never leaves the server
-export const toClientMessage = (message, conversation) => {
+export const clientMessageOf = (message, sender) => {
   const { hiddenFor, ...visible } = message.toObject();
-  return { ...visible, sender: senderSummaryOf(senderOf(conversation, message.sender)) };
+  return { ...visible, sender: senderSummaryOf(sender) };
 };
+
+export const toClientMessage = (message, conversation) => clientMessageOf(message, senderOf(conversation, message.sender));
 
 export const withQuote = (message) => (message.replyTo ? message.populate("replyTo", QUOTED_FIELDS) : message);
 
@@ -131,6 +132,12 @@ export const linksOf = async (conversation, user_id, { replyTo, replyToAlbum, fo
 const findSentMessage = (sender_id, clientId) => (isClientId(clientId) ? MessageModel.findOne({ sender: sender_id, clientId }) : null);
 
 // takes the conversation with its members loaded, so naming the sender needs no further query
+// only ever moves forward, so two members sending at once cannot leave the older message as the preview
+const movedToLatest = (message) => ({
+  filter: { _id: message.conversation, $or: [{ latestMessage: null }, { latestMessage: { $lt: message._id } }] },
+  update: { latestMessage: message._id },
+});
+
 export const saveMessage = async (conversation, msgData) => {
   const message = new MessageModel({ ...msgData, conversation: conversation._id });
 
@@ -143,12 +150,22 @@ export const saveMessage = async (conversation, msgData) => {
     return { message: toClientMessage(await withQuote(original), conversation), isNew: false };
   }
 
-  // only ever moves forward, so two members sending at once cannot leave the older message as the preview
-  await ConversationModel.updateOne(
-    { _id: conversation._id, $or: [{ latestMessage: null }, { latestMessage: { $lt: message._id } }] },
-    { latestMessage: message._id }
-  );
+  const { filter, update } = movedToLatest(message);
+  await ConversationModel.updateOne(filter, update);
   return { message: toClientMessage(await withQuote(message), conversation), isNew: true };
+};
+
+// a chat that already has this notice refuses a second copy, so a batch sent again lands only where it is missing
+const savedDespiteCopies = (error) => {
+  if (!error.insertedDocs || !error.writeErrors?.every((writeError) => writeError.err?.code === 11000)) throw error;
+  return error.insertedDocs;
+};
+
+export const saveNoticeInEach = async (conversations, sender, notice) => {
+  const drafts = conversations.map((conversation) => ({ conversation: conversation._id, sender, notice }));
+  const messages = await MessageModel.insertMany(drafts, { ordered: false }).catch(savedDespiteCopies);
+  if (messages.length) await ConversationModel.bulkWrite(messages.map((message) => ({ updateOne: movedToLatest(message) })));
+  return messages;
 };
 
 export const saveEvent = (group, actor_id, type, { users = [], name, seconds } = {}) =>
@@ -198,12 +215,19 @@ const fromOthers = (conversation_ids, reader_id) => ({
   awaitingKey: { $ne: true },
 });
 
+// a receipt shows when someone is online, so a blocked or former friend never gets one, just as they get no typing
+const reachableOf = async (conversation_ids, reader_id) => {
+  const allowed = await Promise.all(conversation_ids.map((conversation_id) => canMessageIn(conversation_id, reader_id)));
+  return conversation_ids.filter((_, position) => allowed[position]);
+};
+
 export const markDelivered = async (conversation_ids, reader_id) => {
   const undelivered = await MessageModel.find({ ...fromOthers(conversation_ids, reader_id), deliveredAt: null }).select("conversation");
-  if (!undelivered.length) return [];
+  const reachable = await reachableOf([...new Set(undelivered.map(({ conversation }) => String(conversation)))], reader_id);
+  if (!reachable.length) return [];
 
-  await MessageModel.updateMany({ _id: { $in: undelivered.map(({ _id }) => _id) } }, { deliveredAt: new Date() });
-  return [...new Set(undelivered.map(({ conversation }) => String(conversation)))];
+  await MessageModel.updateMany({ ...fromOthers(reachable, reader_id), deliveredAt: null }, { deliveredAt: new Date() });
+  return reachable;
 };
 
 // a group keeps one pointer per member to the newest message they have seen, instead of a mark on every message
@@ -218,13 +242,15 @@ export const markSeen = async (conversation_id, reader_id) => {
   const conversation = await ConversationModel.findById(conversation_id).select("isGroup latestMessage");
   if (conversation?.isGroup) return markGroupSeen(conversation, reader_id);
 
+  // a chat with someone blocked still clears its unread count, but sends no receipt and skips the notes they can still add
+  const isReachable = await canMessageIn(conversation_id, reader_id);
   const now = new Date();
   const { modifiedCount } = await MessageModel.updateMany(
-    { ...fromOthers([conversation_id], reader_id), seenAt: null },
+    { ...fromOthers([conversation_id], reader_id), seenAt: null, ...(!isReachable && { event: { $exists: false } }) },
     [{ $set: { seenAt: now, deliveredAt: { $ifNull: ["$deliveredAt", now] } } }],
     { updatePipeline: true }
   );
-  return modifiedCount ? {} : null;
+  return modifiedCount && isReachable ? {} : null;
 };
 
 const ownAttachmentMessage = (message_id, user_id, filter = {}) =>
@@ -272,7 +298,13 @@ const readableBy = (conversation, reader_id, range, clearedAt) => {
     ...range,
     ...(readFrom && { $gte: firstIdAt(readFrom) }),
   };
-  return { conversation: conversation._id, hiddenFor: { $ne: reader_id }, ...(Object.keys(ids).length && { _id: ids }) };
+  // a message past its time is gone to the reader even before the sweep reaches it
+  return {
+    conversation: conversation._id,
+    hiddenFor: { $ne: reader_id },
+    expiresAt: { $not: { $lte: new Date() } },
+    ...(Object.keys(ids).length && { _id: ids }),
+  };
 };
 
 const pageOf = (filter, direction, size) =>

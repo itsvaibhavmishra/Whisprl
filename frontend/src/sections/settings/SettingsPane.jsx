@@ -10,6 +10,7 @@ import { SOURCE_URL } from "@/config";
 import useSettings from "@/hooks/useSettings";
 import { ForgetPushDevice } from "@/redux/slices/actions/pushActions";
 import { GetMyProfile } from "@/redux/slices/actions/userActions";
+import { tourRestarted } from "@/redux/slices/userSlice";
 import { PATH_DASHBOARD, PATH_DOCS } from "@/routes/paths";
 import ProfileEditor from "@/sections/profile/ProfileEditor";
 import BirthdaySetting from "@/sections/settings/BirthdaySetting";
@@ -249,8 +250,14 @@ const WhatsNewSettings = () =>
     </Typography>
   );
 
+const TourLink = () => {
+  const dispatch = useDispatch();
+  return <SettingLink onClick={() => dispatch(tourRestarted())} label="Take the tour" description="Whisprl shows you around the app again." />;
+};
+
 const AboutSettings = () => (
   <SettingsSection>
+    <TourLink />
     <SettingLink component={RouterLink} to={PATH_DOCS.general.tnc} label="Terms and conditions" description="What you agree to when you use Whisprl." />
     <PrivacyPolicyLink />
     <SettingLink

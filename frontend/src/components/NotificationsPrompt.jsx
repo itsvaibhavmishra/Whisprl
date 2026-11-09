@@ -4,8 +4,9 @@ import { BellRingingIcon } from "@phosphor-icons/react";
 
 import useSettings from "@/hooks/useSettings";
 import { askForNotifications, notificationPermission } from "@/utils/notifications";
+import { isApp } from "@/utils/platform";
 
-// a phone's permission belongs to the phone, not the account, so each phone is asked once
+// asked on the first chat opened, when hearing about replies makes sense, and once per phone or browser since the permission belongs to it
 const ASKED_KEY = "notifications-asked";
 
 const wasAsked = () => {
@@ -65,7 +66,7 @@ const NotificationsPrompt = () => {
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 400 }}>
-          Hear about a message even when Whisprl is closed. Muted chats stay quiet, and you can switch this off in Settings.
+          Hear about a reply even when Whisprl is {isApp ? "closed" : "in another tab"}. Muted chats stay quiet, and you can switch this off in Settings.
         </Typography>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>

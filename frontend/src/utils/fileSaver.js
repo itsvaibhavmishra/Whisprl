@@ -15,7 +15,19 @@ const base64Of = (blob) =>
   });
 
 // the app's web view ignores a download link, so Android is handed the file to put away itself
+// the sender chose this name, so any folders in it are dropped before an older Android builds a path from it
+const plainNameOf = (fileName) =>
+  String(fileName ?? "")
+    .split(/[\\/]/)
+    .pop()
+    .replace(/^\.+/, "") || "file";
+
 export const saveToPhone = async (blob, fileName, kind) => {
-  const { folder } = await FileSaver.save({ data: await base64Of(blob), fileName, kind, mimeType: blob.type || "application/octet-stream" });
+  const { folder } = await FileSaver.save({
+    data: await base64Of(blob),
+    fileName: plainNameOf(fileName),
+    kind,
+    mimeType: blob.type || "application/octet-stream",
+  });
   notify({ severity: "success", message: `Saved to ${PLACES[folder]}` });
 };

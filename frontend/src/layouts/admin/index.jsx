@@ -9,6 +9,7 @@ import {
   FlagIcon,
   GameControllerIcon,
   IdentificationBadgeIcon,
+  MegaphoneIcon,
   ShieldStarIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
@@ -32,6 +33,7 @@ const DESTINATIONS = [
   { path: PATH_ADMIN.people, label: "People", Icon: UsersIcon, permission: "people" },
   { path: PATH_ADMIN.reports, label: "Reports", Icon: FlagIcon, permission: "reports" },
   { path: PATH_ADMIN.requests, label: "Game requests", Icon: GameControllerIcon, permission: "requests" },
+  { path: PATH_ADMIN.announcements, label: "Announcements", Icon: MegaphoneIcon, permission: "announce" },
   { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwiseIcon, permission: "audit" },
   { path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadgeIcon, permission: "team" },
 ];

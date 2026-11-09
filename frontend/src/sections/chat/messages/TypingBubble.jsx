@@ -6,14 +6,27 @@ import { listOf } from "@/utils/groups";
 
 const TYPING_BUBBLE_HEIGHT = 40;
 // sized so its head stands a little taller than the bubble
-const CAT_SIZE = 70;
-// room above the bubble for the three quarters of the cat's head that peek over it
-const PEEK_ROOM = 38;
-// where the drawing sits mid-peek, and the line it never shows below, level with its chin then
-const PEEK_TOP = PEEK_ROOM - 48;
-const CHIN_LINE = PEEK_ROOM + 18;
-// how far down a ducked cat sinks behind the bubble, leaving its ear tips showing
-const DUCK = 35;
+const DRAWN_SIZE = 70;
+
+const lookAt = (size) => {
+  const scaled = (distance) => Math.round((distance * size) / DRAWN_SIZE);
+  // room above the bubble for the three quarters of the cat's head that peek over it
+  const peekRoom = scaled(38);
+  return {
+    size,
+    peekRoom,
+    // where the drawing sits mid-peek, and the line it never shows below, level with its chin then
+    peekTop: peekRoom - scaled(48),
+    chinLine: peekRoom + scaled(18),
+    // how far down a ducked cat sinks behind the bubble, leaving its ear tips showing
+    duck: scaled(35),
+  };
+};
+
+// the full size reads too big on a phone
+const LOOKS = { xs: lookAt(56), sm: lookAt(DRAWN_SIZE) };
+const byScreen = (pick) => ({ xs: pick(LOOKS.xs), sm: pick(LOOKS.sm) });
+
 // the corner peek sits just in from the bubble's end, leaning past it
 const CORNER = "calc(100% - 14px)";
 const TILT = "rotate(14deg)";
@@ -21,13 +34,13 @@ const CYCLE = "3.6s";
 
 // the cat peeks over the middle, ducks and creeps to the far corner, peeks again, then creeps back to where it began
 const peek = keyframes`
-  0% { left: 50%; transform: translate(-50%, ${DUCK}px); }
+  0% { left: 50%; transform: translate(-50%, var(--duck)); }
   12%, 40% { left: 50%; transform: translate(-50%, 0); }
-  50% { left: 50%; transform: translate(-50%, ${DUCK}px); }
-  58% { left: ${CORNER}; transform: translate(-50%, ${DUCK}px) ${TILT}; }
+  50% { left: 50%; transform: translate(-50%, var(--duck)); }
+  58% { left: ${CORNER}; transform: translate(-50%, var(--duck)) ${TILT}; }
   68%, 88% { left: ${CORNER}; transform: translate(-50%, 5px) ${TILT}; }
-  94% { left: ${CORNER}; transform: translate(-50%, ${DUCK}px) ${TILT}; }
-  100% { left: 50%; transform: translate(-50%, ${DUCK}px); }
+  94% { left: ${CORNER}; transform: translate(-50%, var(--duck)) ${TILT}; }
+  100% { left: 50%; transform: translate(-50%, var(--duck)); }
 `;
 
 const blink = keyframes`
@@ -40,16 +53,20 @@ const STILL = { "@media (prefers-reduced-motion: reduce)": { animation: "none" }
 
 const PeekingCat = () => (
   // the bubble in front hides the cat along its own rounded outline, and nothing of it shows lower than its chin would
-  <Box aria-hidden sx={{ position: "absolute", inset: 0, clipPath: `inset(-20px -60px calc(100% - ${CHIN_LINE}px) -20px)`, pointerEvents: "none" }}>
+  <Box
+    aria-hidden
+    sx={{ position: "absolute", inset: 0, clipPath: byScreen(({ chinLine }) => `inset(-20px -60px calc(100% - ${chinLine}px) -20px)`), pointerEvents: "none" }}
+  >
     <Box
       component="svg"
       viewBox="0 0 100 100"
       sx={{
         position: "absolute",
-        top: PEEK_TOP,
+        top: byScreen(({ peekTop }) => peekTop),
         left: "50%",
-        width: CAT_SIZE,
-        height: CAT_SIZE,
+        width: byScreen(({ size }) => size),
+        height: byScreen(({ size }) => size),
+        "--duck": byScreen(({ duck }) => `${duck}px`),
         transformOrigin: "50% 107%",
         transform: "translate(-50%, 0)",
         animation: `${peek} ${CYCLE} cubic-bezier(0.3, 1.4, 0.5, 1) infinite`,
@@ -75,7 +92,7 @@ const TypingBubble = ({ names, isGroup }) => (
   <Box
     role="status"
     aria-label={`${listOf(names)} ${names.length === 1 ? "is" : "are"} typing`}
-    sx={{ position: "relative", width: "fit-content", pt: `${PEEK_ROOM}px` }}
+    sx={{ position: "relative", width: "fit-content", pt: byScreen(({ peekRoom }) => `${peekRoom}px`) }}
   >
     <PeekingCat />
     <Stack

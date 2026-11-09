@@ -48,17 +48,35 @@ const stageUpdate = async () => {
   staged = update.version;
 };
 
+const switchToStaged = (leftAt) => {
+  carryOver({
+    path: window.location.pathname + window.location.search,
+    drafts: store.getState().chat.drafts,
+    leftAt,
+    isLocked: Boolean(document.querySelector("[data-app-locked]")),
+  });
+  LiveUpdate.reload().catch(() => {});
+};
+
 // switched in the moment the app is left, before the phone freezes it, so whoever comes back finds the same screen on the new version
 const applyWhileAway = () => {
   // a picker the app opened sends it to the background too, and a reload then would lose what is being picked
   if (!staged || isPicking || !store.getState().auth.isLoggedIn) return;
-  carryOver({
-    path: window.location.pathname + window.location.search,
-    drafts: store.getState().chat.drafts,
-    leftAt: Date.now(),
-    isLocked: Boolean(document.querySelector("[data-app-locked]")),
-  });
-  LiveUpdate.reload().catch(() => {});
+  switchToStaged(Date.now());
+};
+
+const TYPED_FIELDS =
+  "textarea, input:not([type]), input[type=text], input[type=email], input[type=password], input[type=search], input[type=tel], input[type=number]";
+
+// anything a reload would lose that a carried-over screen and drafts do not bring back
+const isMidTask = () =>
+  isPicking ||
+  Boolean(document.querySelector('[role="dialog"], [role="alertdialog"]')) ||
+  [...document.querySelectorAll(TYPED_FIELDS)].some((field) => field.value.trim());
+
+// moving to another screen is when a reload costs least, so someone who never leaves the app still gets the new version
+export const applyStagedUpdate = () => {
+  if (staged && !isMidTask()) switchToStaged(null);
 };
 
 const checkForUpdate = () => {

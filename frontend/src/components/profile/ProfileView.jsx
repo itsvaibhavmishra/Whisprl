@@ -12,6 +12,7 @@ import { GetUserData } from "@/redux/slices/actions/contactActions";
 import { GetCommonGroups } from "@/redux/slices/actions/messageActions";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { isOnline } from "@/utils/chats";
+import { isOfficial } from "@/utils/relationship";
 
 const GUTTER = { page: { xs: 2, md: 4 }, sheet: 3 };
 // each section already insets its text by 2.5, so it moves by the rest of the gutter to line up with the name
@@ -47,7 +48,7 @@ const ProfileView = ({ person: known, size = "sheet", surface, startWithComposer
           <Box sx={{ mx: SECTION_SHIFT[size] }}>
             <ProfileFacts person={person} />
             {isComplete && !isSelf && <CommonGroups personId={person._id} />}
-            {isComplete && !isSelf && (
+            {isComplete && !isSelf && !isOfficial(person) && (
               <DetailsSection title="Privacy and safety">
                 <List disablePadding>
                   <SafetyRows person={person} canRemoveFriend={isFriend} />

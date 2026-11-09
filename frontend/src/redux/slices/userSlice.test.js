@@ -1,6 +1,6 @@
 import { ConfirmRecoveryKeySaved, GetOnboarding } from "@/redux/slices/actions/onboardingActions";
-import { GetMyProfile, UpdateProfile, UpdateSuggestionSetting } from "@/redux/slices/actions/userActions";
-import userReducer, { updateUser } from "@/redux/slices/userSlice";
+import { FinishTour, GetMyProfile, UpdateProfile, UpdateSuggestionSetting } from "@/redux/slices/actions/userActions";
+import userReducer, { tourRestarted, updateUser } from "@/redux/slices/userSlice";
 
 const stale = { user: { firstName: "Aria", activityStatus: "", friendCount: 3 } };
 const saved = { user: { firstName: "Aria", activityStatus: "Out climbing until Sunday" } };
@@ -55,4 +55,12 @@ test("a setup progress read with no save in between brings the account up to dat
   const actions = [GetOnboarding.pending("read"), GetOnboarding.fulfilled({ user: { recoveryKeySavedAt: "2026-10-23" } }, "read")];
 
   expect(actions.reduce(userReducer, undefined).user.recoveryKeySavedAt).toBe("2026-10-23");
+});
+
+test("a replayed tour stays open through a session renewal, and finishing it ends both the tour and the replay", () => {
+  const replaying = [updateUser({ hasToured: true }), tourRestarted(), updateUser({ hasToured: true })].reduce(userReducer, undefined);
+  expect(replaying.isReplayingTour).toBe(true);
+  const finished = userReducer(replaying, FinishTour.pending("finish"));
+  expect(finished.isReplayingTour).toBe(false);
+  expect(finished.user.hasToured).toBe(true);
 });

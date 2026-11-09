@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { botMove, DISTRACTED } from "#src/services/games/tic-tac-toe/bot.js";
-import { setup } from "#src/services/games/tic-tac-toe/rules.js";
+import { botMove, DISTRACTED, momentFor } from "#src/services/games/tic-tac-toe/bot.js";
+import { outcome, play, setup, turnOf } from "#src/services/games/tic-tac-toe/rules.js";
+import { withSeed } from "#src/services/games/withSeed.js";
 
 const CROSS = 0;
 const NOUGHT = 1;
@@ -67,6 +68,43 @@ test("it opens in the centre, and takes the last square when that is all there i
   );
 });
 
-test("the bot standing in for someone who left is the weaker of the two", () => {
-  assert.ok(DISTRACTED.standIn > DISTRACTED.opponent);
+test("the bot standing in for someone who left is weaker than a medium one, and each level looks away less than the one below", () => {
+  assert.ok(DISTRACTED.standIn > DISTRACTED.medium);
+  assert.ok(DISTRACTED.dumb > DISTRACTED.medium && DISTRACTED.medium > DISTRACTED.pro);
+});
+
+const playedOut = (levels, first = 0) => {
+  let state = { ...setup(), turn: first, first };
+  while (!outcome(state)) {
+    const seat = turnOf(state);
+    state = play(state, seat, botMove(state, seat, levels[seat]));
+  }
+  return outcome(state).winners;
+};
+
+test("an expert never loses, whoever it plays and whoever opens", () => {
+  ["dumb", "medium", "pro", "expert"].forEach((rival) => {
+    for (let game = 0; game < 100; game += 1) {
+      const winners = playedOut(["expert", rival], game % 2);
+      assert.ok(!winners.includes(1), `the expert lost to ${rival}`);
+    }
+  });
+});
+
+test("two experts always draw", () => {
+  for (let game = 0; game < 50; game += 1) assert.deepEqual(playedOut(["expert", "expert"], game % 2), []);
+});
+
+test("a medium bot beats a dumb one far more often than it loses to it", () => {
+  const results = withSeed(1, () => Array.from({ length: 400 }, (_, game) => playedOut(["medium", "dumb"], game % 2)));
+  const won = results.filter((winners) => winners[0] === 0).length;
+  const lost = results.filter((winners) => winners[0] === 1).length;
+  assert.ok(won > lost * 2, `medium won ${won} and lost ${lost}`);
+});
+
+test("a bot reacts when it is about to lose a line, and when it blocks one", () => {
+  const before = { board: [CROSS, BLANK, BLANK, BLANK, NOUGHT, BLANK, BLANK, BLANK, BLANK], turn: CROSS };
+  const threatened = play(before, CROSS, 1);
+  assert.equal(momentFor(before, threatened, NOUGHT), "threatened");
+  assert.equal(momentFor(threatened, play(threatened, NOUGHT, 2), NOUGHT), "blocked");
 });

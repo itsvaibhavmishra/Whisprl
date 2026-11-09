@@ -19,7 +19,7 @@ const SHOW_MS = 6000;
 const HOLD_MS = 250;
 const SWIPE_PX = 64;
 const PANEL_WIDTH = 340;
-const SHEET = "#10141C";
+const SHEET = "#121316";
 export const CARD_HEIGHT = `min(calc(100dvh - ${FOOTER_HEIGHT + 64}px), 880px)`;
 export const CARD_WIDTH = `calc(${CARD_HEIGHT} * 9 / 16)`;
 

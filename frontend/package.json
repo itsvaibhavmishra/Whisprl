@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "2.5.8",
+  "version": "2.5.9",
   "private": true,
   "license": "CC0-1.0",
   "dependencies": {
@@ -13,7 +13,6 @@
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.9.2",
     "@mui/material": "^9.5.0",
-    "@mui/x-date-pickers": "^9.16.0",
     "@phosphor-icons/react": "^2.1.10",
     "@react-oauth/google": "^0.13.5",
     "@reduxjs/toolkit": "^2.13.0",

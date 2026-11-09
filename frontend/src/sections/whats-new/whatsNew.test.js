@@ -8,3 +8,7 @@ test("a release is named by its version and dated, and a preview says it is one"
   expect(releaseTitle({ version: "next", date: null })).toBe("Preview of the next release");
   expect(releaseNote({ version: "next", date: null })).toBe("Only development builds show this");
 });
+
+test("a release from before the public launch is named as a beta", () => {
+  expect(releaseTitle({ ...release, beta: true })).toBe("Whisprl 2.1.0 beta");
+});

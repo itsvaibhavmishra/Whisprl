@@ -7,6 +7,7 @@ import { CheckIcon, DotsThreeIcon, LockSimpleIcon, PlusIcon } from "@phosphor-ic
 import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
+import { sayerAt } from "@/sections/chat/game/useRoomChatter";
 import getAvatar from "@/utils/avatars";
 import { isOnline } from "@/utils/chats";
 import { firstNameIn, memberOf } from "@/utils/groups";
@@ -66,13 +67,13 @@ const MENU_ON_HOVER = {
 
 export const READY_GREEN = "#3BB273";
 
-// you and the bot are always here; anyone else is here when the app says they are online
+// you, the bot and Whisprl are always here; anyone else is here when the app says they are online
 export const isHere = (seat, member, meId, onlineFriends) => {
-  if (seat.user === meId || (seat.bot && !seat.user)) return true;
+  if (seat.user === meId || (seat.bot && !seat.user) || seat.official) return true;
   return Boolean(member && isOnline(member, onlineFriends));
 };
 
-const Seat = ({ seat, conversation, meId, theme, size, mark, onTake, onLeave, manage }) => {
+const Seat = ({ seat, index, conversation, meId, theme, size, mark, onTake, onLeave, manage }) => {
   const onlineFriends = useSelector((state) => state.user.onlineFriends);
   const member = seat.user && !seat.bot ? memberOf(conversation, seat.user) : null;
   const isMine = seat.user === meId;
@@ -103,7 +104,7 @@ const Seat = ({ seat, conversation, meId, theme, size, mark, onTake, onLeave, ma
         >
           {faceOf(seat, member, size - 4)}
         </ButtonBase>
-        {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={size} />}
+        <AvatarReaction user={sayerAt(seat, index)} size={size} />
       </Box>
       {/* a dot says they are here, and the same dot with a tick says they are here and ready */}
       {(seat.ready || isHere(seat, member, meId, onlineFriends)) && (

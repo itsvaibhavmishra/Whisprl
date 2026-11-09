@@ -12,9 +12,15 @@ const MOST_FLOATS = 6;
 
 let nextId = 0;
 
+// whose words and reactions show at a seat: its player, or a chosen bot named by its seat since it has no account
+export const sayerAt = (seat, index) => {
+  if (seat.bot) return seat.user ? null : `bot:${index}`;
+  return seat.user;
+};
+
 // a player's words show at their seat; in a group only someone with the game on screen floats past, or the board would drown
 export const placeOf = (event, { conversation, seats, lookers }) => {
-  if (seats.some((seat) => seat.user === event.from && !seat.bot)) return "seat";
+  if (seats.some((seat, index) => sayerAt(seat, index) === event.from)) return "seat";
   if (!conversation.isGroup || lookers.includes(event.from)) return "float";
   return null;
 };

@@ -8,6 +8,7 @@ import {
   CheckIcon,
   ChecksIcon,
   FileTextIcon,
+  GameControllerIcon,
   MicrophoneIcon,
   StarIcon,
   UserIcon,
@@ -18,6 +19,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import BirthdayCake from "@/components/BirthdayCake";
+import PersonBadge from "@/components/PersonBadge";
+import { GAMES } from "@/sections/chat/game/catalog";
 import useSettings from "@/hooks/useSettings";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import TypingDots from "@/components/TypingDots";
@@ -166,10 +169,18 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
         <ChatAvatar src={avatar} name={name} size={AVATAR_SIZE} isOnline={isOnline} statuses={statuses} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
-            <Typography noWrap sx={{ flex: 1, fontSize: 15, fontWeight: unread ? 800 : 700, letterSpacing: "-0.01em" }}>
-              {name}
-              {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
-            </Typography>
+            <Stack direction="row" spacing={0.75} sx={{ flex: 1, minWidth: 0, alignItems: "center" }}>
+              <Typography noWrap sx={{ fontSize: 15, fontWeight: unread ? 800 : 700, letterSpacing: "-0.01em" }}>
+                {name}
+                {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
+              </Typography>
+              <PersonBadge badge={peer?.badge} />
+              {GAMES[conversation.tableGame] && (
+                <Box component="span" sx={{ display: "grid", flexShrink: 0, color: "primary.main" }}>
+                  <GameControllerIcon size={16} weight="fill" aria-label={`${GAMES[conversation.tableGame].name} is open here`} />
+                </Box>
+              )}
+            </Stack>
             {activityAt && (
               <Typography
                 component="time"
