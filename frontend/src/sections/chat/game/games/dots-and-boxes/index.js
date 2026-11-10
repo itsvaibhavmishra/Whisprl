@@ -16,7 +16,7 @@ const dotsAndBoxes = {
   summary: "Close a box to claim it, and go again. For two to six players.",
   keywords: ["squares", "lines", "dot game", "pencil and paper", "timbiriche"],
   art,
-  preload: [art.scene, art.board, art.notebook, art.cat, art.title],
+  preload: [art.scene, art.versus, art.board, art.notebook, art.cat, art.title],
   theme: {
     surface: "#A9743F",
     card: "rgba(255, 248, 236, 0.93)",
@@ -67,6 +67,7 @@ const dotsAndBoxes = {
   moveSound: (before, state) => (claimedIn(state) > claimedIn(before) ? "box" : "pencil"),
   moveCountOf: (state) => drawnIn(state),
   colourOf,
+  versusArt: art.versus,
   // lazy, like the board, so anything that only reads the catalog never loads its animation code
   Masthead: lazy(() => import("@/sections/chat/game/games/dots-and-boxes/Masthead")),
   // the stage's shape, which sizes the scene around it and holds its place while it loads

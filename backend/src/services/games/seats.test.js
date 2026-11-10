@@ -26,6 +26,7 @@ import {
   stand,
   unreadyAll,
   unseatBot,
+  withFreshPersonas,
 } from "#src/services/games/seats.js";
 
 const ARIA = "aria";
@@ -170,6 +171,17 @@ test("a person takes a bot's seat over, and the bot stays for the next game", ()
   assert.deepEqual(sit(withBot, 1, BIANCA)[1], { user: BIANCA, ready: false, locked: false });
   assert.equal(isChosenBot(backToLobby(withBot)[1]), true);
   assert.equal(isChosenBot(handToBot(withBot, ARIA)[0]), false);
+});
+
+test("five bots at one table each wear a different face, and change it for every game", () => {
+  const firstFace = () => 0;
+  const table = [1, 2, 3, 4, 5].reduce((seats, index) => seatBot(seats, index, firstFace), sit(emptySeats(6), 0, ARIA));
+  const facesOf = (seats) => seats.slice(1).map((seat) => seat.persona);
+  assert.equal(new Set(facesOf(table)).size, 5);
+  const lastFace = () => 0.99;
+  const nextGame = withFreshPersonas(table, lastFace);
+  assert.equal(new Set(facesOf(nextGame)).size, 5);
+  assert.notDeepEqual(facesOf(nextGame), facesOf(table));
 });
 
 test("Whisprl's own seat is always ready, played by the bot, and stays seated between games", () => {

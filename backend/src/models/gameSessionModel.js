@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { PERSONAS } from "#src/services/games/botPersonas.js";
+
 const GAME_STATUSES = ["lobby", "countdown", "playing"];
 
 const seatSchema = mongoose.Schema(
@@ -15,6 +17,7 @@ const seatSchema = mongoose.Schema(
     // turns missed in a row; two hand the seat to the bot until its player comes back
     missed: { type: Number, default: 0 },
     away: { type: Boolean, default: false },
+    persona: { type: String, enum: PERSONAS },
   },
   { _id: false }
 );

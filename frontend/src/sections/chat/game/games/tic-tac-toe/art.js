@@ -2,6 +2,7 @@ const FOLDER = `${import.meta.env.BASE_URL}games/tic-tac-toe`;
 
 const art = {
   scene: `${FOLDER}/scene.webp`,
+  versus: `${FOLDER}/versus.webp`,
   // pinned to the top so the sky and the sleeping cat stay in view above the title, however tall the panel
   anchor: "top",
   // width over height, so the room can size the scene to cover the panel

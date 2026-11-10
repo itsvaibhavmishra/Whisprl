@@ -12,7 +12,7 @@ const ticTacToe = {
   // a game looks how it was drawn, with no light or dark mode, and its art loads only once it opens
   art,
   // every file the canvas waits for before the game animates in
-  preload: [art.scene, art.board, ...Object.keys(wordmark.words).map(art.wordOf)],
+  preload: [art.scene, art.versus, art.board, ...Object.keys(wordmark.words).map(art.wordOf)],
   theme: {
     surface: "#C9A4F2",
     card: "rgba(255, 255, 255, 0.88)",
@@ -39,6 +39,7 @@ const ticTacToe = {
   music: art.music,
   moveCountOf: (state) => state?.board.filter((mark) => mark !== null).length ?? 0,
   Mark,
+  versusArt: art.versus,
   // below the cat asleep on its rock, which is right where a centred title would land
   cardTitleTop: "40%",
   Board: lazy(() => import("@/sections/chat/game/games/tic-tac-toe/Board")),

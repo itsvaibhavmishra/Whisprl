@@ -36,6 +36,7 @@ import {
   stand,
   unreadyAll,
   unseatBot,
+  withFreshPersonas,
   withSeatCount,
 } from "#src/services/games/seats.js";
 
@@ -109,7 +110,7 @@ const assertNotCoolingDown = (gameRoom, userId) => {
   if (until) throw createHttpError.BadRequest(`You can sit again in ${Math.ceil((until - Date.now()) / 1000)} seconds`);
 };
 
-const seatView = ({ user, ready, locked, invited, bot, away, official }) => ({
+const seatView = ({ user, ready, locked, invited, bot, away, official, persona }) => ({
   user: user ? String(user) : null,
   ready: Boolean(ready),
   locked: Boolean(locked),
@@ -117,6 +118,7 @@ const seatView = ({ user, ready, locked, invited, bot, away, official }) => ({
   bot: Boolean(bot),
   away: Boolean(away),
   official: Boolean(official),
+  persona: persona ?? null,
 });
 
 const stateViewFor = (session, viewerId) => {
@@ -185,7 +187,9 @@ const settled = (session) => {
   // every seat taken and ready, so a table set for four waits for four
   if (!isEveryoneReady(session.seats, session.seats.length)) return { ...session, status: "lobby", startsAt: undefined };
   if (session.status === "countdown") return session;
-  return { ...session, status: "countdown", startsAt: new Date(Date.now() + COUNTDOWN_MS) };
+  // a table that just played meets new bots as the next game counts down, so the last result keeps the face that won it
+  const seats = session.result ? withFreshPersonas(session.seats) : session.seats;
+  return { ...session, seats, status: "countdown", startsAt: new Date(Date.now() + COUNTDOWN_MS) };
 };
 
 const isTurnOf = (session, index) => gameOf(session.game).turnOf(session.state) === index;
@@ -227,7 +231,11 @@ const finished = (session, state, winningSeats, { showsInMs = 0, leftBy } = {}) 
   botSkill: undefined,
   newcomers: undefined,
   result: {
-    winners: winningSeats.map((seat) => ({ user: session.seats[seat].user ? String(session.seats[seat].user) : null, bot: Boolean(session.seats[seat].bot) })),
+    // the bot's face is kept with the win, since the seat puts on a new one for the next game
+    winners: winningSeats.map((seat) => {
+      const { user, bot, persona } = session.seats[seat];
+      return { user: user ? String(user) : null, bot: Boolean(bot), persona };
+    }),
     seats: winningSeats,
     leftBy,
     endedAt: new Date(),
@@ -368,6 +376,12 @@ const leaveOtherTables = async (io, conversation, userId) => {
   await Promise.all(elsewhere.map((lobby) => actInGame(io, userId, { conversationId: String(lobby.conversation), type: "stand" }).catch(() => {})));
 };
 
+// the other seat is saved for the other person, Whisprl takes its own, and in a chat with yourself only the bot can play you
+const facing = (seats, peerId) => {
+  if (!peerId) return seatBot(seats, 1);
+  return isWhisprl(peerId) ? seatWhisprl(seats, 1, peerId) : invite(seats, 1, peerId);
+};
+
 const open = async ({ io, conversation, session, userId, details }) => {
   const game = gameOf(details.game);
   assertRunsGames(conversation, userId);
@@ -379,16 +393,9 @@ const open = async ({ io, conversation, session, userId, details }) => {
   }
   if (session) throw createHttpError.BadRequest("There is already a game in this chat");
   await leaveOtherTables(io, conversation, userId);
-  // proposing in a chat between two people is taking a seat and saving the other for them, which Whisprl takes itself
   const seats = sit(emptySeats(game.minPlayers), 0, userId);
   const peerId = conversation.users.map((member) => String(member._id ?? member)).find((id) => id !== String(userId));
-  return {
-    conversation: conversation._id,
-    game: game.id,
-    status: "lobby",
-    options,
-    seats: isWhisprl(peerId) ? seatWhisprl(seats, 1, peerId) : invite(seats, 1, peerId),
-  };
+  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: facing(seats, peerId) };
 };
 
 // someone else at a table between two people, a person or Whisprl, who would be left with a game nobody finished

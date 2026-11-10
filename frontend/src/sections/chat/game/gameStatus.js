@@ -1,3 +1,4 @@
+import { personaOf } from "@/sections/chat/game/bots";
 import { isChosenBot, isTaken } from "@/sections/chat/game/seats";
 import { peerOf } from "@/utils/chats";
 import { firstNameIn } from "@/utils/groups";
@@ -29,7 +30,7 @@ export const lobbyLineOf = (session, conversation, meId) => {
 
 export const turnLineOf = (session, conversation, meId) => {
   const seat = session.seats[session.turn];
-  if (seat.bot) return "The bot's turn";
+  if (seat.bot) return personaOf(seat) ? `${personaOf(seat).name}'s turn` : "The bot's turn";
   if (seat.user === meId) return seat.away ? "The bot is playing for you" : "Your turn";
   const name = firstNameIn(conversation, seat.user, meId);
   return seat.away ? `The bot is playing for ${name}` : `${name}'s turn`;
@@ -40,5 +41,6 @@ export const resultLineOf = ({ winners, leftBy }, conversation, meId) => {
   if (leftBy) return `${firstNameIn(conversation, leftBy, meId)} left, so you win`;
   if (!winners.length) return "It's a draw";
   const [winner] = winners;
-  return winner.bot ? "The bot won" : `${firstNameIn(conversation, winner.user, meId)} won`;
+  if (winner.bot) return personaOf(winner) ? `${personaOf(winner).name} won` : "The bot won";
+  return `${firstNameIn(conversation, winner.user, meId)} won`;
 };

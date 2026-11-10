@@ -4,7 +4,8 @@ import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 import { CheckIcon, DotsThreeIcon, LockSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 
-import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
+import BotFace from "@/sections/chat/game/BotFace";
+import { botNameOf } from "@/sections/chat/game/bots";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
 import { sayerAt } from "@/sections/chat/game/useRoomChatter";
@@ -13,14 +14,14 @@ import { isOnline } from "@/utils/chats";
 import { firstNameIn, memberOf } from "@/utils/groups";
 
 const faceOf = (seat, member, size) => {
-  if (seat.bot || seat.away) return <BotFace size={size * 0.5} />;
+  if (seat.bot || seat.away) return <BotFace seat={seat} size={size} />;
   if (member) return getAvatar(member.avatar, member.firstName, size);
   if (seat.locked) return <LockSimpleIcon size={size * 0.4} weight="bold" />;
   return <PlusIcon size={size * 0.4} weight="bold" color={alpha("#fff", 0.85)} />;
 };
 
 const labelOf = (seat, conversation, meId) => {
-  if (seat.bot) return BOT_NAME;
+  if (seat.bot) return botNameOf(seat);
   if (seat.away) return `Bot for ${firstNameIn(conversation, seat.user, meId)}`;
   if (seat.user) return firstNameIn(conversation, seat.user, meId);
   if (seat.invited) return seat.invited === meId ? "For you" : `For ${firstNameIn(conversation, seat.invited, meId)}`;

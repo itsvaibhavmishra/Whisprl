@@ -3,7 +3,8 @@ import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 
-import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
+import BotFace from "@/sections/chat/game/BotFace";
+import { botNameOf } from "@/sections/chat/game/bots";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
 import { isHere, READY_GREEN } from "@/sections/chat/game/Seat";
 import TurnRing from "@/sections/chat/game/TurnRing";
@@ -13,11 +14,11 @@ import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
 import { firstNameIn, memberOf } from "@/utils/groups";
 
-const FACE = 40;
+const FACE = 48;
 const INK = "#f6ebdd";
 
 const nameOf = (seat, conversation, meId) => {
-  if (seat.bot) return BOT_NAME;
+  if (seat.bot) return botNameOf(seat);
   return seat.user ? firstNameIn(conversation, seat.user, meId) : "Empty";
 };
 
@@ -82,7 +83,7 @@ const Face = ({ seat, member, colour, clock, tag, isHere: here, onLeave }) => (
         boxShadow: clock ? "none" : `0 0 0 3px ${colour}, 0 0 14px ${alpha(colour, 0.55)}`,
       }}
     >
-      {seat.bot || seat.away ? <BotFace size={FACE * 0.5} /> : member && getAvatar(member.avatar, member.firstName, FACE)}
+      {seat.bot || seat.away ? <BotFace seat={seat} size={FACE} /> : member && getAvatar(member.avatar, member.firstName, FACE)}
     </Box>
     {clock && <TurnClock key={clock.startsAt} startsAt={clock.startsAt} seconds={clock.seconds} colour={colour} />}
     {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={FACE} />}

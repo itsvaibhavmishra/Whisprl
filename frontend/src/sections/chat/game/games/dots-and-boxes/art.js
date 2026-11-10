@@ -2,6 +2,7 @@ const FOLDER = `${import.meta.env.BASE_URL}games/dots-and-boxes`;
 
 const art = {
   scene: `${FOLDER}/scene.webp`,
+  versus: `${FOLDER}/versus.webp`,
   // the masthead is drawn onto the desk in this scene, so it is pinned to the top at full width to line up with it
   anchor: "top",
   // width over height, so the room can size the scene to cover the panel

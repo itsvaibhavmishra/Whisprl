@@ -13,7 +13,7 @@ const chainReaction = {
   summary: "Fill a cell until it bursts and takes its neighbours. For two to six players.",
   keywords: ["atoms", "orbs", "explosion", "critical mass", "burst"],
   art,
-  preload: [art.scene, art.logo, art.cat, art.robot],
+  preload: [art.scene, art.versus, art.logo, art.cat, art.robot],
   theme: {
     surface: "#1C1748",
     card: "rgba(26, 22, 64, 0.9)",
@@ -63,6 +63,7 @@ const chainReaction = {
   // a burst moves orbs without making or losing any, so the count on the board is the count of moves
   moveCountOf: (state) => (state ? totalOf(state) : 0),
   colourOf,
+  versusArt: art.versus,
   isOut: (state, seat) => Boolean(state?.out?.[seat]),
   // lazy, like the board, so anything that only reads the catalog never loads their animation code
   Masthead: lazy(() => import("@/sections/chat/game/games/chain-reaction/Masthead")),
