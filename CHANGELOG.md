@@ -6,6 +6,18 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.12] - 2026-11-11
+
+### Improvements
+
+- New accounts start in the light or dark theme their phone or browser uses, instead of always dark
+- The account deletion page explains how to delete a message, a status or a photo without deleting your account
+- The terms say public statuses can't show nudity, sexual content or graphic violence
+
+### Fixed
+
+- Enter in the message box on a phone starts a new line instead of sending; the send button sends
+
 ## [2.5.11] - 2026-11-10
 
 ### New
@@ -667,6 +679,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.12]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.12
 [2.5.11]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.11
 [2.5.10]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.10
 [2.5.9]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.9

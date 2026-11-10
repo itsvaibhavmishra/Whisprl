@@ -4,7 +4,7 @@ import { isApp } from "@/utils/platform";
 export const SETTINGS_STORAGE_KEY = "settings";
 
 export const defaultSettings = {
-  themeMode: "dark",
+  themeMode: "system",
   themeColorPresets: "default",
   sounds: true,
   haptics: true,

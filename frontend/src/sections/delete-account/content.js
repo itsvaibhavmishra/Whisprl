@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "19 October 2026";
+export const LAST_UPDATED = "11 November 2026";
 
 export const INTRO = ["You can delete your Whisprl account at any time, from the website or the Android app. Nothing needs installing, and it takes a minute."];
 
@@ -63,6 +63,20 @@ export const SECTIONS = [
       },
       {
         parts: ["The ", { label: "privacy policy", to: PATH_DOCS.general.privacy }, " covers everything else about what Whisprl stores."],
+      },
+    ],
+  },
+  {
+    id: "some-data",
+    title: "Delete some of your data and keep your account",
+    blocks: [
+      "You can delete these yourself at any time, and each is removed from Whisprl's servers straight away:",
+      {
+        list: [
+          "a message you sent: press and hold it, then choose Delete for everyone. Its words and any photo, video or file go, and the chat shows that a message was deleted. Delete for me only hides it on your devices",
+          "a status: open it, then choose Delete update from its menu. Its photo or video goes with it, and every status is deleted after 24 hours anyway",
+          "your profile photo or cover photo: open your profile, edit it, and remove the photo",
+        ],
       },
     ],
   },
