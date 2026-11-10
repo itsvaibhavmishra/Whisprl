@@ -1,5 +1,7 @@
 import createHttpError from "http-errors";
 
+import { freshPersona } from "#src/services/games/botPersonas.js";
+
 // pure functions over plain lists, so the seating rules are tested without a database
 
 const MISSES_BEFORE_AWAY = 2;
@@ -44,11 +46,11 @@ export const sit = (seats, index, userId) => {
   return replaceAt(seats, index, { locked: Boolean(seat.locked), user: userId, ready: false });
 };
 
-export const seatBot = (seats, index) => {
+export const seatBot = (seats, index, random = Math.random) => {
   const seat = seatAt(seats, index);
   if (seat.user || seat.bot) throw createHttpError.BadRequest("Someone is already sitting there");
   if (seat.locked) throw createHttpError.BadRequest("That seat is locked");
-  return replaceAt(seats, index, { locked: false, bot: true, ready: true });
+  return replaceAt(seats, index, { locked: false, bot: true, ready: true, persona: freshPersona(seats, random) });
 };
 
 export const seatWhisprl = (seats, index, whisprlId) => replaceAt(seats, index, { locked: false, user: whisprlId, ready: true, official: true });
@@ -133,6 +135,9 @@ export const backToLobby = (seats) =>
       return seat.user ? { user: seat.user, locked: Boolean(seat.locked), ready: false } : seat;
     })
   );
+
+export const withFreshPersonas = (seats, random = Math.random) =>
+  seats.reduce((fresh, seat) => [...fresh, isChosenBot(seat) ? { ...seat, persona: freshPersona(fresh, random, seat.persona) } : seat], []);
 
 const isTaken = (seat) => Boolean(seat.user || seat.bot);
 

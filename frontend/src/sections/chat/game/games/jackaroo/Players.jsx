@@ -3,7 +3,8 @@ import { Box, ButtonBase, Stack, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 
-import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
+import BotFace from "@/sections/chat/game/BotFace";
+import { botNameOf } from "@/sections/chat/game/bots";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
 import { isHere, READY_GREEN } from "@/sections/chat/game/Seat";
 import TurnRing from "@/sections/chat/game/TurnRing";
@@ -13,11 +14,11 @@ import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 import getAvatar from "@/utils/avatars";
 import { firstNameIn, memberOf } from "@/utils/groups";
 
-const FACE = 40;
+const FACE = 48;
 const INK = "#f6ebdd";
 
 const nameOf = (seat, conversation, meId) => {
-  if (seat.bot) return BOT_NAME;
+  if (seat.bot) return botNameOf(seat);
   return seat.user ? firstNameIn(conversation, seat.user, meId) : "Empty";
 };
 
@@ -55,7 +56,7 @@ const TurnClock = ({ startsAt, seconds, colour }) => {
 };
 
 // the player's face in a ring of their marbles' colour, grown a little with the clock over it while it is their turn
-const Face = ({ seat, member, colour, clock, tag, isHere: here, onLeave }) => (
+const Face = ({ seat, sayer, member, colour, clock, tag, isHere: here, onLeave }) => (
   <ButtonBase
     disabled={!onLeave}
     onClick={onLeave || undefined}
@@ -82,10 +83,10 @@ const Face = ({ seat, member, colour, clock, tag, isHere: here, onLeave }) => (
         boxShadow: clock ? "none" : `0 0 0 3px ${colour}, 0 0 14px ${alpha(colour, 0.55)}`,
       }}
     >
-      {seat.bot || seat.away ? <BotFace size={FACE * 0.5} /> : member && getAvatar(member.avatar, member.firstName, FACE)}
+      {seat.bot || seat.away ? <BotFace seat={seat} size={FACE} /> : member && getAvatar(member.avatar, member.firstName, FACE)}
     </Box>
     {clock && <TurnClock key={clock.startsAt} startsAt={clock.startsAt} seconds={clock.seconds} colour={colour} />}
-    {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={FACE} />}
+    <AvatarReaction user={sayer} size={FACE} />
     {tag && (
       <Typography
         sx={{
@@ -140,6 +141,7 @@ const HomeCount = ({ home, colour }) => (
 // one player in a corner of the board, face outermost: their name, and under it their hidden cards or how many marbles are home
 const Player = ({
   seat,
+  sayer,
   conversation,
   meId,
   colour,
@@ -159,19 +161,34 @@ const Player = ({
   const member = seat.user && !seat.bot ? memberOf(conversation, seat.user) : null;
   return (
     <Stack direction={isOnRight ? "row-reverse" : "row"} spacing={1.25} sx={{ alignItems: "center", px: 1.5, py: 0.75 }}>
-      <Face seat={seat} member={member} colour={colour} clock={clock} tag={tag} isHere={isHere(seat, member, meId, onlineFriends)} onLeave={onLeave} />
+      <Box sx={{ position: "relative", flexShrink: 0 }}>
+        <Face
+          seat={seat}
+          sayer={sayer}
+          member={member}
+          colour={colour}
+          clock={clock}
+          tag={tag}
+          isHere={isHere(seat, member, meId, onlineFriends)}
+          onLeave={onLeave}
+        />
+        <SeatSaying user={sayer} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "belowEnd" : "belowStart"} />
+      </Box>
       <Stack spacing={0.6} sx={{ alignItems: isOnRight ? "flex-end" : "flex-start", minWidth: 0 }}>
-        <Box sx={{ position: "relative", maxWidth: "100%" }}>
-          <Typography
-            noWrap
-            sx={{ fontFamily: FONTS.body, fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.1, textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)" }}
-          >
-            {nameOf(seat, conversation, meId)}
-          </Typography>
-          {seat.user && !seat.bot && (
-            <SeatSaying user={seat.user} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "below" : "beside"} />
-          )}
-        </Box>
+        <Typography
+          noWrap
+          sx={{
+            maxWidth: "100%",
+            fontFamily: FONTS.body,
+            fontSize: 15,
+            fontWeight: 600,
+            color: INK,
+            lineHeight: 1.1,
+            textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)",
+          }}
+        >
+          {nameOf(seat, conversation, meId)}
+        </Typography>
         {cardsHeld === undefined ? (
           <HomeCount home={home} colour={colour} />
         ) : (

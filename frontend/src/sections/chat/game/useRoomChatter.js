@@ -49,7 +49,7 @@ const useRoomChatter = (conversation, seats) => {
       const said = { id, text: event.text, emoji: event.emoji };
       if (place === "seat") {
         setSayings((current) => ({ ...current, [event.from]: said }));
-        later(event.emoji ? REACTION_MS : SAYING_MS, () =>
+        later(event.text ? SAYING_MS : REACTION_MS, () =>
           setSayings((current) => (current[event.from]?.id === id ? { ...current, [event.from]: undefined } : current))
         );
       } else if (place === "float") {

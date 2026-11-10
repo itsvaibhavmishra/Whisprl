@@ -85,7 +85,7 @@ export const botMove = (state, seat, level = "medium") => {
 
 const CAPTURES_WORTH_A_REACTION = 3;
 
-export const BOT_REACTIONS = { captured: ["😂", "😎"], knockedOut: ["😂", "😜"], lost: ["😭", "😱"] };
+export const BOT_MOODS = { captured: "proud", knockedOut: "proud", lost: "hurt" };
 
 export const momentFor = (before, after, seat) => {
   const mover = turnOf(before);

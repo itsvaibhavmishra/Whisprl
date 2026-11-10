@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { PERSONAS } from "#src/services/games/botPersonas.js";
+
 const GAME_STATUSES = ["lobby", "countdown", "playing"];
 
 const seatSchema = mongoose.Schema(
@@ -15,6 +17,7 @@ const seatSchema = mongoose.Schema(
     // turns missed in a row; two hand the seat to the bot until its player comes back
     missed: { type: Number, default: 0 },
     away: { type: Boolean, default: false },
+    persona: { type: String, enum: PERSONAS },
   },
   { _id: false }
 );
@@ -38,7 +41,7 @@ const gameSessionSchema = mongoose.Schema(
     // who won the last game, kept in the lobby until the next one starts
     result: { type: mongoose.Schema.Types.Mixed },
     // how a chosen bot plays this game, picked as it starts from the players' records and never shown
-    botLevel: { type: String, enum: ["dumb", "medium", "pro", "expert"] },
+    botSkill: { type: Number, min: 0, max: 100 },
     // players starting this game for the first time, who are shown its rules
     newcomers: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },

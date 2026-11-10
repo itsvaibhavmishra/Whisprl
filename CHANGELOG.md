@@ -6,6 +6,27 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.10] - 2026-11-10
+
+### New
+
+- Play against five bots, Bleep, Wini, Pip, Zook and Pogo, each with its own face and its own things to say during a game
+- Whisprl talks during games too, greeting the table and saying something about how it went
+- Fill a group's free seats with as many bots as you like, each one different, and remove one from its seat
+
+### Improvements
+
+- The bot and Whisprl quietly adjust to you in each game: a little harder as you win and a little easier as you lose, with the odd surprise game
+- Bigger faces over each board, with the seconds left on the face and a VS drawn for each game
+- A knocked out player in Chain Reaction keeps their face as it was, marked Out
+- A reaction in a game bursts out past the face instead of fitting inside it
+
+### Fixed
+
+- A bot you chose to play in Jackaroo now reacts like it does in the other games
+- Opening a game in a chat with yourself seats a bot, where before the other seat could not be filled
+- In Jackaroo, what a player or bot says shows below their face instead of over it
+
 ## [2.5.9] - 2026-11-10
 
 ### New
@@ -633,6 +654,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.10]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.10
 [2.5.9]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.9
 [2.5.8]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.8
 [2.5.7]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.7

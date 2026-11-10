@@ -1,6 +1,7 @@
 import { Box, ButtonBase } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
 
+import { personaOf } from "@/sections/chat/game/bots";
 import art from "@/sections/chat/game/games/dots-and-boxes/art";
 import { colourOf } from "@/sections/chat/game/games/dots-and-boxes/palette";
 import { memberOf } from "@/utils/groups";
@@ -60,7 +61,7 @@ const Paper = ({ grid }) => {
 // a real name rather than "You", so a box reads the same letter to everyone at the table
 const initialOf = (seat, conversation) => {
   if (!seat) return "";
-  if (seat.bot && !seat.user) return "B";
+  if (seat.bot && !seat.user) return personaOf(seat)?.name.charAt(0) ?? "B";
   const member = seat.user && memberOf(conversation, seat.user);
   return (member?.firstName ?? "").charAt(0).toUpperCase();
 };

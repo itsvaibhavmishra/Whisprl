@@ -140,11 +140,10 @@ export const botMove = (state, seat, level = "medium") => {
   if (Math.random() < DISTRACTED[level]) return anyOf(open);
   const safe = open.filter((line) => isSafe(state, line));
   if (safe.length) return anyOf(safe);
-  // a pro already gives away the cheapest chain to give, but never keeps control with the double cross
-  return level === "pro" ? lineToGive(state, open) : openingTheLeast(state, open);
+  return openingTheLeast(state, open);
 };
 
-export const BOT_REACTIONS = { took: ["😜", "😎"], gaveAway: ["🫠", "😡"] };
+export const BOT_MOODS = { took: "proud", gaveAway: "hurt" };
 
 export const momentFor = (before, after, seat) => {
   const closer = after.boxes.find((owner, box) => owner !== null && before.boxes[box] === null);
