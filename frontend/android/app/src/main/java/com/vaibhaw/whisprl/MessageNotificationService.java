@@ -16,12 +16,18 @@ import java.util.Map;
 public class MessageNotificationService extends MessagingService {
 
     private static final String CHANNEL_ID = "messages";
+    private static final String REQUESTS_CHANNEL_ID = "requests";
     private static final String FALLBACK_TEXT = "New message";
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
         Map<String, String> data = remoteMessage.getData();
+        // news that belongs to no chat, like a friend request, names the page a tap should open instead
+        if (data.containsKey("path")) {
+            if (!isOnScreen()) showNotice(remoteMessage.getMessageId(), data);
+            return;
+        }
         if (!data.containsKey("conversationId")) return;
         // a photo or video is still uploading when its push is sent, so only text is ready to show at the next launch
         if ("text".equals(data.get("kind"))) ArrivedMessages.keep(this, data);
@@ -59,6 +65,33 @@ public class MessageNotificationService extends MessagingService {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .setContentIntent(openChat(messageId, conversationId))
+                .build()
+        );
+    }
+
+    private void showNotice(String messageId, Map<String, String> data) {
+        NotificationManagerCompat manager = NotificationManagerCompat.from(this);
+        if (!manager.areNotificationsEnabled()) return;
+        manager.createNotificationChannel(
+            new NotificationChannelCompat.Builder(REQUESTS_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_DEFAULT).setName("Friend requests").build()
+        );
+
+        String tag = data.containsKey("tag") ? data.get("tag") : data.get("path");
+        Intent intent = new Intent(this, MainActivity.class)
+            .putExtra("google.message_id", messageId)
+            .putExtra("path", data.get("path"))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        manager.notify(
+            tag,
+            0,
+            new NotificationCompat.Builder(this, REQUESTS_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_stat_whisprl)
+                .setColor(ContextCompat.getColor(this, R.color.notification_accent))
+                .setContentTitle(data.get("title"))
+                .setContentText(data.get("text"))
+                .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+                .setAutoCancel(true)
+                .setContentIntent(PendingIntent.getActivity(this, tag.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT))
                 .build()
         );
     }

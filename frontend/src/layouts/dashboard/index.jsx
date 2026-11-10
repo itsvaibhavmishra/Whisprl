@@ -28,7 +28,7 @@ import { chatPath } from "@/sections/chat/chatRoute";
 import OngoingGameBanner from "@/sections/chat/game/OngoingGameBanner";
 import EncryptionGate from "@/sections/encryption/EncryptionGate";
 import { reportErrorsAs } from "@/utils/errorReports";
-import { openNotifiedChat, setChatOpener } from "@/utils/notifications";
+import { openNotified, setChatOpener, setPageOpener } from "@/utils/notifications";
 import { needsSetup } from "@/utils/onboarding";
 import { isApp } from "@/utils/platform";
 import { listenForPushTaps } from "@/utils/push";
@@ -84,7 +84,7 @@ const DashboardLayout = () => {
     if (isApp && isLoggedIn && userId && isSetUp && notifications) dispatch(RegisterPushDevice());
   }, [dispatch, isLoggedIn, userId, isSetUp, notifications]);
 
-  useEffect(() => (isApp ? listenForPushTaps(openNotifiedChat) : undefined), []);
+  useEffect(() => (isApp ? listenForPushTaps(openNotified) : undefined), []);
 
   useEffect(() => {
     reportErrorsAs(userId);
@@ -92,10 +92,11 @@ const DashboardLayout = () => {
   }, [userId]);
 
   useEffect(() => {
-    setChatOpener((conversationId) => {
-      const path = chatPath(conversationId);
+    const goTo = (path) => {
       if (window.location.pathname !== path) navigate(path);
-    });
+    };
+    setChatOpener((conversationId) => goTo(chatPath(conversationId)));
+    setPageOpener(goTo);
   }, [navigate]);
 
   if (!isLoggedIn || !userId) {

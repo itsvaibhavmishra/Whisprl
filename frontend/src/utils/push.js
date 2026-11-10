@@ -37,6 +37,6 @@ export const stopPush = async () => {
 export const clearPushedChat = (conversationId) => PushNotifications.removeDeliveredNotifications({ notifications: [{ id: 0, tag: conversationId }] });
 
 export const listenForPushTaps = (onOpen) => {
-  const listening = PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => onOpen(notification.data.conversationId));
+  const listening = PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => onOpen(notification.data));
   return () => listening.then((listener) => listener.remove());
 };

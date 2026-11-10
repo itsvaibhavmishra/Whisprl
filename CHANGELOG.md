@@ -8,6 +8,11 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.5.12] - 2026-11-11
 
+### New
+
+- Notifications for a new friend request and for one being accepted, on your phone and in a background browser tab; tapping opens the request or their profile
+- Notifications when someone starts a game in your group, or saves you a seat in one
+
 ### Improvements
 
 - New accounts start in the light or dark theme their phone or browser uses, instead of always dark

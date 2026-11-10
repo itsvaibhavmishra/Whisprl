@@ -12,11 +12,19 @@ import {
   unfriend,
 } from "#src/services/friendsService.js";
 import { presenceAudienceOf } from "#src/services/blockService.js";
+import { pushNotice } from "#src/services/pushService.js";
 import { dismissSuggestion, suggestionsFor } from "#src/services/suggestionService.js";
 import { searchFriendsOf } from "#src/services/userService.js";
 import { assertText, trimmed } from "#src/utils/accountRules.js";
 
 const summaryOf = ({ _id, firstName, lastName, avatar }) => ({ _id, firstName, lastName, avatar });
+
+const fullNameOf = (person) => `${person.firstName} ${person.lastName}`.trim();
+const profilePathOf = (person) => `/contacts/${person.username ? `@${person.username}` : person._id}`;
+
+// the note stays out of the push, since it is end-to-end encrypted and the server cannot read it
+const pushRequestNews = (recipientId, person, { text, path }) =>
+  pushNotice(recipientId, { title: fullNameOf(person), text, path, tag: `request-${person._id}` }).catch(() => {});
 
 export const announceRequests = (req, user_id, kind, details = {}) =>
   req.app
@@ -28,6 +36,7 @@ export const sendRequest = async (req, res) => {
   const receiver = await sendFriendRequest(req.user, req.body.receiver_id, req.body.note);
   announceRequests(req, req.user._id, "sent");
   announceRequests(req, receiver._id, "received", { person: summaryOf(req.user) });
+  pushRequestNews(receiver._id, req.user, { text: "Sent you a friend request", path: "/contacts/requests" });
 
   res.status(200).json({ status: "success", message: "Friend request sent", receiver: summaryOf(receiver) });
 };
@@ -59,6 +68,7 @@ export const acceptRejectRequest = async (req, res) => {
         .in([String(sender_id), String(req.user._id)])
         .socketsJoin(String(conversationId));
     announceRequests(req, sender_id, "accepted", { person: summaryOf(req.user), conversationId });
+    pushRequestNews(sender_id, req.user, { text: "Accepted your friend request", path: profilePathOf(req.user) });
     announceRequests(req, req.user._id, "answered", { conversationId });
   } else {
     announceRequests(req, sender_id, "ended");

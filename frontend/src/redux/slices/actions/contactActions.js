@@ -6,7 +6,9 @@ import { GetFriends } from "@/redux/slices/actions/userActions";
 import { removeFriend } from "@/redux/slices/userSlice";
 import axios from "@/utils/axios";
 import { sealNote } from "@/utils/crypto/noteCipher";
+import { notifyNews } from "@/utils/notifications";
 import { notify } from "@/utils/notify";
+import { REQUESTS_PATH, contactPathOf } from "@/sections/contacts/contactsRoute";
 
 export const GetUserData = createApiThunk("user/getUserData", async (userId) => (await axios.get("/user/getUserData", { params: { userId } })).data);
 
@@ -107,6 +109,8 @@ export const DeclineRequest = (person) => (dispatch) => {
 
 const nameOf = (person) => `${person.firstName} ${person.lastName}`;
 
+const notifyRequestNews = (person, body, path) => notifyNews({ title: nameOf(person), body, icon: person.avatar, tag: `request-${person._id}`, path });
+
 // the server tells every tab of both people, the acting one too, so the lists refetch only here; the kind picks what to say
 export const RequestsChanged =
   ({ kind, person, conversationId }) =>
@@ -117,8 +121,14 @@ export const RequestsChanged =
       dispatch(GetConversations());
       if (conversationId && getState().chat.activeConversation?._id === conversationId) dispatch(GetMessages(conversationId));
     }
-    if (kind === "received") notify({ severity: "info", message: `${nameOf(person)} wants to be friends` });
-    if (kind === "accepted") notify({ severity: "success", message: `${nameOf(person)} accepted your request` });
+    if (kind === "received") {
+      notify({ severity: "info", message: `${nameOf(person)} wants to be friends` });
+      notifyRequestNews(person, "Sent you a friend request", REQUESTS_PATH);
+    }
+    if (kind === "accepted") {
+      notify({ severity: "success", message: `${nameOf(person)} accepted your request` });
+      notifyRequestNews(person, "Accepted your friend request", contactPathOf(person));
+    }
   };
 
 export const FriendsChanged = () => (dispatch) => {
