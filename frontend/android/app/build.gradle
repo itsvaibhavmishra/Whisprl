@@ -16,7 +16,7 @@ android {
         manifestPlaceholders = [appName: isTestBuild ? "Whisprl Test" : "@string/app_name"]
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
+        versionCode 7
         // the app carries the same version as the web app it wraps
         versionName new groovy.json.JsonSlurper().parse(file("../../package.json")).version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -60,6 +60,7 @@ dependencies {
     implementation "com.google.android.libraries.identity.googleid:googleid:1.2.1"
     implementation "com.google.firebase:firebase-messaging:$firebaseMessagingVersion"
     implementation "com.google.android.gms:play-services-auth-blockstore:16.4.0"
+    implementation "com.google.android.play:app-update:2.1.0"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     testImplementation "org.json:json:20260814"

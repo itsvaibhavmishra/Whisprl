@@ -9,3 +9,6 @@ export const mayHoldBot = (seat, isGroup) => !seat.user && !seat.bot && (!seat.l
 export const isChosenBot = (seat) => Boolean(seat.bot && !seat.user);
 
 export const isTaken = (seat) => Boolean(seat.user || seat.bot);
+
+// a draw is agreed between two people playing each other, never with Whisprl or a bot, which play every game out
+export const isDrawable = (seats) => seats.length === 2 && seats.every((seat) => seat.user && !seat.bot && !seat.official);

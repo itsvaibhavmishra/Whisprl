@@ -23,7 +23,8 @@ const DESTINATIONS = [
 ];
 const RAIL_WIDTH = 76;
 const TAB_BAR_HEIGHT = 65;
-export const PAGE_HEIGHT_WITH_TAB_BAR = `calc(100dvh - ${TAB_BAR_HEIGHT}px - env(safe-area-inset-bottom))`;
+// an update reminder above the tab bar takes its room from the page, so the page's last rows stay in view
+export const PAGE_HEIGHT_WITH_TAB_BAR = `calc(100dvh - ${TAB_BAR_HEIGHT}px - env(safe-area-inset-bottom) - var(--update-notice-room, 0px))`;
 const SLIDE = { type: "spring", stiffness: 500, damping: 38 };
 export const ON_RAIL = "#9DB0CB";
 

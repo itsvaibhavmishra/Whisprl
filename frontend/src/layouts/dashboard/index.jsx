@@ -7,8 +7,10 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import { DEFAULT_AUTH } from "@/config";
 
 import MotionLazyContainer from "@/components/animate/MotionLazyContainer";
+import AppUpdateNotice from "@/components/AppUpdateNotice";
 import { PageArea } from "@/components/LoadingScreen";
 import NotificationsPrompt from "@/components/NotificationsPrompt";
+import useAppUpdates from "@/hooks/useAppUpdates";
 import useSavedChats from "@/hooks/useSavedChats";
 import useSettings from "@/hooks/useSettings";
 import FollowInvite from "@/layouts/dashboard/FollowInvite";
@@ -54,6 +56,7 @@ const DashboardLayout = () => {
   const { notifications } = useSettings();
 
   useSavedChats(isApp && isLoggedIn && isSetUp ? userId : null);
+  useAppUpdates(isLoggedIn && Boolean(userId) && isSetUp);
 
   useEffect(() => {
     if (!isLoggedIn || !userId || !isSetUp) return;
@@ -99,6 +102,8 @@ const DashboardLayout = () => {
     return <Navigate to={DEFAULT_AUTH} replace />;
   }
 
+  const isMainPage = MAIN_PAGES.includes(location.pathname.replace(/\/$/, ""));
+
   // setup sends you on to where you were going, so a link opened mid-setup still lands
   if (!isSetUp) return <Navigate to={PATH_SETUP} replace state={{ from: location }} />;
 
@@ -109,10 +114,11 @@ const DashboardLayout = () => {
           <NavRail />
           {/* a banner over the status bar leaves the page below nothing to step down for */}
           <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", "&:has(> [data-ongoing-game])": { "--status-bar-room": "0px" } }}>
-            {MAIN_PAGES.includes(location.pathname.replace(/\/$/, "")) && <OngoingGameBanner />}
+            {isMainPage && <OngoingGameBanner />}
             <PageArea value={PAGE_AREA}>
               <Outlet />
             </PageArea>
+            {isMainPage && !isTouring && <AppUpdateNotice />}
           </Box>
           <EncryptionGate />
           {isEncryptionReady && !isTouring && location.pathname.startsWith(`${chat}/`) && <NotificationsPrompt />}

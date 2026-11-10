@@ -1,4 +1,4 @@
-import { memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha, ThemeProvider } from "@mui/material/styles";
 import { m, useReducedMotion } from "motion/react";
@@ -11,6 +11,7 @@ import { gameCollapsed, resultDismissed, selectViewReceivedAt } from "@/redux/sl
 import { GAMES } from "@/sections/chat/game/catalog";
 import { bodyFontOf, loadGameFonts, withBodyFont } from "@/sections/chat/game/gameFonts";
 import { applyGameLevels, gameAudioOf, startMusic, stopMusic } from "@/sections/chat/game/gameSounds";
+import DrawOffer from "@/sections/chat/game/DrawOffer";
 import GameButton from "@/sections/chat/game/GameButton";
 import GameTitle from "@/sections/chat/game/GameTitle";
 import PlayerBar from "@/sections/chat/game/PlayerBar";
@@ -30,9 +31,12 @@ import useArtReady from "@/sections/chat/game/useArtReady";
 import useRoomChatter from "@/sections/chat/game/useRoomChatter";
 import useHasPassed from "@/sections/chat/game/useHasPassed";
 import useSceneWidth from "@/sections/chat/game/useSceneWidth";
+import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
+import { isDrawable } from "@/sections/chat/game/seats";
 import { turnLineOf } from "@/sections/chat/game/gameStatus";
-import { canManage } from "@/utils/groups";
+import { canManage, firstNameIn } from "@/utils/groups";
 import { feel } from "@/utils/haptics";
+import { notify } from "@/utils/notify";
 
 const CONFIRMATIONS = {
   close: { title: "Close the game?", text: "Everyone at the table gets up and the game goes away.", action: "Close game" },
@@ -177,6 +181,26 @@ const GameRoom = ({ conversation, session }) => {
     [dispatch, conversationId]
   );
   const onLeave = useCallback(() => setConfirming(leaveKind), [leaveKind]);
+
+  const opponent = session.seats.find((seat) => seat.user && seat.user !== meId)?.user;
+  const offeredBy = isPlaying ? session.drawOfferedBy : null;
+  const canOfferDraw = isPlaying && Boolean(mySeat) && isDrawable(session.seats) && !offeredBy;
+  const drawWaitsFor = useSecondsLeft(session.drawCooldownUntil);
+  const drawOption = canOfferDraw
+    ? {
+        label: drawWaitsFor ? `Offer a draw in ${drawWaitsFor}s` : "Offer a draw",
+        isDisabled: Boolean(drawWaitsFor),
+        onClick: () => act({ type: "offerDraw" }),
+      }
+    : null;
+
+  // an offer of yours that goes away while the game plays on was turned down, which nothing else would tell you
+  const lastOffer = useRef(offeredBy);
+  useEffect(() => {
+    if (lastOffer.current === meId && !offeredBy && isPlaying)
+      notify({ severity: "info", message: `${firstNameIn(conversation, opponent, meId)} would rather play on` });
+    lastOffer.current = offeredBy;
+  }, [offeredBy, isPlaying, meId, conversation, opponent]);
   const confirmed = {
     close: () => dispatch(CloseGame(conversationId)),
     cancel: () => act({ type: "cancel" }),
@@ -345,7 +369,24 @@ const GameRoom = ({ conversation, session }) => {
         </Stack>
       )}
 
-      {confirming && <ConfirmDialog {...CONFIRMATIONS[confirming]} onConfirm={confirmed[confirming]} onClose={() => setConfirming(null)} />}
+      {offeredBy && Boolean(mySeat) && (
+        <DrawOffer
+          offeredBy={offeredBy}
+          opponent={opponent}
+          conversation={conversation}
+          meId={meId}
+          theme={theme}
+          onAnswer={(accept) => act({ type: "answerDraw", accept })}
+        />
+      )}
+      {confirming && (
+        <ConfirmDialog
+          {...CONFIRMATIONS[confirming]}
+          secondary={confirming === "forfeit" ? drawOption : null}
+          onConfirm={confirmed[confirming]}
+          onClose={() => setConfirming(null)}
+        />
+      )}
       <ReactionTray anchor={reactionAnchor} onClose={() => setReactionAnchor(null)} />
       {soundAnchor && <SoundMenu anchor={soundAnchor} gameId={session.game} track={game.music} onClose={() => setSoundAnchor(null)} />}
       {isShowingRules && <RulesSheet game={game} turnSeconds={session.turnSeconds} onClose={() => setIsShowingRules(false)} />}

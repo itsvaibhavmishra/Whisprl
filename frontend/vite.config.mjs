@@ -4,6 +4,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 const { version } = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
+const [, versionCode] = readFileSync(new URL("android/app/build.gradle", import.meta.url), "utf8").match(/^\s*versionCode (\d+)/m);
+const appVersions = JSON.parse(readFileSync(new URL("android/app-versions.json", import.meta.url), "utf8"));
 
 const EMOJI_DATA = ["data.json", "messages.json"];
 const emojiFile = (name) => readFileSync(new URL(`node_modules/emojibase-data/en/${name}`, import.meta.url));
@@ -34,6 +36,11 @@ export default defineConfig({
   define: {
     // the version the build reports, so an installed app can tell whether a live update is newer
     "import.meta.env.REACT_APP_VERSION": JSON.stringify(version),
+    // the Android app built alongside, so the admin page can say which version code is newest
+    "import.meta.env.REACT_APP_VERSION_CODE": JSON.stringify(Number(versionCode)),
+    // the versions an installed app is reminded of, kept by hand beside versionCode and carried by every live update
+    "import.meta.env.REACT_APP_RECOMMENDED_VERSION_CODE": JSON.stringify(appVersions.recommended),
+    "import.meta.env.REACT_APP_REQUIRED_VERSION_CODE": JSON.stringify(appVersions.required),
   },
   server: { port: 3200 },
   build: {

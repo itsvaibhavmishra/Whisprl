@@ -6,6 +6,19 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.11] - 2026-11-10
+
+### New
+
+- Offer a draw instead of leaving a game with a friend: if they accept, nobody loses, and if they would rather play on you can offer again after 30 seconds
+- The Android app reminds you when a newer version is on Google Play, and updates through Play without leaving the app: in the background when it can wait, full screen when it can't
+- The owner switches the update reminder on from the admin panel's new App updates page once Play has the new version, and decides there whether apps installed from outside Play are sent to the Play listing
+
+### Developers
+
+- Raising `versionCode` no longer cuts older apps off live updates: `liveUpdateFloor` in `frontend/android/app-versions.json` decides which apps take them, beside the `recommended` and `required` versions the reminder names, all kept by hand and checked by the gate
+- Web code that needs a plugin newer than the oldest app still taking live updates checks for it with `hasNative` and falls back
+
 ## [2.5.10] - 2026-11-10
 
 ### New
@@ -654,6 +667,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.11]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.11
 [2.5.10]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.10
 [2.5.9]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.9
 [2.5.8]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.8

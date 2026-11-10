@@ -5,6 +5,7 @@ import { readLimit, searchLimit, writeLimit } from "#src/middlewares/rateLimiter
 import {
   addToTeam,
   ban,
+  changeAppUpdates,
   changeTeamAccess,
   closeGameRequest,
   dismiss,
@@ -69,5 +70,7 @@ adminRouter.route("/team").get(readLimit(), allow("team"), getTeam).post(writeLi
 adminRouter.route("/team/:user_id").put(writeLimit(), allow("team"), changeTeamAccess);
 
 adminRouter.route("/team/:user_id/remove").put(writeLimit(), allow("team"), removeFromTeam);
+
+adminRouter.route("/app-updates").put(writeLimit(), allow("updates"), changeAppUpdates);
 
 export default adminRouter;

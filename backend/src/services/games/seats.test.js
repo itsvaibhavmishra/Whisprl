@@ -10,6 +10,7 @@ import {
   invite,
   isBotOpponent,
   isBotPlaying,
+  isDrawable,
   isChosenBot,
   isEveryoneReady,
   lift,
@@ -182,6 +183,15 @@ test("five bots at one table each wear a different face, and change it for every
   const nextGame = withFreshPersonas(table, lastFace);
   assert.equal(new Set(facesOf(nextGame)).size, 5);
   assert.notDeepEqual(facesOf(nextGame), facesOf(table));
+});
+
+test("only two people playing each other can agree a draw, never against Whisprl, a bot or at a bigger table", () => {
+  const two = sit(sit(emptySeats(2), 0, ARIA), 1, BIANCA);
+  assert.equal(isDrawable(two), true);
+  assert.equal(isDrawable(seatWhisprl(sit(emptySeats(2), 0, ARIA), 1, "whisprl")), false);
+  assert.equal(isDrawable(seatBot(sit(emptySeats(2), 0, ARIA), 1)), false);
+  assert.equal(isDrawable(handToBot(two, BIANCA)), false);
+  assert.equal(isDrawable(sit(sit(sit(emptySeats(3), 0, ARIA), 1, BIANCA), 2, ERIN)), false);
 });
 
 test("Whisprl's own seat is always ready, played by the bot, and stays seated between games", () => {
