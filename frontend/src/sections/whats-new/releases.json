@@ -1,12 +1,17 @@
 {
-  "upcoming": [
-    {
-      "emoji": "🤝",
-      "title": "Call it a draw",
-      "text": "Rather than leave a game with a friend, offer a draw. If they accept, nobody loses."
-    }
-  ],
+  "upcoming": [],
   "releases": [
+    {
+      "version": "2.5.11",
+      "date": "2026-11-10",
+      "highlights": [
+        {
+          "emoji": "🤝",
+          "title": "Call it a draw",
+          "text": "Rather than leave a game with a friend, offer a draw. If they accept, nobody loses."
+        }
+      ]
+    },
     {
       "version": "2.5.10",
       "date": "2026-11-10",

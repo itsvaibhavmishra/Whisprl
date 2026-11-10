@@ -6,6 +6,12 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.11] - 2026-11-10
+
+### New
+
+- Offer a draw instead of leaving a game with a friend: if they accept, nobody loses, and if they would rather play on you can offer again after 30 seconds
+
 ## [2.5.10] - 2026-11-10
 
 ### New
@@ -654,6 +660,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.11]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.11
 [2.5.10]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.10
 [2.5.9]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.9
 [2.5.8]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.8
