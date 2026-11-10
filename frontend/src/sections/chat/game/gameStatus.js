@@ -30,7 +30,7 @@ export const lobbyLineOf = (session, conversation, meId) => {
 
 export const turnLineOf = (session, conversation, meId) => {
   const seat = session.seats[session.turn];
-  if (seat.bot) return personaOf(seat) ? `${personaOf(seat).name}'s turn` : "The bot's turn";
+  if (seat.bot) return `${personaOf(seat)?.name ?? "The bot"}'s turn`;
   if (seat.user === meId) return seat.away ? "The bot is playing for you" : "Your turn";
   const name = firstNameIn(conversation, seat.user, meId);
   return seat.away ? `The bot is playing for ${name}` : `${name}'s turn`;
@@ -41,6 +41,6 @@ export const resultLineOf = ({ winners, leftBy }, conversation, meId) => {
   if (leftBy) return `${firstNameIn(conversation, leftBy, meId)} left, so you win`;
   if (!winners.length) return "It's a draw";
   const [winner] = winners;
-  if (winner.bot) return personaOf(winner) ? `${personaOf(winner).name} won` : "The bot won";
+  if (winner.bot) return `${personaOf(winner)?.name ?? "The bot"} won`;
   return `${firstNameIn(conversation, winner.user, meId)} won`;
 };

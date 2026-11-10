@@ -13,7 +13,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The admin overview shows the sign-up journey: how far each new account got, from verifying its email to its first message, and who stopped at each step
 - Invite friends from Contacts or an empty Chats screen with a link that shows who invited them, and once they have signed up, their profile opens with a friend request one tap away
 - Badges beside names: Owner, Admin and Official, each in its own colour, on profiles, chats and contacts
-- Whisprl Bot and Whisprl quietly adjust to you in each game: a little harder as you win and a little easier as you lose, with the odd surprise game, so they stay beatable without handing you the win
+- Whisprl Bot plays at four levels, from easy to expert, and quietly picks one for each game from how you have been doing against it
 - Whisprl Bot and Whisprl react throughout games: laughing when they knock your marble out, cool when a marble of theirs reaches home, melting when you take one of their cards, sobbing when they knock out their own marble or lose, and partying when they win
 - Whisprl is everyone's friend: an official account that is always up for a game, sits down ready as soon as you open one, reacts as it plays and keeps score on the leaderboard. It can't be removed or blocked, and it never reads what you send it
 - Whisprl welcomes everyone with a challenge, and tells you when someone joins through your invite, with a tap to their profile

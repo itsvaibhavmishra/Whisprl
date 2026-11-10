@@ -136,7 +136,6 @@ export const backToLobby = (seats) =>
     })
   );
 
-// every chosen bot puts on a new face for another game
 export const withFreshPersonas = (seats, random = Math.random) =>
   seats.reduce((fresh, seat) => [...fresh, isChosenBot(seat) ? { ...seat, persona: freshPersona(fresh, random, seat.persona) } : seat], []);
 

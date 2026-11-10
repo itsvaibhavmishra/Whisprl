@@ -143,7 +143,7 @@ export const botMove = (state, seat, level = "medium") => {
   return openingTheLeast(state, open);
 };
 
-export const BOT_REACTIONS = { took: ["😜", "😎"], gaveAway: ["🫠", "😡"] };
+export const BOT_MOODS = { took: "proud", gaveAway: "hurt" };
 
 export const momentFor = (before, after, seat) => {
   const closer = after.boxes.find((owner, box) => owner !== null && before.boxes[box] === null);

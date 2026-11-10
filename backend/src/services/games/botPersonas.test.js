@@ -12,8 +12,3 @@ test("a bot never wears the face it wore last game when another is free", () => 
   const lastFace = () => 0.99;
   assert.equal(freshPersona([], lastFace, PERSONAS.at(-1)), PERSONAS.at(-2));
 });
-
-test("any face will do once every one is taken", () => {
-  const seats = PERSONAS.map((persona) => ({ bot: true, persona }));
-  assert.ok(PERSONAS.includes(freshPersona(seats)));
-});

@@ -56,7 +56,7 @@ const TurnClock = ({ startsAt, seconds, colour }) => {
 };
 
 // the player's face in a ring of their marbles' colour, grown a little with the clock over it while it is their turn
-const Face = ({ seat, member, colour, clock, tag, isHere: here, onLeave }) => (
+const Face = ({ seat, sayer, member, colour, clock, tag, isHere: here, onLeave }) => (
   <ButtonBase
     disabled={!onLeave}
     onClick={onLeave || undefined}
@@ -86,7 +86,7 @@ const Face = ({ seat, member, colour, clock, tag, isHere: here, onLeave }) => (
       {seat.bot || seat.away ? <BotFace seat={seat} size={FACE} /> : member && getAvatar(member.avatar, member.firstName, FACE)}
     </Box>
     {clock && <TurnClock key={clock.startsAt} startsAt={clock.startsAt} seconds={clock.seconds} colour={colour} />}
-    {seat.user && !seat.bot && <AvatarReaction user={seat.user} size={FACE} />}
+    <AvatarReaction user={sayer} size={FACE} />
     {tag && (
       <Typography
         sx={{
@@ -141,6 +141,7 @@ const HomeCount = ({ home, colour }) => (
 // one player in a corner of the board, face outermost: their name, and under it their hidden cards or how many marbles are home
 const Player = ({
   seat,
+  sayer,
   conversation,
   meId,
   colour,
@@ -160,7 +161,16 @@ const Player = ({
   const member = seat.user && !seat.bot ? memberOf(conversation, seat.user) : null;
   return (
     <Stack direction={isOnRight ? "row-reverse" : "row"} spacing={1.25} sx={{ alignItems: "center", px: 1.5, py: 0.75 }}>
-      <Face seat={seat} member={member} colour={colour} clock={clock} tag={tag} isHere={isHere(seat, member, meId, onlineFriends)} onLeave={onLeave} />
+      <Face
+        seat={seat}
+        sayer={sayer}
+        member={member}
+        colour={colour}
+        clock={clock}
+        tag={tag}
+        isHere={isHere(seat, member, meId, onlineFriends)}
+        onLeave={onLeave}
+      />
       <Stack spacing={0.6} sx={{ alignItems: isOnRight ? "flex-end" : "flex-start", minWidth: 0 }}>
         <Box sx={{ position: "relative", maxWidth: "100%" }}>
           <Typography
@@ -169,9 +179,7 @@ const Player = ({
           >
             {nameOf(seat, conversation, meId)}
           </Typography>
-          {seat.user && !seat.bot && (
-            <SeatSaying user={seat.user} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "below" : "beside"} />
-          )}
+          <SeatSaying user={sayer} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "below" : "beside"} />
         </Box>
         {cardsHeld === undefined ? (
           <HomeCount home={home} colour={colour} />

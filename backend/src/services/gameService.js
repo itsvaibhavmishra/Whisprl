@@ -8,6 +8,8 @@ import { assertCanMessage, canMessageIn, saveEvent, saveMessage } from "#src/ser
 import { pushWords } from "#src/services/pushService.js";
 import { botSkillFor, recordBotGame } from "#src/services/botRecordService.js";
 import { MEDIUM_SKILL, levelAt } from "#src/services/games/botLevels.js";
+import { lineFor, speakerOf } from "#src/services/games/botLines.js";
+import { REACTIONS } from "#src/services/games/reactions.js";
 import { newcomersTo, recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import { isWhisprl } from "#src/services/whisprlService.js";
@@ -261,35 +263,42 @@ const playedForAbsent = (session) => {
   return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
 };
 
-const BOT_REACTION_CHANCE = 0.7;
-const BOT_REACTION_GAP_MS = 4000;
-const ENDING_REACTIONS = { won: ["🥳", "😎"], lost: ["😭"], drawn: ["🫠", "😜"] };
-
-const anyOf = (items) => items[Math.floor(Math.random() * items.length)];
+const BOT_LINE_CHANCE = 0.7;
+// a little longer than a line stays up, so one is read before the next replaces it
+const BOT_LINE_GAP_MS = 5000;
+// the board has drawn in by then, so the greeting lands on a table people are looking at
+const GREETING_DELAY_MS = 900;
 
 const endingFor = ({ seats }, index) => {
   if (!seats.length) return "drawn";
   return seats.includes(index) ? "won" : "lost";
 };
 
-// a chosen bot always reacts to how a game ends, and to only some of what happens on the way, never twice in quick succession
-const reactAsBot = (io, gameRoom, conversationId, before, after) => {
-  if (before?.status !== "playing" || !after?.state) return;
+const moodOf = (game, before, after, index) => {
+  if (before.status === "countdown") return "hello";
+  if (after.result) return endingFor(after.result, index);
+  return game.moods[game.momentFor(before.state, after.state, index)];
+};
+
+// a chosen bot or Whisprl always greets the table and answers how a game ends, and speaks to only some of what happens between
+const speakAsBot = (io, gameRoom, conversationId, before, after) => {
+  const isStarting = before?.status === "countdown" && after?.status === "playing";
+  if (!isStarting && (before?.status !== "playing" || !after?.state)) return;
   const game = gameOf(before.game);
-  const isEnding = Boolean(after.result);
-  if (!isEnding && (Date.now() < gameRoom.botReactsAfter || Math.random() > BOT_REACTION_CHANCE)) return;
-  const [reaction] = before.seats.flatMap((seat, index) => {
+  const isCertain = isStarting || Boolean(after.result);
+  if (!isCertain && (Date.now() < gameRoom.botSpeaksAfter || Math.random() > BOT_LINE_CHANCE)) return;
+  const [said] = before.seats.flatMap((seat, index) => {
     if (!isBotOpponent(seat)) return [];
-    const moment = isEnding ? endingFor(after.result, index) : game.momentFor?.(before.state, after.state, index);
-    const choices = ENDING_REACTIONS[moment] ?? game.reactions?.[moment];
-    // Whisprl reacts as itself, while a chosen bot has no account and is known by its seat
-    const thrower = seat.official ? { user: String(seat.user) } : { seat: index };
-    return choices ? [{ ...thrower, emoji: anyOf(choices) }] : [];
+    const line = lineFor(speakerOf(seat), moodOf(game, before, after, index));
+    // Whisprl speaks as itself, while a chosen bot has no account and is known by its seat
+    const speaker = seat.official ? { user: String(seat.user) } : { seat: index };
+    return line ? [{ ...speaker, ...line }] : [];
   });
-  if (!reaction) return;
-  gameRoom.botReactsAfter = Date.now() + BOT_REACTION_GAP_MS;
-  // thrown once the play has finished showing, so the face matches what just happened on the board
-  setTimeout(() => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...reaction }), playOutMsOf(game, after.state));
+  if (!said) return;
+  gameRoom.botSpeaksAfter = Date.now() + BOT_LINE_GAP_MS;
+  // said once the play has finished showing, so the words match what just happened on the board
+  const delay = isStarting ? GREETING_DELAY_MS : playOutMsOf(game, after.state);
+  setTimeout(() => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...said }), delay);
 };
 
 const deadlineOf = (session) => {
@@ -323,7 +332,7 @@ const reachDeadline = (io, conversationId, deadline) =>
     await save(next);
     await Promise.all([recordPlay(session, next), recordResult(session, next), recordBotGame(session, next)]);
     syncClock(io, gameRoom, conversationId, next);
-    reactAsBot(io, gameRoom, conversationId, session, next);
+    speakAsBot(io, gameRoom, conversationId, session, next);
     await broadcast(io, gameRoom, await ConversationModel.findById(conversationId), next);
   });
 
@@ -622,7 +631,7 @@ export const actInGame = (io, userId, { conversationId, type, ...details }) => {
     } else await GameSessionModel.deleteOne({ conversation: id });
 
     syncClock(io, gameRoom, id, after);
-    reactAsBot(io, gameRoom, id, session, after);
+    speakAsBot(io, gameRoom, id, session, after);
     await broadcast(io, gameRoom, conversation, after);
     await announceTable(io, conversation, String(userId), type, session, after);
   });
@@ -687,9 +696,6 @@ export const lookAtGame = (io, socket, isLooking) => {
     announceLookers(io, id, gameRoom);
   });
 };
-
-// the emoji anyone at a game can throw, the same nine the tray offers; they are shown and gone, never saved
-const REACTIONS = ["😂", "😭", "😜", "😘", "😎", "😡", "😱", "🫠", "🥳"];
 
 export const reactInGame = async (socket, emoji) => {
   const id = socket.data.watching;

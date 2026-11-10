@@ -15,7 +15,6 @@ const HURRY_AT = 5;
 const HURRY = "#E5484D";
 const MARK = 22;
 const VS = 84;
-const VS_SPAN = 88;
 // the name tag tucks up over the foot of the face, as a nameplate does
 const TAG_OVERLAP = 10;
 
@@ -23,9 +22,6 @@ const faceSizeFor = (players) => {
   if (players <= 3) return 56;
   return players === 4 ? 50 : 44;
 };
-
-// a game deals its own colours, so the canvas asks rather than assuming a seat's place in a list
-const colourAt = (game, state, index) => game.colourOf?.(state, index) ?? game.theme.marks[index];
 
 const inkOn = (colour) => (getContrastRatio(colour, "#fff") >= 3 ? "#fff" : "#1d1530");
 
@@ -70,7 +66,8 @@ const SecondsOnFace = ({ seconds, face, isHurrying }) => (
 const PlayerToken = ({ seat, index, face, conversation, game, state, meId, isTurn, turnEndsAt, turnSeconds, onLeave }) => {
   const { theme } = game;
   const isMine = seat.user === meId && !seat.bot;
-  const colour = colourAt(game, state, index);
+  // a game deals its own colours, so the canvas asks rather than assuming a seat's place in a list
+  const colour = game.colourOf?.(state, index) ?? theme.marks[index];
   const clock = isTurn ? turnEndsAt : null;
   const secondsLeft = useSecondsLeft(clock);
   // a bot's turn is a short pause rather than the full clock, so its ring starts full and drains over that pause
@@ -151,15 +148,13 @@ const PlayerToken = ({ seat, index, face, conversation, game, state, meId, isTur
           {isOut && <Typography sx={{ flexShrink: 0, fontSize: 11.5, fontWeight: 800, opacity: 0.7 }}>Out</Typography>}
         </Stack>
       </ButtonBase>
-      {seat.user && !seat.bot && <SeatSaying user={seat.user} theme={theme} />}
+      <SeatSaying user={sayerAt(seat, index)} theme={theme} />
     </Box>
   );
 };
 
-// the two players' colours meet in the badge, and a line of them runs out towards each face
-// each game has its own VS drawn in its art
 const VersusMark = ({ src, face }) => (
-  <Box sx={{ flexShrink: 0, width: VS_SPAN, height: face, display: "grid", placeItems: "center" }}>
+  <Box sx={{ flexShrink: 0, width: VS, height: face, display: "grid", placeItems: "center" }}>
     <Box component="img" src={src} alt="" draggable={false} sx={{ width: VS, height: VS, display: "block" }} />
   </Box>
 );

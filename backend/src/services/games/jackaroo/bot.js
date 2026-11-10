@@ -113,15 +113,15 @@ export const botMove = (state, seat, level = "medium") => {
   return moveFor(state, seat, chosen);
 };
 
-export const BOT_REACTIONS = {
-  knockedOut: ["😂", "😜"],
-  knockedBack: ["😭", "😱"],
-  ownGoal: ["😭"],
-  reachedHome: ["😎"],
-  rivalHome: ["😱"],
-  cardTaken: ["🫠"],
-  tookCard: ["😜", "😂"],
-  swapped: ["😜", "😎"],
+export const BOT_MOODS = {
+  knockedOut: "proud",
+  knockedBack: "hurt",
+  ownGoal: "oops",
+  reachedHome: "proud",
+  rivalHome: "worried",
+  cardTaken: "hurt",
+  tookCard: "proud",
+  swapped: "proud",
 };
 
 const LOSES_A_CARD = ["takeCard", "discardOther"];

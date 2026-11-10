@@ -1,5 +1,11 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "🤖",
+      "title": "Meet the bots",
+      "text": "Play Bleep, Wini, Pip, Zook or Pogo, five bots with their own faces and plenty to say during a game."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.9",

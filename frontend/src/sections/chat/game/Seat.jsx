@@ -132,7 +132,7 @@ const Seat = ({ seat, index, conversation, meId, theme, size, mark, onTake, onLe
       </Typography>
       {mark && <Box sx={{ width: 26, height: 26, opacity: seat.user || seat.bot ? 1 : 0.45 }}>{mark}</Box>}
       {manage && <SeatMenu seat={seat} meId={meId} {...manage} />}
-      {seat.user && !seat.bot && <SeatSaying user={seat.user} theme={theme} />}
+      <SeatSaying user={sayerAt(seat, index)} theme={theme} />
     </Box>
   );
 };

@@ -44,7 +44,7 @@ export const botMove = ({ board }, seat, level = "medium") => {
   return winningCellFor(board, 1 - seat) ?? (board[CENTRE] === null ? CENTRE : null) ?? anyOf(CORNERS.filter((cell) => board[cell] === null)) ?? anyOf(free);
 };
 
-export const BOT_REACTIONS = { threatened: ["😱", "🫠"], blocked: ["😎", "😜"] };
+export const BOT_MOODS = { threatened: "worried", blocked: "proud" };
 
 export const momentFor = (before, after, seat) => {
   const rival = 1 - seat;
