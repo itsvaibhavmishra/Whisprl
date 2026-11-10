@@ -109,6 +109,8 @@ export const DeclineRequest = (person) => (dispatch) => {
 
 const nameOf = (person) => `${person.firstName} ${person.lastName}`;
 
+const notifyRequestNews = (person, body, path) => notifyNews({ title: nameOf(person), body, icon: person.avatar, tag: `request-${person._id}`, path });
+
 // the server tells every tab of both people, the acting one too, so the lists refetch only here; the kind picks what to say
 export const RequestsChanged =
   ({ kind, person, conversationId }) =>
@@ -121,17 +123,11 @@ export const RequestsChanged =
     }
     if (kind === "received") {
       notify({ severity: "info", message: `${nameOf(person)} wants to be friends` });
-      notifyNews({ title: nameOf(person), body: "Sent you a friend request", icon: person.avatar, tag: `request-${person._id}`, path: REQUESTS_PATH });
+      notifyRequestNews(person, "Sent you a friend request", REQUESTS_PATH);
     }
     if (kind === "accepted") {
       notify({ severity: "success", message: `${nameOf(person)} accepted your request` });
-      notifyNews({
-        title: nameOf(person),
-        body: "Accepted your friend request",
-        icon: person.avatar,
-        tag: `request-${person._id}`,
-        path: contactPathOf(person),
-      });
+      notifyRequestNews(person, "Accepted your friend request", contactPathOf(person));
     }
   };
 

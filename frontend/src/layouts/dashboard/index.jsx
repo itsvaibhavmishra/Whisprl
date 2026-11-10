@@ -92,13 +92,11 @@ const DashboardLayout = () => {
   }, [userId]);
 
   useEffect(() => {
-    setChatOpener((conversationId) => {
-      const path = chatPath(conversationId);
+    const goTo = (path) => {
       if (window.location.pathname !== path) navigate(path);
-    });
-    setPageOpener((path) => {
-      if (window.location.pathname !== path) navigate(path);
-    });
+    };
+    setChatOpener((conversationId) => goTo(chatPath(conversationId)));
+    setPageOpener(goTo);
   }, [navigate]);
 
   if (!isLoggedIn || !userId) {

@@ -624,7 +624,7 @@ const challenge = async (io, members, challenger, guest, game) => {
   const { message } = await saveMessage(members, { sender: challenger._id, notice });
   io.to(memberRooms(members)).emit("message_received", message);
   io.to(String(guest._id)).emit("game_invited", { conversationId: String(members._id), game: game.id, from: String(challenger._id) });
-  await pushWords([members], challenger, `Challenged you to ${game.name}`);
+  pushQuietly([members], challenger, `Challenged you to ${game.name}`);
 };
 
 const announceTable = async (io, conversation, userId, type, before, after) => {
@@ -632,26 +632,15 @@ const announceTable = async (io, conversation, userId, type, before, after) => {
   if (!eventType || (type === "open" && before)) return;
   const game = gameOf((after ?? before).game);
   const members = await populateMembers(conversation);
+  const opener = members.users.find((member) => String(member._id) === userId);
   const guest = !members.isGroup && members.users.find((member) => String(member._id) !== userId);
   if (type === "open" && guest && !isWhisprl(guest._id)) {
-    await challenge(
-      io,
-      members,
-      members.users.find((member) => String(member._id) === userId),
-      guest,
-      game
-    );
+    await challenge(io, members, opener, guest, game);
     return;
   }
   const { message } = await saveEvent(members, userId, eventType, { name: game.name });
   io.to(memberRooms(members)).emit("message_received", message);
-  if (type === "open" && members.isGroup) {
-    pushQuietly(
-      [members],
-      members.users.find((member) => String(member._id) === userId),
-      `Started ${game.name}`
-    );
-  }
+  if (type === "open" && members.isGroup) pushQuietly([members], opener, `Started ${game.name}`);
 };
 
 const playableConversation = async (conversationId, userId) => {

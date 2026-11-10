@@ -64,7 +64,7 @@ export const ROUND_BUTTON = {
 
 const ROW_PAD = 4;
 // a phone's keyboard has no Shift to hold, so its Enter adds a line and the send button sends, as in other messaging apps
-const isEnterSend = !window.matchMedia("(pointer: coarse)").matches;
+const sendsOnEnter = !window.matchMedia("(pointer: coarse)").matches;
 const TOOL_SIZE = 40;
 const TOOL_BUTTON = { width: TOOL_SIZE, height: TOOL_SIZE, color: "text.secondary" };
 
@@ -275,7 +275,7 @@ const Composer = () => {
       else if (replyingTo) dispatch(setReplyingTo(null));
       return;
     }
-    if (event.key === "Enter" && !event.shiftKey && isEnterSend) submit(event);
+    if (event.key === "Enter" && !event.shiftKey && sendsOnEnter) submit(event);
   };
 
   const isReplyToSelf = replyingTo?.sender?._id === meId;
@@ -374,7 +374,7 @@ const Composer = () => {
                     setMentionQuery(null);
                   }}
                   placeholder={isSmallScreen ? "Message" : "Write a message"}
-                  inputProps={{ "aria-label": editing ? "Edit message" : "Message", enterKeyHint: isEnterSend ? "send" : "enter" }}
+                  inputProps={{ "aria-label": editing ? "Edit message" : "Message", enterKeyHint: sendsOnEnter ? "send" : "enter" }}
                   multiline
                   maxRows={6}
                   autoFocus={!isSmallScreen}
