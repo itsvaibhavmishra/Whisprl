@@ -24,6 +24,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - A bot you chose to play in Jackaroo now reacts like it does in the other games
 - Opening a game in a chat with yourself seats a bot, where before the other seat could not be filled
+- In Jackaroo, what a player or bot says shows below their face instead of over it
 
 ## [2.5.9] - 2026-11-10
 
