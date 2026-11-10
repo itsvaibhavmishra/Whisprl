@@ -14,7 +14,6 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
-    - Offer a draw instead of leaving a game with a friend: if they accept, nobody loses, and if they would rather play on you can offer again after 30 seconds
 
   - Improvements:
 
