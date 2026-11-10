@@ -9,10 +9,10 @@ export const roleOf = (user) => {
 
 export const isStaff = (user) => roleOf(user) !== "user";
 
-// running the team is the owner's alone, so it is never among the permissions an admin can be given
+// running the team and what installed apps are told are the owner's alone, so neither is among the permissions an admin can be given
 export const permissionsOf = (user) => {
   const role = roleOf(user);
-  if (role === "owner") return [...PERMISSIONS, "team"];
+  if (role === "owner") return [...PERMISSIONS, "team", "updates"];
   return role === "admin" ? (user.permissions ?? []).filter((permission) => PERMISSIONS.includes(permission)) : [];
 };
 

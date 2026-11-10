@@ -151,8 +151,8 @@ the frontend with the production settings, zips it, signs it, and attaches `app-
 launch and every return to the foreground the app reads
 `releases/latest/download/app-update.json`, and downloads the update only when it is newer than
 the version running, its signature matches the public key in `capacitor.config.json`, and the
-APK's `versionCode` is at least the `minNativeVersion` it names, which is the `versionCode` it was
-built against. The update applies on the next launch. The app then calls `ready()` once it has
+APK's `versionCode` is at least the `minNativeVersion` it names, which is `liveUpdateFloor` in
+`frontend/android/app-versions.json`. The update applies on the next launch. The app then calls `ready()` once it has
 drawn, and an update that does not within 10 seconds is rolled back to the version inside the APK
 and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
 `@capawesome/capacitor-live-update` and no paid service.
@@ -163,9 +163,12 @@ and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
   `@sentry/capacitor`, which change the APK and wait for the next app release with any Java or
   Gradle change. Backend changes need no app release at all.
 - **Only web code travels this way.** Any change to Java, a plugin or a permission raises
-  `versionCode` and ships as a new APK, or through Play once the app is there, and older APKs
-  skip every update built after it. An update must not break any other Play rule: it never adds
-  what a Play review would refuse, and never changes what the app is for.
+  `versionCode` and ships as a new APK, or through Play once the app is there. Older APKs keep
+  taking live updates until `liveUpdateFloor` rises, so raise it only when the web code cannot run
+  at all without the new native code, and then every app below it waits for the new APK. Web code
+  that uses a plugin newer than the floor asks `hasNative` (`utils/nativeFeatures.js`) first and
+  falls back, or tells the person to update. An update must not break any other Play rule: it
+  never adds what a Play review would refuse, and never changes what the app is for.
 - **The signing key** is RSA, kept in the `LIVE_UPDATE_KEY` repository secret and nowhere in the
   repo. Losing it means no installed app accepts another update until people install an APK
   carrying a new public key, so keep a copy in a password manager.
@@ -180,6 +183,18 @@ and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
   only repeat the last code. To put a release on Play, download the bundle from the release and
   upload it under Testing or Production in the Play Console, where it shows as
   `<versionCode> (<version>)`.
+- **Update reminders** come from Google Play, never from a download outside it.
+  `recommended` and `required` in `frontend/android/app-versions.json` are versionCodes kept by
+  hand, and `appVersions.test.js` fails the gate if either is above `versionCode` or a required
+  version is not also recommended. An app below `recommended` shows a reminder it can close; one
+  below `required` shows one that stays. Both wait for **Show the update reminder** on the admin
+  panel's App updates page (owner only), because a release reaches apps before Play's review
+  ends. Where Play installed the app, Update runs Play's own update (`PlayUpdatePlugin.java`):
+  a download in the background for a recommended version, full screen for a required one. An app
+  Play did not install, or one built before the plugin, is sent to the Play listing instead, and
+  only once **Open to everyone on Google Play** is on, since few people can open the listing while
+  the app is in testing. Play's update screens only run for an install that came from Play, so
+  test them from the internal track.
 - **`REACT_APP_UPDATE_URL`** is set only for builds people install. A development build leaves it
   out, so it never replaces itself with production code. A production APK must be built with it,
   or that APK never updates.
@@ -439,7 +454,7 @@ feature branch  ->  PR into rc  ->  PR from rc into production  =  a release
 | Label | When | Publishes |
 |---|---|---|
 | `release: web` | the version went up, `versionCode` did not | a GitHub Release tagged `v<version>` with the changelog section as its notes, the live update and the APK. Installed apps update themselves |
-| `release: app` | the version and `versionCode` both went up | the same, with a note that Android users need the new APK, since their app skips this update, and the Play bundle `whisprl-play.aab` |
+| `release: app` | the version and `versionCode` both went up | the same, with a note about the new APK, and the Play bundle `whisprl-play.aab`. Installed apps still take the live update unless `liveUpdateFloor` rose |
 | none | neither changed | nothing beyond the redeploy |
 
 `scripts/release.sh` picks the label from `versionCode`, and `release-ready.yml` fails a pull
@@ -458,7 +473,8 @@ Which release a change needs:
 - **A web feature or a frontend fix:** `release: web`. A frontend fix the app should get needs a
   version, even a patch, because the app only takes an update whose version is above its own.
 - **A change to Java, a plugin or a permission:** raise `versionCode` in the same pull request,
-  and it goes out as `release: app`.
+  and it goes out as `release: app`. Raise `liveUpdateFloor` too only if the web code cannot run
+  without it, and `recommended` once you want people reminded to install it.
 - **A backend-only fix, docs or CI:** no label. The app talks to the same backend, so it gets a
   backend fix with the redeploy.
 

@@ -28,3 +28,8 @@ read_native_version() {
     code="$(sed -n 's/^ *versionCode \([0-9][0-9]*\).*/\1/p' <<<"$contents")"
     printf '%s' "${code:-0}"
 }
+
+# The oldest versionCode the web app still runs on; live updates reach every app at or above it
+read_live_update_floor() {
+    node -p "require('./frontend/android/app-versions.json').liveUpdateFloor"
+}

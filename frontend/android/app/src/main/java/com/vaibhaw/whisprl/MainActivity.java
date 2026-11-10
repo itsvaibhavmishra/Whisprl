@@ -13,6 +13,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(GoogleSignInPlugin.class);
         registerPlugin(HapticsPlugin.class);
         registerPlugin(KeyVaultPlugin.class);
+        registerPlugin(PlayUpdatePlugin.class);
         registerPlugin(PushSetupPlugin.class);
         super.onCreate(savedInstanceState);
     }

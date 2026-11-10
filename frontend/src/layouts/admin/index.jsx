@@ -6,6 +6,7 @@ import {
   ChartLineUpIcon,
   ClockCounterClockwiseIcon,
   CrownIcon,
+  DeviceMobileIcon,
   FlagIcon,
   GameControllerIcon,
   IdentificationBadgeIcon,
@@ -36,6 +37,7 @@ const DESTINATIONS = [
   { path: PATH_ADMIN.announcements, label: "Announcements", Icon: MegaphoneIcon, permission: "announce" },
   { path: PATH_ADMIN.audit, label: "Audit log", Icon: ClockCounterClockwiseIcon, permission: "audit" },
   { path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadgeIcon, permission: "team" },
+  { path: PATH_ADMIN.appUpdates, label: "App updates", Icon: DeviceMobileIcon, permission: "updates" },
 ];
 const ROLE_BADGES = { owner: { label: "Owner", Icon: CrownIcon }, admin: { label: "Admin", Icon: ShieldStarIcon } };
 

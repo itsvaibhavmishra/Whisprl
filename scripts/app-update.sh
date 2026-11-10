@@ -28,6 +28,8 @@ require zip
 VERSION="$(read_version)"
 NATIVE_VERSION="$(read_native_version)"
 [ "$NATIVE_VERSION" -gt 0 ] || fail "Could not read versionCode from frontend/android/app/build.gradle."
+FLOOR="$(read_live_update_floor)"
+[[ "$FLOOR" =~ ^[0-9]+$ ]] || fail "Could not read liveUpdateFloor from frontend/android/app-versions.json."
 BASE="${3:-$(repo_url)/releases/download/v$VERSION}"
 
 (cd frontend && npm run build)
@@ -36,11 +38,11 @@ BASE="${3:-$(repo_url)/releases/download/v$VERSION}"
 (cd frontend/build && zip -qrX "$OUT/app-update.zip" . -x '*.map')
 SIGNATURE="$(openssl dgst -sha256 -sign "$KEY" "$OUT/app-update.zip" | openssl base64 -A)"
 
-python3 - "$OUT/app-update.json" "$VERSION" "$NATIVE_VERSION" "$BASE/app-update.zip" "$SIGNATURE" <<'PY'
+python3 - "$OUT/app-update.json" "$VERSION" "$FLOOR" "$BASE/app-update.zip" "$SIGNATURE" <<'PY'
 import json, sys
-path, version, native_version, url, signature = sys.argv[1:]
+path, version, floor, url, signature = sys.argv[1:]
 with open(path, "w") as manifest:
-    json.dump({"version": version, "minNativeVersion": int(native_version), "url": url, "signature": signature}, manifest, indent=2)
+    json.dump({"version": version, "minNativeVersion": int(floor), "url": url, "signature": signature}, manifest, indent=2)
 PY
 
-printf 'Update %s for APK version %s or newer, %s, in %s\n' "$VERSION" "$NATIVE_VERSION" "$(du -h "$OUT/app-update.zip" | cut -f1)" "$OUT"
+printf 'Update %s for APK version %s or newer, %s, in %s\n' "$VERSION" "$FLOOR" "$(du -h "$OUT/app-update.zip" | cut -f1)" "$OUT"
