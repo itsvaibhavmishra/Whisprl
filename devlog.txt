@@ -16,6 +16,7 @@
   - New:
     - Play against five bots, Bleep, Wini, Pip, Zook and Pogo, each with its own face and its own things to say during a game
     - Whisprl talks during games too, greeting the table and saying something about how it went
+    - Fill a group's free seats with as many bots as you like, each one different, and remove one from its seat
 
   - Improvements:
     - The bot and Whisprl quietly adjust to you in each game: a little harder as you win and a little easier as you lose, with the odd surprise game

@@ -8,6 +8,7 @@ import BotFace from "@/sections/chat/game/BotFace";
 import { botNameOf } from "@/sections/chat/game/bots";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
+import { isChosenBot } from "@/sections/chat/game/seats";
 import { sayerAt } from "@/sections/chat/game/useRoomChatter";
 import getAvatar from "@/utils/avatars";
 import { isOnline } from "@/utils/chats";
@@ -28,7 +29,7 @@ const labelOf = (seat, conversation, meId) => {
   return seat.locked ? "Locked" : "Empty";
 };
 
-const SeatMenu = ({ seat, meId, onLift, onLock, onInvite }) => {
+const SeatMenu = ({ seat, meId, onLift, onLock, onInvite, onRemoveBot }) => {
   const [anchor, setAnchor] = useState(null);
   const choose = (action) => () => {
     setAnchor(null);
@@ -51,6 +52,7 @@ const SeatMenu = ({ seat, meId, onLift, onLock, onInvite }) => {
       </IconButton>
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
         {canLift && <MenuItem onClick={choose(onLift)}>Lift out</MenuItem>}
+        {isChosenBot(seat) && <MenuItem onClick={choose(onRemoveBot)}>Remove the bot</MenuItem>}
         {!seat.user && !seat.bot && <MenuItem onClick={choose(onInvite)}>Save for someone</MenuItem>}
         <MenuItem onClick={choose(() => onLock(!seat.locked))}>{seat.locked ? "Unlock" : "Lock"}</MenuItem>
       </Menu>

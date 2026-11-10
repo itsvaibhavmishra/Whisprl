@@ -83,7 +83,7 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
   const secondsToStart = useSecondsLeft(session.status === "countdown" && session.startsAt);
   const mySeat = session.seats.find((seat) => seat.user === meId);
   const freeSeat = session.seats.findIndex((seat) => mayTake(seat, meId));
-  const botSeat = session.seats.findIndex(isChosenBot);
+  const botSeat = session.seats.findLastIndex(isChosenBot);
   const seatForBot = session.seats.findIndex((seat) => mayHoldBot(seat, conversation.isGroup));
   const [isReady, setReady] = usePending(Boolean(mySeat?.ready), (ready) => act({ type: "ready", ready }));
   const toggleReady = () => setReady(!isReady);
@@ -101,10 +101,19 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
     return { label: isReady ? "Not ready" : "Ready", onClick: toggleReady, isQuiet: isReady };
   };
 
+  const setBotAt = (index, seated) => () => act({ type: "bot", index, seated });
+
+  // a group fills free seats with as many bots as it likes, and a chat between two has the one bot or the other person
   const botAction = () => {
-    if (!mySeat || secondsToStart) return null;
-    if (botSeat !== -1) return { label: "Remove the bot", onClick: () => act({ type: "bot", index: botSeat, seated: false }) };
-    return seatForBot === -1 ? null : { label: "Play the bot instead", onClick: () => act({ type: "bot", index: seatForBot, seated: true }) };
+    if (secondsToStart) return null;
+    if (conversation.isGroup) {
+      if (!canChangeTable) return null;
+      if (seatForBot !== -1) return { label: "Add a bot", onClick: setBotAt(seatForBot, true) };
+      return botSeat === -1 ? null : { label: "Remove a bot", onClick: setBotAt(botSeat, false) };
+    }
+    if (!mySeat) return null;
+    if (botSeat !== -1) return { label: "Remove the bot", onClick: setBotAt(botSeat, false) };
+    return seatForBot === -1 ? null : { label: "Play the bot instead", onClick: setBotAt(seatForBot, true) };
   };
 
   const next = nextAction();

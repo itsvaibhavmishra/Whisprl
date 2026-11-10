@@ -15,8 +15,8 @@ const HURRY_AT = 5;
 const HURRY = "#E5484D";
 const MARK = 22;
 const VS = 84;
-// the name tag tucks up over the foot of the face, as a nameplate does
-const TAG_OVERLAP = 10;
+// dark and see-through, so white names read over any game's art
+const TAG_SHADE = "rgba(18, 12, 28, 0.72)";
 
 const faceSizeFor = (players) => {
   if (players <= 3) return 56;
@@ -74,7 +74,7 @@ const PlayerToken = ({ seat, index, face, conversation, game, state, meId, isTur
   const isBotPlaying = Boolean(seat.bot || seat.away || seat.official);
   const clockColour = !isBotPlaying && secondsLeft !== null && secondsLeft <= HURRY_AT ? HURRY : colour;
   const isOut = Boolean(game.isOut?.(state, index));
-  const tagColour = isTurn ? clockColour : theme.card;
+  const tagColour = isTurn ? clockColour : TAG_SHADE;
 
   return (
     // what the player says hangs off the token rather than inside it, so the bar never resizes for their words
@@ -128,16 +128,16 @@ const PlayerToken = ({ seat, index, face, conversation, game, state, meId, isTur
           direction="row"
           spacing={0.5}
           sx={{
-            position: "relative",
-            zIndex: 2,
-            mt: `-${TAG_OVERLAP}px`,
+            mt: 0.6,
             maxWidth: "100%",
             alignItems: "baseline",
             px: 1.1,
             py: 0.3,
             borderRadius: 99,
             bgcolor: tagColour,
-            color: isTurn ? inkOn(tagColour) : theme.ink,
+            color: inkOn(tagColour),
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
             boxShadow: "0 3px 10px rgba(0, 0, 0, 0.2)",
             transition: "background-color 220ms ease, color 220ms ease",
           }}

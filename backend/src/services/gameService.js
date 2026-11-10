@@ -287,13 +287,15 @@ const speakAsBot = (io, gameRoom, conversationId, before, after) => {
   const game = gameOf(before.game);
   const isCertain = isStarting || Boolean(after.result);
   if (!isCertain && (Date.now() < gameRoom.botSpeaksAfter || Math.random() > BOT_LINE_CHANCE)) return;
-  const [said] = before.seats.flatMap((seat, index) => {
+  const lines = before.seats.flatMap((seat, index) => {
     if (!isBotOpponent(seat)) return [];
     const line = lineFor(speakerOf(seat), moodOf(game, before, after, index));
     // Whisprl speaks as itself, while a chosen bot has no account and is known by its seat
     const speaker = seat.official ? { user: String(seat.user) } : { seat: index };
     return line ? [{ ...speaker, ...line }] : [];
   });
+  // one voice a moment, picked at random so each bot at a busy table gets its say
+  const said = lines[Math.floor(Math.random() * lines.length)];
   if (!said) return;
   gameRoom.botSpeaksAfter = Date.now() + BOT_LINE_GAP_MS;
   // said once the play has finished showing, so the words match what just happened on the board
