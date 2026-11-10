@@ -161,26 +161,34 @@ const Player = ({
   const member = seat.user && !seat.bot ? memberOf(conversation, seat.user) : null;
   return (
     <Stack direction={isOnRight ? "row-reverse" : "row"} spacing={1.25} sx={{ alignItems: "center", px: 1.5, py: 0.75 }}>
-      <Face
-        seat={seat}
-        sayer={sayer}
-        member={member}
-        colour={colour}
-        clock={clock}
-        tag={tag}
-        isHere={isHere(seat, member, meId, onlineFriends)}
-        onLeave={onLeave}
-      />
+      <Box sx={{ position: "relative", flexShrink: 0 }}>
+        <Face
+          seat={seat}
+          sayer={sayer}
+          member={member}
+          colour={colour}
+          clock={clock}
+          tag={tag}
+          isHere={isHere(seat, member, meId, onlineFriends)}
+          onLeave={onLeave}
+        />
+        <SeatSaying user={sayer} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "belowEnd" : "belowStart"} />
+      </Box>
       <Stack spacing={0.6} sx={{ alignItems: isOnRight ? "flex-end" : "flex-start", minWidth: 0 }}>
-        <Box sx={{ position: "relative", maxWidth: "100%" }}>
-          <Typography
-            noWrap
-            sx={{ fontFamily: FONTS.body, fontSize: 15, fontWeight: 600, color: INK, lineHeight: 1.1, textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)" }}
-          >
-            {nameOf(seat, conversation, meId)}
-          </Typography>
-          <SeatSaying user={sayer} theme={{ card: "rgba(250, 241, 228, 0.96)", ink: "#2b1b12" }} placement={isOnRight ? "below" : "beside"} />
-        </Box>
+        <Typography
+          noWrap
+          sx={{
+            maxWidth: "100%",
+            fontFamily: FONTS.body,
+            fontSize: 15,
+            fontWeight: 600,
+            color: INK,
+            lineHeight: 1.1,
+            textShadow: "0 1px 3px rgba(0, 0, 0, 0.6)",
+          }}
+        >
+          {nameOf(seat, conversation, meId)}
+        </Typography>
         {cardsHeld === undefined ? (
           <HomeCount home={home} colour={colour} />
         ) : (

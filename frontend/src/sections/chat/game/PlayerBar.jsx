@@ -128,6 +128,9 @@ const PlayerToken = ({ seat, index, face, conversation, game, state, meId, isTur
           direction="row"
           spacing={0.5}
           sx={{
+            // above a reaction spilling out past the face, so the name stays readable
+            position: "relative",
+            zIndex: 4,
             mt: 0.6,
             maxWidth: "100%",
             alignItems: "baseline",

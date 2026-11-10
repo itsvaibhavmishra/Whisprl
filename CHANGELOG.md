@@ -19,11 +19,13 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The bot and Whisprl quietly adjust to you in each game: a little harder as you win and a little easier as you lose, with the odd surprise game
 - Bigger faces over each board, with the seconds left on the face and a VS drawn for each game
 - A knocked out player in Chain Reaction keeps their face as it was, marked Out
+- A reaction in a game bursts out past the face instead of fitting inside it
 
 ### Fixed
 
 - A bot you chose to play in Jackaroo now reacts like it does in the other games
 - Opening a game in a chat with yourself seats a bot, where before the other seat could not be filled
+- In Jackaroo, what a player or bot says shows below their face instead of over it
 
 ## [2.5.9] - 2026-11-10
 

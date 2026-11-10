@@ -11,34 +11,34 @@ const popIn = keyframes`
   to { transform: translate(-50%, 0) scale(1); opacity: 1; }
 `;
 
-const popOut = keyframes`
-  from { transform: translate(-6px, -50%) scale(0.6); opacity: 0; }
-  to { transform: translate(0, -50%) scale(1); opacity: 1; }
+const popDown = keyframes`
+  from { transform: translateY(-6px) scale(0.6); opacity: 0; }
+  to { transform: none; opacity: 1; }
 `;
 
-// below the seat, its tail pointing up, or beside it, its tail pointing back at the name
+const tailUp = (colour) => ({
+  top: -6,
+  borderLeft: "6px solid transparent",
+  borderRight: "6px solid transparent",
+  borderBottom: `6px solid ${colour}`,
+});
+
+// under the middle of a 48px face, the size of Jackaroo's, whose seats sit against the screen's edges
+const EDGE_TAIL = 18;
+
+// always below the seat; one at the screen's edge lines up with that edge so it stays on screen
 const PLACEMENTS = {
   below: {
     box: { top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", animation: `${popIn} 200ms ease-out` },
-    tail: (colour) => ({
-      top: -6,
-      left: "50%",
-      ml: "-6px",
-      borderLeft: "6px solid transparent",
-      borderRight: "6px solid transparent",
-      borderBottom: `6px solid ${colour}`,
-    }),
+    tail: (colour) => ({ ...tailUp(colour), left: "50%", ml: "-6px" }),
   },
-  beside: {
-    box: { top: "50%", left: "calc(100% + 10px)", transform: "translateY(-50%)", animation: `${popOut} 200ms ease-out` },
-    tail: (colour) => ({
-      left: -6,
-      top: "50%",
-      mt: "-6px",
-      borderTop: "6px solid transparent",
-      borderBottom: "6px solid transparent",
-      borderRight: `6px solid ${colour}`,
-    }),
+  belowStart: {
+    box: { top: "calc(100% + 8px)", left: 0, transformOrigin: "top left", animation: `${popDown} 200ms ease-out` },
+    tail: (colour) => ({ ...tailUp(colour), left: EDGE_TAIL }),
+  },
+  belowEnd: {
+    box: { top: "calc(100% + 8px)", right: 0, transformOrigin: "top right", animation: `${popDown} 200ms ease-out` },
+    tail: (colour) => ({ ...tailUp(colour), right: EDGE_TAIL }),
   },
 };
 
@@ -60,30 +60,28 @@ const coverIn = keyframes`
   to { transform: scale(1); opacity: 1; }
 `;
 
-// an emoji thrown by a seated player covers their face for a moment, over a dark blur so it reads on any picture
+// bigger than the face, so a reaction bursts out past it rather than fitting inside
+const REACTION_SCALE = 1.3;
+
+// an emoji thrown by a seated player darkens their face for a moment and spills out over it, so it reads on any picture
 export const AvatarReaction = ({ user, size }) => {
   const saying = useContext(SayingsContext)[user];
   if (!saying?.emoji) return null;
   return (
-    <Box
-      key={saying.id}
-      role="status"
-      sx={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 3,
-        display: "grid",
-        placeItems: "center",
-        borderRadius: "50%",
-        bgcolor: "rgba(12, 8, 20, 0.5)",
-        backdropFilter: "blur(5px)",
-        WebkitBackdropFilter: "blur(5px)",
-        pointerEvents: "none",
-        animation: `${coverIn} 200ms ease-out`,
-        ...STILL,
-      }}
-    >
-      <ReactionEmoji emoji={saying.emoji} size={Math.round(size * 0.86)} />
+    <Box key={saying.id} role="status" sx={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none" }}>
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          bgcolor: "rgba(12, 8, 20, 0.5)",
+          backdropFilter: "blur(5px)",
+          WebkitBackdropFilter: "blur(5px)",
+        }}
+      />
+      <Box sx={{ position: "absolute", left: "50%", top: "50%", translate: "-50% -50%", display: "flex", animation: `${coverIn} 200ms ease-out`, ...STILL }}>
+        <ReactionEmoji emoji={saying.emoji} size={Math.round(size * REACTION_SCALE)} />
+      </Box>
     </Box>
   );
 };
