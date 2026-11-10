@@ -6,7 +6,8 @@ import { findMemberConversation, memberRooms, populateMembers } from "#src/servi
 import { assertManager } from "#src/services/groupService.js";
 import { assertCanMessage, canMessageIn, saveEvent, saveMessage } from "#src/services/messageService.js";
 import { pushWords } from "#src/services/pushService.js";
-import { botLevelFor, recordBotGame } from "#src/services/botRecordService.js";
+import { botSkillFor, recordBotGame } from "#src/services/botRecordService.js";
+import { MEDIUM_SKILL, levelAt } from "#src/services/games/botLevels.js";
 import { newcomersTo, recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import { isWhisprl } from "#src/services/whisprlService.js";
@@ -200,8 +201,8 @@ const withTurnClock = (session, playOutMs = 0) => {
 const playOutMsOf = (game, state) => game.playOutMs?.(state) ?? 0;
 
 const startingFactsOf = async (session) => {
-  const [botLevel, newcomers] = await Promise.all([botLevelFor(session), newcomersTo(session)]);
-  return { botLevel, newcomers };
+  const [botSkill, newcomers] = await Promise.all([botSkillFor(session), newcomersTo(session)]);
+  return { botSkill, newcomers };
 };
 
 // Ready is agreeing to start, so it clears once the game does
@@ -223,7 +224,7 @@ const finished = (session, state, winningSeats, { showsInMs = 0, leftBy } = {}) 
   state,
   turnStartsAt: undefined,
   turnEndsAt: undefined,
-  botLevel: undefined,
+  botSkill: undefined,
   newcomers: undefined,
   result: {
     winners: winningSeats.map((seat) => ({ user: session.seats[seat].user ? String(session.seats[seat].user) : null, bot: Boolean(session.seats[seat].bot) })),
@@ -247,8 +248,8 @@ export const played = (session, index, move) => {
 const playedForAbsent = (session) => {
   const game = gameOf(session.game);
   const index = game.turnOf(session.state);
-  // a bot someone chose to face tries harder than one covering for a player who walked away
-  const level = isBotOpponent(session.seats[index]) ? (session.botLevel ?? "medium") : "standIn";
+  // a bot someone chose to face tries harder than one covering for a player who walked away; a game with no skill set plays at medium
+  const level = isBotOpponent(session.seats[index]) ? levelAt(session.botSkill ?? MEDIUM_SKILL) : "standIn";
   return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
 };
 

@@ -9,8 +9,8 @@ const winningCellFor = (board, mark) => emptyCellsOf(board).find((cell) => winni
 
 const anyOf = (cells) => (cells.length ? cells[Math.floor(Math.random() * cells.length)] : null);
 
-// how often each level plays without looking; played well this game cannot be won, so even a pro looks away now and then
-export const DISTRACTED = { dumb: 0.7, medium: 0.3, pro: 0.08, standIn: 0.55 };
+// how often each level plays without looking; played well this game cannot be won, so even the expert looks away now and then
+export const DISTRACTED = { dumb: 0.7, medium: 0.3, pro: 0.08, expert: 0.03, standIn: 0.55 };
 
 const solved = new Map();
 
@@ -35,12 +35,12 @@ const expertMove = (board, seat) => {
 };
 
 export const botMove = ({ board }, seat, level = "medium") => {
-  if (level === "expert") return expertMove(board, seat);
   const free = emptyCellsOf(board);
   const win = winningCellFor(board, seat);
   // a free win is always taken, because losing to a bot that walked past one feels cheap
   if (win !== null) return win;
   if (Math.random() < DISTRACTED[level]) return anyOf(free);
+  if (level === "expert") return expertMove(board, seat);
   return winningCellFor(board, 1 - seat) ?? (board[CENTRE] === null ? CENTRE : null) ?? anyOf(CORNERS.filter((cell) => board[cell] === null)) ?? anyOf(free);
 };
 
