@@ -77,14 +77,15 @@ const sealedFor = (message, sender, keyId) => {
   };
 };
 
+// a group's push is titled with the group and names who it came from, a chat with one person is titled with them
+const namesOf = (conversation, sender) => ({
+  senderId: String(sender._id),
+  title: conversation.isGroup ? conversation.name : `${sender.firstName} ${sender.lastName}`.trim(),
+  ...(conversation.isGroup && { sender: sender.firstName }),
+});
+
 export const pushDataFor = (conversation, sender, message, recipientId, keyId) => {
-  const named = {
-    conversationId: String(conversation._id),
-    recipientId,
-    senderId: String(sender._id),
-    title: conversation.isGroup ? conversation.name : `${sender.firstName} ${sender.lastName}`,
-    ...(conversation.isGroup && { sender: sender.firstName }),
-  };
+  const named = { conversationId: String(conversation._id), recipientId, ...namesOf(conversation, sender) };
   const sealed = { ...named, ...sealedFor(message, sender, keyId) };
   return Buffer.byteLength(JSON.stringify(sealed)) <= MOST_DATA_BYTES ? sealed : named;
 };
@@ -126,17 +127,27 @@ export const pushNewMessage = async (conversation, sender, message) => {
 };
 
 // words the server writes itself, like a challenge or Whisprl's messages, carry nothing secret, so they travel as they are
-export const pushWords = async (conversations, sender, text) => {
+export const pushWords = async (conversations, sender, text, { onlyTo } = {}) => {
   const sendable = messagingOrNull();
   if (!sendable) return;
-  const targets = await pushTargetsFor(conversations, sender._id);
-  const words = { senderId: String(sender._id), title: `${sender.firstName} ${sender.lastName}`.trim(), text };
+  const everyone = await pushTargetsFor(conversations, sender._id);
+  const targets = onlyTo ? everyone.filter(({ session }) => onlyTo.includes(String(session.user))) : everyone;
   const pushes = targets.map(({ session, conversation }) =>
-    pushTo(session, conversation, { ...words, conversationId: String(conversation._id), recipientId: String(session.user) })
+    pushTo(session, conversation, { ...namesOf(conversation, sender), text, conversationId: String(conversation._id), recipientId: String(session.user) })
   );
   await sendAll(
     sendable,
     targets.map(({ session }) => session),
     pushes
   );
+};
+
+// news that belongs to no chat, like a friend request, opens the page it names and replaces an older push with the same tag
+export const pushNotice = async (userId, { title, text, path, tag }) => {
+  const sendable = messagingOrNull();
+  if (!sendable) return;
+  const sessions = await SessionModel.find({ user: userId, pushToken: { $exists: true } }).select("pushToken");
+  const data = { title, text, path, tag };
+  const pushes = sessions.map((session) => ({ token: session.pushToken, data, android: { priority: "high", collapseKey: tag } }));
+  await sendAll(sendable, sessions, pushes);
 };

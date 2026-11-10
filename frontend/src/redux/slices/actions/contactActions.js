@@ -6,7 +6,9 @@ import { GetFriends } from "@/redux/slices/actions/userActions";
 import { removeFriend } from "@/redux/slices/userSlice";
 import axios from "@/utils/axios";
 import { sealNote } from "@/utils/crypto/noteCipher";
+import { notifyNews } from "@/utils/notifications";
 import { notify } from "@/utils/notify";
+import { REQUESTS_PATH, contactPathOf } from "@/sections/contacts/contactsRoute";
 
 export const GetUserData = createApiThunk("user/getUserData", async (userId) => (await axios.get("/user/getUserData", { params: { userId } })).data);
 
@@ -117,8 +119,20 @@ export const RequestsChanged =
       dispatch(GetConversations());
       if (conversationId && getState().chat.activeConversation?._id === conversationId) dispatch(GetMessages(conversationId));
     }
-    if (kind === "received") notify({ severity: "info", message: `${nameOf(person)} wants to be friends` });
-    if (kind === "accepted") notify({ severity: "success", message: `${nameOf(person)} accepted your request` });
+    if (kind === "received") {
+      notify({ severity: "info", message: `${nameOf(person)} wants to be friends` });
+      notifyNews({ title: nameOf(person), body: "Sent you a friend request", icon: person.avatar, tag: `request-${person._id}`, path: REQUESTS_PATH });
+    }
+    if (kind === "accepted") {
+      notify({ severity: "success", message: `${nameOf(person)} accepted your request` });
+      notifyNews({
+        title: nameOf(person),
+        body: "Accepted your friend request",
+        icon: person.avatar,
+        tag: `request-${person._id}`,
+        path: contactPathOf(person),
+      });
+    }
   };
 
 export const FriendsChanged = () => (dispatch) => {

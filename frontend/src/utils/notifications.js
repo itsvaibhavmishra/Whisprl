@@ -20,6 +20,7 @@ const isSwitchedOn = () => {
 };
 
 let openChat = () => {};
+let openPage = () => {};
 
 const shownByChat = new Map();
 
@@ -29,6 +30,26 @@ export const setChatOpener = (opener) => {
 };
 
 export const openNotifiedChat = (conversationId) => openChat(conversationId);
+
+export const setPageOpener = (opener) => {
+  openPage = opener;
+};
+
+// a page named by a push is only ever one of Whisprl's own, never an address elsewhere
+const isOwnPage = (path) => typeof path === "string" && path.startsWith("/") && !path.startsWith("//");
+
+export const openNotified = ({ conversationId, path }) => (isOwnPage(path) ? openPage(path) : openChat(conversationId));
+
+// news that belongs to no chat, like a friend request, shown the same way while the tab is in the background
+export const notifyNews = ({ title, body, icon, tag, path }) => {
+  if (isApp || !isSwitchedOn() || webPermission() !== "granted" || document.visibilityState === "visible") return;
+  const notification = new Notification(title, { body, icon: icon || APP_ICON, tag });
+  notification.onclick = () => {
+    window.focus();
+    openPage(path);
+    notification.close();
+  };
+};
 
 // only while Whisprl is in the background, since an open tab already plays a sound
 export const notifyArrival = (message, conversation) => {
