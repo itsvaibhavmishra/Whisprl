@@ -49,7 +49,7 @@ const LINES = {
     hurt: [
       { text: "Aww, not fair!", emoji: "😭" },
       { text: "Ooh, nice move!", emoji: "😘" },
-      { text: "Hey, that was mine!", emoji: "😭" },
+      { text: "Aww, meanie!", emoji: "😭" },
     ],
     worried: [
       { text: "Eek, be nice!", emoji: "😱" },

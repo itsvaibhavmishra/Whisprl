@@ -19,6 +19,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The bot and Whisprl quietly adjust to you in each game: a little harder as you win and a little easier as you lose, with the odd surprise game
 - Bigger faces over each board, with the seconds left on the face and a VS drawn for each game
 - A knocked out player in Chain Reaction keeps their face as it was, marked Out
+- A reaction in a game bursts out past the face instead of fitting inside it
 
 ### Fixed
 

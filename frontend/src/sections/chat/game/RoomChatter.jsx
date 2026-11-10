@@ -60,30 +60,28 @@ const coverIn = keyframes`
   to { transform: scale(1); opacity: 1; }
 `;
 
-// an emoji thrown by a seated player covers their face for a moment, over a dark blur so it reads on any picture
+// bigger than the face, so a reaction bursts out past it rather than fitting inside
+const REACTION_SCALE = 1.3;
+
+// an emoji thrown by a seated player darkens their face for a moment and spills out over it, so it reads on any picture
 export const AvatarReaction = ({ user, size }) => {
   const saying = useContext(SayingsContext)[user];
   if (!saying?.emoji) return null;
   return (
-    <Box
-      key={saying.id}
-      role="status"
-      sx={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 3,
-        display: "grid",
-        placeItems: "center",
-        borderRadius: "50%",
-        bgcolor: "rgba(12, 8, 20, 0.5)",
-        backdropFilter: "blur(5px)",
-        WebkitBackdropFilter: "blur(5px)",
-        pointerEvents: "none",
-        animation: `${coverIn} 200ms ease-out`,
-        ...STILL,
-      }}
-    >
-      <ReactionEmoji emoji={saying.emoji} size={Math.round(size * 0.86)} />
+    <Box key={saying.id} role="status" sx={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none" }}>
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          bgcolor: "rgba(12, 8, 20, 0.5)",
+          backdropFilter: "blur(5px)",
+          WebkitBackdropFilter: "blur(5px)",
+        }}
+      />
+      <Box sx={{ position: "absolute", left: "50%", top: "50%", translate: "-50% -50%", display: "flex", animation: `${coverIn} 200ms ease-out`, ...STILL }}>
+        <ReactionEmoji emoji={saying.emoji} size={Math.round(size * REACTION_SCALE)} />
+      </Box>
     </Box>
   );
 };
