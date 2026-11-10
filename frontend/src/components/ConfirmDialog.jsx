@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 
-const ConfirmDialog = ({ title, text, action, onConfirm, onClose }) => (
+const ConfirmDialog = ({ title, text, action, onConfirm, onClose, secondary = null }) => (
   <Dialog open onClose={onClose} fullWidth maxWidth="xs" aria-labelledby="confirm-title">
     <DialogTitle id="confirm-title">{title}</DialogTitle>
     <DialogContent>
@@ -10,6 +10,18 @@ const ConfirmDialog = ({ title, text, action, onConfirm, onClose }) => (
       <Button color="inherit" onClick={onClose}>
         Cancel
       </Button>
+      {secondary && (
+        <Button
+          variant="outlined"
+          disabled={secondary.isDisabled}
+          onClick={() => {
+            secondary.onClick();
+            onClose();
+          }}
+        >
+          {secondary.label}
+        </Button>
+      )}
       <Button
         color="error"
         variant="contained"

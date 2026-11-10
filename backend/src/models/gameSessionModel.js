@@ -42,6 +42,8 @@ const gameSessionSchema = mongoose.Schema(
     result: { type: mongoose.Schema.Types.Mixed },
     // how a chosen bot plays this game, picked as it starts from the players' records and never shown
     botSkill: { type: Number, min: 0, max: 100 },
+    // the player waiting on an answer to their offer of a draw
+    drawOfferedBy: { type: mongoose.Schema.ObjectId, ref: "User" },
     // players starting this game for the first time, who are shown its rules
     newcomers: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
