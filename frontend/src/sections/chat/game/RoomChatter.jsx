@@ -88,11 +88,11 @@ export const AvatarReaction = ({ user, size }) => {
   );
 };
 
-// words said at the table sit beside the seat; a thrown emoji covers the face instead
+// words said at the table sit beside the seat, while an emoji, thrown or said with them, covers the face
 export const SeatSaying = ({ user, theme, placement = "below" }) => {
   const { box, tail } = PLACEMENTS[placement];
   const saying = useContext(SayingsContext)[user];
-  return saying && !saying.emoji ? (
+  return saying?.text ? (
     <Box
       key={saying.id}
       role="status"

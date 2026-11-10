@@ -42,6 +42,7 @@ const GameSeats = ({ conversation, session, game, meId, isManager, act, onTake, 
       onLift: () => act({ type: "lift", index }),
       onLock: (locked) => act({ type: "lock", index, locked }),
       onInvite: () => onSaveSeat(index),
+      onRemoveBot: () => act({ type: "bot", index, seated: false }),
     };
 
   return (

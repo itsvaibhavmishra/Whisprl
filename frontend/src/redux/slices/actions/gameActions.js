@@ -46,7 +46,7 @@ export const ReactInGame = createApiThunk("game/react", (emoji, { getState }) =>
 
 export const ReceiveGameReaction = (reaction) => (_, getState) => {
   if (reaction.conversationId !== getState().game.watching) return;
-  emitRoomEvent({ conversationId: reaction.conversationId, from: reaction.user ?? `bot:${reaction.seat}`, emoji: reaction.emoji });
+  emitRoomEvent({ conversationId: reaction.conversationId, from: reaction.user ?? `bot:${reaction.seat}`, emoji: reaction.emoji, text: reaction.text });
 };
 
 // named by the game alone, so the panel can show which one is opening; it opens in the chat being watched

@@ -2,6 +2,17 @@
   "upcoming": [],
   "releases": [
     {
+      "version": "2.5.10",
+      "date": "2026-11-10",
+      "highlights": [
+        {
+          "emoji": "🤖",
+          "title": "Meet the bots",
+          "text": "Play Bleep, Wini, Pip, Zook or Pogo, five bots with their own faces and plenty to say during a game."
+        }
+      ]
+    },
+    {
       "version": "2.5.9",
       "date": "2026-11-10",
       "highlights": [

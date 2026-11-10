@@ -4,30 +4,32 @@ import { alpha } from "@mui/material/styles";
 import { useSelector } from "react-redux";
 import { CheckIcon, DotsThreeIcon, LockSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 
-import BotFace, { BOT_NAME } from "@/sections/chat/game/BotFace";
+import BotFace from "@/sections/chat/game/BotFace";
+import { botNameOf } from "@/sections/chat/game/bots";
 import { ON_SCRIM } from "@/sections/chat/game/scrim";
 import { AvatarReaction, SeatSaying } from "@/sections/chat/game/RoomChatter";
+import { isChosenBot } from "@/sections/chat/game/seats";
 import { sayerAt } from "@/sections/chat/game/useRoomChatter";
 import getAvatar from "@/utils/avatars";
 import { isOnline } from "@/utils/chats";
 import { firstNameIn, memberOf } from "@/utils/groups";
 
 const faceOf = (seat, member, size) => {
-  if (seat.bot || seat.away) return <BotFace size={size * 0.5} />;
+  if (seat.bot || seat.away) return <BotFace seat={seat} size={size} />;
   if (member) return getAvatar(member.avatar, member.firstName, size);
   if (seat.locked) return <LockSimpleIcon size={size * 0.4} weight="bold" />;
   return <PlusIcon size={size * 0.4} weight="bold" color={alpha("#fff", 0.85)} />;
 };
 
 const labelOf = (seat, conversation, meId) => {
-  if (seat.bot) return BOT_NAME;
+  if (seat.bot) return botNameOf(seat);
   if (seat.away) return `Bot for ${firstNameIn(conversation, seat.user, meId)}`;
   if (seat.user) return firstNameIn(conversation, seat.user, meId);
   if (seat.invited) return seat.invited === meId ? "For you" : `For ${firstNameIn(conversation, seat.invited, meId)}`;
   return seat.locked ? "Locked" : "Empty";
 };
 
-const SeatMenu = ({ seat, meId, onLift, onLock, onInvite }) => {
+const SeatMenu = ({ seat, meId, onLift, onLock, onInvite, onRemoveBot }) => {
   const [anchor, setAnchor] = useState(null);
   const choose = (action) => () => {
     setAnchor(null);
@@ -50,6 +52,7 @@ const SeatMenu = ({ seat, meId, onLift, onLock, onInvite }) => {
       </IconButton>
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
         {canLift && <MenuItem onClick={choose(onLift)}>Lift out</MenuItem>}
+        {isChosenBot(seat) && <MenuItem onClick={choose(onRemoveBot)}>Remove the bot</MenuItem>}
         {!seat.user && !seat.bot && <MenuItem onClick={choose(onInvite)}>Save for someone</MenuItem>}
         <MenuItem onClick={choose(() => onLock(!seat.locked))}>{seat.locked ? "Unlock" : "Lock"}</MenuItem>
       </Menu>
@@ -131,7 +134,7 @@ const Seat = ({ seat, index, conversation, meId, theme, size, mark, onTake, onLe
       </Typography>
       {mark && <Box sx={{ width: 26, height: 26, opacity: seat.user || seat.bot ? 1 : 0.45 }}>{mark}</Box>}
       {manage && <SeatMenu seat={seat} meId={meId} {...manage} />}
-      {seat.user && !seat.bot && <SeatSaying user={seat.user} theme={theme} />}
+      <SeatSaying user={sayerAt(seat, index)} theme={theme} />
     </Box>
   );
 };

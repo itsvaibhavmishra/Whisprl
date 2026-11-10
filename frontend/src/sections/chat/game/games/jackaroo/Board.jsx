@@ -19,6 +19,7 @@ import { preloadSounds, SOUNDS } from "@/sections/chat/game/games/jackaroo/sound
 import { Deck, DiscardStamp, Pile, Shoe, TheirCards } from "@/sections/chat/game/games/jackaroo/Table";
 import useHasPassed from "@/sections/chat/game/useHasPassed";
 import { firstNameIn } from "@/utils/groups";
+import { sayerAt } from "@/sections/chat/game/useRoomChatter";
 
 const SHADOW_SPILL = (layout.sprites.boardShadow / layout.board - 1) * 50;
 // the players sit just off two corners of the board, over its rim, so the board leaves them this much height
@@ -330,6 +331,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const clock = useMemo(() => ({ startsAt: timing.turnStartsAt, seconds: session.turnSeconds }), [timing.turnStartsAt, session.turnSeconds]);
   const playerAt = (seat) => ({
     seat: seats[seat],
+    sayer: sayerAt(seats[seat], seat),
     conversation,
     meId,
     colour: PALETTE[tones[seat]],

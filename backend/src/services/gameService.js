@@ -6,7 +6,10 @@ import { findMemberConversation, memberRooms, populateMembers } from "#src/servi
 import { assertManager } from "#src/services/groupService.js";
 import { assertCanMessage, canMessageIn, saveEvent, saveMessage } from "#src/services/messageService.js";
 import { pushWords } from "#src/services/pushService.js";
-import { botLevelFor, recordBotGame } from "#src/services/botRecordService.js";
+import { botSkillFor, recordBotGame } from "#src/services/botRecordService.js";
+import { MEDIUM_SKILL, levelAt } from "#src/services/games/botLevels.js";
+import { lineFor, speakerOf } from "#src/services/games/botLines.js";
+import { REACTIONS } from "#src/services/games/reactions.js";
 import { newcomersTo, recordPlay, recordResult } from "#src/services/gameResultService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import { isWhisprl } from "#src/services/whisprlService.js";
@@ -35,6 +38,7 @@ import {
   stand,
   unreadyAll,
   unseatBot,
+  withFreshPersonas,
   withSeatCount,
 } from "#src/services/games/seats.js";
 
@@ -108,7 +112,7 @@ const assertNotCoolingDown = (gameRoom, userId) => {
   if (until) throw createHttpError.BadRequest(`You can sit again in ${Math.ceil((until - Date.now()) / 1000)} seconds`);
 };
 
-const seatView = ({ user, ready, locked, invited, bot, away, official }) => ({
+const seatView = ({ user, ready, locked, invited, bot, away, official, persona }) => ({
   user: user ? String(user) : null,
   ready: Boolean(ready),
   locked: Boolean(locked),
@@ -116,6 +120,7 @@ const seatView = ({ user, ready, locked, invited, bot, away, official }) => ({
   bot: Boolean(bot),
   away: Boolean(away),
   official: Boolean(official),
+  persona: persona ?? null,
 });
 
 const stateViewFor = (session, viewerId) => {
@@ -184,7 +189,9 @@ const settled = (session) => {
   // every seat taken and ready, so a table set for four waits for four
   if (!isEveryoneReady(session.seats, session.seats.length)) return { ...session, status: "lobby", startsAt: undefined };
   if (session.status === "countdown") return session;
-  return { ...session, status: "countdown", startsAt: new Date(Date.now() + COUNTDOWN_MS) };
+  // a table that just played meets new bots as the next game counts down, so the last result keeps the face that won it
+  const seats = session.result ? withFreshPersonas(session.seats) : session.seats;
+  return { ...session, seats, status: "countdown", startsAt: new Date(Date.now() + COUNTDOWN_MS) };
 };
 
 const isTurnOf = (session, index) => gameOf(session.game).turnOf(session.state) === index;
@@ -200,8 +207,8 @@ const withTurnClock = (session, playOutMs = 0) => {
 const playOutMsOf = (game, state) => game.playOutMs?.(state) ?? 0;
 
 const startingFactsOf = async (session) => {
-  const [botLevel, newcomers] = await Promise.all([botLevelFor(session), newcomersTo(session)]);
-  return { botLevel, newcomers };
+  const [botSkill, newcomers] = await Promise.all([botSkillFor(session), newcomersTo(session)]);
+  return { botSkill, newcomers };
 };
 
 // Ready is agreeing to start, so it clears once the game does
@@ -223,10 +230,14 @@ const finished = (session, state, winningSeats, { showsInMs = 0, leftBy } = {}) 
   state,
   turnStartsAt: undefined,
   turnEndsAt: undefined,
-  botLevel: undefined,
+  botSkill: undefined,
   newcomers: undefined,
   result: {
-    winners: winningSeats.map((seat) => ({ user: session.seats[seat].user ? String(session.seats[seat].user) : null, bot: Boolean(session.seats[seat].bot) })),
+    // the bot's face is kept with the win, since the seat puts on a new one for the next game
+    winners: winningSeats.map((seat) => {
+      const { user, bot, persona } = session.seats[seat];
+      return { user: user ? String(user) : null, bot: Boolean(bot), persona };
+    }),
     seats: winningSeats,
     leftBy,
     endedAt: new Date(),
@@ -247,40 +258,49 @@ export const played = (session, index, move) => {
 const playedForAbsent = (session) => {
   const game = gameOf(session.game);
   const index = game.turnOf(session.state);
-  // a bot someone chose to face tries harder than one covering for a player who walked away
-  const level = isBotOpponent(session.seats[index]) ? (session.botLevel ?? "medium") : "standIn";
+  // a bot someone chose to face tries harder than one covering for a player who walked away; a game with no skill set plays at medium
+  const level = isBotOpponent(session.seats[index]) ? levelAt(session.botSkill ?? MEDIUM_SKILL) : "standIn";
   return played({ ...session, seats: missTurn(session.seats, index) }, index, game.botMove(session.state, index, level));
 };
 
-const BOT_REACTION_CHANCE = 0.7;
-const BOT_REACTION_GAP_MS = 4000;
-const ENDING_REACTIONS = { won: ["🥳", "😎"], lost: ["😭"], drawn: ["🫠", "😜"] };
-
-const anyOf = (items) => items[Math.floor(Math.random() * items.length)];
+const BOT_LINE_CHANCE = 0.7;
+// a little longer than a line stays up, so one is read before the next replaces it
+const BOT_LINE_GAP_MS = 5000;
+// the board has drawn in by then, so the greeting lands on a table people are looking at
+const GREETING_DELAY_MS = 900;
 
 const endingFor = ({ seats }, index) => {
   if (!seats.length) return "drawn";
   return seats.includes(index) ? "won" : "lost";
 };
 
-// a chosen bot always reacts to how a game ends, and to only some of what happens on the way, never twice in quick succession
-const reactAsBot = (io, gameRoom, conversationId, before, after) => {
-  if (before?.status !== "playing" || !after?.state) return;
+const moodOf = (game, before, after, index) => {
+  if (before.status === "countdown") return "hello";
+  if (after.result) return endingFor(after.result, index);
+  return game.moods[game.momentFor(before.state, after.state, index)];
+};
+
+// a chosen bot or Whisprl always greets the table and answers how a game ends, and speaks to only some of what happens between
+const speakAsBot = (io, gameRoom, conversationId, before, after) => {
+  const isStarting = before?.status === "countdown" && after?.status === "playing";
+  if (!isStarting && (before?.status !== "playing" || !after?.state)) return;
   const game = gameOf(before.game);
-  const isEnding = Boolean(after.result);
-  if (!isEnding && (Date.now() < gameRoom.botReactsAfter || Math.random() > BOT_REACTION_CHANCE)) return;
-  const [reaction] = before.seats.flatMap((seat, index) => {
+  const isCertain = isStarting || Boolean(after.result);
+  if (!isCertain && (Date.now() < gameRoom.botSpeaksAfter || Math.random() > BOT_LINE_CHANCE)) return;
+  const lines = before.seats.flatMap((seat, index) => {
     if (!isBotOpponent(seat)) return [];
-    const moment = isEnding ? endingFor(after.result, index) : game.momentFor?.(before.state, after.state, index);
-    const choices = ENDING_REACTIONS[moment] ?? game.reactions?.[moment];
-    // Whisprl reacts as itself, while a chosen bot has no account and is known by its seat
-    const thrower = seat.official ? { user: String(seat.user) } : { seat: index };
-    return choices ? [{ ...thrower, emoji: anyOf(choices) }] : [];
+    const line = lineFor(speakerOf(seat), moodOf(game, before, after, index));
+    // Whisprl speaks as itself, while a chosen bot has no account and is known by its seat
+    const speaker = seat.official ? { user: String(seat.user) } : { seat: index };
+    return line ? [{ ...speaker, ...line }] : [];
   });
-  if (!reaction) return;
-  gameRoom.botReactsAfter = Date.now() + BOT_REACTION_GAP_MS;
-  // thrown once the play has finished showing, so the face matches what just happened on the board
-  setTimeout(() => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...reaction }), playOutMsOf(game, after.state));
+  // one voice a moment, picked at random so each bot at a busy table gets its say
+  const said = lines[Math.floor(Math.random() * lines.length)];
+  if (!said) return;
+  gameRoom.botSpeaksAfter = Date.now() + BOT_LINE_GAP_MS;
+  // said once the play has finished showing, so the words match what just happened on the board
+  const delay = isStarting ? GREETING_DELAY_MS : playOutMsOf(game, after.state);
+  setTimeout(() => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...said }), delay);
 };
 
 const deadlineOf = (session) => {
@@ -314,7 +334,7 @@ const reachDeadline = (io, conversationId, deadline) =>
     await save(next);
     await Promise.all([recordPlay(session, next), recordResult(session, next), recordBotGame(session, next)]);
     syncClock(io, gameRoom, conversationId, next);
-    reactAsBot(io, gameRoom, conversationId, session, next);
+    speakAsBot(io, gameRoom, conversationId, session, next);
     await broadcast(io, gameRoom, await ConversationModel.findById(conversationId), next);
   });
 
@@ -367,6 +387,12 @@ const leaveOtherTables = async (io, conversation, userId) => {
   await Promise.all(elsewhere.map((lobby) => actInGame(io, userId, { conversationId: String(lobby.conversation), type: "stand" }).catch(() => {})));
 };
 
+// the other seat is saved for the other person, Whisprl takes its own, and in a chat with yourself only the bot can play you
+const facing = (seats, peerId) => {
+  if (!peerId) return seatBot(seats, 1);
+  return isWhisprl(peerId) ? seatWhisprl(seats, 1, peerId) : invite(seats, 1, peerId);
+};
+
 const open = async ({ io, conversation, session, userId, details }) => {
   const game = gameOf(details.game);
   assertRunsGames(conversation, userId);
@@ -378,16 +404,9 @@ const open = async ({ io, conversation, session, userId, details }) => {
   }
   if (session) throw createHttpError.BadRequest("There is already a game in this chat");
   await leaveOtherTables(io, conversation, userId);
-  // proposing in a chat between two people is taking a seat and saving the other for them, which Whisprl takes itself
   const seats = sit(emptySeats(game.minPlayers), 0, userId);
   const peerId = conversation.users.map((member) => String(member._id ?? member)).find((id) => id !== String(userId));
-  return {
-    conversation: conversation._id,
-    game: game.id,
-    status: "lobby",
-    options,
-    seats: isWhisprl(peerId) ? seatWhisprl(seats, 1, peerId) : invite(seats, 1, peerId),
-  };
+  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: facing(seats, peerId) };
 };
 
 // someone else at a table between two people, a person or Whisprl, who would be left with a game nobody finished
@@ -614,7 +633,7 @@ export const actInGame = (io, userId, { conversationId, type, ...details }) => {
     } else await GameSessionModel.deleteOne({ conversation: id });
 
     syncClock(io, gameRoom, id, after);
-    reactAsBot(io, gameRoom, id, session, after);
+    speakAsBot(io, gameRoom, id, session, after);
     await broadcast(io, gameRoom, conversation, after);
     await announceTable(io, conversation, String(userId), type, session, after);
   });
@@ -679,9 +698,6 @@ export const lookAtGame = (io, socket, isLooking) => {
     announceLookers(io, id, gameRoom);
   });
 };
-
-// the emoji anyone at a game can throw, the same nine the tray offers; they are shown and gone, never saved
-const REACTIONS = ["😂", "😭", "😜", "😘", "😎", "😡", "😱", "🫠", "🥳"];
 
 export const reactInGame = async (socket, emoji) => {
   const id = socket.data.watching;

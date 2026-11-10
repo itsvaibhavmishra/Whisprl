@@ -82,17 +82,21 @@ const playedOut = (levels, first = 0) => {
   return outcome(state).winners;
 };
 
-test("an expert never loses, whoever it plays and whoever opens", () => {
-  ["dumb", "medium", "pro", "expert"].forEach((rival) => {
-    for (let game = 0; game < 100; game += 1) {
-      const winners = playedOut(["expert", rival], game % 2);
-      assert.ok(!winners.includes(1), `the expert lost to ${rival}`);
-    }
+test("an expert loses only now and then, whoever it plays and whoever opens, so it can be beaten but rarely is", () => {
+  withSeed(3, () => {
+    ["dumb", "medium", "pro", "expert"].forEach((rival) => {
+      const lost = Array.from({ length: 200 }, (_, game) => playedOut(["expert", rival], game % 2)).filter((winners) => winners.includes(1)).length;
+      assert.ok(lost < 200 * 0.1, `the expert lost ${lost} of 200 to ${rival}`);
+    });
   });
 });
 
-test("two experts always draw", () => {
-  for (let game = 0; game < 50; game += 1) assert.deepEqual(playedOut(["expert", "expert"], game % 2), []);
+test("two experts nearly always draw", () => {
+  const drawn = withSeed(
+    4,
+    () => Array.from({ length: 200 }, (_, game) => playedOut(["expert", "expert"], game % 2)).filter((winners) => !winners.length).length
+  );
+  assert.ok(drawn > 200 * 0.85, `only ${drawn} of 200 were drawn`);
 });
 
 test("a medium bot beats a dumb one far more often than it loses to it", () => {
