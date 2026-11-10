@@ -23,6 +23,7 @@ import {
   invitedIndexOf,
   isBotOpponent,
   isBotPlaying,
+  isDrawable,
   isEveryoneReady,
   lift,
   missTurn,
@@ -44,6 +45,7 @@ import {
 
 const COUNTDOWN_MS = 5 * 1000;
 const LIFT_COOLDOWN_MS = 30 * 1000;
+const DRAW_COOLDOWN_MS = 30 * 1000;
 // long enough to see a bot's move land, short enough that nobody waits on it
 const BOT_PAUSE_MS = 900;
 
@@ -65,6 +67,8 @@ const gameRoomOf = (conversationId) => {
       // who has the game itself on screen rather than minimised, which decides whose messages float across it
       lookers: new Map(),
       cooldowns: new Map(),
+      // when each player may offer a draw again, so the other is not asked over and over
+      drawCooldowns: new Map(),
       // seeded from the clock, so a restart never sends a lower revision than a client already holds
       revision: Date.now(),
       queue: Promise.resolve(),
@@ -105,6 +109,11 @@ const cooldownOf = (gameRoom, userId) => {
   if (until > Date.now()) return until;
   gameRoom.cooldowns.delete(userId);
   return null;
+};
+
+const drawCooldownOf = (gameRoom, userId) => {
+  const until = gameRoom.drawCooldowns.get(userId);
+  return until > Date.now() ? until : null;
 };
 
 const assertNotCoolingDown = (gameRoom, userId) => {
@@ -150,6 +159,8 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
     players: { min: gameOf(session.game).minPlayers, max: gameOf(session.game).maxPlayers },
     options: session.options ?? null,
     cooldownUntil: cooldownOf(gameRoom, viewerId),
+    drawOfferedBy: session.drawOfferedBy ? String(session.drawOfferedBy) : null,
+    drawCooldownUntil: drawCooldownOf(gameRoom, viewerId),
     state: stateViewFor(session, viewerId),
     isFirstGame: session.status === "playing" && (session.newcomers ?? []).some((newcomer) => String(newcomer) === viewerId),
     result: session.result ? { ...session.result, showsIn: Math.max(0, new Date(session.result.showsAt ?? 0).getTime() - Date.now()) } : null,
@@ -232,6 +243,7 @@ const finished = (session, state, winningSeats, { showsInMs = 0, leftBy } = {}) 
   turnEndsAt: undefined,
   botSkill: undefined,
   newcomers: undefined,
+  drawOfferedBy: undefined,
   result: {
     // the bot's face is kept with the win, since the seat puts on a new one for the next game
     winners: winningSeats.map((seat) => {
@@ -464,6 +476,24 @@ const standUp = ({ conversation, session, userId }) => {
   return { ...session, seats: unreadyAll(stand(session.seats, userId)) };
 };
 
+const offerDraw = ({ session, gameRoom, userId }) => {
+  requirePlaying(session);
+  if (!isDrawable(session.seats) || playerIndexOf(session.seats, userId) === -1)
+    throw createHttpError.BadRequest("A draw is only for two people playing each other");
+  if (session.drawOfferedBy) throw createHttpError.BadRequest("A draw is already on offer");
+  const until = drawCooldownOf(gameRoom, userId);
+  if (until) throw createHttpError.BadRequest(`You can offer a draw again in ${Math.ceil((until - Date.now()) / 1000)} seconds`);
+  gameRoom.drawCooldowns.set(userId, Date.now() + DRAW_COOLDOWN_MS);
+  return { ...session, drawOfferedBy: userId };
+};
+
+const answerDraw = ({ session, userId, details }) => {
+  requirePlaying(session);
+  const offeredBy = session.drawOfferedBy ? String(session.drawOfferedBy) : null;
+  if (!offeredBy || offeredBy === userId || playerIndexOf(session.seats, userId) === -1) throw createHttpError.BadRequest("There is no draw to answer");
+  return details.accept ? finished(session, session.state, []) : { ...session, drawOfferedBy: undefined };
+};
+
 const makeMove = ({ session, userId, details }) => {
   const index = playerIndexOf(requirePlaying(session).seats, userId);
   if (index === -1) throw createHttpError.BadRequest("You are not playing");
@@ -575,6 +605,8 @@ const ACTIONS = {
   seats: changeSeats,
   invite: inviteToSeat,
   answer: answerInvite,
+  offerDraw,
+  answerDraw,
 };
 
 // only a table opening and closing earn a line in the chat, so playing a game does not fill it
