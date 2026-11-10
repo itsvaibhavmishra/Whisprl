@@ -16,8 +16,12 @@
   - New:
 
   - Improvements:
+    - New accounts start in the light or dark theme their phone or browser uses, instead of always dark
+    - The account deletion page explains how to delete a message, a status or a photo without deleting your account
+    - The terms say public statuses can't show nudity, sexual content or graphic violence
 
   - Fixed:
+    - Enter in the message box on a phone starts a new line instead of sending; the send button sends
 
   - Developers:
 
