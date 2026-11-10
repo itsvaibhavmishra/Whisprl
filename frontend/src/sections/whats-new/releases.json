@@ -1,5 +1,11 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "🤝",
+      "title": "Call it a draw",
+      "text": "Rather than leave a game with a friend, offer a draw. If they accept, nobody loses."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.10",
