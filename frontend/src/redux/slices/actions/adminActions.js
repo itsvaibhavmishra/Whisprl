@@ -83,6 +83,14 @@ export const RemoveAdmin = withPasskey(
   "Removed from the team"
 );
 
+export const GetAppUpdates = createApiThunk("admin/appUpdates", async () => (await axios.get("/app/update-policy")).data.policy, { notifyErrors: false });
+
+export const ChangeAppUpdates = withPasskey(
+  "admin/appUpdates/change",
+  (details, confirmation) => axios.put("/admin/app-updates", { ...details, confirmation }),
+  "Saved. Apps pick it up the next time they open"
+);
+
 export const GetAnnouncements = createApiThunk(
   "admin/announcements",
   async (before) => (await axios.get("/admin/announcements", { params: { before } })).data,

@@ -7,3 +7,4 @@ export { default as requestReducer } from "@/redux/slices/requestSlice";
 export { default as statusReducer } from "@/redux/slices/statusSlice";
 export { default as adminReducer } from "@/redux/slices/adminSlice";
 export { default as gameReducer } from "@/redux/slices/gameSlice";
+export { default as appUpdateReducer } from "@/redux/slices/appUpdateSlice";

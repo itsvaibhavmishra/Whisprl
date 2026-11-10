@@ -6,6 +6,7 @@ import { dismissReport, listReports } from "#src/services/reportQueueService.js"
 import { assertConfirmed, confirmationOptions } from "#src/services/passkeyService.js";
 import { activePeopleOf, overviewOf, stoppedPeopleOf } from "#src/services/overviewService.js";
 import { addAdmin, changeAccess, listTeam, removeAdmin } from "#src/services/teamService.js";
+import { changeUpdatePolicy } from "#src/services/updatePolicyService.js";
 
 export const getOverview = async (req, res) => {
   return res.status(200).json({ status: "success", ...(await overviewOf(req.query.from, req.query.to)) });
@@ -32,8 +33,7 @@ export const getConfirmationOptions = async (req, res) => {
 const withPasskey = (act) => async (req, res) => {
   const { confirmation, ...details } = req.body;
   await assertConfirmed(req.user, confirmation);
-  await act(req, details);
-  return res.status(200).json({ status: "success" });
+  return res.status(200).json({ status: "success", ...(await act(req, details)) });
 };
 
 export const suspend = withPasskey((req, details) => suspendPerson(req.app.get("io"), req.user, req.params.user_id, details));
@@ -94,3 +94,5 @@ export const addToTeam = withPasskey((req, details) => addAdmin(req.user, detail
 export const changeTeamAccess = withPasskey((req, details) => changeAccess(req.user, req.params.user_id, details));
 
 export const removeFromTeam = withPasskey((req, details) => removeAdmin(req.user, req.params.user_id, details));
+
+export const changeAppUpdates = withPasskey(async (req, details) => ({ policy: await changeUpdatePolicy(req.user, details) }));

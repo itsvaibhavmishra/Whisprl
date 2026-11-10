@@ -38,6 +38,7 @@ export const PATH_ADMIN = {
   announcements: path(ROOTS_DASHBOARD, "admin/announcements"),
   audit: path(ROOTS_DASHBOARD, "admin/audit"),
   team: path(ROOTS_DASHBOARD, "admin/team"),
+  appUpdates: path(ROOTS_DASHBOARD, "admin/app-updates"),
 };
 
 export const PATH_DOCS = {

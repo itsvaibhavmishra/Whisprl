@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage";
 import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
 import {
   adminReducer,
+  appUpdateReducer,
   authReducer,
   chatReducer,
   contactReducer,
@@ -42,6 +43,7 @@ const rootReducer = combineReducers({
   status: statusReducer,
   admin: adminReducer,
   game: gameReducer,
+  appUpdate: appUpdateReducer,
 });
 
 export { rootPersistConfig, rootReducer };

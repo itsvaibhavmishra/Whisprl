@@ -2,8 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 import {
   GetActivePeople,
+  ChangeAppUpdates,
   GetAnnouncedGames,
   GetAnnouncements,
+  GetAppUpdates,
   GetAudienceSizes,
   GetAuditLog,
   GetGameRequests,
@@ -29,6 +31,7 @@ const initialState = {
   gameRequests: { list: null, total: 0, hasMore: false, mostAsked: 0 },
   latestGameRequestsFetch: null,
   team: null,
+  appUpdates: null,
   // entries stay null until the first page arrives, so an empty log is told apart from one not read yet
   audit: { entries: null, hasMore: false },
   announcements: { list: null, hasMore: false },
@@ -94,6 +97,12 @@ const slice = createSlice({
       })
       .addCase(GetTeam.fulfilled, (state, action) => {
         state.team = action.payload.members;
+      })
+      .addCase(GetAppUpdates.fulfilled, (state, action) => {
+        state.appUpdates = action.payload;
+      })
+      .addCase(ChangeAppUpdates.fulfilled, (state, action) => {
+        state.appUpdates = action.payload.policy;
       })
       .addCase(GetAuditLog.fulfilled, (state, action) => {
         const { entries, hasMore } = action.payload;
