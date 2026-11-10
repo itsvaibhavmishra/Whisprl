@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL, PORTFOLIO_URL, SOURCE_URL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "19 October 2026";
+export const LAST_UPDATED = "11 November 2026";
 
 export const INTRO = [
   "These terms cover your use of Whisprl, a free real-time chat app run by ",
@@ -29,6 +29,7 @@ export const SECTIONS = [
         list: [
           "harass, threaten or bully anyone, or send hateful content",
           "share anything that sexually exploits or endangers a child",
+          "post nudity, sexual content or graphic violence in a public status",
           "send anything else that is illegal",
           "send spam, scams or unwanted bulk messages",
           "share malware, or links meant to harm someone",
