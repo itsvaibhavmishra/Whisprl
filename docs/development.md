@@ -342,6 +342,20 @@ encryption key.
 - **Styles allow inline**, because MUI writes its styles into the page as it renders. Scripts
   never do: no `'unsafe-inline'` and no `'unsafe-eval'` in `script-src`.
 
+## Security codes
+
+Each pair of friends can compare a security code, under **Privacy and safety** on a profile or in
+a chat's details, to check that nobody sits between them. It is Signal's scheme: twelve groups of
+five digits, half from each person's id and public key, each half SHA-512 hashed 5,200 times
+(`utils/crypto/safetyNumber.js`, whose test pins digits worked out separately in Python).
+
+- **Your half comes from the private key on this device** and theirs from the key your chat with
+  them encrypts to, so a server that swapped either key would show two people different numbers.
+- **Marking a code verified is kept on the device** (beside the device keys in IndexedDB), never on the
+  server, since the server is what checking guards against. It goes when you log out.
+- **A changed key is shown twice:** the profile row turns into "Security code changed", and the
+  chat shows a note above the first message that uses the new key (`utils/crypto/keyChanges.js`).
+
 ## Error reports
 
 Production errors go to Sentry, in the EU region (Frankfurt), organization `whisprl`. Two

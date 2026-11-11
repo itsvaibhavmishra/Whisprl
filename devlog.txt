@@ -14,6 +14,7 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Security codes: compare one with a friend to check nobody can read your messages in between, and see a note in the chat if their code changes
 
   - Improvements:
     - The website and app only run code and load content from Whisprl and the services it uses, so an injected script cannot run

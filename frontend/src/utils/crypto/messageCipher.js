@@ -29,6 +29,8 @@ export const setDeviceKeys = (keys) => {
   conversationKeys.clear();
 };
 
+export const currentDeviceKeys = () => deviceKeys;
+
 const currentKeyOf = (user) => user?.publicKeys?.at(-1) ?? null;
 
 const peerOf = (conversation, userId) => conversation.users.find((member) => member._id !== userId) ?? conversation.users[0];

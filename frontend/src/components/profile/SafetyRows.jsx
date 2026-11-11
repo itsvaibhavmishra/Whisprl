@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import ControlRow from "@/components/ControlRow";
 import ReportDialog from "@/components/ReportDialog";
+import SecurityCode from "@/components/profile/SecurityCode";
 import { BlockUser, ReportChat, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { RemoveFriend } from "@/redux/slices/actions/contactActions";
 
@@ -21,6 +22,7 @@ const SafetyRows = ({ person, conversationId, canRemoveFriend = false }) => {
 
   return (
     <>
+      <SecurityCode person={person} />
       {canRemoveFriend && <ControlRow icon={UserMinusIcon} label="Remove friend" isDanger onClick={() => setDialog("remove")} />}
       <ControlRow
         icon={ProhibitIcon}
