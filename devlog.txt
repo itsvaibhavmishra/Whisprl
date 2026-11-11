@@ -16,6 +16,7 @@
   - New:
 
   - Improvements:
+    - The website and app only run code and load content from Whisprl and the services it uses, so an injected script cannot run
 
   - Fixed:
 

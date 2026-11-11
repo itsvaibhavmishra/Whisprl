@@ -325,6 +325,23 @@ are removed. It leaves every group, handing on any it owned. The reason, and any
 the placeholder as the only record of why people leave. No email is sent when the account is
 actually deleted.
 
+## What the app may load
+
+Every production build writes a Content Security Policy from the same `REACT_APP_` settings the
+app is built with (`policyFor` in `frontend/vite.config.mjs`). It goes into `index.html`, which the
+website and the Android app both load, and into a Netlify `_headers` file, which adds
+`frame-ancestors 'none'` so no other site can frame Whisprl. A script injected into the page has
+nowhere to load from and cannot run inline, which matters most here because the page holds the
+encryption key.
+
+- **A new outside service has to be added to the policy**, or the browser blocks it without a
+  visible error. Scripts go in `script-src`, requests in `connect-src`, pictures in `img-src`,
+  frames in `frame-src`. Add the narrowest origin that works.
+- **Development builds have no policy**, since Vite's dev server runs code a policy would stop.
+  Check a change against `vite build` and `vite preview` before relying on it.
+- **Styles allow inline**, because MUI writes its styles into the page as it renders. Scripts
+  never do: no `'unsafe-inline'` and no `'unsafe-eval'` in `script-src`.
+
 ## Error reports
 
 Production errors go to Sentry, in the EU region (Frankfurt), organization `whisprl`. Two
