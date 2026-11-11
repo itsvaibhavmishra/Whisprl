@@ -55,3 +55,12 @@ export const loadSavedChats = (userId) => inStore(SAVED_CHATS, "readonly", (stor
 export const saveSavedChats = (userId, saved) => inStore(SAVED_CHATS, "readwrite", (store) => store.put(saved, userId));
 
 export const forgetSavedChats = (userId) => inStore(SAVED_CHATS, "readwrite", (store) => store.delete(userId));
+
+// on this device only, as the server is what checking guards against, and beside the device keys since a new store would lock out older copies
+const verifiedName = (userId) => `verified:${userId}`;
+
+export const loadVerifiedKeys = async (userId) => (await inStore(DEVICE_KEYS, "readonly", (store) => store.get(verifiedName(userId)))) ?? {};
+
+export const saveVerifiedKeys = (userId, verified) => inStore(DEVICE_KEYS, "readwrite", (store) => store.put(verified, verifiedName(userId)));
+
+export const forgetVerifiedKeys = (userId) => inStore(DEVICE_KEYS, "readwrite", (store) => store.delete(verifiedName(userId)));

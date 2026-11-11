@@ -1,5 +1,11 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "🛡️",
+      "title": "Security codes",
+      "text": "Compare a code with a friend to check nobody else can read your chats. If their code ever changes, the chat tells you."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.11",

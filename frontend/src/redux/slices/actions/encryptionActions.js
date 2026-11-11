@@ -5,7 +5,7 @@ import { selectIsLoading } from "@/redux/slices/requestSlice";
 import { DeliverWaitingMessages, GetConversations, GetMessages } from "@/redux/slices/actions/chatActions";
 import { updateMemberKeys } from "@/redux/slices/chatSlice";
 import axios from "@/utils/axios";
-import { forgetDeviceKeys, loadDeviceKeys, saveDeviceKeys } from "@/utils/crypto/keyStore";
+import { forgetDeviceKeys, forgetVerifiedKeys, loadDeviceKeys, loadVerifiedKeys, saveDeviceKeys, saveVerifiedKeys } from "@/utils/crypto/keyStore";
 import { exportPublicKey, generateAccountKeys, keyIdOf } from "@/utils/crypto/keys";
 import { confirmOwner, forgetVaultedKeys, vaultDeviceKeys, vaultedDeviceKeys } from "@/utils/crypto/keyVault";
 import { setDeviceKeys, trackKeyCheck } from "@/utils/crypto/messageCipher";
@@ -32,8 +32,7 @@ const lockWithNewRecoveryKey = async (privateKey, keyId) => {
   return { recoveryKey, backup: { keyId, ...sealed } };
 };
 
-const checkKeys = async (getState) => {
-  const userId = getState().user.user._id;
+const keyStatusOf = async (userId) => {
   const [{ data }, stored] = await Promise.all([axios.get("/keys"), loadDeviceKeys(userId)]);
   const currentKeyId = data.publicKeys.at(-1)?.keyId ?? null;
 
@@ -52,6 +51,12 @@ const checkKeys = async (getState) => {
   }
 
   return { status: "locked", currentKeyId };
+};
+
+const checkKeys = async (getState) => {
+  const userId = getState().user.user._id;
+  const [keys, verified] = await Promise.all([keyStatusOf(userId), loadVerifiedKeys(userId).catch(() => ({}))]);
+  return { ...keys, verified };
 };
 
 export const PrepareEncryption = createApiThunk("encryption/prepare", (_, { getState }) => trackKeyCheck(checkKeys(getState)), {
@@ -130,4 +135,13 @@ export const ForgetDeviceKeys = createAsyncThunk("encryption/forget", async (use
   setDeviceKeys(null);
   await forgetDeviceKeys(userId).catch(() => {});
   await forgetVaultedKeys(userId).catch(() => {});
+  await forgetVerifiedKeys(userId).catch(() => {});
+});
+
+// a null key id clears the mark
+export const SetVerified = createAsyncThunk("encryption/set-verified", async ({ personId, keyId }, { getState }) => {
+  const { [personId]: _, ...others } = getState().encryption.verified;
+  const verified = keyId ? { ...others, [personId]: keyId } : others;
+  await saveVerifiedKeys(getState().user.user._id, verified);
+  return verified;
 });

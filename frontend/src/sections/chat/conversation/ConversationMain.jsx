@@ -16,6 +16,8 @@ import ChatNote from "@/sections/chat/conversation/ChatNote";
 import { CENTRED, EDGE_GUTTER, PHOTO_GUTTER } from "@/sections/chat/conversation/messageColumn";
 import MessageSkeletons from "@/sections/chat/conversation/MessageSkeletons";
 import WhisprlNote from "@/sections/chat/conversation/WhisprlNote";
+import KeyChangeNote from "@/sections/chat/conversation/KeyChangeNote";
+import { keyChangesOf } from "@/utils/crypto/keyChanges";
 import { notify } from "@/utils/notify";
 import { formatDayLabel } from "@/utils/formatMessageTime";
 import { bareEmojiSizeOf } from "@/utils/emoji";
@@ -95,6 +97,8 @@ const ConversationMain = () => {
   const typists = typingNamesIn(activeConversation, typingConversation, user._id);
 
   const items = displayItemsOf(messages, outbox, user, albumReactions);
+  const keyChanges = keyChangesOf(messages, user._id, peer?._id);
+  const memberOf = (personId) => [...(activeConversation?.users ?? []), ...(activeConversation?.formerUsers ?? [])].find((member) => member._id === personId);
   const confirmed = items.filter((item) => !item.entry);
   const firstToWhisprl =
     isOfficial(peer) && !hasOlderMessages ? confirmed.find((item) => item.type !== "event" && item.message.sender._id === user._id)?.message._id : null;
@@ -331,6 +335,13 @@ const ConversationMain = () => {
                 return (
                   <Fragment key={keyOf(message)}>
                     {unreadLine}
+                    {keyChanges
+                      .get(message._id)
+                      ?.map(memberOf)
+                      .filter(Boolean)
+                      .map((person) => (
+                        <KeyChangeNote key={person._id} person={person} />
+                      ))}
                     <MessageContainer
                       anchorKey={keyOf(message)}
                       message={message}
