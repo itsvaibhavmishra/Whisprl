@@ -133,7 +133,7 @@ const GameRoom = ({ conversation, session }) => {
   const isArtReady = useArtReady(game.preload);
   const isAnchored = game.art.anchor === "top";
   const isLabelled = theme.bar === "labelled";
-  const [roomRef, sceneWidth, isSceneNarrower] = useSceneWidth(game.art, game.mastheadRatio, controlsHeight);
+  const [roomRef, sceneWidth] = useSceneWidth(game.art, game.mastheadRatio, controlsHeight);
 
   useEffect(() => {
     loadGameFonts(theme.fonts);
@@ -233,7 +233,7 @@ const GameRoom = ({ conversation, session }) => {
         "--scene-width": sceneWidth ? `${sceneWidth}px` : "100%",
       }}
     >
-      {isAnchored && sceneWidth && <Scenery art={game.art} width={sceneWidth} isNarrower={isSceneNarrower} />}
+      {isAnchored && sceneWidth && <Scenery art={game.art} width={sceneWidth} />}
       <SceneSparkle fireflies={game.art.fireflies} />
       <Stack
         direction="row"

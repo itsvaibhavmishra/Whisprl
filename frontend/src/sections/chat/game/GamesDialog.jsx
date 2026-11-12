@@ -35,7 +35,7 @@ const GameList = ({ conversation, onClose }) => {
   const [query, setQuery] = useState("");
   const [requesting, setRequesting] = useState(null);
   const blocker = reasonCannotStart(conversation, session, meId);
-  const shown = GAME_IDS.filter((id) => matches(GAMES[id], query));
+  const shown = GAME_IDS.filter((id) => !GAMES[id].modeOf && matches(GAMES[id], query));
 
   const open = (game) => {
     dispatch(OpenGame(game));

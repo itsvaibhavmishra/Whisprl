@@ -2,6 +2,22 @@
   "upcoming": [],
   "releases": [
     {
+      "version": "2.5.13",
+      "date": "2026-11-12",
+      "highlights": [
+        {
+          "emoji": "🛡️",
+          "title": "Security codes",
+          "text": "Compare a code with a friend to check nobody else can read your chats. If their code ever changes, the chat tells you."
+        },
+        {
+          "emoji": "🎲",
+          "title": "Jackaroo 2v2",
+          "text": "Switch Jackaroo's lobby to 2v2 and play as two teams of two, in a group or with one friend and two bots. In a group, switch the message box to Team to talk to your partner alone."
+        }
+      ]
+    },
+    {
       "version": "2.5.11",
       "date": "2026-11-10",
       "highlights": [

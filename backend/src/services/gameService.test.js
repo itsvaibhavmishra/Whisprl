@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { ongoingFor, played } from "#src/services/gameService.js";
-import { setup } from "#src/services/games/jackaroo/rules.js";
+import { isTeamCipher, ongoingFor, played, teamPartnerOf } from "#src/services/gameService.js";
+import { setup, viewFor } from "#src/services/games/jackaroo/rules.js";
 
 const session = (status, seats) => ({ conversation: "chat", game: "jackaroo", status, seats });
 
@@ -31,4 +31,37 @@ test("putting a card down leaves a person's clock running, while a bot still get
   assert.equal(played(person, 0, { show: "9-12H" }).turnEndsAt, person.turnEndsAt);
   const bot = queenUp([{ bot: true }, { user: "riya" }]);
   assert.notEqual(played(bot, 0, { show: "9-12H" }).turnEndsAt, bot.turnEndsAt);
+});
+
+test("a card a knock-out earns is played on the same clock, not a fresh one", () => {
+  const knockOut = queenUp([{ user: "ava" }, { user: "riya" }]);
+  knockOut.state.players[0].marbles[0] = { at: "track", index: 3 };
+  knockOut.state.players[1].marbles[0] = { at: "track", index: 6 };
+  knockOut.state.players[0].hand = [{ id: "9-3S", rank: 3, suit: "S" }];
+  const landing = viewFor(knockOut.state, 0).options.find((option) => option.moves?.[0].to.index === 6);
+  const after = played(knockOut, 0, { key: landing.key });
+  assert.equal(after.state.lastPlay.bonus, true);
+  const clockMs = after.turnEndsAt.getTime() - after.turnStartsAt.getTime();
+  assert.ok(clockMs <= 9000 && clockMs > 8000);
+});
+
+const teamTable = (seats) => ({ game: "jackaroo-teams", status: "playing", seats, state: { mode: "teams" } });
+
+test("a team message goes only to a partner playing their own seat", () => {
+  const people = [{ user: "ava" }, { user: "ben" }, { user: "cal" }, { user: "dee" }];
+  assert.equal(teamPartnerOf(teamTable(people), "ava").user, "cal");
+  assert.equal(teamPartnerOf(teamTable(people), "ben").user, "dee");
+  assert.equal(teamPartnerOf(teamTable([people[0], people[1], { bot: true }, people[3]]), "ava"), null);
+  assert.equal(teamPartnerOf(teamTable([people[0], people[1], { user: "cal", away: true }, people[3]]), "ava"), null);
+  assert.equal(teamPartnerOf(teamTable(people), "eve"), null);
+  assert.equal(teamPartnerOf({ game: "jackaroo", status: "playing", seats: people.slice(0, 2), state: {} }, "ava"), null);
+});
+
+test("a team message must be sealed for exactly one reader", () => {
+  const sealed = { iv: "aa", data: "bb", senderKeyId: "k1", keys: [{ keyId: "k2", iv: "cc", data: "dd" }] };
+  assert.ok(isTeamCipher(sealed));
+  assert.equal(isTeamCipher({ ...sealed, keys: [...sealed.keys, sealed.keys[0]] }), false);
+  assert.equal(isTeamCipher({ ...sealed, data: "" }), false);
+  assert.equal(isTeamCipher({ ...sealed, data: "x".repeat(7000) }), false);
+  assert.equal(isTeamCipher(null), false);
 });

@@ -1,6 +1,6 @@
-import { HOME_ENTRY, LOOP, START } from "#src/services/games/jackaroo/board.js";
+import { tableOf } from "#src/services/games/jackaroo/board.js";
 import { isRed } from "#src/services/games/jackaroo/cards.js";
-import { keyOf, losingPlays, moveMarble, other, placeOf, progressOf } from "#src/services/games/jackaroo/moves.js";
+import { isPartner, keyOf, losingPlays, moveMarble, nextSeat, placeOf, progressOf, seatsOf } from "#src/services/games/jackaroo/moves.js";
 import { turnPlays } from "#src/services/games/jackaroo/rules.js";
 
 // the furthest any single card carries a marble, so a marble this close behind another can land on it
@@ -13,28 +13,38 @@ const RISK = 0.7;
 
 const anyOf = (items) => items[Math.floor(Math.random() * items.length)];
 
-const isExposed = (state, seat, index) =>
-  state.players[other(seat)].marbles.some((place) => {
-    if (place.at !== "track") return false;
-    const gap = (index - place.index + LOOP) % LOOP;
-    return gap > 0 && gap <= REACH;
-  });
+const opponentsOf = (state, seat) => seatsOf(state).filter((owner) => !isPartner(state, seat, owner));
 
+// a marble is exposed when an opponent's marble sits close enough behind it to land on it
+const isExposed = (state, seat, index) => {
+  const { loop } = tableOf(state);
+  return opponentsOf(state, seat).some((owner) =>
+    state.players[owner].marbles.some((place) => {
+      if (place.at !== "track") return false;
+      const gap = (index - place.index + loop) % loop;
+      return gap > 0 && gap <= REACH;
+    })
+  );
+};
+
+// a partner's marble counts as the bot's own, so it pushes its partner on and never knocks them out by choice
 const scoreMove = (state, seat, move) => {
   const { owner } = move.marble;
-  const gained = progressOf(owner, move.to) - progressOf(owner, move.from);
-  let score = owner === seat ? gained : -gained * 0.6;
+  const { start, homeEntry } = tableOf(state);
+  const isOurs = isPartner(state, seat, owner);
+  const gained = progressOf(state, owner, move.to) - progressOf(state, owner, move.from);
+  let score = isOurs ? gained : -gained * 0.6;
   for (const { marble } of move.captured) {
-    const lost = 30 + progressOf(marble.owner, placeOf(state, marble));
-    score += marble.owner === seat ? -lost : lost + 25;
+    const lost = 30 + progressOf(state, marble.owner, placeOf(state, marble));
+    score += isPartner(state, seat, marble.owner) ? -lost : lost + 25;
   }
-  if (owner !== seat) return score;
+  if (!isOurs) return score;
   if (move.from.at === "base") score += 30;
   if (move.to.at === "home" && move.from.at !== "home") score += 40;
-  if (move.to.at === "track" && move.to.index !== START[seat] && isExposed(state, seat, move.to.index)) score -= 12;
-  if (move.from.at === "track" && isExposed(state, seat, move.from.index)) score += 8;
+  if (move.to.at === "track" && move.to.index !== start[owner] && isExposed(state, owner, move.to.index)) score -= 12;
+  if (move.from.at === "track" && isExposed(state, owner, move.from.index)) score += 8;
   // parked in front of home, the next small card takes it in
-  if (move.to.at === "track" && move.to.index === HOME_ENTRY[seat]) score += 6;
+  if (move.to.at === "track" && move.to.index === homeEntry[owner]) score += 6;
   return score;
 };
 
@@ -44,10 +54,15 @@ const cardValue = (card) => {
   return special[card.rank] ?? card.rank / 3;
 };
 
-const homeCount = (state, seat) => state.players[seat].marbles.filter((place) => place.at === "home").length;
+// the bot's side is its partners and itself, who win together
+const sideOf = (state, seat) => seatsOf(state).filter((owner) => isPartner(state, seat, owner));
+const homeCount = (state, seat) =>
+  sideOf(state, seat).reduce((total, owner) => total + state.players[owner].marbles.filter((place) => place.at === "home").length, 0);
 
 const finishes = (state, seat, play) =>
-  homeCount(state, seat) + (play.moves ?? []).filter((move) => move.marble.owner === seat && move.to.at === "home" && move.from.at !== "home").length === 4;
+  homeCount(state, seat) +
+    (play.moves ?? []).filter((move) => isPartner(state, seat, move.marble.owner) && move.to.at === "home" && move.from.at !== "home").length ===
+  4 * sideOf(state, seat).length;
 
 const scorePlay = (state, seat, play) => {
   if (play.kind === "discard") return -cardValue(play.card);
@@ -58,7 +73,10 @@ const scorePlay = (state, seat, play) => {
     const [mine, theirs] = play.swap;
     const minePlace = placeOf(state, mine);
     const theirPlace = placeOf(state, theirs);
-    return progressOf(seat, theirPlace) - progressOf(seat, minePlace) + progressOf(theirs.owner, theirPlace) - progressOf(theirs.owner, minePlace);
+    const ours = progressOf(state, mine.owner, theirPlace) - progressOf(state, mine.owner, minePlace);
+    const lostByThem = progressOf(state, theirs.owner, theirPlace) - progressOf(state, theirs.owner, minePlace);
+    // swapping with a partner moves both of the side's marbles, so their loss counts against it
+    return ours + (isPartner(state, seat, theirs.owner) ? -lostByThem : lostByThem);
   }
   return play.moves.reduce((total, move) => total + scoreMove(state, seat, move), 0);
 };
@@ -74,18 +92,22 @@ const boardAfter = (state, play) => {
   return board;
 };
 
-// what a seat stands to lose, every marble left within the other player's reach weighed by how far it has come
+// what a side stands to lose, every marble left within an opponent's reach weighed by how far it has come
 const atRisk = (board, seat) =>
-  board.players[seat].marbles.reduce((risk, place) => {
-    if (place.at !== "track" || place.index === START[seat] || !isExposed(board, seat, place.index)) return risk;
-    return risk + 30 + progressOf(seat, place);
-  }, 0);
+  sideOf(board, seat).reduce(
+    (risk, owner) =>
+      board.players[owner].marbles.reduce((total, place) => {
+        if (place.at !== "track" || place.index === tableOf(board).start[owner] || !isExposed(board, owner, place.index)) return total;
+        return total + 30 + progressOf(board, owner, place);
+      }, risk),
+    0
+  );
 
 // an expert weighs a play by the whole board it leaves, so it stops leaving marbles where the rival can knock them out
 const expertScore = (state, seat, play) => scorePlay(state, seat, play) + (atRisk(state, seat) - atRisk(boardAfter(state, play), seat)) * RISK;
 
 const moveFor = (state, seat, play) =>
-  play.kind === "takeCard" ? { key: keyOf(play), taken: Math.floor(Math.random() * state.players[other(seat)].hand.length) } : { key: keyOf(play) };
+  play.kind === "takeCard" ? { key: keyOf(play), taken: Math.floor(Math.random() * state.players[nextSeat(state, seat)].hand.length) } : { key: keyOf(play) };
 
 const choosePlay = (state, seat, plays, level) => {
   // a win is always taken, because walking past one looks broken rather than kind
@@ -135,16 +157,18 @@ const arrivedHome = (before, after, owner) =>
 // a card put down before its choices are made is not a play yet, so only a play the state newly records counts
 const newPlayIn = (before, after) => (JSON.stringify(after.lastPlay) === JSON.stringify(before.lastPlay) ? null : after.lastPlay);
 
+const anyOpponent = (state, seat, happened) => opponentsOf(state, seat).some((owner) => happened(owner));
+
 export const momentFor = (before, after, seat) => {
   const play = newPlayIn(before, after);
   if (!play) return null;
   const isMine = play.seat === seat;
   if (sentBack(before, after, seat)) return isMine ? "ownGoal" : "knockedBack";
   if (!isMine) {
-    if (LOSES_A_CARD.includes(play.kind)) return "cardTaken";
-    return arrivedHome(before, after, other(seat)) ? "rivalHome" : null;
+    if (LOSES_A_CARD.includes(play.kind) && nextSeat(after, play.seat) === seat) return "cardTaken";
+    return anyOpponent(after, seat, (owner) => arrivedHome(before, after, owner)) ? "rivalHome" : null;
   }
-  if (sentBack(before, after, other(seat))) return "knockedOut";
+  if (anyOpponent(after, seat, (owner) => sentBack(before, after, owner))) return "knockedOut";
   if (arrivedHome(before, after, seat)) return "reachedHome";
   if (LOSES_A_CARD.includes(play.kind)) return "tookCard";
   return play.kind === "swap" ? "swapped" : null;

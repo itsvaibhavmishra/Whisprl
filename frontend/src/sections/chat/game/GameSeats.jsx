@@ -14,9 +14,9 @@ const Flourish = ({ colour, isLeading }) => (
 );
 
 // two seats facing each other read as a match, so a game can set its pair either side of a Vs
-const Versus = ({ theme }) => (
-  <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", alignSelf: "flex-start", mt: 2.4 }}>
-    <Flourish colour={theme.accent} isLeading />
+const Versus = ({ theme, isCompact }) => (
+  <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", alignSelf: "flex-start", mt: isCompact ? 4.2 : 2.4 }}>
+    {!isCompact && <Flourish colour={theme.accent} isLeading />}
     <Typography
       sx={{
         fontFamily: displayFontOf(theme),
@@ -31,7 +31,17 @@ const Versus = ({ theme }) => (
     >
       Vs
     </Typography>
-    <Flourish colour={theme.accent} />
+    {!isCompact && <Flourish colour={theme.accent} />}
+  </Stack>
+);
+
+// a team's seats together under its name, so taking a seat is choosing a side
+const Team = ({ name, theme, children }) => (
+  <Stack spacing={1} sx={{ alignItems: "center" }}>
+    <Typography sx={{ fontFamily: displayFontOf(theme), fontSize: 15, fontWeight: 700, color: theme.accent, lineHeight: 1 }}>{name}</Typography>
+    <Stack direction="row" spacing={0.5}>
+      {children}
+    </Stack>
   </Stack>
 );
 
@@ -44,24 +54,45 @@ const GameSeats = ({ conversation, session, game, meId, isManager, act, onTake, 
       onInvite: () => onSaveSeat(index),
       onRemoveBot: () => act({ type: "bot", index, seated: false }),
     };
+  const seatAt = (index, size) => (
+    <Seat
+      key={index}
+      seat={session.seats[index]}
+      index={index}
+      conversation={conversation}
+      meId={meId}
+      theme={game.theme}
+      size={size}
+      mark={game.Mark ? <game.Mark seat={index} state={session.state} /> : null}
+      onTake={onTake && mayTake(session.seats[index], meId) ? () => onTake(index) : null}
+      onLeave={onLeave}
+      manage={managerOf(index)}
+    />
+  );
+
+  // partners sit opposite, so seats 1 and 3 make one team and seats 2 and 4 the other
+  if (game.teams && session.seats.length === game.teams.length) {
+    const membersOf = (team) => game.teams.flatMap((side, index) => (side === team ? [index] : []));
+    return (
+      // four seats and a Vs fit a narrow phone without flourishes, wider than the controls below them if they must be
+      <Stack direction="row" sx={{ justifyContent: "center", alignItems: "flex-start", columnGap: 1, flexShrink: 0, width: "max-content" }}>
+        <Team name="Team A" theme={game.theme}>
+          {membersOf(0).map((index) => seatAt(index, 46))}
+        </Team>
+        <Versus theme={game.theme} isCompact />
+        <Team name="Team B" theme={game.theme}>
+          {membersOf(1).map((index) => seatAt(index, 46))}
+        </Team>
+      </Stack>
+    );
+  }
 
   return (
     <Stack direction="row" sx={{ justifyContent: "center", flexWrap: isVersus ? "nowrap" : "wrap", columnGap: isVersus ? 1 : 3, rowGap: 1.5, flexShrink: 0 }}>
-      {session.seats.map((seat, index) => (
+      {session.seats.map((_, index) => (
         <Fragment key={index}>
           {isVersus && index === 1 && <Versus theme={game.theme} />}
-          <Seat
-            seat={seat}
-            index={index}
-            conversation={conversation}
-            meId={meId}
-            theme={game.theme}
-            size={isVersus ? 60 : 50}
-            mark={game.Mark ? <game.Mark seat={index} state={session.state} /> : null}
-            onTake={onTake && mayTake(seat, meId) ? () => onTake(index) : null}
-            onLeave={onLeave}
-            manage={managerOf(index)}
-          />
+          {seatAt(index, isVersus ? 60 : 50)}
         </Fragment>
       ))}
     </Stack>

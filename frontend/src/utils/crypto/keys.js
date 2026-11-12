@@ -14,6 +14,20 @@ export const exportPrivateKey = (privateKey) => crypto.subtle.exportKey("pkcs8",
 
 export const importPrivateKey = (pkcs8) => crypto.subtle.importKey("pkcs8", pkcs8, CURVE, true, ["deriveBits"]);
 
+const fromBase64Url = (encoded) =>
+  fromBase64(
+    encoded
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .padEnd(Math.ceil(encoded.length / 4) * 4, "=")
+  );
+
+// worked out from the private key this device holds, so a server that lied about it could not slip a different one in
+export const publicKeyOf = async (privateKey) => {
+  const { x, y } = await crypto.subtle.exportKey("jwk", privateKey);
+  return toBase64(new Uint8Array([4, ...fromBase64Url(x), ...fromBase64Url(y)]));
+};
+
 export const keyIdOf = async (encodedPublicKey) => toHex(await crypto.subtle.digest("SHA-256", fromBase64(encodedPublicKey))).slice(0, 16);
 
 const hkdfKey = async (secret, salt, info) => {

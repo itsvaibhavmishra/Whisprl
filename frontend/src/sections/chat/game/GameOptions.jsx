@@ -102,23 +102,98 @@ const Setting = ({ option, theme, confirmed, players, canChange, onChange }) => 
   );
 };
 
-// whatever settings a game declares, drawn the same way for every game; one that declares none shows nothing
-const GameOptions = ({ game, session, canChange, onChange }) => {
-  if (!game.options) return null;
+// a choice with nothing to picture is a row of words, so it sits as one slim switch rather than a heading over cards
+const Segmented = ({ option, theme, confirmed, players, canChange, onChange }) => {
+  const [chosen, choose] = usePending(confirmed, (value) => onChange({ [option.key]: value }));
+  const reasons = option.choices.map((choice) => option.unavailable?.(choice.value, players) ?? null);
+  const shownReason = reasons.find(Boolean);
 
   return (
-    <Stack spacing={1.25} sx={{ width: "100%" }}>
-      {game.options.map((option) => (
-        <Setting
-          key={option.key}
-          option={option}
+    <Stack spacing={0.5} sx={{ width: "100%", alignItems: "center" }}>
+      <Stack
+        role="radiogroup"
+        aria-label={option.label}
+        direction="row"
+        sx={{
+          width: "100%",
+          p: "3px",
+          borderRadius: 99,
+          bgcolor: "rgba(0, 0, 0, 0.32)",
+          boxShadow: `inset 0 0 0 1px ${alpha(theme.outline ?? "#fff", 0.32)}`,
+        }}
+      >
+        {option.choices.map((choice, index) => {
+          const isChosen = choice.value === chosen;
+          return (
+            <ButtonBase
+              key={choice.value}
+              role="radio"
+              aria-checked={isChosen}
+              aria-label={`${choice.label}, ${choice.note}${reasons[index] ? `. ${reasons[index]}` : ""}`}
+              disabled={Boolean(reasons[index]) || !canChange}
+              onClick={() => choose(choice.value)}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                height: 34,
+                gap: 0.6,
+                borderRadius: 99,
+                fontSize: 13.5,
+                fontWeight: 800,
+                whiteSpace: "nowrap",
+                color: isChosen ? (theme.onAccent ?? "#fff") : ON_SCRIM,
+                bgcolor: isChosen ? theme.accent : "transparent",
+                boxShadow: isChosen ? `0 4px 12px ${alpha(theme.accent, 0.45)}` : "none",
+                transition: "background-color 180ms ease, color 180ms ease, box-shadow 180ms ease",
+                "&.Mui-disabled": { color: isChosen ? (theme.onAccent ?? "#fff") : alpha("#fff", 0.45) },
+                "&:hover:not(.Mui-disabled)": { bgcolor: isChosen ? theme.accent : alpha("#fff", 0.08) },
+              }}
+            >
+              {reasons[index] && <LockSimpleIcon size={12} weight="fill" />}
+              {choice.label}
+            </ButtonBase>
+          );
+        })}
+      </Stack>
+      {shownReason && (
+        <Typography sx={{ fontSize: 10.5, fontWeight: 600, color: ON_SCRIM_SOFT, textAlign: "center", lineHeight: 1.2 }}>{shownReason}</Typography>
+      )}
+    </Stack>
+  );
+};
+
+// whatever settings a game declares, drawn the same way for every game; one that declares none shows nothing
+const GameOptions = ({ game, session, isBetweenTwo, canChange, onChange, onSwitchMode }) => {
+  // a setting about the other person means nothing in a group or a chat with yourself
+  const shown = game.options?.filter((option) => isBetweenTwo || !option.isBetweenTwoOnly) ?? [];
+  if (!shown.length && !game.modes) return null;
+
+  return (
+    <Stack spacing={1} sx={{ width: "100%" }}>
+      {game.modes && (
+        <Segmented
+          option={{ key: "game", label: "Mode", choices: game.modes }}
           theme={game.theme}
-          confirmed={session.options?.[option.key]}
+          confirmed={game.id}
           players={session.seats.length}
           canChange={canChange}
-          onChange={onChange}
+          onChange={({ game: chosen }) => onSwitchMode(chosen)}
         />
-      ))}
+      )}
+      {shown.map((option) => {
+        const Look = option.Preview ? Setting : Segmented;
+        return (
+          <Look
+            key={option.key}
+            option={option}
+            theme={game.theme}
+            confirmed={session.options?.[option.key]}
+            players={session.seats.length}
+            canChange={canChange}
+            onChange={onChange}
+          />
+        );
+      })}
     </Stack>
   );
 };

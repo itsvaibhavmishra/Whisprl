@@ -1,12 +1,21 @@
 import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 
-import { CreateAccountKey, ForgetDeviceKeys, PrepareEncryption, UnlockWithPasskey, UnlockWithRecoveryKey } from "@/redux/slices/actions/encryptionActions";
+import {
+  CreateAccountKey,
+  ForgetDeviceKeys,
+  PrepareEncryption,
+  SetVerified,
+  UnlockWithPasskey,
+  UnlockWithRecoveryKey,
+} from "@/redux/slices/actions/encryptionActions";
 
 // status: 'checking' | 'setup' | 'locked' | 'ready' | 'failed'
 const initialState = {
   status: "checking",
   currentKeyId: null,
   unlockOpen: true,
+  // person id to the key id whose security code was checked on this device
+  verified: {},
 };
 
 const slice = createSlice({
@@ -31,6 +40,9 @@ const slice = createSlice({
         state.currentKeyId = action.payload.currentKeyId;
       })
       .addCase(ForgetDeviceKeys.fulfilled, () => initialState)
+      .addCase(SetVerified.fulfilled, (state, action) => {
+        state.verified = action.payload;
+      })
       .addMatcher(isAnyOf(UnlockWithRecoveryKey.fulfilled, UnlockWithPasskey.fulfilled), (state) => {
         state.status = "ready";
       });

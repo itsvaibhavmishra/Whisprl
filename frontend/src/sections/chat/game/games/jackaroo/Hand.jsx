@@ -13,10 +13,10 @@ import useGlide from "@/sections/chat/game/games/jackaroo/useGlide";
 // how far a finger moves before a touch becomes a drag, so a tap that wobbles is still a tap
 const DRAG_FROM = 8;
 const PILLS = { Kill: "#c3172b", Finish: "#2e9d4a" };
-// four of them span about three quarters of the width, edge to edge, as the design lays them
-const CARD_WIDTH = "min(18vw, 10.5vh, 92px)";
+// four span about three quarters of the width, as the design lays them, sized against the window from before any keyboard
+const CARD_WIDTH = "min(18vw, calc(var(--game-vh, 1vh) * 10.5), 92px)";
 const SLOT = `0 1 ${CARD_WIDTH}`;
-const ROOM_BELOW = "clamp(20px, 5.5vh, 48px)";
+const ROOM_BELOW = "clamp(20px, calc(var(--game-vh, 1vh) * 5.5), 48px)";
 // the design's picked card: a bold light blue edge round the card itself, and a blue glow beyond it
 const EDGE = { boxShadow: "0 0 0 2.5px #9bd5ff, 0 0 0 4px rgba(61, 155, 255, 0.9), 0 0 16px 4px rgba(40, 130, 255, 0.75)" };
 // cards that must be thrown away are outlined in red and pulse, as the reference game asks for a discard

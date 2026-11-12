@@ -7,7 +7,7 @@ import useScreenBack from "@/hooks/useScreenBack";
 import { gameCollapsed } from "@/redux/slices/gameSlice";
 import { GAMES } from "@/sections/chat/game/catalog";
 import GameRoom from "@/sections/chat/game/GameRoom";
-import { useKeyboardHeight } from "@/utils/keyboard";
+import { useHeightThroughKeyboard } from "@/utils/keyboard";
 
 export const CHAT_MIN_WIDTH = 380;
 const KEY_STEP = 24;
@@ -108,7 +108,8 @@ const GamePanel = ({ conversation, session }) => {
   const [isResizing, setIsResizing] = useState(false);
   const panelRef = useRef(null);
   const bounds = GAMES[gameId].width;
-  const keyboard = useKeyboardHeight();
+  const narrowRef = useRef(null);
+  const held = useHeightThroughKeyboard(narrowRef, !isWide);
   useScreenBack(isWide ? undefined : () => dispatch(gameCollapsed(true)));
 
   // a narrow window holds less than the game allows, and a width past what fits would make the handle do nothing
@@ -125,13 +126,14 @@ const GamePanel = ({ conversation, session }) => {
     return (
       <Box
         key="narrow"
+        ref={narrowRef}
         component={m.div}
         initial={{ opacity: 0, y: -24 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -24 }}
         transition={isStill ? STILL : SLIDE}
         // a keyboard shrinks the window, so the game keeps its height and lets the keyboard cover its foot rather than squeezing
-        sx={{ flex: 1, minHeight: 0, display: "flex", ...(keyboard && { flex: "none", height: `calc(100% + ${keyboard}px)`, mb: `-${keyboard}px` }) }}
+        sx={{ flex: 1, minHeight: 0, display: "flex", ...(held && { flex: "none", height: held.height, "--game-vh": `${held.window / 100}px` }) }}
       >
         <GameRoom conversation={conversation} session={session} />
       </Box>

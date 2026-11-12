@@ -16,7 +16,7 @@ import { updateOnlineUsers } from "@/redux/slices/userSlice";
 import { GetFriends } from "@/redux/slices/actions/userActions";
 import { statusRemoved, viewSaved } from "@/redux/slices/statusSlice";
 import { FriendsChanged, GetRequests, RequestsChanged } from "@/redux/slices/actions/contactActions";
-import { GetOngoingGame, ReceiveGameInvite, ReceiveGameNotice, ReceiveGameReaction, WatchGame } from "@/redux/slices/actions/gameActions";
+import { GetOngoingGame, ReceiveGameInvite, ReceiveGameNotice, ReceiveGameReaction, ReceiveTeamMessage, WatchGame } from "@/redux/slices/actions/gameActions";
 import { GroupUpdated } from "@/redux/slices/actions/groupActions";
 import { PrepareEncryption } from "@/redux/slices/actions/encryptionActions";
 import { selectIsLoading } from "@/redux/slices/requestSlice";
@@ -61,6 +61,7 @@ const serverEvents = () => ({
   game_notice: ReceiveGameNotice,
   game_lookers: lookersChanged,
   game_reaction: ReceiveGameReaction,
+  team_message: ReceiveTeamMessage,
   my_game: ongoingGameHeard,
 });
 

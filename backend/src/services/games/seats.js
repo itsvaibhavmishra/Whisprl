@@ -53,6 +53,9 @@ export const seatBot = (seats, index, random = Math.random) => {
   return replaceAt(seats, index, { locked: false, bot: true, ready: true, persona: freshPersona(seats, random) });
 };
 
+// two seats trade places, whoever is in them
+export const swapped = (seats, one, other) => seats.map((seat, index) => (index === one ? seats[other] : index === other ? seats[one] : seat));
+
 export const seatWhisprl = (seats, index, whisprlId) => replaceAt(seats, index, { locked: false, user: whisprlId, ready: true, official: true });
 
 export const unseatBot = (seats, index) => {
@@ -163,4 +166,11 @@ export const withSeatCount = (seats, count) => {
 export const resized = (seats, count) => {
   const kept = seats.filter((seat) => seat.user).slice(0, count);
   return [...kept.map(({ user }) => ({ user, ready: false, locked: false })), ...emptySeats(count - kept.length)];
+};
+
+// another mode of the same game keeps its people before its bots, in seat order, as far as it has room
+export const refitted = (seats, count) => {
+  if (count >= seats.length) return [...seats, ...emptySeats(count - seats.length)];
+  const kept = [...seats.filter((seat) => seat.user), ...seats.filter(isChosenBot)].slice(0, count);
+  return [...kept, ...emptySeats(count - kept.length)];
 };

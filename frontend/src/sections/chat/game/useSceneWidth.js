@@ -25,7 +25,7 @@ const useSceneWidth = (art, mastheadRatio, controls) => {
   }, [art.anchor]);
 
   const sceneWidth = room && sceneWidthOf(room, controls, art, mastheadRatio);
-  return [ref, sceneWidth, Boolean(room && sceneWidth < room.width)];
+  return [ref, sceneWidth];
 };
 
 export default useSceneWidth;

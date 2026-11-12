@@ -103,8 +103,9 @@ const messagesOf = (layer, dragY) => {
       `--chat-top ${SHEET_EASE}`,
       `--chat-fade ${SHEET_EASE}`,
       `--chat-round ${SHEET_EASE}`,
-      "background-color 240ms ease",
-      "backdrop-filter 240ms ease",
+      // an opening sheet has its background at once, since its edge already reveals it, so the messages never float bare over the game
+      layer === "sheet" ? "background-color 0ms" : "background-color 240ms ease",
+      layer === "sheet" ? "backdrop-filter 0ms" : "backdrop-filter 240ms ease",
       dragY ? "transform 0ms" : "transform 240ms ease",
     ].join(", "),
   };
@@ -267,7 +268,7 @@ const Conversation = () => {
         </Box>
         <Box ref={composerRef} data-composer-column sx={{ position: "relative" }}>
           {layer === "behind" && !isWide
-            ? (noticeOf() ?? <RoomBar theme={GAMES[shownSession.game].theme} onOpenChat={() => setIsChatOpen(true)} />)
+            ? (noticeOf() ?? <RoomBar theme={GAMES[shownSession.game].theme} conversation={activeConversation} onOpenChat={() => setIsChatOpen(true)} />)
             : composer()}
         </Box>
       </>
@@ -300,10 +301,24 @@ const Conversation = () => {
           <AnimatePresence>{gameSession && isGameHidden && <GamePill key="pill" session={gameSession} meId={meId} />}</AnimatePresence>
         </Box>
         <AnimatePresence initial={false}>
-          {isGameShown && <GamePanel key={shownSession.game} conversation={activeConversation} session={shownSession} />}
+          {isGameShown && <GamePanel key={GAMES[shownSession.game].modeOf ?? shownSession.game} conversation={activeConversation} session={shownSession} />}
         </AnimatePresence>
-        {isGameShown && isChatOpen && (
-          <Box aria-hidden onClick={closeChat} sx={{ position: "absolute", inset: 0, zIndex: 2, display: { lg: "none" }, bgcolor: "rgba(6, 10, 18, 0.45)" }} />
+        {/* the game dims along with the sheet rising, never in a single frame */}
+        {isGameShown && (
+          <Box
+            aria-hidden
+            onClick={closeChat}
+            sx={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 2,
+              display: { lg: "none" },
+              bgcolor: "rgba(6, 10, 18, 0.45)",
+              opacity: isChatOpen ? 1 : 0,
+              pointerEvents: isChatOpen ? "auto" : "none",
+              transition: `opacity ${SHEET_EASE}`,
+            }}
+          />
         )}
         <Box sx={chatColumnOf(isGameShown)}>{chat()}</Box>
       </Box>

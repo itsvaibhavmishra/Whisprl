@@ -325,6 +325,37 @@ are removed. It leaves every group, handing on any it owned. The reason, and any
 the placeholder as the only record of why people leave. No email is sent when the account is
 actually deleted.
 
+## What the app may load
+
+Every production build writes a Content Security Policy from the same `REACT_APP_` settings the
+app is built with (`policyFor` in `frontend/vite.config.mjs`). It goes into `index.html`, which the
+website and the Android app both load, and into a Netlify `_headers` file, which adds
+`frame-ancestors 'none'` so no other site can frame Whisprl. A script injected into the page has
+nowhere to load from and cannot run inline, which matters most here because the page holds the
+encryption key.
+
+- **A new outside service has to be added to the policy**, or the browser blocks it without a
+  visible error. Scripts go in `script-src`, requests in `connect-src`, pictures in `img-src`,
+  frames in `frame-src`. Add the narrowest origin that works.
+- **Development builds have no policy**, since Vite's dev server runs code a policy would stop.
+  Check a change against `vite build` and `vite preview` before relying on it.
+- **Styles allow inline**, because MUI writes its styles into the page as it renders. Scripts
+  never do: no `'unsafe-inline'` and no `'unsafe-eval'` in `script-src`.
+
+## Security codes
+
+Each pair of friends can compare a security code, under **Privacy and safety** on a profile or in
+a chat's details, to check that nobody sits between them. It is Signal's scheme: twelve groups of
+five digits, half from each person's id and public key, each half SHA-512 hashed 5,200 times
+(`utils/crypto/safetyNumber.js`, whose test pins digits worked out separately in Python).
+
+- **Your half comes from the private key on this device** and theirs from the key your chat with
+  them encrypts to, so a server that swapped either key would show two people different numbers.
+- **Marking a code verified is kept on the device** (beside the device keys in IndexedDB), never on the
+  server, since the server is what checking guards against. It goes when you log out.
+- **A changed key is shown twice:** the profile row turns into "Security code changed", and the
+  chat shows a note above the first message that uses the new key (`utils/crypto/keyChanges.js`).
+
 ## Error reports
 
 Production errors go to Sentry, in the EU region (Frankfurt), organization `whisprl`. Two

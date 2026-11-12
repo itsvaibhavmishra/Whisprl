@@ -11,8 +11,13 @@ const TITLE_RATIO = 1200 / 584;
 const jackaroo = {
   id: "jackaroo",
   name: "Jackaroo",
-  summary: "Race your marbles home with cards, knocking theirs out on the way. For two players.",
-  keywords: ["jakaroo", "marbles", "cards", "race", "kings", "tock", "ludo"],
+  summary: "Race your marbles home with cards, knocking theirs out on the way. One against one, or two against two.",
+  keywords: ["jakaroo", "marbles", "cards", "race", "kings", "tock", "ludo", "2v2", "teams", "partners"],
+  // one table switches between these in its lobby, so the list of games shows only this one
+  modes: [
+    { value: "jackaroo", label: "1v1", note: "One against one" },
+    { value: "jackaroo-teams", label: "2v2", note: "Two teams of two" },
+  ],
   art,
   // only what the start screen shows, so it is not kept waiting on the board's pieces
   preload: [art.scene, art.title, art.startBoard, ...masthead.marbles.map(({ tone }) => art.marble(tone))],
