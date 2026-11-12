@@ -14,7 +14,6 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
-    - New device emails: logging in from a browser or phone your account hasn't used before sends you an email, with how to log every device out if it wasn't you
 
   - Improvements:
 
@@ -23,4 +22,3 @@
   - Developers:
 
   - Internal:
-    - The README leads with the games and the Android app, with the Play listing's feature graphic and screenshots in docs/screenshots

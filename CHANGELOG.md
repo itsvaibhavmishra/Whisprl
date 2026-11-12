@@ -6,6 +6,16 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.14] - 2026-11-12
+
+### New
+
+- New device emails: logging in from a browser or phone your account hasn't used before sends you an email, with how to log every device out if it wasn't you
+
+### Internal
+
+- The README leads with the games and the Android app, with the Play listing's feature graphic and screenshots in docs/screenshots
+
 ## [2.5.13] - 2026-11-12
 
 ### New
@@ -707,6 +717,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.14]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.14
 [2.5.13]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.13
 [2.5.12]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.12
 [2.5.11]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.11
