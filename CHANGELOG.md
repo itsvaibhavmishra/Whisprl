@@ -6,6 +6,29 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.13] - 2026-11-12
+
+### New
+
+- Security codes: compare one with a friend to check nobody can read your messages in between, and see a note in the chat if their code changes
+- Jackaroo 2v2: switch Jackaroo's lobby to 2v2 to play as two teams of two, in a group or with one friend and two bots, with your partner across the board
+- Team chat in Jackaroo 2v2: send a message only your partner sees, never saved or shown to the group
+
+### Improvements
+
+- The website and app only run code and load content from Whisprl and the services it uses, so an injected script cannot run
+- Jackaroo passes turns counter-clockwise as WePlay does, sends a sparkle trail round the board to whoever plays next, enlarges whoever's turn it is, and has a softer board with a clearer yellow home
+- Jackaroo's bots take two to three seconds over every move and react as things happen, sometimes with only a face, and a card a knock-out earns is played on the turn's own clock
+- Jackaroo 2v2 has a bigger board, lighter marbles, never deals two look-alike colours to one table, and a jack can swap your own marble off your start
+
+### Fixed
+
+- A game no longer flickers as the chat opens over it, and the rules' last button stays on one line
+
+### Developers
+
+- A dev Android build (`-PdevBuild`) installs beside the real and test apps as Whisprl Dev, with a red icon, and reaches a local API over http on localhost
+
 ## [2.5.12] - 2026-11-11
 
 ### New
@@ -684,6 +707,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.13]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.13
 [2.5.12]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.12
 [2.5.11]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.11
 [2.5.10]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.10
