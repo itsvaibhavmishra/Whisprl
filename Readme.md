@@ -94,6 +94,7 @@ updates with them, all end-to-end encrypted. Free, open source, and right in you
 **Play**
 
 - Tic-tac-toe, Dots and Boxes, Chain Reaction and Jackaroo, beside the chat or across a phone's whole screen
+- Jackaroo one against one or two against two, switched in its lobby, in a group or with one friend and two bots, with team chat only your partner sees
 - Play a friend, a group of up to six, or the bot for practice
 - Talk while you play: your words pop up at your seat, and emoji fly across the table
 - Rules with pictures inside every game, and each game's own leaderboard in every chat
@@ -317,6 +318,9 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   │   ├── pace.test.js
 │   │   │   │   │   ├── rules.js
 │   │   │   │   │   ├── rules.test.js
+│   │   │   │   │   ├── teams.test.js
+│   │   │   │   ├── jackaroo-teams/
+│   │   │   │   │   ├── index.js
 │   │   │   │   ├── tic-tac-toe/
 │   │   │   │   │   ├── bot.js
 │   │   │   │   │   ├── bot.test.js
@@ -417,6 +421,8 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── dots-and-boxes/
 │   │   │   │   ├── ...
 │   │   │   ├── jackaroo/
+│   │   │   │   ├── ...
+│   │   │   ├── jackaroo-teams/
 │   │   │   │   ├── ...
 │   │   │   ├── tic-tac-toe/
 │   │   │   │   ├── ...
@@ -733,6 +739,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   │   │   │   ├── CardBack.jsx
 │   │   │   │   │   │   │   ├── CardFace.jsx
 │   │   │   │   │   │   │   ├── cards.js
+│   │   │   │   │   │   │   ├── cards.test.js
 │   │   │   │   │   │   │   ├── choices.js
 │   │   │   │   │   │   │   ├── choices.test.js
 │   │   │   │   │   │   │   ├── effects.js
@@ -741,8 +748,10 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   │   │   │   ├── Hand.jsx
 │   │   │   │   │   │   │   ├── index.js
 │   │   │   │   │   │   │   ├── layout.json
+│   │   │   │   │   │   │   ├── layout-2v2.json
 │   │   │   │   │   │   │   ├── masthead.json
 │   │   │   │   │   │   │   ├── Masthead.jsx
+│   │   │   │   │   │   │   ├── mode.js
 │   │   │   │   │   │   │   ├── palette.js
 │   │   │   │   │   │   │   ├── Pieces.jsx
 │   │   │   │   │   │   │   ├── playback.js
@@ -752,8 +761,11 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   │   │   │   ├── sounds.js
 │   │   │   │   │   │   │   ├── Suit.jsx
 │   │   │   │   │   │   │   ├── Table.jsx
+│   │   │   │   │   │   │   ├── TurnTrail.jsx
 │   │   │   │   │   │   │   ├── useGlide.js
 │   │   │   │   │   │   │   ├── Wordmark.jsx
+│   │   │   │   │   │   ├── jackaroo-teams/
+│   │   │   │   │   │   │   ├── index.js
 │   │   │   │   │   │   ├── tic-tac-toe/
 │   │   │   │   │   │   │   ├── art.js
 │   │   │   │   │   │   │   ├── Board.jsx
@@ -778,6 +790,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   │   ├── gameSounds.js
 │   │   │   │   │   ├── gameSounds.test.js
 │   │   │   │   │   ├── gameStatus.js
+│   │   │   │   │   ├── gameStatus.test.js
 │   │   │   │   │   ├── GameTitle.jsx
 │   │   │   │   │   ├── PlayerBar.jsx
 │   │   │   │   │   ├── PlayerCount.jsx
@@ -801,6 +814,8 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   │   ├── standings.test.js
 │   │   │   │   │   ├── StartScreen.jsx
 │   │   │   │   │   ├── StatusPill.jsx
+│   │   │   │   │   ├── teamChat.js
+│   │   │   │   │   ├── teamChat.test.js
 │   │   │   │   │   ├── TurnRing.jsx
 │   │   │   │   │   ├── useArtReady.js
 │   │   │   │   │   ├── useGameSounds.js
