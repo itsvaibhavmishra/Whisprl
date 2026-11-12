@@ -16,6 +16,8 @@ const art = {
   startBoard: `${FOLDER}/start-board.webp`,
   board: `${FOLDER}/board.webp`,
   boardShadow: `${FOLDER}/board-shadow.webp`,
+  // the four-armed board for two against two, made from the same wood and frame
+  teams: { board: `${FOLDER}/board-2v2.webp`, boardShadow: `${FOLDER}/board-shadow-2v2.webp`, startBoard: `${FOLDER}/start-board-2v2.webp` },
   swirl: `${FOLDER}/swirl.webp`,
   shadow: `${FOLDER}/shadow.webp`,
   card: `${FOLDER}/card.webp`,
@@ -25,5 +27,8 @@ const art = {
   // fetched only when music is turned on, so it never costs anyone who leaves it off
   music: `${FOLDER}/music.m4a`,
 };
+
+// the board and its shadow for a game's mode
+export const boardArtOf = (mode) => (mode === "teams" ? art.teams : art);
 
 export default art;

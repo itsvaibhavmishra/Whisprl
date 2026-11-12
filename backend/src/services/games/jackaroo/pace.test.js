@@ -24,7 +24,7 @@ test("a fresh game waits for its deal", () => {
 
 test("a move waits for its card, every hop and a beat to read it", () => {
   const after = playedWith(gameWith({ mine: [track(3)], hand: [card(3), card(9)], theirHand: [card(5)] }), "move");
-  assert.equal(playOutMs(after), PACE.card + PACE.marbleAfterCard + 3 * PACE.hop + PACE.beat);
+  assert.equal(playOutMs(after), PACE.card + PACE.marbleAfterCard + 3 * PACE.hop + PACE.beat + PACE.handOver);
 });
 
 test("a knock-out waits for the marble to fly home and the bonus card to arrive", () => {
@@ -34,12 +34,12 @@ test("a knock-out waits for the marble to fly home and the bonus card to arrive"
 
 test("a swirl waits for the pause and the glide", () => {
   const after = playedWith(gameWith({ mine: [track(13)], hand: [card(3), card(9)], theirHand: [card(5)] }), "move");
-  assert.equal(playOutMs(after), PACE.card + PACE.marbleAfterCard + 3 * PACE.hop + PACE.swirlPause + PACE.swirlGlide + PACE.beat);
+  assert.equal(playOutMs(after), PACE.card + PACE.marbleAfterCard + 3 * PACE.hop + PACE.swirlPause + PACE.swirlGlide + PACE.beat + PACE.handOver);
 });
 
 test("a swap waits for its arrows and both marbles' float", () => {
   const after = playedWith(gameWith({ mine: [track(3)], theirs: [track(10)], hand: [card(11), card(9)], theirHand: [card(5)] }), "swap");
-  assert.equal(playOutMs(after), PACE.card + PACE.swap + PACE.beat);
+  assert.equal(playOutMs(after), PACE.card + PACE.swap + PACE.beat + PACE.handOver);
 });
 
 test("the last play of a round waits for the next deal as well", () => {
@@ -55,10 +55,10 @@ test("the winning play waits for its cheer before the result shows", () => {
 
 test("the bot glances when it has one choice and looks longer when it has several", () => {
   const oneChoice = gameWith({ mine: [track(3)], hand: [card(3)], theirHand: [card(5)] });
-  assert.equal(thinkMs(oneChoice), 500);
+  assert.equal(thinkMs(oneChoice), 2000);
   const several = gameWith({ mine: [track(3), track(9)], hand: [card(3), card(8)], theirHand: [card(5)] });
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const wait = thinkMs(several);
-    assert.ok(wait >= 900 && wait <= 2600, `${wait} ms`);
+    assert.ok(wait >= 2000 && wait <= 3000, `${wait} ms`);
   }
 });

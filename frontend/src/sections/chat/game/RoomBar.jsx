@@ -1,16 +1,48 @@
 import { useState } from "react";
-import { Box, IconButton, InputBase, Popover, Stack } from "@mui/material";
+import { Box, ButtonBase, IconButton, InputBase, Popover, Stack } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { ChatCircleTextIcon, PaperPlaneRightIcon, SmileyIcon } from "@phosphor-icons/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import EmojiPicker from "@/components/emoji-picker/EmojiPicker";
 import { SendTextMessage } from "@/redux/slices/actions/chatActions";
+import { SayToTeam } from "@/redux/slices/actions/gameActions";
+import { selectGameSession, teamTalkChosen } from "@/redux/slices/gameSlice";
 import ReactionTray from "@/sections/chat/game/ReactionTray";
 import StickerFaceIcon from "@/sections/chat/game/StickerFaceIcon";
+import { teamPartnerOf } from "@/sections/chat/game/teamChat";
 
-const RoomBar = ({ theme, onOpenChat }) => {
+// who will see what is typed: the whole chat, or only your partner at a team game
+const Audience = ({ isTeam, theme, onToggle }) => (
+  <ButtonBase
+    onClick={onToggle}
+    aria-label={isTeam ? "Sending to your team. Send to everyone instead" : "Sending to everyone. Send to your team instead"}
+    aria-pressed={isTeam}
+    sx={{
+      flexShrink: 0,
+      mr: 1,
+      px: 1.1,
+      py: 0.4,
+      borderRadius: 99,
+      fontSize: 12,
+      fontWeight: 800,
+      color: isTeam ? (theme.onAccent ?? "#fff") : theme.ink,
+      bgcolor: isTeam ? theme.accent : alpha(theme.ink, 0.12),
+      transition: "background-color 160ms ease, color 160ms ease",
+    }}
+  >
+    {isTeam ? "Team" : "All"}
+  </ButtonBase>
+);
+
+const RoomBar = ({ theme, conversation, onOpenChat }) => {
   const dispatch = useDispatch();
+  const meId = useSelector((state) => state.user.user._id);
+  const session = useSelector(selectGameSession);
+  // team chat is offered only while a partner who reads it is playing; otherwise everything goes to everyone
+  const canTalkToTeam = Boolean(teamPartnerOf(session, conversation, meId));
+  const isTeam = useSelector((state) => state.game.isTeamTalk) && canTalkToTeam;
+  const toggleTeam = () => dispatch(teamTalkChosen(!isTeam));
   const [text, setText] = useState("");
   const [trayAnchor, setTrayAnchor] = useState(null);
   const [pickerAnchor, setPickerAnchor] = useState(null);
@@ -22,7 +54,7 @@ const RoomBar = ({ theme, onOpenChat }) => {
   const send = (event) => {
     event.preventDefault();
     if (!canSend) return;
-    dispatch(SendTextMessage({ text: text.trim() }));
+    dispatch(isTeam ? SayToTeam(text.trim()) : SendTextMessage({ text: text.trim() }));
     setText("");
   };
 
@@ -39,14 +71,26 @@ const RoomBar = ({ theme, onOpenChat }) => {
       <IconButton aria-label="Open the chat" onClick={onOpenChat} sx={roundControl}>
         <ChatCircleTextIcon size={22} weight="bold" />
       </IconButton>
-      <Box sx={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", pl: 2, pr: 0.5, borderRadius: 99, bgcolor: alpha(theme.card, 0.85) }}>
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          alignItems: "center",
+          pl: canTalkToTeam ? 0.75 : 2,
+          pr: 0.5,
+          borderRadius: 99,
+          bgcolor: alpha(theme.card, 0.85),
+        }}
+      >
+        {canTalkToTeam && <Audience isTeam={isTeam} theme={theme} onToggle={toggleTeam} />}
         <InputBase
           value={text}
           onChange={(event) => setText(event.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="Say something"
-          inputProps={{ "aria-label": "Say something at the table", enterKeyHint: "send", maxLength: 500 }}
+          placeholder={isTeam ? "Say something to your partner" : "Say something"}
+          inputProps={{ "aria-label": isTeam ? "Say something to your partner" : "Say something at the table", enterKeyHint: "send", maxLength: 500 }}
           sx={{ flex: 1, minWidth: 0, py: 1, color: theme.ink, fontSize: 15, "& input::placeholder": { color: alpha(theme.ink, 0.65), opacity: 1 } }}
         />
         {offersEmoji ? (

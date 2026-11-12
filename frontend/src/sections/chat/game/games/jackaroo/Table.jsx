@@ -12,6 +12,7 @@ import { arriveAsBonus, DEAL, dealOrder, flyBack, flyIn, growFrom } from "@/sect
 import { SOUNDS } from "@/sections/chat/game/games/jackaroo/sounds";
 import useGlide from "@/sections/chat/game/games/jackaroo/useGlide";
 
+// where the one-against-one board deals and piles; the team board passes its own middle
 const { card: CARD, pile: PILE, shoe: SHOE } = layout;
 const CARD_HEIGHT = CARD.width / CARD_RATIO;
 // the card under the top one shows only as an edge, so the pile reads as a pile without hiding the board
@@ -35,10 +36,10 @@ const popIn = keyframes`from { transform: scale(0.8); opacity: 0; } to { transfo
 const tiltOf = (id) => ([...id].reduce((sum, letter) => sum + letter.charCodeAt(0), 0) % 13) - 6;
 
 // where new cards are dealt from: the design has no deck on the table, so it is a point in the board's centre
-export const Shoe = memo(({ ref }) => <Box ref={ref} sx={{ ...cardAt(SHOE), height: share(CARD_HEIGHT) }} />);
+export const Shoe = memo(({ at = SHOE, ref }) => <Box ref={ref} sx={{ ...cardAt(at), height: share(CARD_HEIGHT) }} />);
 
 // the cards played so far, the last one on top; the tilt sits on an inner layer, so one flying in can be animated without undoing it
-export const Pile = ({ pile, tonesOf, ref: topRef }) =>
+export const Pile = ({ pile, tonesOf, at = PILE, ref: topRef }) =>
   pile.slice(-SHOWN).map((played, index, shown) => {
     const isTop = index === shown.length - 1;
     return (
@@ -47,7 +48,7 @@ export const Pile = ({ pile, tonesOf, ref: topRef }) =>
         key={played.card.id}
         ref={isTop ? topRef : undefined}
         data-pile
-        sx={{ ...cardAt(PILE), filter: played.thrown ? "grayscale(0.7) brightness(0.82)" : "none" }}
+        sx={{ ...cardAt(at), filter: played.thrown ? "grayscale(0.7) brightness(0.82)" : "none" }}
       >
         <Box
           sx={{
@@ -70,7 +71,7 @@ const placesInFan = (fan) =>
   });
 
 // the red queen's pick: each of the other player's cards grows out of its place in their fan to lie face down and large in the board's centre, and the cards not taken fly back
-export const TheirCards = ({ count, fan, taken, isReady, isAnswered, isStill, onTake, onBack }) => {
+export const TheirCards = ({ count, fan, taken, isReady, isAnswered, isStill, onTake, onBack, at = PILE }) => {
   const rowRef = useRef(null);
   // the card you take sets off for the middle at once, so the server's answer arrives while it is already moving
   const [shift, setShift] = useState({ x: 0, y: 0 });
@@ -117,8 +118,8 @@ export const TheirCards = ({ count, fan, taken, isReady, isAnswered, isStill, on
         zIndex: 4,
         left: "6%",
         right: "6%",
-        top: `${PILE.y / 10 - PICK_HEIGHT / 2}%`,
-        bottom: `${100 - PILE.y / 10 - PICK_HEIGHT / 2}%`,
+        top: `${at.y / 10 - PICK_HEIGHT / 2}%`,
+        bottom: `${100 - at.y / 10 - PICK_HEIGHT / 2}%`,
       }}
     >
       {Array.from({ length: count }, (_, index) => {
@@ -155,13 +156,13 @@ export const TheirCards = ({ count, fan, taken, isReady, isAnswered, isStill, on
 };
 
 // a big red stamp over the pile while a ten's victim chooses what to throw away
-export const DiscardStamp = () => (
+export const DiscardStamp = ({ at = PILE }) => (
   <Typography
     sx={{
       position: "absolute",
       zIndex: 3,
-      left: share(PILE.x),
-      top: share(PILE.y),
+      left: share(at.x),
+      top: share(at.y),
       transform: "translate(-50%, -50%) rotate(-10deg)",
       px: "2.5cqmin",
       border: "0.7cqmin solid #d3192d",
@@ -184,7 +185,7 @@ export const DiscardStamp = () => (
 );
 
 // the round's deck in the board's centre while it deals, counting down as each card leaves it
-export const Deck = ({ left, dealt }) => {
+export const Deck = ({ left, dealt, at = SHOE }) => {
   const [gone, setGone] = useState(0);
   useEffect(() => {
     const deal = (index) => {
@@ -195,9 +196,7 @@ export const Deck = ({ left, dealt }) => {
     return () => timers.forEach(clearTimeout);
   }, [dealt]);
   return (
-    <Box
-      sx={{ ...cardAt(SHOE, BACK_RATIO), zIndex: 2, animation: `${popIn} 200ms ease-out`, "@media (prefers-reduced-motion: reduce)": { animation: "none" } }}
-    >
+    <Box sx={{ ...cardAt(at, BACK_RATIO), zIndex: 2, animation: `${popIn} 200ms ease-out`, "@media (prefers-reduced-motion: reduce)": { animation: "none" } }}>
       {[2, 1, 0].map((layer) => (
         <Box
           key={layer}

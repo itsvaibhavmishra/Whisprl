@@ -1,6 +1,8 @@
 import { createApiThunk } from "@/redux/slices/actions/apiThunk";
 import { seatSwitchOffered } from "@/redux/slices/gameSlice";
 import axios from "@/utils/axios";
+import { teamPartnerOf } from "@/sections/chat/game/teamChat";
+import { encryptForTeammate, openTeamMessage } from "@/utils/crypto/messageCipher";
 import { emitRoomEvent } from "@/utils/gameRoomEvents";
 import { firstNameIn } from "@/utils/groups";
 import { openNotifiedChat } from "@/utils/notifications";
@@ -47,6 +49,31 @@ export const ReactInGame = createApiThunk("game/react", (emoji, { getState }) =>
 export const ReceiveGameReaction = (reaction) => (_, getState) => {
   if (reaction.conversationId !== getState().game.watching) return;
   emitRoomEvent({ conversationId: reaction.conversationId, from: reaction.user ?? `bot:${reaction.seat}`, emoji: reaction.emoji, text: reaction.text });
+};
+
+// sealing a team message to its game keeps it from being passed off as a message in the chat
+const TEAM_BINDING = "team";
+
+const watchedConversationOf = ({ game, chat }) => chat.conversations.find((conversation) => conversation._id === game.watching);
+
+// a word for your partner alone: shown at once at your seat, sealed for them, and passed on by the server without being kept
+export const SayToTeam = createApiThunk("game/team-say", async (text, { getState }) => {
+  const state = getState();
+  const meId = state.user.user._id;
+  const conversation = watchedConversationOf(state);
+  const partner = teamPartnerOf(state.game.view?.session, conversation, meId);
+  const member = partner && conversation.users.find((user) => user._id === partner.user);
+  if (!member) return Promise.reject({ error: { message: "Your partner can't read team messages" } });
+  const cipher = await encryptForTeammate(text, conversation, meId, member, TEAM_BINDING);
+  emitRoomEvent({ conversationId: conversation._id, from: meId, text, team: true });
+  return emitGameEvent("game_team_say", cipher);
+});
+
+export const ReceiveTeamMessage = (message) => async (_, getState) => {
+  const state = getState();
+  if (message.conversationId !== state.game.watching) return;
+  const text = await openTeamMessage(message.cipher, watchedConversationOf(state), message.from, TEAM_BINDING).catch(() => null);
+  if (text) emitRoomEvent({ conversationId: message.conversationId, from: message.from, text, team: true });
 };
 
 // named by the game alone, so the panel can show which one is opening; it opens in the chat being watched

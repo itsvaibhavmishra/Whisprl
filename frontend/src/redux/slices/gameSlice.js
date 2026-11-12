@@ -19,6 +19,8 @@ const initialState = {
   dismissedResult: null,
   // the game this person is in the middle of, wherever it is, which the main pages offer a way back to
   ongoing: null,
+  // whether the table's message box goes to your partner alone, which lasts until the game being played ends
+  isTeamTalk: false,
 };
 
 const slice = createSlice({
@@ -33,6 +35,7 @@ const slice = createSlice({
         state.view = payload;
         state.lookers = payload.lookers ?? [];
         if (!payload.session) delete state.panelChoices[payload.conversationId];
+        if (payload.session?.status !== "playing") state.isTeamTalk = false;
       },
       // stamped on arrival, so a wait the server sends in milliseconds counts from here, whatever this phone's clock says
       prepare: (payload) => ({ payload: { ...payload, receivedAt: Date.now() } }),
@@ -42,6 +45,9 @@ const slice = createSlice({
     },
     gameCollapsed(state, { payload }) {
       state.panelChoices[state.watching] = !payload;
+    },
+    teamTalkChosen(state, { payload }) {
+      state.isTeamTalk = payload;
     },
     resultDismissed(state, { payload }) {
       state.dismissedResult = payload;
@@ -65,6 +71,7 @@ const slice = createSlice({
         state.watching = meta.arg;
         state.view = null;
         state.lookers = [];
+        state.isTeamTalk = false;
       })
       .addCase(WatchGame.fulfilled, (state) => {
         state.watchCount += 1;
@@ -87,7 +94,8 @@ const slice = createSlice({
   },
 });
 
-export const { gameStateReceived, lookersChanged, gameCollapsed, resultDismissed, seatSwitchOffered, seatSwitchClosed, ongoingGameHeard } = slice.actions;
+export const { gameStateReceived, lookersChanged, gameCollapsed, teamTalkChosen, resultDismissed, seatSwitchOffered, seatSwitchClosed, ongoingGameHeard } =
+  slice.actions;
 
 export const selectGameSession = (state) => state.game.view?.session ?? null;
 

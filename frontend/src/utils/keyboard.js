@@ -36,3 +36,39 @@ export const useKeyboardHeight = () => {
 
 // the keyboard's height the last time it was up, so a panel standing in for it can open just as tall
 export const lastKeyboardHeight = () => lastKeyboard || Math.round(window.innerHeight * 0.4);
+
+// the container's and window's heights from before a keyboard, held from a field's focus, which comes first, until the window regrows
+export const useHeightThroughKeyboard = (ref, isOn = true) => {
+  const [held, setHeld] = useState(null);
+
+  useEffect(() => {
+    const room = ref.current?.parentElement;
+    if (!isOn || !room) return undefined;
+    let full = { height: room.clientHeight, window: window.innerHeight };
+    let isHolding = false;
+    const hold = (sizes) => {
+      isHolding = sizes !== null;
+      setHeld(sizes);
+    };
+    const measure = () => {
+      if (!isHolding && !isTyping()) full = { height: room.clientHeight, window: window.innerHeight };
+      else if (isHolding && !isTyping() && room.clientHeight >= full.height - 1) hold(null);
+    };
+    const onFocusIn = () => {
+      if (isTyping() && !isHolding) hold(full);
+    };
+    const onFocusOut = () => requestAnimationFrame(measure);
+    const observer = new ResizeObserver(measure);
+    observer.observe(room);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      setHeld(null);
+    };
+  }, [ref, isOn]);
+
+  return held;
+};

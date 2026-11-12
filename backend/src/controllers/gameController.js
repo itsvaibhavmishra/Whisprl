@@ -1,6 +1,6 @@
 import { requestGame } from "#src/services/gameRequestService.js";
 import { leaderboardOf } from "#src/services/gameResultService.js";
-import { actInGame, lookAtGame, ongoingGameOf, reactInGame, stopWatching, watchGame } from "#src/services/gameService.js";
+import { actInGame, lookAtGame, ongoingGameOf, reactInGame, sayToTeam, stopWatching, watchGame } from "#src/services/gameService.js";
 
 const answered = async (acknowledge, work) => {
   const reply = typeof acknowledge === "function" ? acknowledge : () => {};
@@ -19,6 +19,8 @@ export const socketUnwatchGame = (io, socket, acknowledge) => answered(acknowled
 export const socketLookAtGame = (io, socket, isLooking, acknowledge) => answered(acknowledge, () => lookAtGame(io, socket, isLooking));
 
 export const socketReactInGame = (socket, emoji, acknowledge) => answered(acknowledge, () => reactInGame(socket, emoji));
+
+export const socketSayToTeam = (io, socket, cipher, acknowledge) => answered(acknowledge, () => sayToTeam(io, socket, cipher));
 
 export const socketActInGame = (io, socket, payload, acknowledge) => answered(acknowledge, () => actInGame(io, socket.data.userId, payload ?? {}));
 

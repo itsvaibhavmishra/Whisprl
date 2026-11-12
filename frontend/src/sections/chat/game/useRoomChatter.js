@@ -46,7 +46,7 @@ const useRoomChatter = (conversation, seats) => {
       if (event.conversationId !== table.current.conversation._id) return;
       const place = placeOf(event, table.current);
       const id = (nextId += 1);
-      const said = { id, text: event.text, emoji: event.emoji };
+      const said = { id, text: event.text, emoji: event.emoji, isTeam: Boolean(event.team) };
       if (place === "seat") {
         setSayings((current) => ({ ...current, [event.from]: said }));
         later(event.text ? SAYING_MS : REACTION_MS, () =>
