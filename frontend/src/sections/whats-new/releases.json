@@ -1,5 +1,11 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "📬",
+      "title": "New device emails",
+      "text": "When your account logs in on a browser or phone it hasn't used before, we email you. If it wasn't you, the email says how to log every device out."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.13",

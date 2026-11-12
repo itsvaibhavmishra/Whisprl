@@ -1,13 +1,14 @@
 <div align="center">
 
-<img src="https://res.cloudinary.com/ecombidding/image/upload/v1791568414/portfolio/projects/whisprl-cover.png" alt="Whisprl" />
+<img src="docs/screenshots/feature.jpg" alt="Whisprl: chat and play with friends" />
 
 # Whisprl
 
-### The real-time chat app for you and your friends
+### End-to-end encrypted chats, voice notes, games and more
 
-Message friends and groups the moment you think of them, and share photos, videos and status
-updates with them, all end-to-end encrypted. Free, open source, and right in your browser.
+Start a game of Jackaroo, Chain Reaction, Dots and Boxes or Tic-tac-toe right inside any chat,
+with a friend, your whole group or one of Whisprl's bots, and keep talking while you play.
+Free and open source, on Android and in your browser.
 
 **[Open Whisprl](https://whisprl.netlify.app)**&nbsp; · &nbsp;[What's new](CHANGELOG.md)&nbsp; · &nbsp;[Terms](https://whisprl.netlify.app/docs/tnc)
 
@@ -18,6 +19,52 @@ updates with them, all end-to-end encrypted. Free, open source, and right in you
 ---
 
 ## A look around
+
+<p align="center">
+  <img src="docs/screenshots/app/chats.jpg" width="30%" alt="Whisprl's chat list, with game challenges and results between messages" />
+  <img src="docs/screenshots/app/jackaroo.jpg" width="30%" alt="A game of Jackaroo against the bot Pogo, with cards in hand" />
+  <img src="docs/screenshots/app/chain-reaction.jpg" width="30%" alt="A game of Chain Reaction against the bot Pip" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/app/dots-and-boxes.jpg" width="30%" alt="A game of Dots and Boxes against the bot Zook" />
+  <img src="docs/screenshots/app/games.jpg" width="30%" alt="The game picker inside a chat, with Jackaroo and Chain Reaction" />
+  <img src="docs/screenshots/app/private.jpg" width="30%" alt="An end-to-end encrypted chat planning a game of Jackaroo" />
+</p>
+
+---
+
+## Games, right in your chats
+
+- **Jackaroo**, the card-and-marble race: one against one, or two against two with your partner
+  across the board and a team chat only your partner sees
+- **Chain Reaction**, **Dots and Boxes** and **Tic-tac-toe**, with more on the way
+- Play a friend, a group of up to six, or the bots
+- Five bots, Bleep, Wini, Pip, Zook and Pogo, each with its own face and plenty to say mid-game
+- Talk while you play: your words pop up at your seat, and emoji fly across the table
+- Offer a draw instead of leaving, and climb each game's leaderboard in every chat
+- Rules with pictures inside every game, played beside the chat or across a phone's whole screen
+- Whisprl, the official account, is your first friend, and always up for a game
+
+---
+
+## The Android app
+
+The same Whisprl and the same account, made for your phone. It is in testing on Google Play.
+
+- Notifications that show the message itself, opened on your phone so the server still never reads it
+- Opens straight on your chats and their latest messages, even with no connection
+- Locks behind your fingerprint, face or screen lock if you want it to
+- Keeps your recovery key in Google Password Manager, so a reinstall never means typing it
+- A light buzz as you send, react and play, with a switch in Settings
+- Back gestures that feel like Android, and Whisprl links that open in the app
+- Updates through Google Play, and smaller ones arrive on their own the next time you open it
+
+---
+
+## In your browser
+
+Nothing to install: the same account works at [whisprl.netlify.app](https://whisprl.netlify.app),
+on a laptop or a phone.
 
 <table>
   <tr>
@@ -30,7 +77,7 @@ updates with them, all end-to-end encrypted. Free, open source, and right in you
     <td width="50%" valign="top">
       <img src="docs/screenshots/desktop/group.jpg" alt="A Whisprl group chat with a mention, a photo and a reaction" />
       <p><b>Groups of up to 32</b><br/>
-      Mention anyone with @, see who has read what, and share photos with everyone at once.</p>
+      Mention anyone with @, see who has read what, and start a game for everyone at once.</p>
     </td>
   </tr>
   <tr>
@@ -47,32 +94,11 @@ updates with them, all end-to-end encrypted. Free, open source, and right in you
       birthday.</p>
     </td>
   </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/desktop/profile.jpg" alt="A Whisprl profile page" />
-      <p><b>A profile worth sharing</b><br/>
-      One page your friends see, with its own address and a QR code to pass around.</p>
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/screenshots/desktop/welcome.jpg" alt="The Whisprl welcome page" />
-      <p><b>Nothing to install</b><br/>
-      It runs in the browser, on a laptop or a phone. Make an account and start talking.</p>
-    </td>
-  </tr>
 </table>
-
-### On a phone
-
-<p align="center">
-  <img src="docs/screenshots/mobile/chat.jpg" width="20%" alt="Whisprl chat on a phone" />
-  <img src="docs/screenshots/mobile/group.jpg" width="20%" alt="Whisprl group chat on a phone" />
-  <img src="docs/screenshots/mobile/status.jpg" width="20%" alt="A Whisprl status on a phone" />
-  <img src="docs/screenshots/mobile/requests.jpg" width="20%" alt="A friend request with a note on a phone" />
-</p>
 
 ---
 
-## What you can do
+## Everything else you can do
 
 **Talk**
 
@@ -90,14 +116,6 @@ updates with them, all end-to-end encrypted. Free, open source, and right in you
 - Write on them, draw on them, add stickers, emoji and filters, or post plain text on a gradient
 - See who viewed each one, and reply to a friend's update straight from it
 - Discover, for updates people have shared with everyone on Whisprl
-
-**Play**
-
-- Tic-tac-toe, Dots and Boxes, Chain Reaction and Jackaroo, beside the chat or across a phone's whole screen
-- Jackaroo one against one or two against two, switched in its lobby, in a group or with one friend and two bots, with team chat only your partner sees
-- Play a friend, a group of up to six, or the bot for practice
-- Talk while you play: your words pop up at your seat, and emoji fly across the table
-- Rules with pictures inside every game, and each game's own leaderboard in every chat
 
 **Stay in touch**
 
@@ -122,8 +140,10 @@ updates are locked on your device before they are sent, and only the people you 
 can open them. The server stores what it cannot read.
 
 - **A recovery key** is made when encryption is turned on, so you can open your messages on a
-  new browser. **Add a passkey** and you rarely need it.
+  new browser or phone. **Add a passkey** and you rarely need it.
 - **Files are encrypted too**, before they ever reach storage.
+- **Security codes** let you check with a friend that nobody can read your chat in between.
+- **A login from a new device** sends you an email, so you know if anyone else gets in.
 - **Reporting a message** is the one way staff can read anything, and only because your own
   device decrypts and sends it. The app tells you exactly what is being sent before it goes.
 
