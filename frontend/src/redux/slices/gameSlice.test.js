@@ -1,5 +1,12 @@
 import { CloseGame, WatchGame } from "@/redux/slices/actions/gameActions";
-import gameReducer, { gameCollapsed, gameStateReceived, lookersChanged, selectGameOnScreen, selectIsGameCollapsed } from "@/redux/slices/gameSlice";
+import gameReducer, {
+  gameCollapsed,
+  gameStateReceived,
+  lookersChanged,
+  selectGameOnScreen,
+  selectIsGameCollapsed,
+  teamTalkChosen,
+} from "@/redux/slices/gameSlice";
 
 const CHAT = "chat-1";
 const viewAt = (revision, session) => gameStateReceived({ conversationId: CHAT, revision, session });
@@ -55,4 +62,13 @@ test("between two people a game you are not at stays out of sight until you open
   expect(selectIsGameCollapsed(lookingAs(challenged))).toBe(true);
   expect(selectIsGameCollapsed(lookingAs(gameReducer(challenged, gameCollapsed(false))))).toBe(false);
   expect(selectIsGameCollapsed(lookingAs(challenged, { isGroup: true }))).toBe(false);
+});
+
+test("talking to your team lasts while the game is played and ends with it", () => {
+  const playing = [WatchGame.pending("watch", CHAT), viewAt(1, { status: "playing" }), teamTalkChosen(true), viewAt(2, { status: "playing" })].reduce(
+    gameReducer,
+    undefined
+  );
+  expect(playing.isTeamTalk).toBe(true);
+  expect(gameReducer(playing, viewAt(3, { status: "lobby" })).isTeamTalk).toBe(false);
 });

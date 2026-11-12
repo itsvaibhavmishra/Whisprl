@@ -59,13 +59,13 @@ const reactionBinding = (message, isForAlbum) => (isForAlbum ? `album-reaction:$
 const peerKeyOf = (conversation, userId) => currentKeyOf(peerOf(conversation, userId));
 
 // a group message is encrypted once, and its key sealed for each member with the key that member shares with the sender
-const encryptForGroup = async (text, conversation, userId, bind) => {
+const encryptForGroup = async (text, conversation, userId, bind, readers = conversation.users) => {
   const context = contextOf(conversation._id, userId, bind);
   const messageKey = await generateMessageKey();
   const rawKey = await exportMessageKey(messageKey);
 
   const keys = await Promise.all(
-    conversation.users.map(async (member) => {
+    readers.map(async (member) => {
       const memberKey = currentKeyOf(member);
       const sealed = await encryptBytes(await conversationKeyFor(conversation, memberKey), rawKey, context);
       return { keyId: memberKey.keyId, ...sealed };
@@ -85,6 +85,9 @@ export const encryptMessage = async (text, conversation, userId, bind) => {
   return { ...sealed, keyIds: [deviceKeys.keyId, peerKey.keyId] };
 };
 
+// a word for a partner at a game: sealed for them alone, and bound so it can never pass for a message in the chat
+export const encryptForTeammate = (text, conversation, userId, partner, bind) => encryptForGroup(text, conversation, userId, bind, [partner]);
+
 const openGroupMessage = async (message, conversation, senderId, bind) => {
   const sealedKey = message.cipher.keys.find((sealed) => sealed.keyId === deviceKeys?.keyId);
   const senderKey = findPublicKey(conversation, message.cipher.senderKeyId);
@@ -95,6 +98,8 @@ const openGroupMessage = async (message, conversation, senderId, bind) => {
   const messageKey = await importMessageKey(await decryptBytes(pairKey, sealedKey, context));
   return decryptText(messageKey, message.cipher, context);
 };
+
+export const openTeamMessage = (cipher, conversation, senderId, bind) => openGroupMessage({ cipher }, conversation, senderId, bind);
 
 // the text as it was sent: a message's words, or for an attachment the JSON holding its caption and file key
 export const openMessage = async (message, conversation, bind) => {

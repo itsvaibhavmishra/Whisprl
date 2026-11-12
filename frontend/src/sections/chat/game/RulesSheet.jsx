@@ -93,7 +93,7 @@ const RulesSheet = ({ game, turnSeconds, onClose }) => {
         ))}
       </Box>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", px: 3, pt: 2 }}>
-        <Stack direction="row" spacing={0.75} sx={{ flex: 1 }}>
+        <Stack direction="row" spacing={0.75} sx={{ flex: 1, minWidth: 0, flexWrap: "wrap", rowGap: 0.75 }}>
           {pages.map((rule, index) => (
             <ButtonBase
               key={rule.heading}
@@ -111,14 +111,23 @@ const RulesSheet = ({ game, turnSeconds, onClose }) => {
           ))}
         </Stack>
         {page > 0 && (
-          <Button onClick={() => goTo(page - 1)} sx={{ color: theme.ink, fontWeight: 700 }}>
+          <Button onClick={() => goTo(page - 1)} sx={{ color: theme.ink, fontWeight: 700, flexShrink: 0, whiteSpace: "nowrap" }}>
             Back
           </Button>
         )}
         <Button
           variant="contained"
           onClick={() => (isLast ? onClose() : goTo(page + 1))}
-          sx={{ borderRadius: 99, px: 2.5, fontWeight: 800, bgcolor: theme.accent, color: "#fff", "&:hover": { bgcolor: theme.accent } }}
+          sx={{
+            borderRadius: 99,
+            px: 2.5,
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+            fontWeight: 800,
+            bgcolor: theme.accent,
+            color: "#fff",
+            "&:hover": { bgcolor: theme.accent },
+          }}
         >
           {isLast ? "Got it" : "Next"}
         </Button>

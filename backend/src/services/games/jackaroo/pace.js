@@ -22,9 +22,12 @@ export const PACE = {
   deal: 2900,
   // the winning home cheers and bursts into gold before the result is shown
   win: 2000,
+  // sparkles run round the board to the next player, whose turn starts as they arrive; the client's TurnTrail keeps the same number
+  handOver: 900,
 };
 
-const THINKING = { least: 900, most: 2600, onlyChoice: 500 };
+// a bot takes a moment over every move, even its only one, as a person would
+const THINKING = { least: 2000, most: 3000, onlyChoice: 2000 };
 
 const moveMs = (move) => {
   if (move.from.at === "base") return PACE.bringOut;
@@ -40,6 +43,9 @@ const boardMs = (lastPlay) => {
   return 0;
 };
 
+// when what a play does lands on the board, which is when a bot reacts to it
+export const eventMs = (state) => (state.lastPlay ? PACE.card + boardMs(state.lastPlay) : 0);
+
 export const playOutMs = (state) => {
   const { lastPlay } = state;
   if (!lastPlay) return PACE.deal;
@@ -47,7 +53,8 @@ export const playOutMs = (state) => {
   if (lastPlay.kind === "show") return PACE.card;
   const shown = PACE.card + boardMs(lastPlay) + (lastPlay.bonus ? PACE.bonus : PACE.beat);
   if (state.winner !== null) return shown + PACE.win;
-  return lastPlay.dealt ? shown + PACE.deal : shown;
+  const handedOver = turnOf(state) !== lastPlay.seat ? PACE.handOver : 0;
+  return (lastPlay.dealt ? shown + PACE.deal : shown) + handedOver;
 };
 
 export const thinkMs = (state) => {

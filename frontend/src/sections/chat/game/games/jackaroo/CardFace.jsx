@@ -1,9 +1,10 @@
-import { memo } from "react";
+import { memo, useContext } from "react";
 import { Box, Typography } from "@mui/material";
 
 import art from "@/sections/chat/game/games/jackaroo/art";
 import { faceOf, isRed, rankOf } from "@/sections/chat/game/games/jackaroo/cards";
 import FONTS from "@/sections/chat/game/games/jackaroo/fonts";
+import { ModeContext } from "@/sections/chat/game/games/jackaroo/mode";
 import Suit from "@/sections/chat/game/games/jackaroo/Suit";
 
 const RED = "#b0141c";
@@ -103,6 +104,21 @@ const FACES = {
       </>
     ),
   },
+  // two against two an ace brings out or moves one or eleven, and a king only brings out
+  ace: {
+    marbles: [{ who: "mine", x: 50, y: 62, size: 22 }],
+    drawing: () => (
+      <>
+        <Pointer x={50} y={42} size={21} isDown />
+        <Rule y={81} />
+        <Numeral text="1/11" y={99} size={20} />
+      </>
+    ),
+  },
+  bring: {
+    marbles: [{ who: "mine", x: 50, y: 74, size: 26 }],
+    drawing: () => <Pointer x={50} y={50} size={24} isDown />,
+  },
   sweep: {
     marbles: [{ who: "mine", x: 50, y: 62, size: 22 }],
     drawing: () => (
@@ -176,7 +192,7 @@ const Corner = ({ card, colour }) => (
 // the design's card: its paper, its rank and suit in the corner, and in the middle what it does, in symbols rather than words
 const CardFace = ({ card, tones }) => {
   const colour = isRed(card) ? RED : BLACK;
-  const face = FACES[faceOf(card)];
+  const face = FACES[faceOf(card, useContext(ModeContext))];
   return (
     <Box sx={{ position: "relative", width: "100%", aspectRatio: String(CARD_RATIO), containerType: "inline-size", userSelect: "none" }}>
       <Box component="img" alt="" src={art.card} sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />

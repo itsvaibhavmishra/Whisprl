@@ -1,7 +1,7 @@
 import { personaOf } from "@/sections/chat/game/bots";
 import { isChosenBot, isTaken } from "@/sections/chat/game/seats";
 import { peerOf } from "@/utils/chats";
-import { firstNameIn } from "@/utils/groups";
+import { firstNameIn, listOf } from "@/utils/groups";
 
 export const PRACTICE_NOTE = "Bot games don't count on the leaderboard";
 
@@ -12,7 +12,10 @@ const twoPlayerLineOf = (session, conversation, meId) => {
   const peer = peerOf(conversation, meId);
   const mine = session.seats.find((seat) => seat.user === meId);
   const theirs = session.seats.find((seat) => seat.user === peer._id);
-  const hasBot = session.seats.some(isChosenBot);
+  // in a chat with yourself the other person is you, so every other seat is a bot
+  const isFriendsSeat = (seat) => peer._id !== meId && (seat.user === peer._id || seat.invited === peer._id);
+  // at a bigger table between two the other seats are always bots, so it is the bot only once the other person's seat has gone to one
+  const hasBot = session.seats.length > 2 ? !session.seats.some(isFriendsSeat) && session.seats.every(isTaken) : session.seats.some(isChosenBot);
   if (!mine && hasBot) return `${peer.firstName} is playing the bot. Take its seat to play instead.`;
   if (!mine) return theirs ? `${peer.firstName} wants to play. Take the other seat.` : "Take a seat to play";
   if (hasBot) return "Press Ready to play the bot";
@@ -40,7 +43,8 @@ export const resultLineOf = ({ winners, leftBy }, conversation, meId) => {
   if (leftBy === meId) return "You left, so it counts as a loss";
   if (leftBy) return `${firstNameIn(conversation, leftBy, meId)} left, so you win`;
   if (!winners.length) return "It's a draw";
-  const [winner] = winners;
-  if (winner.bot) return `${personaOf(winner)?.name ?? "The bot"} won`;
-  return `${firstNameIn(conversation, winner.user, meId)} won`;
+  // partners win together, and you come first among them
+  const ordered = [...winners].sort((one, other) => Number(other.user === meId && !other.bot) - Number(one.user === meId && !one.bot));
+  const names = ordered.map((winner) => (winner.bot ? (personaOf(winner)?.name ?? "The bot") : firstNameIn(conversation, winner.user, meId)));
+  return `${listOf(names)} won`;
 };

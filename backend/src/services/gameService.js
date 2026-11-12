@@ -29,8 +29,10 @@ import {
   missTurn,
   playedTurn,
   playerIndexOf,
+  refitted,
   resized,
   seatBot,
+  swapped,
   seatIndexOf,
   seatWhisprl,
   setLocked,
@@ -140,6 +142,10 @@ const stateViewFor = (session, viewerId) => {
 
 const lookersOf = (gameRoom) => [...gameRoom.lookers.keys()];
 
+// a bot's clock runs only as long as it thinks, so its seat still shows a whole turn's ring
+const isPersonsClock = (session) =>
+  session.status === "playing" && Boolean(session.turnStartsAt) && !isBotPlaying(session.seats[gameOf(session.game).turnOf(session.state)]);
+
 // nobody is sent the raw session: each person gets only what they may see
 const viewFor = (conversation, session, gameRoom, viewerId) => ({
   conversationId: String(conversation._id),
@@ -153,6 +159,8 @@ const viewFor = (conversation, session, gameRoom, viewerId) => ({
     // a wait rather than a moment, so a phone whose clock is off still starts the turn when the last play has shown
     turnStartsIn: session.status === "playing" && session.turnStartsAt ? Math.max(0, new Date(session.turnStartsAt).getTime() - Date.now()) : 0,
     turnEndsAt: session.status === "playing" ? session.turnEndsAt : null,
+    // how long this turn's clock runs once it starts, less than a whole turn when a bonus card carries it on
+    turnMs: isPersonsClock(session) ? new Date(session.turnEndsAt).getTime() - new Date(session.turnStartsAt).getTime() : null,
     turnSeconds: gameOf(session.game).turnSeconds,
     seats: session.seats.map(seatView),
     // a group's manager can set how many play, within what the game allows
@@ -217,6 +225,17 @@ const withTurnClock = (session, playOutMs = 0) => {
 
 const playOutMsOf = (game, state) => game.playOutMs?.(state) ?? 0;
 
+// a bonus card is more of the same turn, so a person's clock goes on from where it was once the play has shown, never quite to nothing
+const BONUS_LEAST_MS = 5 * 1000;
+const withClockCarried = (session, playOutMs) => {
+  const startsAt = Date.now() + playOutMs;
+  const left = Math.max(BONUS_LEAST_MS, new Date(session.turnEndsAt).getTime() - Date.now());
+  return { ...session, turnStartsAt: new Date(startsAt), turnEndsAt: new Date(startsAt + left) };
+};
+
+// a person playing a card their last play earned them, as a knock-out does one against one
+const playsOn = (game, session, state) => Boolean(game.earnedCard?.(state)) && !isBotPlaying(session.seats[game.turnOf(state)]);
+
 const startingFactsOf = async (session) => {
   const [botSkill, newcomers] = await Promise.all([botSkillFor(session), newcomersTo(session)]);
   return { botSkill, newcomers };
@@ -233,7 +252,6 @@ const startGame = (session, facts) => {
 // a person's clock runs on through a play that leaves their turn unfinished, while a bot still takes its pause
 const keepsClock = (game, session, state) => Boolean(game.isMidTurn?.(state)) && !isBotPlaying(session.seats[game.turnOf(state)]);
 
-// a finished game goes back to its lobby with the final board and who won still showing
 // a finished game goes back to its lobby with the final board and who won still showing
 const finished = (session, state, winningSeats, { showsInMs = 0, leftBy } = {}) => ({
   ...session,
@@ -263,8 +281,10 @@ export const played = (session, index, move) => {
   const game = gameOf(session.game);
   const state = game.play(session.state, index, move);
   const outcome = game.outcome(state);
-  if (!outcome) return keepsClock(game, session, state) ? { ...session, state } : withTurnClock({ ...session, state }, playOutMsOf(game, state));
-  return finished(session, state, outcome.winners, { showsInMs: playOutMsOf(game, state) });
+  if (outcome) return finished(session, state, outcome.winners, { showsInMs: playOutMsOf(game, state) });
+  if (keepsClock(game, session, state)) return { ...session, state };
+  if (playsOn(game, session, state)) return withClockCarried({ ...session, state }, playOutMsOf(game, state));
+  return withTurnClock({ ...session, state }, playOutMsOf(game, state));
 };
 
 const playedForAbsent = (session) => {
@@ -276,6 +296,9 @@ const playedForAbsent = (session) => {
 };
 
 const BOT_LINE_CHANCE = 0.7;
+const WORDS_CHANCE = 0.5;
+const PAUSE_MS = { least: 1000, most: 2000 };
+const pauseMs = () => PAUSE_MS.least + Math.random() * (PAUSE_MS.most - PAUSE_MS.least);
 // a little longer than a line stays up, so one is read before the next replaces it
 const BOT_LINE_GAP_MS = 5000;
 // the board has drawn in by then, so the greeting lands on a table people are looking at
@@ -301,18 +324,25 @@ const speakAsBot = (io, gameRoom, conversationId, before, after) => {
   if (!isCertain && (Date.now() < gameRoom.botSpeaksAfter || Math.random() > BOT_LINE_CHANCE)) return;
   const lines = before.seats.flatMap((seat, index) => {
     if (!isBotOpponent(seat)) return [];
-    const line = lineFor(speakerOf(seat), moodOf(game, before, after, index));
+    const mood = moodOf(game, before, after, index);
+    const line = lineFor(speakerOf(seat), mood);
     // Whisprl speaks as itself, while a chosen bot has no account and is known by its seat
     const speaker = seat.official ? { user: String(seat.user) } : { seat: index };
-    return line ? [{ ...speaker, ...line }] : [];
+    // a bot only sometimes has words for a moment, and otherwise just pulls a face; a greeting is always said
+    const isSaid = mood === "hello" || Math.random() < WORDS_CHANCE;
+    return line ? [{ ...speaker, ...(isSaid ? line : { emoji: line.emoji }) }] : [];
   });
   // one voice a moment, picked at random so each bot at a busy table gets its say
   const said = lines[Math.floor(Math.random() * lines.length)];
   if (!said) return;
-  gameRoom.botSpeaksAfter = Date.now() + BOT_LINE_GAP_MS;
-  // said once the play has finished showing, so the words match what just happened on the board
-  const delay = isStarting ? GREETING_DELAY_MS : playOutMsOf(game, after.state);
-  setTimeout(() => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...said }), delay);
+  // a bot takes in what happened before it pulls a face, and finds its words a moment after that
+  const landsAt = isStarting ? GREETING_DELAY_MS : (game.eventMs?.(after.state) ?? playOutMsOf(game, after.state));
+  const faceAt = landsAt + pauseMs();
+  const wordsAt = said.text ? faceAt + pauseMs() : faceAt;
+  gameRoom.botSpeaksAfter = Date.now() + wordsAt + BOT_LINE_GAP_MS;
+  const say = (line) => io.to(audienceOf(conversationId)).emit("game_reaction", { conversationId, ...line });
+  setTimeout(() => say({ ...said, text: undefined }), faceAt);
+  if (said.text) setTimeout(() => say(said), wordsAt);
 };
 
 const deadlineOf = (session) => {
@@ -405,6 +435,12 @@ const facing = (seats, peerId) => {
   return isWhisprl(peerId) ? seatWhisprl(seats, 1, peerId) : invite(seats, 1, peerId);
 };
 
+// a table for more than two between two people fills its other seats with bots, the other person moved to where the game seats them
+const withBotsBesideTwo = (game, seats, options) => {
+  const filled = seats.reduce((current, seat, index) => (index > 1 && !seat.user && !seat.bot ? seatBot(current, index) : current), seats);
+  return game.peerSeatOf ? swapped(filled, 1, game.peerSeatOf(options)) : filled;
+};
+
 const open = async ({ io, conversation, session, userId, details }) => {
   const game = gameOf(details.game);
   assertRunsGames(conversation, userId);
@@ -418,7 +454,7 @@ const open = async ({ io, conversation, session, userId, details }) => {
   await leaveOtherTables(io, conversation, userId);
   const seats = sit(emptySeats(game.minPlayers), 0, userId);
   const peerId = conversation.users.map((member) => String(member._id ?? member)).find((id) => id !== String(userId));
-  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: facing(seats, peerId) };
+  return { conversation: conversation._id, game: game.id, status: "lobby", options, seats: withBotsBesideTwo(game, facing(seats, peerId), options) };
 };
 
 // someone else at a table between two people, a person or Whisprl, who would be left with a game nobody finished
@@ -533,8 +569,28 @@ const changeSettings = ({ conversation, session, userId, details }) => {
   const chosen = Object.keys(game.options.defaults).filter((key) => Object.hasOwn(details.options ?? {}, key));
   const options = { ...session.options, ...Object.fromEntries(chosen.map((key) => [key, details.options[key]])) };
   game.options.assert({ ...options, players: session.seats.length });
+  // between two people a game can move the other person, so their seat goes where the new setting puts it
+  const moved = !conversation.isGroup && game.peerSeatOf ? swapped(session.seats, game.peerSeatOf(session.options), game.peerSeatOf(options)) : session.seats;
   // the table changed, so everyone agrees to it again
-  return { ...session, options, seats: unreadyAll(session.seats) };
+  return { ...session, options, seats: unreadyAll(moved) };
+};
+
+// the same table switched to another mode of its game, Jackaroo one against one or two against two, keeping whoever it has room for
+const changeMode = ({ conversation, session, userId, details }) => {
+  const game = gameOf(requireLobby(session).game);
+  const next = gameOf(details.game);
+  if (!game.modes?.includes(next.id) || next.id === game.id) throw createHttpError.BadRequest("This table can't switch to that game");
+  assertMayChangeTable(conversation, session, userId);
+  const options = next.options && Object.fromEntries(Object.entries(next.options.defaults).map(([key, value]) => [key, session.options?.[key] ?? value]));
+  const seats = conversation.isGroup ? refitted(session.seats, next.minPlayers) : besideTwoFor(game, next, session, options);
+  // the last game's board and result belong to the other mode's board
+  return { ...session, game: next.id, options, state: undefined, result: undefined, seats: unreadyAll(seats) };
+};
+
+// between two people both stay seated, the other person moving to wherever the new mode seats them
+const besideTwoFor = (game, next, session, options) => {
+  const two = (game.peerSeatOf ? swapped(session.seats, 1, game.peerSeatOf(session.options)) : session.seats).slice(0, 2);
+  return withBotsBesideTwo(next, [...two, ...emptySeats(next.minPlayers - 2)], options);
 };
 
 const changeSeats = ({ conversation, session, userId, details }) => {
@@ -608,6 +664,7 @@ const ACTIONS = {
   lock: lockSeat,
   bot: changeBot,
   settings: changeSettings,
+  mode: changeMode,
   seats: changeSeats,
   invite: inviteToSeat,
   answer: answerInvite,
@@ -739,4 +796,39 @@ export const reactInGame = async (socket, emoji) => {
   // ex-friends and blocked people stay in an old chat's room, so a reaction goes only where a message could
   if (!(await canMessageIn(id, socket.data.userId))) throw createHttpError.Forbidden("You can't send anything in this chat");
   socket.to(audienceOf(id)).emit("game_reaction", { conversationId: id, user: socket.data.userId, emoji });
+};
+
+// the partner a seated player can whisper to: someone playing their own seat on the same team, never a bot or a stand-in
+export const teamPartnerOf = (session, userId) => {
+  const team = session.state && gameOf(session.game).teamOf?.(session.state);
+  const index = playerIndexOf(session.seats, userId);
+  if (!team || index === -1) return null;
+  const partner = session.seats.find((seat, other) => other !== index && team[other] === team[index]);
+  return partner?.user && !partner.bot && !partner.away && !partner.official ? partner : null;
+};
+
+const MOST_SEALED = 6000;
+const isText = (value) => typeof value === "string" && value.length > 0;
+// sealed for one reader, the partner, in the shape a group message is sealed in
+export const isTeamCipher = (cipher) =>
+  Boolean(cipher) &&
+  isText(cipher.data) &&
+  isText(cipher.iv) &&
+  isText(cipher.senderKeyId) &&
+  Array.isArray(cipher.keys) &&
+  cipher.keys.length === 1 &&
+  [cipher.keys[0].keyId, cipher.keys[0].iv, cipher.keys[0].data].every(isText) &&
+  JSON.stringify(cipher).length <= MOST_SEALED;
+
+// a word only a partner hears: relayed to their own devices and never saved, so the server neither keeps it nor can read it
+export const sayToTeam = async (io, socket, cipher) => {
+  const id = socket.data.watching;
+  const userId = socket.data.userId;
+  if (!id || !isTeamCipher(cipher)) throw createHttpError.BadRequest("That message can't be sent");
+  const [conversation, session] = await Promise.all([ConversationModel.findById(id).select("isGroup").lean(), loadSession(id)]);
+  if (!conversation?.isGroup || session?.status !== "playing") throw createHttpError.BadRequest("Team chat is only for a team game in a group");
+  const partner = teamPartnerOf(session, userId);
+  if (!partner) throw createHttpError.BadRequest("Your partner can't read team messages");
+  if (!(await canMessageIn(id, userId))) throw createHttpError.Forbidden("You can't send anything in this chat");
+  io.to(String(partner.user)).emit("team_message", { conversationId: id, from: userId, cipher });
 };

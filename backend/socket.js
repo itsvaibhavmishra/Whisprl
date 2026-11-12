@@ -8,6 +8,7 @@ import {
   socketActInGame,
   socketLookAtGame,
   socketReactInGame,
+  socketSayToTeam,
   socketUnwatchGame,
   socketWatchGame,
 } from "#src/controllers/gameController.js";
@@ -67,6 +68,10 @@ export const initializeSocket = (server) => {
     socket.on(
       "game_react",
       withinBudget(20, (emoji, acknowledge) => socketReactInGame(socket, emoji, acknowledge))
+    );
+    socket.on(
+      "game_team_say",
+      withinBudget(20, (cipher, acknowledge) => socketSayToTeam(io, socket, cipher, acknowledge))
     );
 
     // closing one tab must not show someone offline while another tab is still open

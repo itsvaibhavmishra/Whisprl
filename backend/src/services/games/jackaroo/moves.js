@@ -1,32 +1,42 @@
 // Every way a card can be played on a given board, worked out without changing it.
-import { HOME_ENTRY, HOME_SLOTS, LOOP, START, TELEPORTS } from "#src/services/games/jackaroo/board.js";
+import { HOME_SLOTS, tableOf } from "#src/services/games/jackaroo/board.js";
 import { isRed } from "#src/services/games/jackaroo/cards.js";
 
-export const other = (seat) => 1 - seat;
+export const seatsOf = (state) => state.players.map((_, seat) => seat);
+// turns pass from each seat to the next, so in a game for two the next player is the other one
+export const nextSeat = (state, seat) => (seat + 1) % state.players.length;
+export const isPartner = (state, seat, owner) => tableOf(state).team[seat] === tableOf(state).team[owner];
 const sameMarble = (one, two) => one.owner === two.owner && one.id === two.id;
 export const placeOf = (state, marble) => state.players[marble.owner].marbles[marble.id];
 
 const marblesOf = (state, owner) => state.players[owner].marbles.map((_, id) => ({ owner, id }));
 const isOut = (state, marble) => placeOf(state, marble).at !== "base";
 const isOnTrack = (state, marble) => placeOf(state, marble).at === "track";
+const isFinished = (state, owner) => state.players[owner].marbles.every((place) => place.at === "home");
+
+// once all four of a player's marbles are home their cards move their partner's
+export const movedBy = (state, seat) => {
+  if (!isFinished(state, seat)) return seat;
+  return seatsOf(state).find((owner) => owner !== seat && isPartner(state, seat, owner)) ?? seat;
+};
 
 const marbleAt = (state, index) => {
-  for (const owner of [0, 1]) {
+  for (const owner of seatsOf(state)) {
     const id = state.players[owner].marbles.findIndex((place) => place.at === "track" && place.index === index);
     if (id !== -1) return { owner, id };
   }
   return null;
 };
 
-// a marble sitting on its own start can be neither passed nor landed on, and the other player's 5 and jack cannot take it
+// a marble sitting on its own start can be neither passed nor landed on, and nobody else's card can move or swap it
 const isOnOwnStart = (state, marble) => {
   const place = placeOf(state, marble);
-  return place.at === "track" && place.index === START[marble.owner];
+  return place.at === "track" && place.index === tableOf(state).start[marble.owner];
 };
 
 // another player's marble on the hole in front of a home shuts it, so its owner can neither turn in nor move on inside
 export const blockerOf = (state, owner) => {
-  const occupant = marbleAt(state, HOME_ENTRY[owner]);
+  const occupant = marbleAt(state, tableOf(state).homeEntry[owner]);
   return occupant && occupant.owner !== owner ? occupant : null;
 };
 
@@ -38,8 +48,9 @@ const fitsHome = (state, owner, steps) => {
   return true;
 };
 
-// the holes a marble steps through, who it knocks out and where it stops, or null; moved by its owner it never runs past home
+// the holes a marble steps through, who it knocks out and where it stops, or null; moved by its own side it never runs past home
 const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = false } = {}) => {
+  const table = tableOf(state);
   let place = placeOf(state, marble);
   if (place.at === "base" || (place.at === "home" && !forward)) return null;
   const path = [];
@@ -55,21 +66,21 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
       path.push(place);
       continue;
     }
-    if (forward && byOwner && place.index === HOME_ENTRY[marble.owner]) {
+    if (forward && byOwner && place.index === table.homeEntry[marble.owner]) {
       if (isShut() || !fitsHome(state, marble.owner, steps - step + 1)) return null;
       place = { at: "home", slot: 0 };
       path.push(place);
       continue;
     }
-    const index = (place.index + (forward ? 1 : LOOP - 1)) % LOOP;
+    const index = (place.index + (forward ? 1 : table.loop - 1)) % table.loop;
     const occupant = marbleAt(state, index);
     if (occupant && !sameMarble(occupant, marble)) {
       if (isOnOwnStart(state, occupant)) return null;
       if (sweep || step === steps) captured.push({ marble: occupant, step });
       else {
-        // any marble may be jumped, your own too, but only one in a move
+        if (!table.jumpsOwn && occupant.owner === marble.owner) return null;
         jumped += 1;
-        if (jumped > 1) return null;
+        if (jumped > table.jumpLimit) return null;
       }
     }
     place = { at: "track", index };
@@ -80,7 +91,7 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
 
 // landing on a swirl always jumps to its twin, even past home, knocking out whatever marble waits there unless it sits on its own start
 const withTeleport = (state, move) => {
-  const exit = move.to.at === "track" ? TELEPORTS[move.to.index] : undefined;
+  const exit = move.to.at === "track" ? tableOf(state).teleports[move.to.index] : undefined;
   if (exit === undefined) return move;
   const occupant = marbleAt(state, exit);
   if (occupant && isOnOwnStart(state, occupant)) return null;
@@ -95,13 +106,14 @@ const travel = (state, marble, steps, options) => {
   return move && withTeleport(state, move);
 };
 
-const bringOut = (state, seat) => {
-  const id = state.players[seat].marbles.findIndex((place) => place.at === "base");
+const bringOut = (state, owner) => {
+  const id = state.players[owner].marbles.findIndex((place) => place.at === "base");
   if (id === -1) return null;
-  const occupant = marbleAt(state, START[seat]);
-  if (occupant?.owner === seat) return null;
-  const marble = { owner: seat, id };
-  const to = { at: "track", index: START[seat] };
+  const start = tableOf(state).start[owner];
+  const occupant = marbleAt(state, start);
+  if (occupant?.owner === owner) return null;
+  const marble = { owner, id };
+  const to = { at: "track", index: start };
   return { marble, from: placeOf(state, marble), path: [to], to, captured: occupant ? [{ marble: occupant, step: 1 }] : [] };
 };
 
@@ -112,49 +124,54 @@ export const moveMarble = (state, move) => {
 
 const asPlays = (card, kind, moves) => moves.filter(Boolean).map((move) => ({ card, kind, moves: [move] }));
 
-const forwardPlays = (state, seat, card, steps) =>
-  asPlays(
+const forwardPlays = (state, seat, card, steps) => {
+  const owner = movedBy(state, seat);
+  return asPlays(
     card,
     "move",
-    marblesOf(state, seat)
+    marblesOf(state, owner)
       .filter((marble) => isOut(state, marble))
       .map((marble) => travel(state, marble, steps))
   );
+};
 
-const outPlays = (state, seat, card) => asPlays(card, "out", [bringOut(state, seat)]);
+const outPlays = (state, seat, card) => asPlays(card, "out", [bringOut(state, movedBy(state, seat))]);
 
 // back four may leave from the start, which is the quick way round to home, but never goes into a home
 const backPlays = (state, seat, card) =>
   asPlays(
     card,
     "back",
-    marblesOf(state, seat)
+    marblesOf(state, movedBy(state, seat))
       .filter((marble) => isOnTrack(state, marble))
       .map((marble) => travel(state, marble, 4, { forward: false }))
   );
 
-// a five moves anyone's marble; only its own player can take it home, so the other player's runs on past it
-const fivePlays = (state, seat, card) =>
-  [0, 1].flatMap((owner) =>
+// a five moves anyone's marble; only its own side can take it home, so anyone else's runs on past it
+const fivePlays = (state, seat, card) => {
+  const mover = movedBy(state, seat);
+  return seatsOf(state).flatMap((owner) =>
     asPlays(
       card,
       "move",
       marblesOf(state, owner)
-        .filter((marble) => (owner === seat ? isOut(state, marble) : isOnTrack(state, marble) && !isOnOwnStart(state, marble)))
-        .map((marble) => travel(state, marble, 5, { byOwner: owner === seat }))
+        .filter((marble) => (owner === mover ? isOut(state, marble) : isOnTrack(state, marble) && !isOnOwnStart(state, marble)))
+        .map((marble) => travel(state, marble, 5, { byOwner: isPartner(state, seat, owner) }))
     )
   );
+};
 
+// with a partner, a seven whose first part takes your last marble home may finish on your partner's marble
 const splitPlays = (state, seat, card) => {
   const plays = [];
-  const mine = marblesOf(state, seat).filter((marble) => isOut(state, marble));
-  for (const first of mine) {
+  const firstOwner = movedBy(state, seat);
+  for (const first of marblesOf(state, firstOwner).filter((marble) => isOut(state, marble))) {
     for (let steps = 1; steps < 7; steps += 1) {
       const firstMove = travel(state, first, steps);
       if (!firstMove) continue;
       const after = structuredClone(state);
       moveMarble(after, firstMove);
-      for (const second of mine) {
+      for (const second of marblesOf(after, movedBy(after, seat))) {
         if (sameMarble(first, second) || !isOut(after, second)) continue;
         const secondMove = travel(after, second, 7 - steps);
         if (secondMove) plays.push({ card, kind: "split", moves: [firstMove, secondMove] });
@@ -164,10 +181,14 @@ const splitPlays = (state, seat, card) => {
   return plays;
 };
 
-// your own marble may be swapped off your start, but theirs cannot be taken off its own
+// your own marble may be swapped off your start, but nobody else's ever
 const swapPlays = (state, seat, card) => {
-  const theirs = marblesOf(state, other(seat)).filter((marble) => isOnTrack(state, marble) && !isOnOwnStart(state, marble));
-  return marblesOf(state, seat)
+  const owner = movedBy(state, seat);
+  const theirs = seatsOf(state)
+    .filter((other) => other !== owner)
+    .flatMap((other) => marblesOf(state, other))
+    .filter((marble) => isOnTrack(state, marble) && !isOnOwnStart(state, marble));
+  return marblesOf(state, owner)
     .filter((marble) => isOnTrack(state, marble))
     .flatMap((mine) => theirs.map((marble) => ({ card, kind: "swap", swap: [mine, marble] })));
 };
@@ -177,14 +198,16 @@ const sweepPlays = (state, seat, card) =>
   asPlays(
     card,
     "sweep",
-    marblesOf(state, seat)
+    marblesOf(state, movedBy(state, seat))
       .filter((marble) => isOnTrack(state, marble))
       .map((marble) => travel(state, marble, 13, { sweep: true }))
   );
 
-const hasCardsToLose = (state, seat) => state.players[other(seat)].hand.length > 0;
+const hasCardsToLose = (state, seat) => state.players[nextSeat(state, seat)].hand.length > 0;
+const discardOther = (state, seat, card) => (hasCardsToLose(state, seat) ? [{ card, kind: "discardOther" }] : []);
 
-export const playsFor = (state, seat, card) => {
+// one against one: the reference game's cards, with a stepping two, a sweeping king and red picture cards of their own
+const singlePlays = (state, seat, card) => {
   switch (card.rank) {
     case 1:
     case 2:
@@ -196,7 +219,7 @@ export const playsFor = (state, seat, card) => {
     case 7:
       return [...forwardPlays(state, seat, card, 7), ...splitPlays(state, seat, card)];
     case 10:
-      return [...forwardPlays(state, seat, card, 10), ...(hasCardsToLose(state, seat) ? [{ card, kind: "discardOther" }] : [])];
+      return [...forwardPlays(state, seat, card, 10), ...discardOther(state, seat, card)];
     case 11:
       return isRed(card) ? forwardPlays(state, seat, card, 11) : swapPlays(state, seat, card);
     case 12:
@@ -209,6 +232,30 @@ export const playsFor = (state, seat, card) => {
   }
 };
 
+// two against two: the basic cards, where an ace is one or eleven, every jack swaps, every queen is twelve and a king only brings out
+const teamPlays = (state, seat, card) => {
+  switch (card.rank) {
+    case 1:
+      return [...outPlays(state, seat, card), ...forwardPlays(state, seat, card, 1), ...forwardPlays(state, seat, card, 11)];
+    case 4:
+      return backPlays(state, seat, card);
+    case 5:
+      return fivePlays(state, seat, card);
+    case 7:
+      return [...forwardPlays(state, seat, card, 7), ...splitPlays(state, seat, card)];
+    case 10:
+      return [...forwardPlays(state, seat, card, 10), ...discardOther(state, seat, card)];
+    case 11:
+      return swapPlays(state, seat, card);
+    case 13:
+      return outPlays(state, seat, card);
+    default:
+      return forwardPlays(state, seat, card, card.rank);
+  }
+};
+
+export const playsFor = (state, seat, card) => (tableOf(state).cards === "teams" ? teamPlays : singlePlays)(state, seat, card);
+
 const placeKey = ({ at, index, slot }) => (at === "track" ? `t${index}` : `${at[0]}${slot}`);
 const marbleKey = ({ owner, id }) => `${owner}.${id}`;
 
@@ -220,10 +267,17 @@ export const keyOf = (play) => {
   return parts.join(":");
 };
 
+// an ace's one and eleven can land on the same hole only through a full lap, which no move makes, so keys never collide
 const legalPlays = (state, seat) => state.players[seat].hand.flatMap((card) => playsFor(state, seat, card));
 
-// only the other player can change a stuck hand, and they cannot when they hold no cards or none of yours is on the track
-const isStuckForTheRound = (state, seat) => !state.players[other(seat)].hand.length || !marblesOf(state, seat).some((marble) => isOnTrack(state, marble));
+// stuck for the round: nobody else can change it, or nothing it moves is on the track and no partner can bring one out for it
+const isStuckForTheRound = (state, seat) => {
+  const othersHoldCards = seatsOf(state).some((other) => other !== seat && state.players[other].hand.length);
+  if (!othersHoldCards) return true;
+  const owner = movedBy(state, seat);
+  if (marblesOf(state, owner).some((marble) => isOnTrack(state, marble))) return false;
+  return owner === seat || !state.players[owner].hand.length;
+};
 
 export const playsForTurn = (state, seat) => {
   const plays = legalPlays(state, seat);
@@ -248,8 +302,9 @@ export const settlesHome = (state, play, seat) =>
   (play.moves ?? []).some((move) => move.marble.owner === seat && move.to.at === "home" && isDeepestFree(state, seat, move.to.slot));
 
 // how far round a marble has come, from its start to the last home slot
-export const progressOf = (owner, place) => {
+export const progressOf = (state, owner, place) => {
+  const { loop, start } = tableOf(state);
   if (place.at === "base") return -1;
-  if (place.at === "home") return LOOP - 1 + place.slot;
-  return (place.index - START[owner] + LOOP) % LOOP;
+  if (place.at === "home") return loop - 1 + place.slot;
+  return (place.index - start[owner] + loop) % loop;
 };

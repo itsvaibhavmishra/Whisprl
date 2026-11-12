@@ -4,9 +4,8 @@ import { CARD_RATIO } from "@/sections/chat/game/games/jackaroo/CardFace";
 import { faceOf } from "@/sections/chat/game/games/jackaroo/cards";
 import { THROWS } from "@/sections/chat/game/games/jackaroo/choices";
 import { awesome, dust, glitter, goldBurst, goldWord, removedWhenDone, shake, spawn } from "@/sections/chat/game/games/jackaroo/effects";
-import { marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry";
+import { BOARD, marbleKey, pointOf } from "@/sections/chat/game/games/jackaroo/geometry";
 import { UNDIMMED } from "@/sections/chat/game/games/jackaroo/Hand";
-import layout from "@/sections/chat/game/games/jackaroo/layout.json";
 import { SOUNDS } from "@/sections/chat/game/games/jackaroo/sounds";
 
 // the server's jackaroo/pace.js starts the next clock once these have played out, so the two keep the same numbers
@@ -73,10 +72,10 @@ export const dealStartOf = (lastPlay) => {
 };
 
 // a marble floating along a curve that bows sideways by bend, toward the middle of the loop (negative bends away), swelling at its height
-const floatFrames = (from, to, final, scale, { startsAt, duration, total, bend = 0.3, swell = 0.6 }) => {
+const floatFrames = (from, to, final, scale, pile, { startsAt, duration, total, bend = 0.3, swell = 0.6 }) => {
   const middle = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
   const side = { x: from.y - to.y, y: to.x - from.x };
-  const inward = Math.sign(side.x * (layout.pile.x - middle.x) + side.y * (layout.pile.y - middle.y)) || 1;
+  const inward = Math.sign(side.x * (pile.x - middle.x) + side.y * (pile.y - middle.y)) || 1;
   const control = { x: middle.x + side.x * bend * inward, y: middle.y + side.y * bend * inward };
   return [0.25, 0.5, 0.75].map((share) => {
     const point = {
@@ -93,17 +92,17 @@ const floatFrames = (from, to, final, scale, { startsAt, duration, total, bend =
 
 // a new marble lifts out of its base, glowing, and floats onto its start
 const bringOut = (element, move, view, delay) => {
-  const { scale, isTurned } = view;
+  const { scale } = view;
   const owner = move.marble.owner;
-  const from = pointOf(move.from, owner, isTurned);
-  const final = pointOf(move.to, owner, isTurned);
+  const from = pointOf(move.from, owner, view);
+  const final = pointOf(move.to, owner, view);
   const timing = { duration: BRING_OUT_MS, delay, fill: "backwards", easing: "ease-in-out" };
   const ball = element.querySelector("[data-ball]");
   const animations = [
     element.animate(
       [
         { transform: `${offset(from, final, scale)} scale(1)`, opacity: 1 },
-        ...floatFrames(from, final, final, scale, { startsAt: 0, duration: BRING_OUT_MS, total: BRING_OUT_MS, swell: 0.4 }),
+        ...floatFrames(from, final, final, scale, view.layout.pile, { startsAt: 0, duration: BRING_OUT_MS, total: BRING_OUT_MS, swell: 0.4 }),
         { transform: "translate(0, 0) scale(1)", opacity: 1 },
       ],
       timing
@@ -119,10 +118,10 @@ const bringOut = (element, move, view, delay) => {
 // one marble walking its path: the piece slides hole to hole while the ball inside swells toward you on each hop
 const walk = (element, move, view, delay) => {
   if (move.from.at === "base") return bringOut(element, move, view, delay);
-  const { scale, isTurned } = view;
+  const { scale } = view;
   const owner = move.marble.owner;
-  const points = placesOf(move).map((place) => pointOf(place, owner, isTurned));
-  const final = pointOf(move.to, owner, isTurned);
+  const points = placesOf(move).map((place) => pointOf(place, owner, view));
+  const final = pointOf(move.to, owner, view);
   const arrivals = arrivalsOf(move);
   const walkMs = arrivals.at(-1);
   const total = durationOf(move);
@@ -135,7 +134,7 @@ const walk = (element, move, view, delay) => {
   if (move.teleport) {
     const swirl = points.at(-1);
     const setsOff = walkMs + SWIRL_PAUSE_MS;
-    frames.push(frameAt(swirl, setsOff), ...floatFrames(swirl, final, final, scale, { startsAt: setsOff, duration: SWIRL_GLIDE_MS, total }), {
+    frames.push(frameAt(swirl, setsOff), ...floatFrames(swirl, final, final, scale, view.layout.pile, { startsAt: setsOff, duration: SWIRL_GLIDE_MS, total }), {
       transform: "translate(0, 0) scale(1)",
       opacity: 1,
       offset: 1,
@@ -192,7 +191,7 @@ const swapOver = (element, from, to, view, bend) =>
     [
       { transform: `${offset(from, to, view.scale)} scale(1)`, opacity: 1 },
       { transform: `${offset(from, to, view.scale)} scale(1.3)`, opacity: 1, offset: 0.15 },
-      ...floatFrames(from, to, to, view.scale, { startsAt: 0.15 * SWAP_MS, duration: 0.7 * SWAP_MS, total: SWAP_MS, bend, swell: 0.4 }),
+      ...floatFrames(from, to, to, view.scale, view.layout.pile, { startsAt: 0.15 * SWAP_MS, duration: 0.7 * SWAP_MS, total: SWAP_MS, bend, swell: 0.4 }),
       { transform: "translate(0, 0) scale(1.3)", opacity: 1, offset: 0.85 },
       { transform: "translate(0, 0) scale(1)", opacity: 1 },
     ],
@@ -200,12 +199,12 @@ const swapOver = (element, from, to, view, bend) =>
   );
 
 // SWAP over the pile on a green glow, called out as the two marbles lift and kept up while they cross
-const swapCall = (layer, scale) => {
-  const glow = spawn(layer, layout.pile, 34, {
+const swapCall = (layer, scale, pile) => {
+  const glow = spawn(layer, pile, 34, {
     borderRadius: "50%",
     background: "radial-gradient(circle, rgba(140, 235, 120, 0.9) 0%, rgba(70, 190, 80, 0.5) 40%, rgba(70, 190, 80, 0) 70%)",
   });
-  const word = goldWord(layer, layout.pile, scale, "SWAP", 96);
+  const word = goldWord(layer, pile, scale, "SWAP", 96);
   const timing = { duration: SWAP_MS, delay: CARD_MS, easing: "ease-out", fill: "backwards" };
   return [
     glow.animate(
@@ -293,11 +292,11 @@ const EASE_OUT = "cubic-bezier(0.2, 0.8, 0.3, 1)";
 
 const cardsIn = (hand) => [...(hand?.querySelectorAll("[data-card]") ?? [])];
 
-const spreadOf = (stage, count) => {
+const spreadOf = (stage, count, pile) => {
   const board = stage.getBoundingClientRect();
   const width = board.width * SPREAD.width;
   const height = width / CARD_RATIO;
-  const centre = { x: board.left + (layout.pile.x / layout.board) * board.width, y: board.top + (layout.pile.y / layout.board) * board.height };
+  const centre = { x: board.left + (pile.x / BOARD) * board.width, y: board.top + (pile.y / BOARD) * board.height };
   const slotX = (slot) => centre.x + (slot - (count - 1) / 2) * board.width * SPREAD.step;
   return { width, height, centre, slotX };
 };
@@ -313,9 +312,9 @@ const transformsOf = (card, spread, slot) => {
 };
 
 // the moment a red queen goes down its victim's hand goes out over the pile in full colour, and stays there until the pick
-const spreadOut = (hand, stage, delay) => {
+const spreadOut = (hand, stage, delay, pile) => {
   const cards = cardsIn(hand);
-  const spread = spreadOf(stage, cards.length);
+  const spread = spreadOf(stage, cards.length, pile);
   const timing = { duration: TAKEN_MS * SPREAD.share, delay, easing: EASE_OUT, fill: "forwards" };
   const animations = cards.flatMap((card, slot) => {
     const { base, out } = transformsOf(card, spread, slot);
@@ -332,12 +331,12 @@ const spreadOut = (hand, stage, delay) => {
 };
 
 // the hand goes out, or is already out from its queen, while the taken card leaves its slot, then the rest come back and dim again
-const spreadHand = (hand, stage, lostAt, delay) => {
+const spreadHand = (hand, stage, lostAt, delay, pile) => {
   const cards = cardsIn(hand);
   const held = cards.flatMap((card) => card.getAnimations({ subtree: true }).filter((animation) => animation.id === HELD_SPREAD));
   held.forEach((animation) => animation.cancel());
   const isHeld = held.length > 0;
-  const spread = spreadOf(stage, cards.length + 1);
+  const spread = spreadOf(stage, cards.length + 1, pile);
   const timing = { duration: TAKEN_MS, delay };
   const animations = cards.flatMap((card, index) => {
     const { base, out } = transformsOf(card, spread, index < lostAt ? index : index + 1);
@@ -432,9 +431,9 @@ export const arriveAsBonus = (element, delay) =>
   );
 
 // the middle of a player's home lane, where its cheers rise from
-const homeLaneOf = (owner, isTurned) => {
-  const deep = pointOf({ at: "home", slot: 1 }, owner, isTurned);
-  const shallow = pointOf({ at: "home", slot: 2 }, owner, isTurned);
+const homeLaneOf = (owner, view) => {
+  const deep = pointOf({ at: "home", slot: 1 }, owner, view);
+  const shallow = pointOf({ at: "home", slot: 2 }, owner, view);
   return { x: (deep.x + shallow.x) / 2, y: (deep.y + shallow.y) / 2 };
 };
 
@@ -446,15 +445,17 @@ export const playOut = (lastPlay, view, { stage, effects, marbles, pileCards, pl
   // a red queen lies under the card it took
   const thrown = flyToPile(lastPlay.lost ? pileCards.at(-2) : pileCards.at(-1), playedFrom);
   const takenAt = thrown ? CARD_MS : 0;
-  const isMineTaken = Boolean(lastPlay.lost) && 1 - lastPlay.seat === view.mySeat && lastPlay.lostAt !== undefined;
-  const spread = isMineTaken ? spreadHand(myHand, stage, lastPlay.lostAt, takenAt) : null;
+  // a red queen takes from the player after hers
+  const victim = (lastPlay.seat + 1) % view.layout.homes.length;
+  const isMineTaken = Boolean(lastPlay.lost) && victim === view.mySeat && lastPlay.lostAt !== undefined;
+  const spread = isMineTaken ? spreadHand(myHand, stage, lastPlay.lostAt, takenAt, view.layout.pile) : null;
   animations.push(...(spread?.animations ?? []));
-  if (lastPlay.kind === "show" && faceOf(lastPlay.card) === "take" && 1 - lastPlay.seat === view.mySeat) {
-    animations.push(...spreadOut(myHand, stage, thrown ? CARD_MS : 0));
+  if (lastPlay.kind === "show" && faceOf(lastPlay.card, view.mode) === "take" && victim === view.mySeat) {
+    animations.push(...spreadOut(myHand, stage, thrown ? CARD_MS : 0, view.layout.pile));
   }
   const taken = lastPlay.lost
     ? takenToPile(pileCards.at(-1), spread?.takenFrom ?? takenFrom, takenAt, {
-        isFaceDown: 1 - lastPlay.seat !== view.mySeat,
+        isFaceDown: victim !== view.mySeat,
         layer: effects,
         comesAt: spread && !spread.isHeld ? TAKEN_MS * SPREAD.share : 0,
       })
@@ -489,15 +490,15 @@ export const playOut = (lastPlay, view, { stage, effects, marbles, pileCards, pl
       const hitAt = isOnPath ? walked.points[step] : walked.final;
       const when = marblesSetOff + (isOnPath ? walked.arrivals[step] : durationOf(move));
       const target = marbles.get(marbleKey(marble));
-      if (target) animations.push(knockOut(target, hitAt, pointOf({ at: "base", slot: marble.id }, marble.owner, view.isTurned), view, when));
+      if (target) animations.push(knockOut(target, hitAt, pointOf({ at: "base", slot: marble.id }, marble.owner, view), view, when));
       at(when, () => {
         SOUNDS.hit();
         animations.push(...dust(effects, hitAt, view.scale), shake(stage, view.scale));
       });
     }
-    if (move.to.at === "home" && move.marble.owner === lastPlay.seat) {
+    if (move.to.at === "home" && view.team[move.marble.owner] === view.team[lastPlay.seat]) {
       // a second marble home in the same play cheers just above the first
-      const lane = homeLaneOf(move.marble.owner, view.isTurned);
+      const lane = homeLaneOf(move.marble.owner, view);
       const point = { x: lane.x, y: lane.y - cheers * 90 };
       cheers += 1;
       at(marblesSetOff + durationOf(move), () => {
@@ -511,20 +512,22 @@ export const playOut = (lastPlay, view, { stage, effects, marbles, pileCards, pl
     const [mine, theirs] = lastPlay.swap;
     const mineElement = marbles.get(marbleKey(mine));
     const theirElement = marbles.get(marbleKey(theirs));
-    const minePoint = mineElement && pointOf(view.placeOf(mine), mine.owner, view.isTurned);
-    const theirPoint = theirElement && pointOf(view.placeOf(theirs), theirs.owner, view.isTurned);
+    const minePoint = mineElement && pointOf(view.placeOf(mine), mine.owner, view);
+    const theirPoint = theirElement && pointOf(view.placeOf(theirs), theirs.owner, view);
     if (minePoint && theirPoint) {
       animations.push(swapOver(mineElement, theirPoint, minePoint, view, 0.35), swapOver(theirElement, minePoint, theirPoint, view, -0.35));
-      animations.push(...swapCall(effects, view.scale));
+      animations.push(...swapCall(effects, view.scale, view.layout.pile));
       at(CARD_MS, SOUNDS.swap);
     }
   }
-  if (view.winner !== null) {
+  if (view.winners.length) {
     at(lengthOf(lastPlay), () =>
-      [0, 1, 2, 3].forEach((slot) => animations.push(...goldBurst(effects, pointOf({ at: "home", slot }, view.winner, view.isTurned), view.scale)))
+      view.winners.forEach((winner) =>
+        [0, 1, 2, 3].forEach((slot) => animations.push(...goldBurst(effects, pointOf({ at: "home", slot }, winner, view), view.scale)))
+      )
     );
     // a beat after the last marble lands, so the jingle follows its cheer rather than drowning it; someone watching hears the win
-    at(lengthOf(lastPlay) + 300, view.winner === view.mySeat || view.mySeat === -1 ? SOUNDS.won : SOUNDS.lost);
+    at(lengthOf(lastPlay) + 300, view.winners.includes(view.mySeat) || view.mySeat === -1 ? SOUNDS.won : SOUNDS.lost);
   }
 
   return () => {

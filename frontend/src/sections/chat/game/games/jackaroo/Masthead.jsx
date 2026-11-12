@@ -21,7 +21,7 @@ const spriteOf = ({ left, top, width }) => {
 };
 
 // the sign over the board, as the start screen design has it, with the board laid out for a game about to begin
-const Masthead = ({ title, name, isReady }) => {
+const Masthead = ({ title, name, isReady, board = art.startBoard }) => {
   const isStill = useReducedMotion();
   const enter = (from, delay) => ({
     initial: isStill ? false : from,
@@ -33,7 +33,7 @@ const Masthead = ({ title, name, isReady }) => {
     <Box sx={{ position: "relative", width: "100%", aspectRatio: `${layout.stage.width} / ${layout.stage.height}`, flexShrink: 0 }}>
       <Box
         component={m.img}
-        src={art.startBoard}
+        src={board}
         alt=""
         aria-hidden
         {...enter({ y: 28, opacity: 0 }, 0.15)}
@@ -56,5 +56,8 @@ const Masthead = ({ title, name, isReady }) => {
     </Box>
   );
 };
+
+// two against two keeps the room and the sign, with the four-armed board laid out instead
+export const TeamsMasthead = (props) => <Masthead {...props} board={art.teams.startBoard} />;
 
 export default Masthead;

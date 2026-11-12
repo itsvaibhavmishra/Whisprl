@@ -5,8 +5,31 @@ export const isRed = ({ suit }) => suit === "H" || suit === "D";
 export const rankOf = ({ rank }) => FACES[rank] ?? String(rank);
 export const suitOf = ({ suit }) => SUITS[suit];
 
+// two against two plays the basic cards: an ace is also eleven, a two only steps, every jack swaps, every queen is twelve, a king only brings out
+const teamFaceOf = (card) => {
+  switch (card.rank) {
+    case 1:
+      return "ace";
+    case 4:
+      return "back";
+    case 5:
+      return "anyone";
+    case 7:
+      return "split";
+    case 10:
+      return "discard";
+    case 11:
+      return "swap";
+    case 13:
+      return "bring";
+    default:
+      return "number";
+  }
+};
+
 // what a card's face shows in its middle: a symbol of what it does, or its number for a plain move
-export const faceOf = (card) => {
+export const faceOf = (card, mode = "single") => {
+  if (mode === "teams") return teamFaceOf(card);
   const red = isRed(card);
   switch (card.rank) {
     case 1:
@@ -31,8 +54,30 @@ export const faceOf = (card) => {
   }
 };
 
+const teamBannerOf = (card) => {
+  switch (card.rank) {
+    case 1:
+      return "Move a marble 1 or 11 steps or place a new one";
+    case 4:
+      return "Move your marble back 4 steps";
+    case 5:
+      return "Move any marble forward 5 steps";
+    case 7:
+      return "Move 1 or 2 marbles for a total of 7 steps";
+    case 10:
+      return "Move forward 10 steps or make the next player discard a card";
+    case 11:
+      return "Swap your marble with anyone else's";
+    case 13:
+      return "Place a new marble";
+    default:
+      return `Move forward ${card.rank} steps`;
+  }
+};
+
 // what the banner says when a card is picked, in the reference game's words with our marbles
-export const bannerOf = (card) => {
+export const bannerOf = (card, mode = "single") => {
+  if (mode === "teams") return teamBannerOf(card);
   const red = isRed(card);
   switch (card.rank) {
     case 1:

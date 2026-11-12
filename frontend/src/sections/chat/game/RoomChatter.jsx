@@ -123,6 +123,14 @@ export const SeatSaying = ({ user, theme, placement = "below" }) => {
           wordBreak: "break-word",
         }}
       >
+        {saying.isTeam && (
+          <Box
+            component="span"
+            sx={{ mr: 0.75, px: 0.6, py: 0.1, borderRadius: 1, bgcolor: theme.ink, color: theme.card, fontSize: 10, fontWeight: 800, verticalAlign: "1px" }}
+          >
+            Team
+          </Box>
+        )}
         {saying.text}
       </Typography>
     </Box>

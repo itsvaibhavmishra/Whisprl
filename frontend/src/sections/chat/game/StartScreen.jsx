@@ -21,6 +21,9 @@ import useSecondsLeft from "@/sections/chat/game/useSecondsLeft";
 const scrimOf = (shade, isUnderArt) => ({
   width: "100%",
   flexShrink: 0,
+  // above the masthead it tucks under, so the art's foot never covers a team's name
+  position: "relative",
+  zIndex: 1,
   // under a masthead the seats tuck just under the art's foot, as in the designs; under a title they start below it
   mt: isUnderArt ? -5 : 0,
   pt: 3.6,
@@ -85,6 +88,9 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
   const freeSeat = session.seats.findIndex((seat) => mayTake(seat, meId));
   const botSeat = session.seats.findLastIndex(isChosenBot);
   const seatForBot = session.seats.findIndex((seat) => mayHoldBot(seat, conversation.isGroup));
+  // between two people a bigger table's other seats are bots already, so the choice is only ever about the other person's seat
+  const peerSeat = game.peerSeatOf?.(session.options) ?? null;
+  const isBetweenTwo = !conversation.isGroup && conversation.users.length > 1;
   const [isReady, setReady] = usePending(Boolean(mySeat?.ready), (ready) => act({ type: "ready", ready }));
   const toggleReady = () => setReady(!isReady);
   // the same people the server lets set the table up: whoever is sitting, or a group's manager
@@ -112,6 +118,11 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
       return botSeat === -1 ? null : { label: "Remove a bot", onClick: setBotAt(botSeat, false) };
     }
     if (!mySeat) return null;
+    if (peerSeat !== null) {
+      if (!isBetweenTwo) return null;
+      if (isChosenBot(session.seats[peerSeat])) return { label: "Remove the bot", onClick: setBotAt(peerSeat, false) };
+      return mayHoldBot(session.seats[peerSeat], false) ? { label: "Play the bot instead", onClick: setBotAt(peerSeat, true) } : null;
+    }
     if (botSeat !== -1) return { label: "Remove the bot", onClick: setBotAt(botSeat, false) };
     return seatForBot === -1 ? null : { label: "Play the bot instead", onClick: setBotAt(seatForBot, true) };
   };
@@ -160,8 +171,10 @@ const StartScreen = ({ conversation, session, game, meId, isManager, isArtReady,
               <GameOptions
                 game={game}
                 session={session}
+                isBetweenTwo={isBetweenTwo}
                 canChange={canChangeTable && !secondsToStart}
                 onChange={(options) => act({ type: "settings", options })}
+                onSwitchMode={(chosen) => act({ type: "mode", game: chosen })}
               />
               <StatusPill theme={theme} isLive={Boolean(secondsToStart)} isWide icon={<HourglassMediumIcon size={16} weight="fill" />}>
                 {secondsToStart ? `Starting in ${secondsToStart}` : lobbyLineOf(session, conversation, meId)}

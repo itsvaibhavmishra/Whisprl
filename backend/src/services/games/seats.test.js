@@ -10,24 +10,26 @@ import {
   invite,
   isBotOpponent,
   isBotPlaying,
-  isDrawable,
   isChosenBot,
+  isDrawable,
   isEveryoneReady,
   lift,
   missTurn,
   playedTurn,
   playerIndexOf,
   resized,
-  withSeatCount,
   seatBot,
   seatWhisprl,
   setLocked,
   setReady,
   sit,
   stand,
+  refitted,
+  swapped,
   unreadyAll,
   unseatBot,
   withFreshPersonas,
+  withSeatCount,
 } from "#src/services/games/seats.js";
 
 const ARIA = "aria";
@@ -206,4 +208,17 @@ test("Whisprl's own seat is always ready, played by the bot, and stays seated be
       2
     )
   );
+});
+
+test("two seats trade places with whoever is in them, and the rest stay put", () => {
+  const seats = [{ user: "me" }, { invited: "friend" }, { bot: true }, { bot: true }];
+  assert.deepEqual(swapped(seats, 1, 2), [{ user: "me" }, { bot: true }, { invited: "friend" }, { bot: true }]);
+  assert.deepEqual(swapped(seats, 1, 1), seats);
+});
+
+test("another mode keeps people before bots as far as it has room, and a bigger one adds empty seats", () => {
+  const four = [{ bot: true }, { user: "ava" }, { locked: true }, { user: "ben" }];
+  assert.deepEqual(refitted(four, 2), [{ user: "ava" }, { user: "ben" }]);
+  assert.deepEqual(refitted([{ bot: true }, { user: "ava" }, {}, {}], 2), [{ user: "ava" }, { bot: true }]);
+  assert.deepEqual(refitted([{ user: "ava" }, { bot: true }], 4), [{ user: "ava" }, { bot: true }, ...emptySeats(2)]);
 });

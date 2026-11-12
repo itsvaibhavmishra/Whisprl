@@ -28,3 +28,11 @@ test("every table up to six gets distinct colours from the palette, and which on
   const starts = new Set(Array.from({ length: 200 }, () => dealtColours(2)[0]));
   assert.equal(starts.size, PALETTE_SIZE);
 });
+
+test("four players never get blue beside teal or purple, which look alike on a marble", () => {
+  for (let deal = 0; deal < 200; deal += 1) {
+    const colours = dealtColours(4);
+    assert.equal(new Set(colours).size, 4);
+    assert.ok(!(colours.includes(4) && (colours.includes(3) || colours.includes(5))), colours.join(","));
+  }
+});
