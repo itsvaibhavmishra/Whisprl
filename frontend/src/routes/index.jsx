@@ -81,7 +81,6 @@ export default function Router() {
             { index: true, element: null },
             { path: "people", element: <PeoplePage /> },
             { path: "reports", element: <ReportsPage /> },
-            { path: "requests", element: <GameRequestsPage /> },
             { path: "announcements", element: <AnnouncementsPage /> },
             { path: "team", element: <TeamPage /> },
             { path: "app-updates", element: <AppUpdatesPage /> },
@@ -131,7 +130,6 @@ const ResetPasswordPage = Loadable(lazy(() => import("@/pages/auth/ResetPassword
 const AdminLayout = Loadable(lazy(() => import("@/layouts/admin")));
 const PeoplePage = Loadable(lazy(() => import("@/pages/admin/People")));
 const ReportsPage = Loadable(lazy(() => import("@/pages/admin/Reports")));
-const GameRequestsPage = Loadable(lazy(() => import("@/pages/admin/GameRequests")));
 const AnnouncementsPage = Loadable(lazy(() => import("@/pages/admin/Announcements")));
 const TeamPage = Loadable(lazy(() => import("@/pages/admin/Team")));
 const AppUpdatesPage = Loadable(lazy(() => import("@/pages/admin/AppUpdates")));

@@ -585,7 +585,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── index.jsx
 │   │   ├── pages/
 │   │   │   ├── admin/
-│   │   │   │   ├── GameRequests.jsx
 │   │   │   │   ├── People.jsx
 │   │   │   │   ├── Reports.jsx
 │   │   │   │   ├── Team.jsx
@@ -659,7 +658,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── PillGroup.jsx
 │   │   │   │   ├── ReportCard.jsx
 │   │   │   │   ├── ReportSubject.jsx
-│   │   │   │   ├── RequestGroup.jsx
 │   │   │   │   ├── TeamMember.jsx
 │   │   │   ├── auth/
 │   │   │   │   ├── AuthHeader.jsx

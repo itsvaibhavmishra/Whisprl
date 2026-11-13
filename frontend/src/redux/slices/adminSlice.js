@@ -6,7 +6,6 @@ import {
   GetAnnouncements,
   GetAppUpdates,
   GetAudienceSizes,
-  GetGameRequests,
   GetPeople,
   GetReports,
   GetTeam,
@@ -18,8 +17,6 @@ const initialState = {
   latestPeopleFetch: null,
   reports: { list: null, total: 0, hasMore: false },
   latestReportsFetch: null,
-  gameRequests: { list: null, total: 0, hasMore: false, mostAsked: 0 },
-  latestGameRequestsFetch: null,
   team: null,
   appUpdates: null,
   announcements: { list: null, hasMore: false },
@@ -49,14 +46,6 @@ const slice = createSlice({
         if (action.meta.requestId !== state.latestReportsFetch) return;
         const { reports, total, hasMore } = action.payload;
         state.reports = { list: action.meta.arg.page ? [...state.reports.list, ...reports] : reports, total, hasMore };
-      })
-      .addCase(GetGameRequests.pending, (state, action) => {
-        state.latestGameRequestsFetch = action.meta.requestId;
-      })
-      .addCase(GetGameRequests.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestGameRequestsFetch) return;
-        const { groups, total, hasMore, mostAsked } = action.payload;
-        state.gameRequests = { list: action.meta.arg.page ? [...state.gameRequests.list, ...groups] : groups, total, hasMore, mostAsked };
       })
       .addCase(GetTeam.fulfilled, (state, action) => {
         state.team = action.payload.members;

@@ -17,8 +17,11 @@ const gameRequestSchema = mongoose.Schema(
     links: { type: [String], default: [] },
     details: { type: String, default: "" },
     status: { type: String, enum: REQUEST_STATUSES, default: "open" },
-    closedBy: { type: mongoose.Schema.ObjectId, ref: "User" },
+    // the staff member who closed it, which is not a Whisprl account
+    closedBy: { type: mongoose.Schema.ObjectId },
     closedAt: { type: Date },
+    // set when staff mark it added, and cleared once the sweep has told the person who asked
+    awaitingNotice: { type: Boolean },
   },
   { timestamps: true }
 );

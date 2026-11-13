@@ -7,13 +7,11 @@ import {
   ban,
   changeAppUpdates,
   changeTeamAccess,
-  closeGameRequest,
   dismiss,
   getAnnouncedGames,
   getAnnouncements,
   getAudienceSizes,
   getConfirmationOptions,
-  getGameRequests,
   getPeople,
   getReports,
   getTeam,
@@ -42,10 +40,6 @@ adminRouter.route("/people/:user_id/restore").put(writeLimit(), restore);
 adminRouter.route("/reports").get(readLimit(), allow("reports"), getReports);
 
 adminRouter.route("/reports/:report_id/dismiss").put(writeLimit(), allow("reports"), dismiss);
-
-adminRouter.route("/game-requests").get(searchLimit(), allow("requests"), getGameRequests);
-
-adminRouter.route("/game-requests/:name_key/close").put(writeLimit(), allow("requests"), closeGameRequest);
 
 adminRouter.route("/announcements").get(readLimit(), allow("announce"), getAnnouncements).post(writeLimit(), allow("announce"), sendAnnouncement);
 

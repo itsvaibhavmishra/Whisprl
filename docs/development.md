@@ -290,17 +290,14 @@ The last card in the games list asks for a game: a classic, something new or an 
 person's own, with its name, up to three links and optional details, and no media. A person has
 one open request per game, and five a day.
 
-Staff with the `requests` permission see them at `/admin/requests`, grouped by game and ranked by
-how many people asked. `nameKeyOf` in `src/utils/textSearch.js` folds a name to a key, so
-"Tic-Tac-Toe", "tic tac toe" and "The TicTacToe" count as one game. The search scores in memory
-with `searchScore` from the same file: every word has to match, names weigh three times what the
-details, links and requesters' names do, and a word can match by its start, with a typo or two,
-or run into the next word. A name that starts with the query ranks first. That suits the
-hundreds or thousands of requests Whisprl gets; at many more it would need a search index.
+Staff review and close requests outside the app. `nameKeyOf` in `src/utils/textSearch.js` folds
+a name to a key, stored on each request as `nameKey`, so "Tic-Tac-Toe", "tic tac toe" and "The
+TicTacToe" count as one game.
 
-Marking a game added or dismissed closes every open request for it. It changes nobody's access,
-so it needs no passkey, and who did it and when are kept on the requests rather than in the audit
-log. A person's requests are deleted with their account.
+Marking a game added sets `awaitingNotice` on every request for it. The once-a-minute sweep
+(`tellGameRequesters`) claims each flagged request before sending, so two servers never tell anyone
+twice, and messages each person who asked once, in their own spelling, with the live update and
+the phone notification. A person's requests are deleted with their account.
 
 ## Deleting an account
 
