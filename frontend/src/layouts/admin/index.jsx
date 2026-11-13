@@ -3,7 +3,6 @@ import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery 
 import { alpha } from "@mui/material/styles";
 import {
   ArrowLeftIcon,
-  ChartLineUpIcon,
   ClockCounterClockwiseIcon,
   CrownIcon,
   DeviceMobileIcon,
@@ -30,7 +29,6 @@ const SIDEBAR_WIDTH = 248;
 // the top bar already sits below the status bar, so the page area starts clear of it
 const PAGE_AREA = { isUnderStatusBar: false };
 const DESTINATIONS = [
-  { path: PATH_ADMIN.overview, label: "Overview", Icon: ChartLineUpIcon, permission: "overview" },
   { path: PATH_ADMIN.people, label: "People", Icon: UsersIcon, permission: "people" },
   { path: PATH_ADMIN.reports, label: "Reports", Icon: FlagIcon, permission: "reports" },
   { path: PATH_ADMIN.requests, label: "Game requests", Icon: GameControllerIcon, permission: "requests" },

@@ -3,22 +3,6 @@ import axios from "@/utils/axios";
 import { notify } from "@/utils/notify";
 import { authenticateWithPasskey } from "@/utils/passkeys";
 
-export const GetOverview = createApiThunk("admin/overview", async ({ from, to }) => (await axios.get("/admin/overview", { params: { from, to } })).data, {
-  notifyErrors: false,
-});
-
-export const GetActivePeople = createApiThunk(
-  "admin/active",
-  async ({ from, to, page }) => (await axios.get("/admin/active", { params: { from, to, page } })).data,
-  { notifyErrors: false }
-);
-
-export const GetStoppedPeople = createApiThunk(
-  "admin/journey",
-  async ({ stage, from, to, page }) => (await axios.get(`/admin/journey/${stage}`, { params: { from, to, page } })).data,
-  { notifyErrors: false }
-);
-
 export const GetPeople = createApiThunk(
   "admin/people",
   async ({ search, filter, page }) => (await axios.get("/admin/people", { params: { search, filter, page } })).data,

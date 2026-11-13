@@ -9,17 +9,14 @@ import {
   changeTeamAccess,
   closeGameRequest,
   dismiss,
-  getActivePeople,
   getAnnouncedGames,
   getAnnouncements,
   getAudienceSizes,
   getAuditLog,
   getConfirmationOptions,
   getGameRequests,
-  getOverview,
   getPeople,
   getReports,
-  getStoppedPeople,
   getTeam,
   removeFromTeam,
   restore,
@@ -31,12 +28,6 @@ const adminRouter = express.Router();
 
 // every admin route sits behind these, so none can be added without them
 adminRouter.use(protect, staffOnly);
-
-adminRouter.route("/overview").get(readLimit(), allow("overview"), getOverview);
-
-adminRouter.route("/active").get(readLimit(), allow("overview"), getActivePeople);
-
-adminRouter.route("/journey/:stage").get(readLimit(), allow("overview"), getStoppedPeople);
 
 adminRouter.route("/people").get(searchLimit(), allow("people"), getPeople);
 

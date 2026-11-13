@@ -374,7 +374,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── messageService.js
 │   │   │   ├── moderationService.js
 │   │   │   ├── onboardingService.js
-│   │   │   ├── overviewService.js
 │   │   │   ├── passkeyService.js
 │   │   │   ├── pushService.js
 │   │   │   ├── pushService.test.js
@@ -588,7 +587,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── admin/
 │   │   │   │   ├── AuditLog.jsx
 │   │   │   │   ├── GameRequests.jsx
-│   │   │   │   ├── Overview.jsx
 │   │   │   │   ├── People.jsx
 │   │   │   │   ├── Reports.jsx
 │   │   │   │   ├── Team.jsx
@@ -654,23 +652,14 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   ├── sections/
 │   │   │   ├── admin/
 │   │   │   │   ├── AccessDialog.jsx
-│   │   │   │   ├── ActivePeople.jsx
 │   │   │   │   ├── AuditEntry.jsx
 │   │   │   │   ├── AuditTimeline.jsx
-│   │   │   │   ├── DailyChart.jsx
-│   │   │   │   ├── DateRangePicker.jsx
-│   │   │   │   ├── dayRanges.js
 │   │   │   │   ├── EvidenceTranscript.jsx
-│   │   │   │   ├── GamePlays.jsx
-│   │   │   │   ├── MonthGrid.jsx
 │   │   │   │   ├── Notice.jsx
-│   │   │   │   ├── OverviewFigures.jsx
 │   │   │   │   ├── PersonActions.jsx
 │   │   │   │   ├── PersonRow.jsx
 │   │   │   │   ├── PersonStatus.jsx
 │   │   │   │   ├── PillGroup.jsx
-│   │   │   │   ├── PlatformIcons.jsx
-│   │   │   │   ├── PlatformSplit.jsx
 │   │   │   │   ├── ReportCard.jsx
 │   │   │   │   ├── ReportSubject.jsx
 │   │   │   │   ├── RequestGroup.jsx
