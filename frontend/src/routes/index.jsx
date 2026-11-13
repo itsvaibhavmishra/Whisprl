@@ -79,9 +79,7 @@ export default function Router() {
           children: [
             // the layout matches /admin only through a child, and sends each person on to the first page they can use
             { index: true, element: null },
-            { path: "announcements", element: <AnnouncementsPage /> },
             { path: "team", element: <TeamPage /> },
-            { path: "app-updates", element: <AppUpdatesPage /> },
             { path: "*", element: <Navigate to="/404" replace /> },
           ],
         },
@@ -126,9 +124,7 @@ const ResetPasswordPage = Loadable(lazy(() => import("@/pages/auth/ResetPassword
 
 // admin pages, fetched only once the guard has let someone through
 const AdminLayout = Loadable(lazy(() => import("@/layouts/admin")));
-const AnnouncementsPage = Loadable(lazy(() => import("@/pages/admin/Announcements")));
 const TeamPage = Loadable(lazy(() => import("@/pages/admin/Team")));
-const AppUpdatesPage = Loadable(lazy(() => import("@/pages/admin/AppUpdates")));
 
 // docs pages
 const TnCPage = Loadable(lazy(() => import("@/pages/docs/TnC")));

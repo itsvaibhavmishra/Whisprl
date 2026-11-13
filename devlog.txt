@@ -27,4 +27,5 @@
     - The admin audit log page is removed; staff actions still record their entries
     - The admin game requests page is removed; requests marked added outside the app are told to everyone who asked by the once-a-minute sweep
     - The admin reports and people pages are removed; the once-a-minute sweep tells reporters how their report ended and closes the live connections of any session ended outside the app, as a ban does
+    - The admin announcements and app updates pages are removed; the once-a-minute sweep delivers any announcement sent outside the app, in batches it resumes after a restart
     - The README leads with the games and the Android app, with the Play listing's feature graphic and screenshots in docs/screenshots

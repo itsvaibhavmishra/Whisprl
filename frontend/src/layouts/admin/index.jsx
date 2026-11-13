@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Box, ButtonBase, IconButton, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArrowLeftIcon, CrownIcon, DeviceMobileIcon, IdentificationBadgeIcon, MegaphoneIcon, ShieldStarIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, CrownIcon, IdentificationBadgeIcon, ShieldStarIcon } from "@phosphor-icons/react";
 import { useSelector } from "react-redux";
 import { Link, Navigate, Outlet, matchPath, useLocation } from "react-router-dom";
 
@@ -17,11 +17,7 @@ import { can } from "@/utils/roles";
 const SIDEBAR_WIDTH = 248;
 // the top bar already sits below the status bar, so the page area starts clear of it
 const PAGE_AREA = { isUnderStatusBar: false };
-const DESTINATIONS = [
-  { path: PATH_ADMIN.announcements, label: "Announcements", Icon: MegaphoneIcon, permission: "announce" },
-  { path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadgeIcon, permission: "team" },
-  { path: PATH_ADMIN.appUpdates, label: "App updates", Icon: DeviceMobileIcon, permission: "updates" },
-];
+const DESTINATIONS = [{ path: PATH_ADMIN.team, label: "Team", Icon: IdentificationBadgeIcon, permission: "team" }];
 const ROLE_BADGES = { owner: { label: "Owner", Icon: CrownIcon }, admin: { label: "Admin", Icon: ShieldStarIcon } };
 
 const RoleBadge = ({ role }) => {

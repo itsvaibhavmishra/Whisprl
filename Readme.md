@@ -649,7 +649,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── AccessDialog.jsx
 │   │   │   │   ├── Notice.jsx
 │   │   │   │   ├── PersonStatus.jsx
-│   │   │   │   ├── PillGroup.jsx
 │   │   │   │   ├── TeamMember.jsx
 │   │   │   ├── auth/
 │   │   │   │   ├── AuthHeader.jsx
