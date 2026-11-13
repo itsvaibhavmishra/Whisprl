@@ -32,31 +32,3 @@ export const RemoveAdmin = withPasskey(
   ({ userId, ...details }, confirmation) => axios.put(`/admin/team/${userId}/remove`, { ...details, confirmation }),
   "Removed from the team"
 );
-
-export const GetAppUpdates = createApiThunk("admin/appUpdates", async () => (await axios.get("/app/update-policy")).data.policy, { notifyErrors: false });
-
-export const ChangeAppUpdates = withPasskey(
-  "admin/appUpdates/change",
-  (details, confirmation) => axios.put("/admin/app-updates", { ...details, confirmation }),
-  "Saved. Apps pick it up the next time they open"
-);
-
-export const GetAnnouncements = createApiThunk(
-  "admin/announcements",
-  async (before) => (await axios.get("/admin/announcements", { params: { before } })).data,
-  { notifyErrors: false }
-);
-
-export const GetAudienceSizes = createApiThunk("admin/audienceSizes", async () => (await axios.get("/admin/announcements/audience")).data.sizes, {
-  notifyErrors: false,
-});
-
-export const GetAnnouncedGames = createApiThunk("admin/announcedGames", async () => (await axios.get("/admin/announcements/games")).data.games, {
-  notifyErrors: false,
-});
-
-export const SendAnnouncement = createApiThunk("admin/announce", async (announcement) => {
-  const { data } = await axios.post("/admin/announcements", announcement);
-  notify({ severity: "success", message: "Sending. Whisprl is delivering it now" });
-  return data.announcement;
-});

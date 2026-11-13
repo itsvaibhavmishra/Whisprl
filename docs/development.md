@@ -187,8 +187,8 @@ and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
   `recommended` and `required` in `frontend/android/app-versions.json` are versionCodes kept by
   hand, and `appVersions.test.js` fails the gate if either is above `versionCode` or a required
   version is not also recommended. An app below `recommended` shows a reminder it can close; one
-  below `required` shows one that stays. Both wait for **Show the update reminder** on the admin
-  panel's App updates page (owner only), because a release reaches apps before Play's review
+  below `required` shows one that stays. Both wait for **Show the update reminder**, a switch the
+  owner sets outside the app in `updatepolicies`, because a release reaches apps before Play's review
   ends. Where Play installed the app, Update runs Play's own update (`PlayUpdatePlugin.java`):
   a download in the background for a recommended version, full screen for a required one. An app
   Play did not install, or one built before the plugin, is sent to the Play listing instead, and

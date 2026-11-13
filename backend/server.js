@@ -11,7 +11,7 @@ import { sweepExpiredStatuses } from "#src/services/statusService.js";
 import { syncOwnerBadge } from "#src/services/teamService.js";
 import { ensureWhisprl } from "#src/services/whisprlService.js";
 import { welcomeEveryone } from "#src/services/whisprlMessageService.js";
-import { resumeAnnouncements } from "#src/services/announcementService.js";
+import { sendWaitingAnnouncements } from "#src/services/announcementService.js";
 import { greetBirthdays } from "#src/services/birthdayGreetingService.js";
 import { tellGameRequesters } from "#src/services/gameRequestService.js";
 import { flushErrorReports, reportError, startErrorReports } from "#src/utils/errorReports.js";
@@ -33,7 +33,7 @@ mongoose
     syncOwnerBadge().catch((error) => console.log(`[DB] Owner badge not synced: ${error.message}`));
     ensureWhisprl()
       .then(welcomeEveryone)
-      .then(() => resumeAnnouncements(app.get("io")))
+      .then(() => sendWaitingAnnouncements(app.get("io")))
       .catch((error) => console.log(`[DB] Whisprl account not ready: ${error.message}`));
     deleteDueAccounts(app.get("io"))
       .then((deleted) => deleted && console.log(`[DB] Deleted ${deleted} accounts that were due while the server was off`))
@@ -51,6 +51,7 @@ mongoose
       tellGameRequesters(app.get("io")).catch(sweepFailed);
       tellReporters(app.get("io")).catch(sweepFailed);
       closeEndedSockets(app.get("io")).catch(sweepFailed);
+      sendWaitingAnnouncements(app.get("io")).catch(sweepFailed);
     }, SWEEP_EVERY_MS);
   })
   .catch((err) => {

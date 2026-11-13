@@ -31,9 +31,7 @@ export const PATH_INVITE = path(ROOTS_DASHBOARD, "invite");
 
 export const PATH_ADMIN = {
   root: path(ROOTS_DASHBOARD, "admin"),
-  announcements: path(ROOTS_DASHBOARD, "admin/announcements"),
   team: path(ROOTS_DASHBOARD, "admin/team"),
-  appUpdates: path(ROOTS_DASHBOARD, "admin/app-updates"),
 };
 
 export const PATH_DOCS = {
