@@ -5,7 +5,8 @@ import app from "#app.js";
 import { initializeSocket } from "#socket.js";
 import { deleteDueAccounts } from "#src/services/accountDeletionService.js";
 import { sweepExpiredMessages } from "#src/services/disappearingService.js";
-import { sweepOldEvidence } from "#src/services/reportQueueService.js";
+import { sweepOldEvidence, tellReporters } from "#src/services/reportQueueService.js";
+import { closeEndedSockets } from "#src/services/sessionService.js";
 import { sweepExpiredStatuses } from "#src/services/statusService.js";
 import { syncOwnerBadge } from "#src/services/teamService.js";
 import { ensureWhisprl } from "#src/services/whisprlService.js";
@@ -48,6 +49,8 @@ mongoose
       sweepOldEvidence().catch(sweepFailed);
       greetBirthdays(app.get("io")).catch(sweepFailed);
       tellGameRequesters(app.get("io")).catch(sweepFailed);
+      tellReporters(app.get("io")).catch(sweepFailed);
+      closeEndedSockets(app.get("io")).catch(sweepFailed);
     }, SWEEP_EVERY_MS);
   })
   .catch((err) => {

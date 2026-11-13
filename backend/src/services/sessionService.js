@@ -112,3 +112,24 @@ export const signOutOtherDevices = (io, user_id, keep_session_id) => disconnectS
 export const signOutSession = (io, session) => disconnectSockets(io, session.user, (session_id) => session_id === String(session._id));
 
 export const signOutEverywhere = (io, user_id) => io.in(String(user_id)).disconnectSockets(true);
+
+export const socketsWithoutSession = (sockets, liveSessionIds) =>
+  sockets.filter((socket) => socket.data.sessionId && !liveSessionIds.has(String(socket.data.sessionId)));
+
+// a session can end outside the app, as a ban from staff does, so any socket whose session is gone is closed here
+export const closeEndedSockets = async (io) => {
+  const sockets = await io.fetchSockets();
+  const sessionIds = [
+    ...new Set(
+      sockets
+        .map((socket) => socket.data.sessionId)
+        .filter(Boolean)
+        .map(String)
+    ),
+  ];
+  if (!sessionIds.length) return;
+  const live = await SessionModel.find({ _id: { $in: sessionIds } })
+    .select("_id")
+    .lean();
+  socketsWithoutSession(sockets, new Set(live.map(({ _id }) => String(_id)))).forEach((socket) => socket.disconnect(true));
+};
