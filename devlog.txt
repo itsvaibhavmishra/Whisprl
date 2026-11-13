@@ -24,4 +24,5 @@
 
   - Internal:
     - The admin overview page is removed, and recharts with it, since nothing else used it
+    - The admin audit log page is removed; staff actions still record their entries
     - The README leads with the games and the Android app, with the Play listing's feature graphic and screenshots in docs/screenshots

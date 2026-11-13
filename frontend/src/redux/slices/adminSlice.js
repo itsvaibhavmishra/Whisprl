@@ -6,7 +6,6 @@ import {
   GetAnnouncements,
   GetAppUpdates,
   GetAudienceSizes,
-  GetAuditLog,
   GetGameRequests,
   GetPeople,
   GetReports,
@@ -23,8 +22,6 @@ const initialState = {
   latestGameRequestsFetch: null,
   team: null,
   appUpdates: null,
-  // entries stay null until the first page arrives, so an empty log is told apart from one not read yet
-  audit: { entries: null, hasMore: false },
   announcements: { list: null, hasMore: false },
   audienceSizes: null,
   announcedGames: null,
@@ -69,11 +66,6 @@ const slice = createSlice({
       })
       .addCase(ChangeAppUpdates.fulfilled, (state, action) => {
         state.appUpdates = action.payload.policy;
-      })
-      .addCase(GetAuditLog.fulfilled, (state, action) => {
-        const { entries, hasMore } = action.payload;
-        // a page asked for without a starting point is the newest, so it replaces whatever was shown
-        state.audit = { entries: action.meta.arg ? [...state.audit.entries, ...entries] : entries, hasMore };
       })
       .addCase(GetAnnouncements.fulfilled, (state, action) => {
         const { announcements, hasMore } = action.payload;

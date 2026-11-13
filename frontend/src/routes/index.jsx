@@ -83,7 +83,6 @@ export default function Router() {
             { path: "reports", element: <ReportsPage /> },
             { path: "requests", element: <GameRequestsPage /> },
             { path: "announcements", element: <AnnouncementsPage /> },
-            { path: "audit", element: <AuditLogPage /> },
             { path: "team", element: <TeamPage /> },
             { path: "app-updates", element: <AppUpdatesPage /> },
             { path: "*", element: <Navigate to="/404" replace /> },
@@ -134,7 +133,6 @@ const PeoplePage = Loadable(lazy(() => import("@/pages/admin/People")));
 const ReportsPage = Loadable(lazy(() => import("@/pages/admin/Reports")));
 const GameRequestsPage = Loadable(lazy(() => import("@/pages/admin/GameRequests")));
 const AnnouncementsPage = Loadable(lazy(() => import("@/pages/admin/Announcements")));
-const AuditLogPage = Loadable(lazy(() => import("@/pages/admin/AuditLog")));
 const TeamPage = Loadable(lazy(() => import("@/pages/admin/Team")));
 const AppUpdatesPage = Loadable(lazy(() => import("@/pages/admin/AppUpdates")));
 

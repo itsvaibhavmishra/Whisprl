@@ -1,5 +1,4 @@
 import { announce, announcedGames, audienceSizes, listAnnouncements } from "#src/services/announcementService.js";
-import { listAuditEntries } from "#src/services/auditService.js";
 import { closeGameRequests, listGameRequests } from "#src/services/gameRequestService.js";
 import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/services/moderationService.js";
 import { dismissReport, listReports } from "#src/services/reportQueueService.js";
@@ -47,10 +46,6 @@ export const getReports = async (req, res) => {
 export const dismiss = async (req, res) => {
   await dismissReport(req.app.get("io"), req.user, req.params.report_id, req.body);
   return res.status(200).json({ status: "success" });
-};
-
-export const getAuditLog = async (req, res) => {
-  return res.status(200).json({ status: "success", ...(await listAuditEntries(req.query.before)) });
 };
 
 export const getAnnouncements = async (req, res) => {

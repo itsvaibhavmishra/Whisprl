@@ -12,7 +12,6 @@ import {
   getAnnouncedGames,
   getAnnouncements,
   getAudienceSizes,
-  getAuditLog,
   getConfirmationOptions,
   getGameRequests,
   getPeople,
@@ -53,8 +52,6 @@ adminRouter.route("/announcements").get(readLimit(), allow("announce"), getAnnou
 adminRouter.route("/announcements/audience").get(readLimit(), allow("announce"), getAudienceSizes);
 
 adminRouter.route("/announcements/games").get(readLimit(), allow("announce"), getAnnouncedGames);
-
-adminRouter.route("/audit").get(readLimit(), allow("audit"), getAuditLog);
 
 adminRouter.route("/team").get(readLimit(), allow("team"), getTeam).post(writeLimit(), allow("team"), addToTeam);
 
