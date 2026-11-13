@@ -12,6 +12,7 @@ import { ensureWhisprl } from "#src/services/whisprlService.js";
 import { welcomeEveryone } from "#src/services/whisprlMessageService.js";
 import { resumeAnnouncements } from "#src/services/announcementService.js";
 import { greetBirthdays } from "#src/services/birthdayGreetingService.js";
+import { tellGameRequesters } from "#src/services/gameRequestService.js";
 import { flushErrorReports, reportError, startErrorReports } from "#src/utils/errorReports.js";
 
 startErrorReports();
@@ -46,6 +47,7 @@ mongoose
       sweepExpiredStatuses().catch(sweepFailed);
       sweepOldEvidence().catch(sweepFailed);
       greetBirthdays(app.get("io")).catch(sweepFailed);
+      tellGameRequesters(app.get("io")).catch(sweepFailed);
     }, SWEEP_EVERY_MS);
   })
   .catch((err) => {
