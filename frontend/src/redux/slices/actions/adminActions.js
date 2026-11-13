@@ -94,7 +94,3 @@ export const SendAnnouncement = createApiThunk("admin/announce", async (announce
   notify({ severity: "success", message: "Sending. Whisprl is delivering it now" });
   return data.announcement;
 });
-
-export const GetAuditLog = createApiThunk("admin/audit", async (before) => (await axios.get("/admin/audit", { params: { before } })).data, {
-  notifyErrors: false,
-});

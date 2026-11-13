@@ -585,7 +585,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── index.jsx
 │   │   ├── pages/
 │   │   │   ├── admin/
-│   │   │   │   ├── AuditLog.jsx
 │   │   │   │   ├── GameRequests.jsx
 │   │   │   │   ├── People.jsx
 │   │   │   │   ├── Reports.jsx
@@ -652,8 +651,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   ├── sections/
 │   │   │   ├── admin/
 │   │   │   │   ├── AccessDialog.jsx
-│   │   │   │   ├── AuditEntry.jsx
-│   │   │   │   ├── AuditTimeline.jsx
 │   │   │   │   ├── EvidenceTranscript.jsx
 │   │   │   │   ├── Notice.jsx
 │   │   │   │   ├── PersonActions.jsx

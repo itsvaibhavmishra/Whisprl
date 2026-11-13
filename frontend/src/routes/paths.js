@@ -35,7 +35,6 @@ export const PATH_ADMIN = {
   reports: path(ROOTS_DASHBOARD, "admin/reports"),
   requests: path(ROOTS_DASHBOARD, "admin/requests"),
   announcements: path(ROOTS_DASHBOARD, "admin/announcements"),
-  audit: path(ROOTS_DASHBOARD, "admin/audit"),
   team: path(ROOTS_DASHBOARD, "admin/team"),
   appUpdates: path(ROOTS_DASHBOARD, "admin/app-updates"),
 };
