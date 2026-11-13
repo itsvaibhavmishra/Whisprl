@@ -23,4 +23,5 @@
   - Developers:
 
   - Internal:
+    - The admin overview page is removed, and recharts with it, since nothing else used it
     - The README leads with the games and the Android app, with the Play listing's feature graphic and screenshots in docs/screenshots

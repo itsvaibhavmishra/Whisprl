@@ -235,7 +235,7 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
   `StaffOnly` guard, so nobody else's browser downloads them.
 - **An account is active on any day it opened Whisprl.** Every new session and every token
   renewal (which every page load makes) records one row per account per UTC day in
-  `activities`, and the overview's active counts read those rows.
+  `activities`, and every count of active people reads those rows.
 - **Suspending and banning shut an account out at once.** Both end every session and
   disconnect every socket, and `findSessionUser` refuses them on each later request, so a
   token still in flight cannot be used. A suspension names the day it ends.

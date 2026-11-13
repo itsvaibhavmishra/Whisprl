@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import {
-  GetActivePeople,
   ChangeAppUpdates,
   GetAnnouncedGames,
   GetAnnouncements,
@@ -9,21 +8,13 @@ import {
   GetAudienceSizes,
   GetAuditLog,
   GetGameRequests,
-  GetOverview,
   GetPeople,
   GetReports,
-  GetStoppedPeople,
   GetTeam,
 } from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
-  overview: null,
-  latestOverviewFetch: null,
-  activePeople: { list: null, hasMore: false },
-  latestActivePeopleFetch: null,
-  stoppedPeople: { list: null, hasMore: false },
-  latestStoppedPeopleFetch: null,
   people: { list: null, total: 0, hasMore: false },
   latestPeopleFetch: null,
   reports: { list: null, total: 0, hasMore: false },
@@ -45,32 +36,7 @@ const slice = createSlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      // changing the range quickly starts overlapping fetches, and only the newest may land
-      .addCase(GetOverview.pending, (state, action) => {
-        state.latestOverviewFetch = action.meta.requestId;
-      })
-      .addCase(GetOverview.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestOverviewFetch) return;
-        const { totals, active, range, daily } = action.payload;
-        state.overview = { totals, active, range, daily };
-      })
-      .addCase(GetActivePeople.pending, (state, action) => {
-        state.latestActivePeopleFetch = action.meta.requestId;
-      })
-      .addCase(GetActivePeople.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestActivePeopleFetch) return;
-        const { people, hasMore } = action.payload;
-        state.activePeople = { list: action.meta.arg.page ? [...state.activePeople.list, ...people] : people, hasMore };
-      })
-      .addCase(GetStoppedPeople.pending, (state, action) => {
-        state.latestStoppedPeopleFetch = action.meta.requestId;
-        if (!action.meta.arg.page) state.stoppedPeople = { list: null, hasMore: false };
-      })
-      .addCase(GetStoppedPeople.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestStoppedPeopleFetch) return;
-        const { people, hasMore } = action.payload;
-        state.stoppedPeople = { list: action.meta.arg.page ? [...state.stoppedPeople.list, ...people] : people, hasMore };
-      })
+      // a quick change starts overlapping fetches, and only the newest may land
       .addCase(GetPeople.pending, (state, action) => {
         state.latestPeopleFetch = action.meta.requestId;
       })
