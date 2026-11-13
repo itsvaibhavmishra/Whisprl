@@ -1,22 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import {
-  ChangeAppUpdates,
-  GetAnnouncedGames,
-  GetAnnouncements,
-  GetAppUpdates,
-  GetAudienceSizes,
-  GetPeople,
-  GetReports,
-  GetTeam,
-} from "@/redux/slices/actions/adminActions";
+import { ChangeAppUpdates, GetAnnouncedGames, GetAnnouncements, GetAppUpdates, GetAudienceSizes, GetTeam } from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
 const initialState = {
-  people: { list: null, total: 0, hasMore: false },
-  latestPeopleFetch: null,
-  reports: { list: null, total: 0, hasMore: false },
-  latestReportsFetch: null,
   team: null,
   appUpdates: null,
   announcements: { list: null, hasMore: false },
@@ -30,23 +17,6 @@ const slice = createSlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      // a quick change starts overlapping fetches, and only the newest may land
-      .addCase(GetPeople.pending, (state, action) => {
-        state.latestPeopleFetch = action.meta.requestId;
-      })
-      .addCase(GetPeople.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestPeopleFetch) return;
-        const { people, total, hasMore } = action.payload;
-        state.people = { list: action.meta.arg.page ? [...state.people.list, ...people] : people, total, hasMore };
-      })
-      .addCase(GetReports.pending, (state, action) => {
-        state.latestReportsFetch = action.meta.requestId;
-      })
-      .addCase(GetReports.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestReportsFetch) return;
-        const { reports, total, hasMore } = action.payload;
-        state.reports = { list: action.meta.arg.page ? [...state.reports.list, ...reports] : reports, total, hasMore };
-      })
       .addCase(GetTeam.fulfilled, (state, action) => {
         state.team = action.payload.members;
       })

@@ -1,24 +1,18 @@
 import express from "express";
 
 import { allow, protect, staffOnly } from "#src/middlewares/authMiddleware.js";
-import { readLimit, searchLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
+import { readLimit, writeLimit } from "#src/middlewares/rateLimiters.js";
 import {
   addToTeam,
-  ban,
   changeAppUpdates,
   changeTeamAccess,
-  dismiss,
   getAnnouncedGames,
   getAnnouncements,
   getAudienceSizes,
   getConfirmationOptions,
-  getPeople,
-  getReports,
   getTeam,
   removeFromTeam,
-  restore,
   sendAnnouncement,
-  suspend,
 } from "#src/controllers/adminController.js";
 
 const adminRouter = express.Router();
@@ -26,20 +20,7 @@ const adminRouter = express.Router();
 // every admin route sits behind these, so none can be added without them
 adminRouter.use(protect, staffOnly);
 
-adminRouter.route("/people").get(searchLimit(), allow("people"), getPeople);
-
 adminRouter.route("/confirm").post(writeLimit(), getConfirmationOptions);
-
-adminRouter.route("/people/:user_id/suspend").put(writeLimit(), allow("suspend"), suspend);
-
-adminRouter.route("/people/:user_id/ban").put(writeLimit(), allow("ban"), ban);
-
-// lifting needs whichever permission put it in place, which only the account itself can say
-adminRouter.route("/people/:user_id/restore").put(writeLimit(), restore);
-
-adminRouter.route("/reports").get(readLimit(), allow("reports"), getReports);
-
-adminRouter.route("/reports/:report_id/dismiss").put(writeLimit(), allow("reports"), dismiss);
 
 adminRouter.route("/announcements").get(readLimit(), allow("announce"), getAnnouncements).post(writeLimit(), allow("announce"), sendAnnouncement);
 

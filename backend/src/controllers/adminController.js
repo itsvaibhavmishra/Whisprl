@@ -1,14 +1,7 @@
 import { announce, announcedGames, audienceSizes, listAnnouncements } from "#src/services/announcementService.js";
-import { banPerson, listPeople, restorePerson, suspendPerson } from "#src/services/moderationService.js";
-import { dismissReport, listReports } from "#src/services/reportQueueService.js";
 import { assertConfirmed, confirmationOptions } from "#src/services/passkeyService.js";
 import { addAdmin, changeAccess, listTeam, removeAdmin } from "#src/services/teamService.js";
 import { changeUpdatePolicy } from "#src/services/updatePolicyService.js";
-
-export const getPeople = async (req, res) => {
-  const { search, filter = "all", page } = req.query;
-  return res.status(200).json({ status: "success", ...(await listPeople({ search, filter, page })) });
-};
 
 export const getConfirmationOptions = async (req, res) => {
   return res.status(200).json({ status: "success", options: await confirmationOptions(req.user) });
@@ -18,23 +11,6 @@ const withPasskey = (act) => async (req, res) => {
   const { confirmation, ...details } = req.body;
   await assertConfirmed(req.user, confirmation);
   return res.status(200).json({ status: "success", ...(await act(req, details)) });
-};
-
-export const suspend = withPasskey((req, details) => suspendPerson(req.app.get("io"), req.user, req.params.user_id, details));
-
-export const ban = withPasskey((req, details) => banPerson(req.app.get("io"), req.user, req.params.user_id, details));
-
-export const restore = withPasskey((req, details) => restorePerson(req.user, req.params.user_id, details));
-
-export const getReports = async (req, res) => {
-  const { filter = "open", page } = req.query;
-  return res.status(200).json({ status: "success", ...(await listReports({ filter, page })) });
-};
-
-// dismissing changes nobody's access, so unlike the others it does not ask for the passkey
-export const dismiss = async (req, res) => {
-  await dismissReport(req.app.get("io"), req.user, req.params.report_id, req.body);
-  return res.status(200).json({ status: "success" });
 };
 
 export const getAnnouncements = async (req, res) => {

@@ -36,8 +36,11 @@ const reportSchema = mongoose.Schema(
     note: { type: String, trim: true, maxlength: MAX_REPORT_NOTE },
     evidence: { type: [evidenceSchema], default: undefined },
     outcome: { type: String, enum: REPORT_OUTCOMES },
-    closedBy: { type: mongoose.Schema.ObjectId, ref: "User" },
+    // the staff member who closed it, which is not a Whisprl account
+    closedBy: { type: mongoose.Schema.ObjectId },
     closedAt: { type: Date },
+    // set when staff close it, and cleared once the sweep has told the reporter how it ended
+    awaitingNotice: { type: Boolean },
   },
   { timestamps: true }
 );

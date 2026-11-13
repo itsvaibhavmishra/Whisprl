@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import accountNoticeMail from "#src/templates/mail/accountNotice.js";
 import otpMail from "#src/templates/mail/otp.js";
 import { escapeHtml } from "#src/templates/mail/layout.js";
 
@@ -19,12 +18,5 @@ describe("emails", () => {
     assert.ok(html.includes("Hey Tom &amp; &lt;img src=x onerror=&quot;alert(1)&quot;&gt;,"));
     assert.ok(!html.includes(MARKUP));
     assert.ok(text.includes(`Hey Tom & ${MARKUP},`));
-  });
-
-  it("put the reason staff gave into the HTML as text", () => {
-    const { html, text } = accountNoticeMail({ name: "Ava", heading: "Your account is suspended", body: "It ends soon.", reason: `Spam & ${MARKUP}` });
-    assert.ok(html.includes("Spam &amp; &lt;img"));
-    assert.ok(!html.includes(MARKUP));
-    assert.ok(text.includes(`Spam & ${MARKUP}`));
   });
 });
