@@ -22,4 +22,5 @@
   - Developers:
 
   - Internal:
+    - Error reports leave out screen slides cut short and timeouts from reCAPTCHA and outside requests, none of which harm anything
     - Updated dependencies to clear every npm audit warning, follow-redirects among them
