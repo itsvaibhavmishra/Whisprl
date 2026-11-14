@@ -47,6 +47,8 @@ export const startScreenMotion = (motion, update) => {
   root.dataset.screenMotion = motion;
   const transition = document.startViewTransition(update);
   playing = transition;
+  // a slide cut short by the next navigation or a hidden page still shows the new screen, so its refusal is no error
+  transition.ready.catch(() => {});
   transition.finished.finally(() => {
     if (playing === transition) delete root.dataset.screenMotion;
   });
