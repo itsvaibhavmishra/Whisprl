@@ -22,3 +22,4 @@
   - Developers:
 
   - Internal:
+    - Updated dependencies to clear every npm audit warning, follow-redirects among them
