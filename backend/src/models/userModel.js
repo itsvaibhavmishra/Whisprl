@@ -29,6 +29,14 @@ const keyBackupSchema = mongoose.Schema(
   { _id: false }
 );
 
+const knownDeviceSchema = mongoose.Schema(
+  {
+    hash: { type: String, required: true },
+    seenAt: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
 const verificationSchema = mongoose.Schema(
   {
     codeHash: { type: String, required: true },
@@ -193,6 +201,9 @@ const userSchema = mongoose.Schema(
     publicKeys: [publicKeySchema],
     keyBackup: { type: keyBackupSchema, select: false },
     recoveryKeySavedAt: { type: Date },
+
+    // the browsers and apps this account has used, so a login from any other is mailed to its owner
+    knownDevices: { type: [knownDeviceSchema], select: false, default: undefined },
 
     // when a new account first reached each step of signing up, read only as counts and lists in the admin overview
     journey: { type: journeySchema },

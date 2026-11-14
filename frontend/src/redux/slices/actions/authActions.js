@@ -14,7 +14,7 @@ import { authenticateWithPasskey } from "@/utils/passkeys";
 import { isApp } from "@/utils/platform";
 import { stopPush } from "@/utils/push";
 import { forgetChats } from "@/utils/savedChats";
-import { forgetSession, startSession } from "@/utils/session";
+import { deviceIdOrNone, forgetSession, startSession } from "@/utils/session";
 
 const withRecaptcha = async (recaptchaRef, values) => {
   recaptchaRef.current.reset();
@@ -23,8 +23,8 @@ const withRecaptcha = async (recaptchaRef, values) => {
 
 // every way in sends the public half of a new key only this browser holds, which is what renews the session later
 const logIn = async (path, body) => {
-  const { privateKey, encodedPublicKey } = await createSessionKeys();
-  const { data } = await axios.post(path, { ...body, sessionKey: encodedPublicKey });
+  const [{ privateKey, encodedPublicKey }, deviceId] = await Promise.all([createSessionKeys(), deviceIdOrNone()]);
+  const { data } = await axios.post(path, { ...body, sessionKey: encodedPublicKey, deviceId });
   if (data.user) await startSession(data, privateKey);
   return data;
 };

@@ -1,7 +1,7 @@
 import { EndSession } from "@/redux/slices/actions/authActions";
 import { updateUser } from "@/redux/slices/userSlice";
 import axios from "@/utils/axios";
-import { forgetSessionKey, loadSessionKey, saveSessionKey } from "@/utils/crypto/keyStore";
+import { forgetSessionKey, loadDeviceId, loadSessionKey, saveSessionKey } from "@/utils/crypto/keyStore";
 import { signChallenge } from "@/utils/crypto/sessionKeys";
 import { notify } from "@/utils/notify";
 
@@ -21,6 +21,9 @@ let token = null;
 let renewing = null;
 let hasEnded = false;
 let isLoggingOut = false;
+
+// a browser that cannot store one still logs in, only without the new device mail
+export const deviceIdOrNone = () => loadDeviceId().catch(() => null);
 
 export const injectStore = (appStore) => {
   store = appStore;
@@ -66,8 +69,8 @@ const renew = async () => {
   const { sessionId, privateKey } = session;
   const asRenewal = { anonymous: true, sessionId, timeout: RENEWAL_TIMEOUT_MS };
   const { challenge } = (await axios.post("/auth/session/challenge", null, asRenewal)).data;
-  const signature = await signChallenge(privateKey, challenge);
-  const { data } = await axios.post("/auth/session/token", { sessionId, challenge, signature }, asRenewal);
+  const [signature, deviceId] = await Promise.all([signChallenge(privateKey, challenge), deviceIdOrNone()]);
+  const { data } = await axios.post("/auth/session/token", { sessionId, challenge, signature, deviceId }, asRenewal);
 
   // a logout while this was on its way leaves its token unused
   if (hasEnded) return Promise.reject(LOGGED_OUT);

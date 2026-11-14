@@ -3,28 +3,6 @@ import axios from "@/utils/axios";
 import { notify } from "@/utils/notify";
 import { authenticateWithPasskey } from "@/utils/passkeys";
 
-export const GetOverview = createApiThunk("admin/overview", async ({ from, to }) => (await axios.get("/admin/overview", { params: { from, to } })).data, {
-  notifyErrors: false,
-});
-
-export const GetActivePeople = createApiThunk(
-  "admin/active",
-  async ({ from, to, page }) => (await axios.get("/admin/active", { params: { from, to, page } })).data,
-  { notifyErrors: false }
-);
-
-export const GetStoppedPeople = createApiThunk(
-  "admin/journey",
-  async ({ stage, from, to, page }) => (await axios.get(`/admin/journey/${stage}`, { params: { from, to, page } })).data,
-  { notifyErrors: false }
-);
-
-export const GetPeople = createApiThunk(
-  "admin/people",
-  async ({ search, filter, page }) => (await axios.get("/admin/people", { params: { search, filter, page } })).data,
-  { notifyErrors: false }
-);
-
 // the passkey is asked for as the action is taken, so holding the session alone is never enough
 export const confirmWithPasskey = async () => {
   const { data } = await axios.post("/admin/confirm");
@@ -38,34 +16,6 @@ const withPasskey = (type, send, done) =>
     notify({ severity: "success", message: done });
     return data;
   });
-
-const actOnPerson = (path, done) =>
-  withPasskey(`admin/${path}`, ({ userId, ...details }, confirmation) => axios.put(`/admin/people/${userId}/${path}`, { ...details, confirmation }), done);
-
-export const SuspendPerson = actOnPerson("suspend", "Suspended, and their sessions are closed");
-export const BanPerson = actOnPerson("ban", "Banned, and their sessions are closed");
-export const RestorePerson = actOnPerson("restore", "Their access is back");
-
-export const GetReports = createApiThunk("admin/reports", async ({ filter, page }) => (await axios.get("/admin/reports", { params: { filter, page } })).data, {
-  notifyErrors: false,
-});
-
-export const DismissReport = createApiThunk("admin/dismiss", async ({ reportId, reason }) => {
-  const { data } = await axios.put(`/admin/reports/${reportId}/dismiss`, { reason });
-  notify({ severity: "success", message: "Dismissed" });
-  return data;
-});
-
-export const GetGameRequests = createApiThunk(
-  "admin/gameRequests",
-  async ({ status, kind, search, page }) => (await axios.get("/admin/game-requests", { params: { status, kind, search, page } })).data
-);
-
-export const CloseGameRequests = createApiThunk("admin/closeGameRequests", async ({ key, outcome }) => {
-  const { data } = await axios.put(`/admin/game-requests/${encodeURIComponent(key)}/close`, { outcome });
-  notify({ severity: "success", message: outcome === "added" ? "Marked as added" : "Dismissed" });
-  return data;
-});
 
 export const GetTeam = createApiThunk("admin/team", async () => (await axios.get("/admin/team")).data, { notifyErrors: false });
 
@@ -82,35 +32,3 @@ export const RemoveAdmin = withPasskey(
   ({ userId, ...details }, confirmation) => axios.put(`/admin/team/${userId}/remove`, { ...details, confirmation }),
   "Removed from the team"
 );
-
-export const GetAppUpdates = createApiThunk("admin/appUpdates", async () => (await axios.get("/app/update-policy")).data.policy, { notifyErrors: false });
-
-export const ChangeAppUpdates = withPasskey(
-  "admin/appUpdates/change",
-  (details, confirmation) => axios.put("/admin/app-updates", { ...details, confirmation }),
-  "Saved. Apps pick it up the next time they open"
-);
-
-export const GetAnnouncements = createApiThunk(
-  "admin/announcements",
-  async (before) => (await axios.get("/admin/announcements", { params: { before } })).data,
-  { notifyErrors: false }
-);
-
-export const GetAudienceSizes = createApiThunk("admin/audienceSizes", async () => (await axios.get("/admin/announcements/audience")).data.sizes, {
-  notifyErrors: false,
-});
-
-export const GetAnnouncedGames = createApiThunk("admin/announcedGames", async () => (await axios.get("/admin/announcements/games")).data.games, {
-  notifyErrors: false,
-});
-
-export const SendAnnouncement = createApiThunk("admin/announce", async (announcement) => {
-  const { data } = await axios.post("/admin/announcements", announcement);
-  notify({ severity: "success", message: "Sending. Whisprl is delivering it now" });
-  return data.announcement;
-});
-
-export const GetAuditLog = createApiThunk("admin/audit", async (before) => (await axios.get("/admin/audit", { params: { before } })).data, {
-  notifyErrors: false,
-});

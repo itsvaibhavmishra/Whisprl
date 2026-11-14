@@ -2,6 +2,17 @@
   "upcoming": [],
   "releases": [
     {
+      "version": "2.5.14",
+      "date": "2026-11-14",
+      "highlights": [
+        {
+          "emoji": "📬",
+          "title": "New device emails",
+          "text": "When your account logs in on a browser or phone it hasn't used before, we email you. If it wasn't you, the email says how to log every device out."
+        }
+      ]
+    },
+    {
       "version": "2.5.13",
       "date": "2026-11-12",
       "highlights": [

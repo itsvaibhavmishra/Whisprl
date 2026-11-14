@@ -187,8 +187,8 @@ and never tried again. All of this is `utils/liveUpdate.js`, with the plugin
   `recommended` and `required` in `frontend/android/app-versions.json` are versionCodes kept by
   hand, and `appVersions.test.js` fails the gate if either is above `versionCode` or a required
   version is not also recommended. An app below `recommended` shows a reminder it can close; one
-  below `required` shows one that stays. Both wait for **Show the update reminder** on the admin
-  panel's App updates page (owner only), because a release reaches apps before Play's review
+  below `required` shows one that stays. Both wait for **Show the update reminder**, a switch the
+  owner sets outside the app in `updatepolicies`, because a release reaches apps before Play's review
   ends. Where Play installed the app, Update runs Play's own update (`PlayUpdatePlugin.java`):
   a download in the background for a recommended version, full screen for a required one. An app
   Play did not install, or one built before the plugin, is sent to the Play listing instead, and
@@ -235,13 +235,12 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
   `StaffOnly` guard, so nobody else's browser downloads them.
 - **An account is active on any day it opened Whisprl.** Every new session and every token
   renewal (which every page load makes) records one row per account per UTC day in
-  `activities`, and the overview's active counts read those rows.
-- **Suspending and banning shut an account out at once.** Both end every session and
-  disconnect every socket, and `findSessionUser` refuses them on each later request, so a
-  token still in flight cannot be used. A suspension names the day it ends.
-- **Suspending, banning and restoring email the person, with the reason staff gave.** The
-  action dialog says so. The email is sent after the action and never holds it up: a failed
-  send is logged and the action stands.
+  `activities`, and every count of active people reads those rows.
+- **Suspending and banning shut an account out within a minute.** Staff do both outside the
+  app: they set `suspendedUntil` or `bannedAt` and delete the account's sessions.
+  `findSessionUser` refuses it on each later request, so a token still in flight cannot be
+  used, and the once-a-minute sweep (`closeEndedSockets`) closes any socket whose session no
+  longer exists. A suspension names the day it ends.
 - **A ban writes the placeholder in rather than hiding the account on read.** `populate`
   skips query middleware, so masking on read missed most of the places a person is shown.
   Banning moves the name, username, photo, cover and status line into `hiddenProfile` and
@@ -250,8 +249,6 @@ Staff reach the admin panel at `/admin`, which also has a row in Settings that o
 - **Every staff action records an audit entry** through `recordAction`, and asks for the
   acting person's passkey first. Staff without a passkey are told to add one in Settings:
   there is no fallback, since a weaker second path would set the bar.
-- **Staff cannot suspend or ban staff**, or themselves. An admin has to be removed from the
-  team before anything can be done to their account.
 - **The Team page is the owner's.** It adds an admin by the email they log in with, changes
   what they can do, and removes them, each with a reason and the owner's passkey. The audit
   entry records the permissions granted.
@@ -267,9 +264,13 @@ what the server is able to see.
   read those is if the reporter's own device decrypts them and sends them, which the report
   dialog says plainly before anything is sent.
 - **What a report attaches:** the messages around the reported one, from both sides, with the
-  key for each attached file. The admin page decrypts those files in the browser, so the
-  server never holds a plain copy. Attached messages are deleted 90 days after a report
-  closes, swept alongside expired messages and statuses.
+  key for each attached file. Staff decrypt those files in the browser, so the server never
+  holds a plain copy. Attached messages are deleted 90 days after a report closes, swept
+  alongside expired messages and statuses.
+- **The reporter hears how it ended.** Staff close reports outside the app, which sets
+  `awaitingNotice`. The once-a-minute sweep (`tellReporters`) claims each flagged report before
+  sending, so two servers never tell anyone twice, and messages the reporter that it was
+  actioned or looked at.
 
 ### Franking: proving an attached message is real
 
@@ -290,17 +291,14 @@ The last card in the games list asks for a game: a classic, something new or an 
 person's own, with its name, up to three links and optional details, and no media. A person has
 one open request per game, and five a day.
 
-Staff with the `requests` permission see them at `/admin/requests`, grouped by game and ranked by
-how many people asked. `nameKeyOf` in `src/utils/textSearch.js` folds a name to a key, so
-"Tic-Tac-Toe", "tic tac toe" and "The TicTacToe" count as one game. The search scores in memory
-with `searchScore` from the same file: every word has to match, names weigh three times what the
-details, links and requesters' names do, and a word can match by its start, with a typo or two,
-or run into the next word. A name that starts with the query ranks first. That suits the
-hundreds or thousands of requests Whisprl gets; at many more it would need a search index.
+Staff review and close requests outside the app. `nameKeyOf` in `src/utils/textSearch.js` folds
+a name to a key, stored on each request as `nameKey`, so "Tic-Tac-Toe", "tic tac toe" and "The
+TicTacToe" count as one game.
 
-Marking a game added or dismissed closes every open request for it. It changes nobody's access,
-so it needs no passkey, and who did it and when are kept on the requests rather than in the audit
-log. A person's requests are deleted with their account.
+Marking a game added sets `awaitingNotice` on every request for it. The once-a-minute sweep
+(`tellGameRequesters`) claims each flagged request before sending, so two servers never tell anyone
+twice, and messages each person who asked once, in their own spelling, with the live update and
+the phone notification. A person's requests are deleted with their account.
 
 ## Deleting an account
 

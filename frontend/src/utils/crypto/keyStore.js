@@ -56,6 +56,21 @@ export const saveSavedChats = (userId, saved) => inStore(SAVED_CHATS, "readwrite
 
 export const forgetSavedChats = (userId) => inStore(SAVED_CHATS, "readwrite", (store) => store.delete(userId));
 
+const DEVICE_ID = "device-id";
+
+// made once and kept through logouts so the server can tell this device from a new one, in one transaction so tabs agree on it
+export const loadDeviceId = async () => {
+  const fresh = crypto.randomUUID();
+  const stored = await inStore(DEVICE_KEYS, "readwrite", (store) => {
+    const request = store.get(DEVICE_ID);
+    request.onsuccess = () => {
+      if (!request.result) store.add(fresh, DEVICE_ID);
+    };
+    return request;
+  });
+  return stored ?? fresh;
+};
+
 // on this device only, as the server is what checking guards against, and beside the device keys since a new store would lock out older copies
 const verifiedName = (userId) => `verified:${userId}`;
 

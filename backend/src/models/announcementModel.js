@@ -1,25 +1,19 @@
 import mongoose from "mongoose";
 
-import { MAX_AUDIT_REASON } from "#src/models/auditEntryModel.js";
-
-// the audit log keeps every announcement word for word, so one can never outgrow it
-export const MAX_ANNOUNCEMENT = MAX_AUDIT_REASON;
-export const MAX_BUTTON_LABEL = 40;
-export const AUDIENCES = ["everyone", "android", "web"];
-
 // never edited once sent, since everyone it reached already has its words
 const announcementSchema = mongoose.Schema(
   {
-    author: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
-    text: { type: String, required: true, maxlength: MAX_ANNOUNCEMENT },
+    // the staff member who sent it, which is not a Whisprl account
+    author: { type: mongoose.Schema.ObjectId, required: true },
+    text: { type: String, required: true, maxlength: 500 },
     button: {
       kind: { type: String, enum: ["challenge", "open"] },
-      label: { type: String, maxlength: MAX_BUTTON_LABEL },
+      label: { type: String, maxlength: 40 },
       to: { type: String },
       // a challenge to one game opens it straight away, and marks that game as announced
       game: { type: String },
     },
-    audience: { type: String, enum: AUDIENCES, required: true },
+    audience: { type: String, enum: ["everyone", "android", "web"], required: true },
     isPushed: { type: Boolean, default: false },
     audienceSize: { type: Number, required: true },
     reached: { type: Number, default: 0 },

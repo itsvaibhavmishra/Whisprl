@@ -1,43 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-import {
-  GetActivePeople,
-  ChangeAppUpdates,
-  GetAnnouncedGames,
-  GetAnnouncements,
-  GetAppUpdates,
-  GetAudienceSizes,
-  GetAuditLog,
-  GetGameRequests,
-  GetOverview,
-  GetPeople,
-  GetReports,
-  GetStoppedPeople,
-  GetTeam,
-} from "@/redux/slices/actions/adminActions";
+import { GetTeam } from "@/redux/slices/actions/adminActions";
 import { logout } from "@/redux/slices/userSlice";
 
-const initialState = {
-  overview: null,
-  latestOverviewFetch: null,
-  activePeople: { list: null, hasMore: false },
-  latestActivePeopleFetch: null,
-  stoppedPeople: { list: null, hasMore: false },
-  latestStoppedPeopleFetch: null,
-  people: { list: null, total: 0, hasMore: false },
-  latestPeopleFetch: null,
-  reports: { list: null, total: 0, hasMore: false },
-  latestReportsFetch: null,
-  gameRequests: { list: null, total: 0, hasMore: false, mostAsked: 0 },
-  latestGameRequestsFetch: null,
-  team: null,
-  appUpdates: null,
-  // entries stay null until the first page arrives, so an empty log is told apart from one not read yet
-  audit: { entries: null, hasMore: false },
-  announcements: { list: null, hasMore: false },
-  audienceSizes: null,
-  announcedGames: null,
-};
+const initialState = { team: null };
 
 const slice = createSlice({
   name: "admin",
@@ -45,79 +11,8 @@ const slice = createSlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      // changing the range quickly starts overlapping fetches, and only the newest may land
-      .addCase(GetOverview.pending, (state, action) => {
-        state.latestOverviewFetch = action.meta.requestId;
-      })
-      .addCase(GetOverview.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestOverviewFetch) return;
-        const { totals, active, range, daily } = action.payload;
-        state.overview = { totals, active, range, daily };
-      })
-      .addCase(GetActivePeople.pending, (state, action) => {
-        state.latestActivePeopleFetch = action.meta.requestId;
-      })
-      .addCase(GetActivePeople.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestActivePeopleFetch) return;
-        const { people, hasMore } = action.payload;
-        state.activePeople = { list: action.meta.arg.page ? [...state.activePeople.list, ...people] : people, hasMore };
-      })
-      .addCase(GetStoppedPeople.pending, (state, action) => {
-        state.latestStoppedPeopleFetch = action.meta.requestId;
-        if (!action.meta.arg.page) state.stoppedPeople = { list: null, hasMore: false };
-      })
-      .addCase(GetStoppedPeople.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestStoppedPeopleFetch) return;
-        const { people, hasMore } = action.payload;
-        state.stoppedPeople = { list: action.meta.arg.page ? [...state.stoppedPeople.list, ...people] : people, hasMore };
-      })
-      .addCase(GetPeople.pending, (state, action) => {
-        state.latestPeopleFetch = action.meta.requestId;
-      })
-      .addCase(GetPeople.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestPeopleFetch) return;
-        const { people, total, hasMore } = action.payload;
-        state.people = { list: action.meta.arg.page ? [...state.people.list, ...people] : people, total, hasMore };
-      })
-      .addCase(GetReports.pending, (state, action) => {
-        state.latestReportsFetch = action.meta.requestId;
-      })
-      .addCase(GetReports.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestReportsFetch) return;
-        const { reports, total, hasMore } = action.payload;
-        state.reports = { list: action.meta.arg.page ? [...state.reports.list, ...reports] : reports, total, hasMore };
-      })
-      .addCase(GetGameRequests.pending, (state, action) => {
-        state.latestGameRequestsFetch = action.meta.requestId;
-      })
-      .addCase(GetGameRequests.fulfilled, (state, action) => {
-        if (action.meta.requestId !== state.latestGameRequestsFetch) return;
-        const { groups, total, hasMore, mostAsked } = action.payload;
-        state.gameRequests = { list: action.meta.arg.page ? [...state.gameRequests.list, ...groups] : groups, total, hasMore, mostAsked };
-      })
       .addCase(GetTeam.fulfilled, (state, action) => {
         state.team = action.payload.members;
-      })
-      .addCase(GetAppUpdates.fulfilled, (state, action) => {
-        state.appUpdates = action.payload;
-      })
-      .addCase(ChangeAppUpdates.fulfilled, (state, action) => {
-        state.appUpdates = action.payload.policy;
-      })
-      .addCase(GetAuditLog.fulfilled, (state, action) => {
-        const { entries, hasMore } = action.payload;
-        // a page asked for without a starting point is the newest, so it replaces whatever was shown
-        state.audit = { entries: action.meta.arg ? [...state.audit.entries, ...entries] : entries, hasMore };
-      })
-      .addCase(GetAnnouncements.fulfilled, (state, action) => {
-        const { announcements, hasMore } = action.payload;
-        state.announcements = { list: action.meta.arg ? [...state.announcements.list, ...announcements] : announcements, hasMore };
-      })
-      .addCase(GetAnnouncedGames.fulfilled, (state, action) => {
-        state.announcedGames = action.payload;
-      })
-      .addCase(GetAudienceSizes.fulfilled, (state, action) => {
-        state.audienceSizes = action.payload;
       })
       .addCase(logout, () => initialState);
   },
