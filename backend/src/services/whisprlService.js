@@ -30,6 +30,7 @@ const whisprlProfile = () => ({
   lastName: "",
   username: "whisprl",
   avatar: `${process.env.FRONT_URL}/whisprl-avatar.webp`,
+  tag: "official",
   badge: "official",
   verified: true,
   coverStyle: randomCoverStyle(),
@@ -54,7 +55,8 @@ const becomeWhisprl = async () => {
 
 // everyone has Whisprl as a friend, so accounts made before it existed are given it too; it keeps no list of its own
 export const ensureWhisprl = async () => {
-  const whisprl = (await UserModel.findOne({ badge: "official" }).select("_id")) ?? (await becomeWhisprl());
+  // either name, so a start that runs before tag is copied never makes a second Whisprl
+  const whisprl = (await UserModel.findOne({ $or: [{ tag: "official" }, { badge: "official" }] }).select("_id")) ?? (await becomeWhisprl());
   whisprlId = String(whisprl._id);
   await UserModel.updateMany(
     { _id: { $ne: whisprl._id }, verified: true, deletedAt: { $exists: false }, friends: { $ne: whisprl._id } },

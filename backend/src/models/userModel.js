@@ -9,7 +9,7 @@ const PASSWORD_COST = 12;
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
 export const PERMISSIONS = ["overview", "people", "reports", "requests", "suspend", "ban", "audit", "announce"];
-const BADGES = ["owner", "admin", "official"];
+const TAGS = ["owner", "admin", "official"];
 
 const publicKeySchema = mongoose.Schema(
   {
@@ -110,7 +110,7 @@ const profileSchema = mongoose.Schema(
 
 // Whisprl's own account goes by one name; mongoose calls this with the account as this
 function needsLastName() {
-  return this.badge !== "official";
+  return this.tag !== "official";
 }
 
 const userSchema = mongoose.Schema(
@@ -150,7 +150,9 @@ const userSchema = mongoose.Schema(
     role: { type: String, enum: ROLES, default: "user" },
     permissions: { type: [String], enum: PERMISSIONS, default: undefined },
     // shown beside the name: owner and admin follow the team, official marks Whisprl's own account
-    badge: { type: String, enum: BADGES },
+    tag: { type: String, enum: TAGS },
+    // the old name for tag, written beside it until every deployment and app reads tag
+    badge: { type: String, enum: TAGS },
     whisprlWelcomedAt: { type: Date },
     // the year Whisprl last wished them a happy birthday, so it never does twice in one
     birthdayGreetedIn: { type: Number },

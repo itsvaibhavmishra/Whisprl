@@ -1,15 +1,15 @@
 import { Box } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
-// fixed colours rather than the chosen accent, so an Official badge looks the same to everyone
-const BADGES = {
+// fixed colours rather than the chosen accent, so an Official tag looks the same to everyone
+const TAGS = {
   owner: { label: "Owner", hue: "#FFC107", day: "#7A4F01", night: "#FFE16A" },
   admin: { label: "Admin", hue: "#7444E0", day: "#5229B8", night: "#C9B6FA" },
   official: { label: "Official", hue: "#0979C2", day: "#075C94", night: "#8ADDF8" },
 };
 
-const PersonBadge = ({ badge }) => {
-  const look = BADGES[badge];
+const PersonTag = ({ tag }) => {
+  const look = TAGS[tag];
   if (!look) return null;
 
   return (
@@ -35,4 +35,4 @@ const PersonBadge = ({ badge }) => {
   );
 };
 
-export default PersonBadge;
+export default PersonTag;

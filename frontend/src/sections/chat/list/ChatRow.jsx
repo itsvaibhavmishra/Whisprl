@@ -19,7 +19,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import BirthdayCake from "@/components/BirthdayCake";
-import PersonBadge from "@/components/PersonBadge";
+import PersonTag from "@/components/PersonTag";
 import { GAMES } from "@/sections/chat/game/catalog";
 import useSettings from "@/hooks/useSettings";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
@@ -174,7 +174,7 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
                 {name}
                 {!conversation.isGroup && peer && <BirthdayCake personId={peer._id} />}
               </Typography>
-              <PersonBadge badge={peer?.badge} />
+              <PersonTag tag={peer?.tag} />
               {GAMES[conversation.tableGame] && (
                 <Box component="span" sx={{ display: "grid", flexShrink: 0, color: "primary.main" }}>
                   <GameControllerIcon size={16} weight="fill" aria-label={`${GAMES[conversation.tableGame].name} is open here`} />

@@ -25,7 +25,7 @@ const whoseBirthdayIsOn = (indiaDate) =>
     verified: true,
     deletedAt: { $exists: false },
     bannedAt: { $exists: false },
-    badge: { $ne: "official" },
+    tag: { $ne: "official" },
   })
     .select("firstName")
     .lean();

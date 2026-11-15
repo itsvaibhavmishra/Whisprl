@@ -87,7 +87,7 @@ export const welcomeToWhisprl = async (userId) => {
 
 // everyone already here when Whisprl arrived is welcomed once too
 export const welcomeEveryone = async () => {
-  const waiting = UserModel.find({ verified: true, deletedAt: { $exists: false }, badge: { $ne: "official" }, whisprlWelcomedAt: { $exists: false } })
+  const waiting = UserModel.find({ verified: true, deletedAt: { $exists: false }, tag: { $ne: "official" }, whisprlWelcomedAt: { $exists: false } })
     .select("_id")
     .lean()
     .cursor();

@@ -22,5 +22,6 @@
   - Developers:
 
   - Internal:
+    - The Owner, Admin and Official labels are now called tags in the code and the database, so badges can take that name
     - Error reports leave out screen slides cut short and timeouts from reCAPTCHA and outside requests, none of which harm anything
     - Updated dependencies to clear every npm audit warning, follow-redirects among them
