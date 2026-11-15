@@ -5,7 +5,7 @@ import { AnimatePresence, m, useReducedMotion } from "motion/react";
 import { shallowEqual, useSelector } from "react-redux";
 
 import ChatAvatar from "@/sections/chat/ChatAvatar";
-import PersonBadge from "@/components/PersonBadge";
+import PersonTag from "@/components/PersonTag";
 import TypingDots from "@/components/TypingDots";
 import { DETAILS_BUTTON_ID, useCloseChat, useDetailsToggle } from "@/sections/chat/chatRoute";
 import { DETAILS_SLIDE } from "@/sections/chat/details/DetailsPanel";
@@ -134,7 +134,7 @@ const ConversationHeader = ({ isSearching, onToggleSearch }) => {
               <Typography noWrap sx={{ fontSize: 16, fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1.3 }}>
                 {name}
               </Typography>
-              <PersonBadge badge={peer?.badge} />
+              <PersonTag tag={peer?.tag} />
               {conversation.disappearAfter && (
                 <Box component="span" sx={{ display: "grid", color: "primary.main" }}>
                   <TimerIcon size={16} weight="bold" aria-label={`Messages disappear after ${durationOf(conversation.disappearAfter)}`} />
