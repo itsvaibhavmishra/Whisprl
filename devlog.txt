@@ -14,18 +14,11 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
-    - Badges: a badge given to you waits in a popup until you claim it, in the Android app for badges claimed there, then shows on your profile everywhere, the newest three under your name, opening a Badges screen of every badge you hold, with a Progress timeline of when each came, and you choose their order and which to hide
-    - Tester links: a link from the Whisprl team opens a page of its own that signs you in, then walks you one step at a time through joining the testers group and getting the Android app from Google Play, where the Tester badge waits to be claimed
 
   - Improvements:
-    - In the Android app, sharing a profile, an invite or a badge opens Android's share sheet instead of copying the link
 
   - Fixed:
 
   - Developers:
-    - HOW_TO_CONTRIBUTE.md walks anyone outside the project through sending a pull request
 
   - Internal:
-    - The Owner, Admin and Official labels are now called tags in the code and the database, so badges can take that name
-    - Error reports leave out screen slides cut short and timeouts from reCAPTCHA and outside requests, none of which harm anything
-    - Updated dependencies to clear every npm audit warning, follow-redirects among them
