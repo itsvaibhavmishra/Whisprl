@@ -15,6 +15,7 @@ import {
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 import { BlockUser, GetBlocked, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { ConfirmRecoveryKeySaved, ConfirmUsername, GetOnboarding, SaveBirthdayStep, SkipSetupStep } from "@/redux/slices/actions/onboardingActions";
+import { GetMyBadges } from "@/redux/slices/actions/badgeActions";
 
 const initialState = {
   user: {
@@ -171,11 +172,15 @@ const slice = createSlice({
         state.latestProfileRead = action.meta.requestId;
       })
       .addCase(GetMyProfile.fulfilled, (state, action) => {
-        const { firstName, lastName, username, usernameChangedAt, avatar, badge, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
+        const { firstName, lastName, username, usernameChangedAt, avatar, tag, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
         state.accountSummary = summary;
         // a save that landed while this was loading is newer than what it brought back
         if (action.meta.requestId !== state.latestProfileRead) return;
-        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, badge, cover, coverStyle, email, activityStatus };
+        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, tag, cover, coverStyle, email, activityStatus };
+      })
+      // kept with the signed-in user, so their badges show at once when the app opens again and refresh behind it
+      .addCase(GetMyBadges.fulfilled, (state, action) => {
+        if (state.user) state.user.badges = action.payload.held;
       })
       .addCase(SearchFriends.fulfilled, (state, action) => {
         const found = action.payload.usersFound > 0;

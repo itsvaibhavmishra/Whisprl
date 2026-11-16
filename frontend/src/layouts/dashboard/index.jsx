@@ -8,6 +8,7 @@ import { DEFAULT_AUTH } from "@/config";
 
 import MotionLazyContainer from "@/components/animate/MotionLazyContainer";
 import AppUpdateNotice from "@/components/AppUpdateNotice";
+import NewBadgePopup from "@/components/badges/NewBadgePopup";
 import { PageArea } from "@/components/LoadingScreen";
 import NotificationsPrompt from "@/components/NotificationsPrompt";
 import useAppUpdates from "@/hooks/useAppUpdates";
@@ -120,6 +121,7 @@ const DashboardLayout = () => {
               <Outlet />
             </PageArea>
             {isMainPage && !isTouring && <AppUpdateNotice />}
+            {isMainPage && !isTouring && <NewBadgePopup />}
           </Box>
           <EncryptionGate />
           {isEncryptionReady && !isTouring && location.pathname.startsWith(`${chat}/`) && <NotificationsPrompt />}

@@ -20,6 +20,5 @@
   - Fixed:
 
   - Developers:
-    - HOW_TO_CONTRIBUTE.md walks anyone outside the project through sending a pull request
 
   - Internal:

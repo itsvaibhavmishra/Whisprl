@@ -6,6 +6,27 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.15] - 2026-11-16
+
+### New
+
+- Badges: a badge given to you waits in a popup until you claim it, in the Android app for badges claimed there, then shows on your profile everywhere, the newest three under your name, opening a Badges screen of every badge you hold, with a Progress timeline of when each came, and you choose their order and which to hide
+- Tester links: a link from the Whisprl team opens a page of its own that signs you in, then walks you one step at a time through joining the testers group and getting the Android app from Google Play, where the Tester badge waits to be claimed
+
+### Improvements
+
+- In the Android app, sharing a profile, an invite or a badge opens Android's share sheet instead of copying the link
+
+### Developers
+
+- HOW_TO_CONTRIBUTE.md walks anyone outside the project through sending a pull request
+
+### Internal
+
+- The Owner, Admin and Official labels are now called tags in the code and the database, so badges can take that name
+- Error reports leave out screen slides cut short and timeouts from reCAPTCHA and outside requests, none of which harm anything
+- Updated dependencies to clear every npm audit warning, follow-redirects among them
+
 ## [2.5.14] - 2026-11-14
 
 ### New
@@ -722,6 +743,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.15]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.15
 [2.5.14]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.14
 [2.5.13]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.13
 [2.5.12]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.12

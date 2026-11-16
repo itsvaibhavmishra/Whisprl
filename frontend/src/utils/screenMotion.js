@@ -8,6 +8,9 @@ export const PREVIOUS_TAB = "previous-tab";
 // the order of the phone's tab bar, which decides which way a tab switch slides
 const TABS = ["chat", "status", "contacts", "settings"];
 
+// screens that open on top of whichever tab they were reached from
+const OVER_TABS = ["docs", "badges"];
+
 const NARROW = `(max-width: ${breakpoints.values.md - 0.05}px)`;
 
 // a chat's details open in a drawer of their own, so the screen under it stays where it is
@@ -20,8 +23,11 @@ export const motionBetween = (fromPath, toPath) => {
   const from = screenOf(fromPath);
   const to = screenOf(toPath);
   if (from.join("/") === to.join("/")) return null;
-  if (to[0] === "docs") return from[0] === "docs" ? null : PUSH;
-  if (from[0] === "docs") return BACK;
+  if (OVER_TABS.includes(to[0]) || OVER_TABS.includes(from[0])) {
+    if (to[0] !== from[0]) return OVER_TABS.includes(to[0]) ? PUSH : BACK;
+    if (to.length === from.length) return null;
+    return to.length > from.length ? PUSH : BACK;
+  }
 
   const fromTab = TABS.indexOf(from[0]);
   const toTab = TABS.indexOf(to[0]);
@@ -47,6 +53,8 @@ export const startScreenMotion = (motion, update) => {
   root.dataset.screenMotion = motion;
   const transition = document.startViewTransition(update);
   playing = transition;
+  // a slide cut short by the next navigation or a hidden page still shows the new screen, so its refusal is no error
+  transition.ready.catch(() => {});
   transition.finished.finally(() => {
     if (playing === transition) delete root.dataset.screenMotion;
   });

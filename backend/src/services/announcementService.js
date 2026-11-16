@@ -3,7 +3,7 @@ import { sendFromWhisprlToEach } from "#src/services/whisprlMessageService.js";
 import { reportError } from "#src/utils/errorReports.js";
 
 const BATCH_SIZE = 500;
-const RECIPIENTS = { verified: true, deletedAt: { $exists: false }, bannedAt: { $exists: false }, badge: { $ne: "official" } };
+const RECIPIENTS = { verified: true, deletedAt: { $exists: false }, bannedAt: { $exists: false }, tag: { $ne: "official" } };
 // a day noted before platforms were recorded was on the website, as the overview counts it
 const PLATFORM_DAYS = { android: { platforms: "android" }, web: { $or: [{ platforms: "web" }, { "platforms.0": { $exists: false } }] } };
 

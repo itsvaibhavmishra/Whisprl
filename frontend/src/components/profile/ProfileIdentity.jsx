@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Avatar, Box, Skeleton, Stack, Typography, useMediaQuery } from "@mui/material";
 import { ImageSquareIcon } from "@phosphor-icons/react";
 
-import PersonBadge from "@/components/PersonBadge";
+import BadgeStrip from "@/components/badges/BadgeStrip";
+import PersonTag from "@/components/PersonTag";
 import ProfileCover from "@/components/ProfileCover";
 import StatusArcs from "@/components/StatusArcs";
 import Wordmark from "@/components/Wordmark";
@@ -144,9 +145,10 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
         </Typography>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mt: 0.75, color: "text.secondary", fontWeight: 600 }}>
           {person.username && <Typography sx={{ fontWeight: "inherit" }}>@{person.username}</Typography>}
-          <PersonBadge badge={person.badge} />
+          <PersonTag tag={person.tag} />
           {isOnline && <Typography sx={{ fontWeight: "inherit", fontSize: 14 }}>Online</Typography>}
         </Stack>
+        <BadgeStrip badges={person.badges} personId={person._id} />
       </Box>
 
       {isViewingPhoto && <PhotoViewer src={person.avatar} name={fullName} onClose={() => setIsViewingPhoto(false)} />}

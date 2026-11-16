@@ -4,6 +4,7 @@ import { SITE_URL } from "@/config";
 import { PATH_DASHBOARD, PATH_INVITE } from "@/routes/paths";
 import { notify } from "@/utils/notify";
 import { isApp } from "@/utils/platform";
+import { shareLink } from "@/utils/share";
 
 const ROOT = PATH_DASHBOARD.general.contacts;
 
@@ -22,7 +23,7 @@ export const useContactsAddress = () => {
 };
 
 // the app is served from https://localhost on the phone, so its links point at the website instead
-const linkOrigin = isApp ? SITE_URL : window.location.origin;
+export const linkOrigin = isApp ? SITE_URL : window.location.origin;
 
 export const profileLinkOf = (person) => `${linkOrigin}${contactPathOf(person)}`;
 
@@ -31,17 +32,7 @@ export const copyProfileLink = async (person) => {
   notify({ severity: "success", message: "Profile link copied" });
 };
 
-// a phone opens its own share sheet, anything else copies the link
-export const canShareNatively = () => Boolean(navigator.share) && window.matchMedia("(pointer: coarse)").matches;
+export const shareProfile = (person) => shareLink({ title: `${person.firstName} on Whisprl`, url: profileLinkOf(person), copied: "Profile link copied" });
 
-export const shareProfile = async (person) => {
-  if (!canShareNatively()) return copyProfileLink(person);
-  return navigator.share({ title: `${person.firstName} on Whisprl`, url: profileLinkOf(person) }).catch(() => {});
-};
-
-export const shareInvite = async (code) => {
-  const url = `${linkOrigin}${PATH_INVITE}/${code}`;
-  if (canShareNatively()) return navigator.share({ title: "Join me on Whisprl", text: "Let's play and chat on Whisprl", url }).catch(() => {});
-  await navigator.clipboard.writeText(url);
-  notify({ severity: "success", message: "Invite link copied" });
-};
+export const shareInvite = (code) =>
+  shareLink({ title: "Join me on Whisprl", text: "Let's play and chat on Whisprl", url: `${linkOrigin}${PATH_INVITE}/${code}`, copied: "Invite link copied" });

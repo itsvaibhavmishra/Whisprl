@@ -13,6 +13,9 @@ const withoutQuotes = (text) => (typeof text === "string" ? text.replace(/"[^"\n
 // a search or a link can carry a name in its query, and the path is all a report needs
 const withoutQuery = (url) => (typeof url === "string" ? url.split("?")[0] : url);
 
+// thrown inside Google's reCAPTCHA and the browser's own fetch, which no code of ours can catch or cancel
+const OUTSIDE_ERRORS = ["reCAPTCHA Timeout", "The user aborted a request."];
+
 const isMissingCodeEvent = (event) => Boolean(event.exception?.values?.some((exception) => isMissingCode(exception.type, exception.value)));
 
 const scrubbed = (event) => {
@@ -45,6 +48,7 @@ export const startErrorReports = () => {
       sendDefaultPii: false,
       integrations: [SentryReact.breadcrumbsIntegration({ console: false, dom: false })],
       initialScope: { tags: { platform: isApp ? "android" : "web" } },
+      ignoreErrors: OUTSIDE_ERRORS,
       beforeSend: scrubbed,
       beforeBreadcrumb: scrubbedBreadcrumb,
     },

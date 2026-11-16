@@ -7,6 +7,7 @@ import { isWhisprl } from "#src/services/whisprlService.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import { presenceShownTo } from "#src/services/blockService.js";
+import { ownBadgesOf, shownBadgesOf } from "#src/services/badgeService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { QUICK_REACTION_COUNT, areQuickReactions } from "#src/utils/emoji.js";
 import { assertStrongPassword, normalizeUsername } from "#src/utils/accountRules.js";
@@ -28,7 +29,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt publicKeys";
+export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar tag badge cover coverStyle activityStatus createdAt publicKeys";
 
 export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -90,15 +91,18 @@ export const getPublicProfile = async (viewer, { userId, username }) => {
   const filter = username ? { username: normalizeUsername(username) } : mongoose.isValidObjectId(userId) && { _id: userId };
   if (!filter) throw createHttpError.BadRequest("Query required");
   const person = await UserModel.findOne(filter)
-    .select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month`)
+    .select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month bannedAt`)
     .lean();
   if (!person) throw createHttpError.NotFound("User does not exist");
 
-  const { friends, suggestToFriendsOfFriends, showBirthdayToFriends, birthday, ...rest } = person;
+  const { friends, suggestToFriendsOfFriends, showBirthdayToFriends, birthday, bannedAt, ...rest } = person;
   // a birthday is for friends unless its owner hides it, and only its day and month ever leave the server
   const isFriend = viewer.friends.some((friend_id) => friend_id.equals(person._id));
-  const showsBirthday = viewer._id.equals(person._id) || (isFriend && showBirthdayToFriends !== false);
-  const profile = showsBirthday && birthday ? { ...rest, birthday } : rest;
+  const isSelf = viewer._id.equals(person._id);
+  const showsBirthday = isSelf || (isFriend && showBirthdayToFriends !== false);
+  // a banned account shows a placeholder to everyone, so its badges would say whose it is
+  const badges = bannedAt ? [] : await (isSelf ? ownBadgesOf : shownBadgesOf)(person._id);
+  const profile = { ...rest, ...(showsBirthday && birthday && { birthday }), badges };
   if (!(await canSeeMutualFriends(viewer, person))) return profile;
   return { ...profile, mutualFriends: await mutualFriendsOf(viewer, person._id, friends) };
 };
@@ -122,7 +126,8 @@ export const getOwnProfile = async (user) => {
     username: user.username,
     usernameChangedAt: user.usernameChangedAt,
     avatar: user.avatar,
-    badge: user.badge,
+    tag: user.tag,
+    badge: user.tag,
     cover: user.cover,
     coverStyle: user.coverStyle,
     email: user.email,
@@ -157,9 +162,9 @@ const PEOPLE_PAGE_SIZE = 20;
 
 const skipFor = (page, size = SEARCH_PAGE_SIZE) => Math.max(0, Number.parseInt(page, 10) || 0) * size;
 
-const SEARCH_FIELDS = "firstName lastName username avatar badge activityStatus onlineStatus";
+const SEARCH_FIELDS = "firstName lastName username avatar tag badge activityStatus onlineStatus";
 // presence is for friends, so strangers are found without it
-const STRANGER_FIELDS = "firstName lastName username avatar badge cover coverStyle activityStatus createdAt";
+const STRANGER_FIELDS = "firstName lastName username avatar tag badge cover coverStyle activityStatus createdAt";
 
 // never by email, so nobody can find out whether an address has an account
 const nameOrUsernameFilter = (keyword) => {

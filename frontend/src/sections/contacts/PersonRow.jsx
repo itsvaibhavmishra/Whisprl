@@ -4,7 +4,7 @@ import { m } from "motion/react";
 import { Link } from "react-router-dom";
 
 import BirthdayCake from "@/components/BirthdayCake";
-import PersonBadge from "@/components/PersonBadge";
+import PersonTag from "@/components/PersonTag";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import AvatarChoices from "@/sections/chat/status/AvatarChoices";
 import useLiveStatuses from "@/sections/chat/status/useLiveStatuses";
@@ -89,7 +89,7 @@ const PersonRow = ({ person, isSelected = false, isOnline = false, detail, actio
                 </Box>
               )}
             </Typography>
-            <PersonBadge badge={person.badge} />
+            <PersonTag tag={person.tag} />
           </Stack>
           {person.username && (
             <Typography noWrap component="p" sx={{ m: 0, mt: 0.25, fontSize: 13, fontWeight: 500, color: "text.secondary" }}>

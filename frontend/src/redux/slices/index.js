@@ -8,3 +8,4 @@ export { default as statusReducer } from "@/redux/slices/statusSlice";
 export { default as adminReducer } from "@/redux/slices/adminSlice";
 export { default as gameReducer } from "@/redux/slices/gameSlice";
 export { default as appUpdateReducer } from "@/redux/slices/appUpdateSlice";
+export { default as badgeReducer } from "@/redux/slices/badgeSlice";

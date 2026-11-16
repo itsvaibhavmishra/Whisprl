@@ -34,6 +34,14 @@ describe("motionBetween", () => {
     expect(motionBetween("/settings/about", "/docs/privacy")).toBe(PUSH);
     expect(motionBetween("/docs/privacy", "/settings/about")).toBe(BACK);
   });
+
+  it("slides the Badges screens in over any tab, deeper into Progress and back out", () => {
+    expect(motionBetween("/chat/6ad616737b5260316f3a6766/info", "/badges/65787ea22c8433b199ced18d")).toBe(PUSH);
+    expect(motionBetween("/settings/profile", "/badges/65787ea22c8433b199ced18d")).toBe(PUSH);
+    expect(motionBetween("/badges/65787ea22c8433b199ced18d", "/badges/65787ea22c8433b199ced18d/progress")).toBe(PUSH);
+    expect(motionBetween("/badges/65787ea22c8433b199ced18d/progress", "/badges/65787ea22c8433b199ced18d")).toBe(BACK);
+    expect(motionBetween("/badges/65787ea22c8433b199ced18d", "/contacts/@ava")).toBe(BACK);
+  });
 });
 
 describe("stepMotion", () => {

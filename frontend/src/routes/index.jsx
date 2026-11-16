@@ -58,6 +58,7 @@ export default function Router() {
       ],
     },
     { path: "/invite/:code", element: <InviteLayout />, children: [{ index: true, element: <InvitePage /> }] },
+    { path: "/testers/:code", element: <AuthLayout isOpenToSignedIn />, children: [{ index: true, element: <TestersPage /> }] },
     {
       path: "/docs",
       element: <DocsLayout />,
@@ -98,6 +99,8 @@ export default function Router() {
         { path: "contacts/*", element: <ContactsPage /> },
         { path: "contact", element: <Navigate to={PATH_DASHBOARD.general.contacts} replace /> },
         { path: "settings/*", element: <Settings /> },
+        { path: "badges/:userId", element: <BadgesPage /> },
+        { path: "badges/:userId/progress", element: <BadgesPage isProgress /> },
 
         { path: "404", element: <Page404 /> },
         { path: "*", element: <Navigate to="/404" replace /> },
@@ -110,6 +113,7 @@ export default function Router() {
 const ChatPage = preloadable(() => import("@/pages/dashboard/Chat"));
 const StatusPage = preloadable(() => import("@/pages/dashboard/Status"));
 const ContactsPage = preloadable(() => import("@/pages/dashboard/Contacts"));
+const BadgesPage = Loadable(lazy(() => import("@/pages/dashboard/Badges")));
 const SetupPage = Loadable(lazy(() => import("@/pages/Setup")));
 const Settings = preloadable(() => import("@/pages/dashboard/Settings"));
 
@@ -117,6 +121,7 @@ const Settings = preloadable(() => import("@/pages/dashboard/Settings"));
 const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/Login")));
 const InvitePage = Loadable(lazy(() => import("@/pages/auth/Invite")));
+const TestersPage = Loadable(lazy(() => import("@/pages/auth/Testers")));
 const RegisterPage = Loadable(lazy(() => import("@/pages/auth/Register")));
 const VerifyPage = Loadable(lazy(() => import("@/pages/auth/Verify")));
 const ForgotPasswordPage = Loadable(lazy(() => import("@/pages/auth/ForgotPassword")));
