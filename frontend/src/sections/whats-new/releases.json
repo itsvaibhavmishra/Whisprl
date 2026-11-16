@@ -1,12 +1,17 @@
 {
-  "upcoming": [
-    {
-      "emoji": "🏅",
-      "title": "Badges",
-      "text": "Badges you're given show under your name. Choose their order, hide any you like, and open one to see it on its stage and share it."
-    }
-  ],
+  "upcoming": [],
   "releases": [
+    {
+      "version": "2.5.15",
+      "date": "2026-11-16",
+      "highlights": [
+        {
+          "emoji": "🏅",
+          "title": "Badges",
+          "text": "Badges you're given show under your name. Choose their order, hide any you like, and open one to see it on its stage and share it."
+        }
+      ]
+    },
     {
       "version": "2.5.14",
       "date": "2026-11-14",
