@@ -23,6 +23,7 @@
   - Fixed:
 
   - Developers:
+    - HOW_TO_CONTRIBUTE.md walks anyone outside the project through sending a pull request
 
   - Internal:
     - The Owner, Admin and Official labels are now called tags in the code and the database, so badges can take that name
