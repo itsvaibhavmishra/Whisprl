@@ -27,7 +27,13 @@ export const PATH_AUTH = {
 
 export const PATH_SETUP = path(ROOTS_DASHBOARD, "setup");
 
+export const badgesPathOf = (userId) => path(ROOTS_DASHBOARD, `badges/${userId}`);
+
+export const badgeProgressPathOf = (userId) => `${badgesPathOf(userId)}/progress`;
+
 export const PATH_INVITE = path(ROOTS_DASHBOARD, "invite");
+
+export const PATH_TESTERS = path(ROOTS_DASHBOARD, "testers");
 
 export const PATH_ADMIN = {
   root: path(ROOTS_DASHBOARD, "admin"),

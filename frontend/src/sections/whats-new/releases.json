@@ -1,5 +1,11 @@
 {
-  "upcoming": [],
+  "upcoming": [
+    {
+      "emoji": "🏅",
+      "title": "Badges",
+      "text": "Badges you're given show under your name. Choose their order, hide any you like, and open one to see it on its stage and share it."
+    }
+  ],
   "releases": [
     {
       "version": "2.5.14",

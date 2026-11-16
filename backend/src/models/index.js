@@ -19,6 +19,9 @@ import GameRequestModel from "#src/models/gameRequestModel.js";
 import BotRecordModel from "#src/models/botRecordModel.js";
 import AnnouncementModel from "#src/models/announcementModel.js";
 import UpdatePolicyModel from "#src/models/updatePolicyModel.js";
+import BadgeModel from "#src/models/badgeModel.js";
+import BadgeHolderModel from "#src/models/badgeHolderModel.js";
+import PromotionModel from "#src/models/promotionModel.js";
 
 export {
   UserModel,
@@ -42,4 +45,7 @@ export {
   BotRecordModel,
   AnnouncementModel,
   UpdatePolicyModel,
+  BadgeModel,
+  BadgeHolderModel,
+  PromotionModel,
 };

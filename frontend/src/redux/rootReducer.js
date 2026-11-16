@@ -6,6 +6,7 @@ import {
   adminReducer,
   appUpdateReducer,
   authReducer,
+  badgeReducer,
   chatReducer,
   contactReducer,
   encryptionReducer,
@@ -44,6 +45,7 @@ const rootReducer = combineReducers({
   admin: adminReducer,
   game: gameReducer,
   appUpdate: appUpdateReducer,
+  badge: badgeReducer,
 });
 
 export { rootPersistConfig, rootReducer };

@@ -12,10 +12,7 @@ import AgreeToTerms from "@/sections/auth/AgreeToTerms";
 import AuthHeader from "@/sections/auth/AuthHeader";
 import ContinueWithGoogle from "@/sections/auth/ContinueWithGoogle";
 import getAvatar from "@/utils/avatars";
-import { isApp } from "@/utils/platform";
-
-// the website can only tell an Android phone by its browser, and there the app is offered first
-const isAndroidBrowser = !isApp && /android/i.test(navigator.userAgent);
+import { isAndroidBrowser } from "@/utils/platform";
 
 const playLinkOf = (code) => `${PLAY_STORE_URL}&referrer=${encodeURIComponent(`invite=${code}`)}`;
 
