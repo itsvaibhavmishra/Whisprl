@@ -6,7 +6,8 @@ import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
 import ProfileCover from "@/components/ProfileCover";
 import { SOFT } from "@/components/profile/RelationshipActions";
 import Wordmark from "@/components/Wordmark";
-import { canShareNatively, copyProfileLink, profileLinkOf, shareProfile } from "@/sections/contacts/contactsRoute";
+import { copyProfileLink, profileLinkOf, shareProfile } from "@/sections/contacts/contactsRoute";
+import { canShareNatively } from "@/utils/share";
 
 const CARD = "chat.list";
 const BAND = { xs: 64, md: 84 };

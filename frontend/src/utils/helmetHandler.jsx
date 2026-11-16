@@ -35,11 +35,15 @@ const PAGES = {
     description: "Whisprl's standards against child sexual abuse and exploitation, how to report it, and who to contact.",
   },
   "/chat": { title: "Chats | Whisprl", description: WELCOME.description },
+  "/testers": { title: "Become a tester | Whisprl", description: "Help test the Whisprl Android app before it reaches everyone." },
   "/admin/requests": { title: "Game requests | Whisprl", description: WELCOME.description },
 };
 
 // Steps inside a flow, which a search result should never land someone in the middle of.
-const UNLISTED = ["/auth/verify", "/auth/forgot-password", "/auth/reset-password", "/404"];
+const UNLISTED = ["/auth/verify", "/auth/forgot-password", "/auth/reset-password", "/testers", "/404"];
+
+// pages opened with an id or a code, which stays out of titles and canonical links
+const OPENED_BY_CODE = ["/chat", "/testers"];
 
 const titleFromPath = (path) => {
   const lastSegment = path.split("/").filter(Boolean).pop();
@@ -51,8 +55,7 @@ const titleFromPath = (path) => {
 const HelmetHandler = () => {
   const { pathname } = useLocation();
   const trimmed = pathname.replace(/\/+$/, "") || "/";
-  // an open chat is still the chats page, and its id stays out of titles and canonical links
-  const path = trimmed.startsWith("/chat/") ? "/chat" : trimmed;
+  const path = OPENED_BY_CODE.find((page) => trimmed.startsWith(`${page}/`)) ?? trimmed;
   const { title, description } = PAGES[path] || {
     title: titleFromPath(path),
     description: WELCOME.description,

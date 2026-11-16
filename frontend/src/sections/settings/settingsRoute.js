@@ -44,7 +44,6 @@ export const CATEGORIES = [
 export const PROFILE = {
   slug: "profile",
   label: "Profile",
-  note: "This is the card your friends see when they open your profile. Change anything and it updates as you type.",
 };
 
 export const settingsPathOf = (category) => `${SETTINGS_ROOT}/${category.slug}`;

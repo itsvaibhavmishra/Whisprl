@@ -12,10 +12,11 @@ import { DEFAULT_AUTH } from "@/config";
 import { PATH_AUTH } from "@/routes/paths";
 import useIsLoading from "@/hooks/useIsLoading";
 import { isApp } from "@/utils/platform";
+import { rememberedTesterLink, testerLinkPathOf } from "@/utils/testerLink";
 
 const SLOW_START_AFTER = 10000;
 
-const AuthLayout = () => {
+const AuthLayout = ({ isOpenToSignedIn = false }) => {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
@@ -33,8 +34,10 @@ const AuthLayout = () => {
     dispatch(StartServer());
   }, [dispatch]);
 
-  if (isLoggedIn) {
-    return <Navigate to={"/"} replace />;
+  if (isLoggedIn && !isOpenToSignedIn) {
+    // someone who chose email on a tester link goes back to its steps rather than into the app
+    const testerCode = rememberedTesterLink();
+    return <Navigate to={testerCode ? testerLinkPathOf(testerCode) : "/"} replace />;
   }
 
   const page = pathname.replace(/\/+$/, "");

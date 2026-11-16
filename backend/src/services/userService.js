@@ -7,6 +7,7 @@ import { isWhisprl } from "#src/services/whisprlService.js";
 import { deleteFile, isCloudinaryFile, uploadFile } from "#src/services/fileUploadService.js";
 import { gameOf } from "#src/services/games/catalog.js";
 import { presenceShownTo } from "#src/services/blockService.js";
+import { ownBadgesOf, shownBadgesOf } from "#src/services/badgeService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { QUICK_REACTION_COUNT, areQuickReactions } from "#src/utils/emoji.js";
 import { assertStrongPassword, normalizeUsername } from "#src/utils/accountRules.js";
@@ -90,15 +91,18 @@ export const getPublicProfile = async (viewer, { userId, username }) => {
   const filter = username ? { username: normalizeUsername(username) } : mongoose.isValidObjectId(userId) && { _id: userId };
   if (!filter) throw createHttpError.BadRequest("Query required");
   const person = await UserModel.findOne(filter)
-    .select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month`)
+    .select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month bannedAt`)
     .lean();
   if (!person) throw createHttpError.NotFound("User does not exist");
 
-  const { friends, suggestToFriendsOfFriends, showBirthdayToFriends, birthday, ...rest } = person;
+  const { friends, suggestToFriendsOfFriends, showBirthdayToFriends, birthday, bannedAt, ...rest } = person;
   // a birthday is for friends unless its owner hides it, and only its day and month ever leave the server
   const isFriend = viewer.friends.some((friend_id) => friend_id.equals(person._id));
-  const showsBirthday = viewer._id.equals(person._id) || (isFriend && showBirthdayToFriends !== false);
-  const profile = showsBirthday && birthday ? { ...rest, birthday } : rest;
+  const isSelf = viewer._id.equals(person._id);
+  const showsBirthday = isSelf || (isFriend && showBirthdayToFriends !== false);
+  // a banned account shows a placeholder to everyone, so its badges would say whose it is
+  const badges = bannedAt ? [] : await (isSelf ? ownBadgesOf : shownBadgesOf)(person._id);
+  const profile = { ...rest, ...(showsBirthday && birthday && { birthday }), badges };
   if (!(await canSeeMutualFriends(viewer, person))) return profile;
   return { ...profile, mutualFriends: await mutualFriendsOf(viewer, person._id, friends) };
 };
