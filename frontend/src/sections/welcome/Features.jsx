@@ -6,7 +6,7 @@ import { sectionHeading, sectionSpacing } from "@/sections/welcome/styles";
 const Features = () => (
   <Box component="section" aria-labelledby="features-title" sx={sectionSpacing}>
     <Typography id="features-title" component="h2" sx={sectionHeading}>
-      Everything a conversation needs
+      And a chat that has it all
     </Typography>
 
     <Box

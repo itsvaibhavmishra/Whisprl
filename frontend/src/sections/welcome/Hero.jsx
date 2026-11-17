@@ -32,7 +32,7 @@ const Hero = () => (
             maxWidth: "23ch",
           }}
         >
-          The real-time MERN chat app for you and your friends.
+          Chat and play games with your friends, right where you talk.
         </Box>
       </Typography>
 
@@ -45,8 +45,8 @@ const Hero = () => (
           maxWidth: "50ch",
         }}
       >
-        Message friends and groups the moment you think of them, and share photos, videos and statuses with them, all end-to-end encrypted. Free, open source,
-        and right in your browser.
+        Start a game of Jackaroo, Chain Reaction, Dots and Boxes or Tic‑tac‑toe inside any chat, and keep talking while you play. Every message is end-to-end
+        encrypted. Free, open source, on Android and in your browser.
       </Typography>
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 4 }}>

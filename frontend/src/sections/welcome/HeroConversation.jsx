@@ -1,9 +1,11 @@
 import { Avatar, Badge, Box, Stack, Typography } from "@mui/material";
 import { keyframes } from "@mui/material/styles";
-import { PaperPlaneRightIcon } from "@phosphor-icons/react";
+import { GameControllerIcon, PaperPlaneRightIcon } from "@phosphor-icons/react";
 
 import whisprlFace from "@/assets/icons/logo/WhisprlAvatar.webp";
 import TypingDots from "@/components/TypingDots";
+import GameTitle from "@/sections/chat/game/GameTitle";
+import { GAMES } from "@/sections/chat/game/catalog";
 import { CONVERSATION } from "@/sections/welcome/content";
 import { NO_MOTION } from "@/sections/welcome/styles";
 import { gradientOf } from "@/utils/gradients";
@@ -88,21 +90,65 @@ const TypingBubble = ({ from, until }) => (
   </Box>
 );
 
-const Message = ({ from, parts, typingFrom, arriveAt }) => {
+const GameStarted = ({ game }) => (
+  <Box
+    sx={{
+      position: "relative",
+      width: 260,
+      aspectRatio: "16 / 10",
+      borderRadius: "18px 18px 18px 6px",
+      overflow: "hidden",
+      bgcolor: game.theme.surface,
+      backgroundImage: `url(${game.art.scene})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center 14%",
+      color: "#fff",
+    }}
+  >
+    <Box sx={{ position: "absolute", top: "10%", left: "6%", width: "56%" }}>
+      <GameTitle title={game.title} name={game.name} width="100%" isStatic />
+    </Box>
+    <Stack
+      direction="row"
+      sx={{
+        position: "absolute",
+        inset: "auto 0 0",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 1.5,
+        pb: 1.25,
+        pt: 4,
+        background: "linear-gradient(180deg, transparent, rgba(10, 8, 26, 0.85))",
+      }}
+    >
+      <Typography sx={{ fontSize: 13.5, fontWeight: 700, textShadow: "0 1px 4px rgba(0, 0, 0, 0.55)" }}>Your table is ready</Typography>
+      <Stack
+        direction="row"
+        spacing={0.75}
+        sx={{ alignItems: "center", px: 1.5, py: 0.6, borderRadius: 99, bgcolor: game.theme.accent, color: "#fff", fontSize: 13, fontWeight: 800 }}
+      >
+        <GameControllerIcon size={15} weight="fill" />
+        <span>Play</span>
+      </Stack>
+    </Stack>
+  </Box>
+);
+
+const Message = ({ from, parts, game, typingFrom, arriveAt }) => {
   const mine = from === "you";
+  const landing = { gridArea: "1 / 1", animation: `${arrive} 320ms ease-out ${arriveAt}ms both`, [NO_MOTION]: { animation: "none" } };
   return (
     <Box component="li" sx={{ display: "grid", justifyItems: mine ? "end" : "start" }}>
       {!mine && <TypingBubble from={typingFrom} until={arriveAt} />}
-      <Box
-        sx={{
-          ...bubbleShape(mine),
-          gridArea: "1 / 1",
-          animation: `${arrive} 320ms ease-out ${arriveAt}ms both`,
-          [NO_MOTION]: { animation: "none" },
-        }}
-      >
-        <MessageText parts={parts} />
-      </Box>
+      {game ? (
+        <Box sx={landing}>
+          <GameStarted game={GAMES[game]} />
+        </Box>
+      ) : (
+        <Box sx={{ ...bubbleShape(mine), ...landing }}>
+          <MessageText parts={parts} />
+        </Box>
+      )}
     </Box>
   );
 };
