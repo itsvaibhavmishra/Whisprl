@@ -1,10 +1,10 @@
 import { CONTACT_EMAIL, PORTFOLIO_URL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "10 November 2026";
+export const LAST_UPDATED = "17 November 2026";
 
 export const INTRO = [
-  "This privacy policy covers Whisprl, the free chat app at whisprl.netlify.app and on Android, run by ",
+  "This privacy policy covers Whisprl: Chat & Games, the free chat app with games built in at whisprl.netlify.app and on Android, run by ",
   { label: "Vaibhaw Mishra", href: PORTFOLIO_URL },
   ". It explains what Whisprl collects, why, who else handles it, how long it is kept and how to have it deleted.",
 ];

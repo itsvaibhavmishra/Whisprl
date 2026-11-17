@@ -4,23 +4,23 @@ import { useLocation } from "react-router-dom";
 import { COMMUNITY, SITE_URL } from "@/config";
 
 const WELCOME = {
-  title: "Whisprl | Free Real-Time MERN Chat App",
-  description: `Whisprl is a free, real-time MERN chat app. Message friends and groups, share photos, videos and statuses, all end-to-end encrypted. Join ${COMMUNITY.people} people chatting.`,
+  title: "Whisprl: Chat & Games | Play with friends in every chat",
+  description: `Whisprl is a free chat app with games built in. Play Jackaroo, Chain Reaction, Dots and Boxes and Tic-tac-toe inside your chats, with every message end-to-end encrypted. Join ${COMMUNITY.people} people.`,
 };
 
 const PAGES = {
   "/auth/welcome": WELCOME,
   "/auth/login": {
     title: "Log in | Whisprl",
-    description: "Log in to Whisprl, the free real-time MERN chat app, and pick up your conversations where you left off.",
+    description: "Log in to Whisprl: Chat & Games, and pick up your chats and games where you left off.",
   },
   "/auth/register": {
     title: "Create a free account | Whisprl",
-    description: "Create a free Whisprl account and chat with your friends in real time, end-to-end encrypted, with photos, videos and statuses built in.",
+    description: "Create a free Whisprl account to chat and play games with your friends, with every message end-to-end encrypted.",
   },
   "/docs/tnc": {
     title: "Terms and conditions | Whisprl",
-    description: "The terms and conditions for using Whisprl, the real-time MERN chat app.",
+    description: "The terms and conditions for using Whisprl: Chat & Games.",
   },
   "/docs/privacy": {
     title: "Privacy policy | Whisprl",
