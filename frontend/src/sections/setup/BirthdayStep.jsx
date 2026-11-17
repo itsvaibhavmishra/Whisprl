@@ -2,15 +2,15 @@ import * as Yup from "yup";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Button, Stack, Switch, Typography } from "@mui/material";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-import FormProvider, { RHFBirthdayPicker } from "@/components/hook-form";
+import FormProvider, { RHFBirthdayPicker, RHFGenderPicker } from "@/components/hook-form";
 import useIsLoading from "@/hooks/useIsLoading";
 import { SaveBirthdayStep } from "@/redux/slices/actions/onboardingActions";
 import { SettingRow, SettingsSection } from "@/sections/settings/SettingsSection";
-import { signUpBirthdayRule } from "@/utils/formRules";
+import { genderRule, signUpBirthdayRule } from "@/utils/formRules";
 
-const BirthdaySchema = Yup.object({ birthday: signUpBirthdayRule });
+const schemaFor = (asksGender) => Yup.object({ birthday: signUpBirthdayRule, ...(asksGender && { gender: genderRule }) });
 
 const ChoiceRow = ({ name, label, description }) => (
   <Controller
@@ -26,10 +26,11 @@ const ChoiceRow = ({ name, label, description }) => (
 const BirthdayStep = () => {
   const dispatch = useDispatch();
   const isSaving = useIsLoading(SaveBirthdayStep);
+  const asksGender = useSelector((state) => !state.user.user.gender);
   const methods = useForm({
     mode: "onChange",
-    resolver: yupResolver(BirthdaySchema),
-    defaultValues: { birthday: "", showBirthdayToFriends: true, suggestToFriendsOfFriends: true },
+    resolver: yupResolver(schemaFor(asksGender)),
+    defaultValues: { birthday: "", gender: "", showBirthdayToFriends: true, suggestToFriendsOfFriends: true },
   });
 
   return (
@@ -44,6 +45,7 @@ const BirthdayStep = () => {
           </Typography>
           <RHFBirthdayPicker name="birthday" label="Birthday" />
         </Stack>
+        {asksGender && <RHFGenderPicker name="gender" />}
         <SettingsSection title="Who sees you">
           <ChoiceRow name="showBirthdayToFriends" label="Show my birthday to friends" description="On your profile and in their Birthdays this week." />
           <ChoiceRow

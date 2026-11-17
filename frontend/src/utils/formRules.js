@@ -52,6 +52,8 @@ export const profileBirthdayRule = birthdayRule
   .test("old-enough", `You must be at least ${MIN_AGE} to use Whisprl`, (value) => !value || isOldEnough(value))
   .when("$hasBirthday", { is: true, then: (rule) => rule.required("Your birthday can be changed, not removed") });
 
+export const genderRule = Yup.string().required("Choose one, or prefer not to say");
+
 export const BIO_LIMIT = 50;
 
 export const bioRule = Yup.string().trim().max(BIO_LIMIT, `Keep your bio under ${BIO_LIMIT} characters`);

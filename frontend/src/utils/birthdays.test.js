@@ -1,4 +1,4 @@
-import { birthdaysThisWeek, daysUntilBirthday, dateInputOf, isBirthdayToday, whenLabel } from "@/utils/birthdays";
+import { birthdaysThisWeek, dateInputOf, daysUntilBirthday, isBirthdayToday, nextBirthdayChangeOf, whenLabel } from "@/utils/birthdays";
 
 const on = (year, month, day) => new Date(year, month - 1, day, 15, 30);
 
@@ -38,4 +38,14 @@ test("labels say today, tomorrow, then the weekday", () => {
 test("a stored birthday fills a date input, and none leaves it empty", () => {
   expect(dateInputOf({ day: 4, month: 3, year: 1995 })).toBe("1995-03-04");
   expect(dateInputOf(undefined)).toBe("");
+});
+
+test("a birthday never changed, or changed over a year ago, can change now", () => {
+  const now = new Date(2026, 10, 17);
+  expect(nextBirthdayChangeOf(null, now)).toBeNull();
+  expect(nextBirthdayChangeOf(new Date(2025, 10, 1), now)).toBeNull();
+});
+
+test("a recent change waits until a year after it", () => {
+  expect(nextBirthdayChangeOf(new Date(2026, 5, 1), new Date(2026, 10, 17))).toEqual(new Date(2027, 5, 1));
 });

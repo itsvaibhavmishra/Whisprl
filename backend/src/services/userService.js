@@ -10,7 +10,7 @@ import { presenceShownTo } from "#src/services/blockService.js";
 import { ownBadgesOf, shownBadgesOf } from "#src/services/badgeService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { QUICK_REACTION_COUNT, areQuickReactions } from "#src/utils/emoji.js";
-import { assertStrongPassword, normalizeUsername } from "#src/utils/accountRules.js";
+import { assertBirthdayChange, assertStrongPassword, genderFrom, isSameDay, normalizeUsername } from "#src/utils/accountRules.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -47,6 +47,20 @@ export const validateProfileImage = (kind, file) => {
 const uploadProfileImage = (user, kind, file) => uploadFile(`${PROFILE_IMAGES[kind].folder}/${user._id}`, file);
 
 export const setOnlineStatus = (user_id, onlineStatus) => UserModel.updateOne({ _id: user_id }, { onlineStatus });
+
+// a birthday added to an account that had none is not a change, so it never starts the yearly clock
+export const birthdayFieldsFor = (user, born) => {
+  if (!user.birthday) return { birthday: born };
+  if (isSameDay(user.birthday, born)) return {};
+  assertBirthdayChange(user, born);
+  return { birthday: born, birthdayChangedAt: new Date() };
+};
+
+export const genderFieldsFor = (user, wanted) => {
+  if (!wanted || wanted === user.gender) return {};
+  if (user.gender) throw createHttpError.Forbidden("Only Whisprl support can change your gender");
+  return { gender: genderFrom(wanted) };
+};
 
 // every upload is checked before any reaches Cloudinary, and replaced images go only once the user is saved
 export const saveProfile = async (user, fields, uploads, removals) => {
@@ -91,7 +105,7 @@ export const getPublicProfile = async (viewer, { userId, username }) => {
   const filter = username ? { username: normalizeUsername(username) } : mongoose.isValidObjectId(userId) && { _id: userId };
   if (!filter) throw createHttpError.BadRequest("Query required");
   const person = await UserModel.findOne(filter)
-    .select(`${PUBLIC_PROFILE_FIELDS} friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month bannedAt`)
+    .select(`${PUBLIC_PROFILE_FIELDS} gender friends suggestToFriendsOfFriends showBirthdayToFriends birthday.day birthday.month bannedAt`)
     .lean();
   if (!person) throw createHttpError.NotFound("User does not exist");
 
@@ -133,6 +147,7 @@ export const getOwnProfile = async (user) => {
     email: user.email,
     activityStatus: user.activityStatus,
     birthday: user.birthday,
+    gender: user.gender,
     createdAt: user.createdAt,
     socialsConnected: user.socialsConnected,
     friendCount,

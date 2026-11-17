@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 
 import { markReached } from "#src/services/journeyService.js";
-import { birthdayFrom, isOldEnough } from "#src/utils/accountRules.js";
+import { birthdayFrom, genderFrom, isOldEnough } from "#src/utils/accountRules.js";
 
 const AGE_PAUSE_MS = 24 * 60 * 60 * 1000;
 
@@ -43,17 +43,18 @@ export const settleOnboarding = async (user) => {
   await user.save();
 };
 
-export const saveBirthdayStep = async (user, { birthday, showBirthdayToFriends, suggestToFriendsOfFriends }) => {
+export const saveBirthdayStep = async (user, { birthday, gender, showBirthdayToFriends, suggestToFriendsOfFriends }) => {
   if (isPaused(user)) throw createHttpError.Forbidden("Whisprl isn't available to you based on the details you entered");
   if (![showBirthdayToFriends, suggestToFriendsOfFriends].every((choice) => typeof choice === "boolean")) {
     throw createHttpError.BadRequest("Choose on or off");
   }
   const born = birthdayFrom(birthday);
   if (!born) throw createHttpError.BadRequest("Birthday required");
+  const genderField = user.gender ? {} : { gender: genderFrom(gender) };
 
   // too young pauses the account without saying why, so trying an older year has to wait a day
   if (isOldEnough(born)) {
-    user.set({ birthday: born, showBirthdayToFriends, suggestToFriendsOfFriends });
+    user.set({ birthday: born, ...genderField, showBirthdayToFriends, suggestToFriendsOfFriends });
     markReached(user, "birthday");
   } else {
     user.agePausedUntil = new Date(Date.now() + AGE_PAUSE_MS);

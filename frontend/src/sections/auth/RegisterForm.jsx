@@ -9,9 +9,9 @@ import { Button, Stack } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { RegisterUser } from "@/redux/slices/actions/authActions";
 
-import { isOldEnough, nameRule, newPasswordRule, signUpBirthdayRule } from "@/utils/formRules";
+import { genderRule, isOldEnough, nameRule, newPasswordRule, signUpBirthdayRule } from "@/utils/formRules";
 import { PATH_AUTH } from "@/routes/paths";
-import FormProvider, { PasswordChecklist, RHFBirthdayPicker, RHFPasswordField, RHFTextField } from "@/components/hook-form";
+import FormProvider, { PasswordChecklist, RHFBirthdayPicker, RHFGenderPicker, RHFPasswordField, RHFTextField } from "@/components/hook-form";
 import useIsLoading from "@/hooks/useIsLoading";
 
 const RegisterForm = ({ onTooYoung }) => {
@@ -29,6 +29,8 @@ const RegisterForm = ({ onTooYoung }) => {
 
     birthday: signUpBirthdayRule,
 
+    gender: genderRule,
+
     password: newPasswordRule,
   });
 
@@ -37,6 +39,7 @@ const RegisterForm = ({ onTooYoung }) => {
     lastName: "",
     email: "",
     birthday: "",
+    gender: "",
     password: "",
   };
 
@@ -63,6 +66,7 @@ const RegisterForm = ({ onTooYoung }) => {
         </Stack>
         <RHFTextField name="email" label="Email address" type="email" autoComplete="email" />
         <RHFBirthdayPicker name="birthday" label="Birthday" helperText="Friends see the day and month, never the year, and you can hide it." />
+        <RHFGenderPicker name="gender" />
         <RHFPasswordField name="password" label="Password" autoComplete="new-password" />
         <PasswordChecklist name="password" />
 

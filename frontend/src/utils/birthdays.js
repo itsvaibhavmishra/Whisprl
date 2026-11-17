@@ -1,5 +1,6 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK = 7;
+const CHANGE_INTERVAL_DAYS = 365;
 
 const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -37,3 +38,10 @@ export const birthdaysThisWeek = (people, today = new Date()) =>
 
 export const dateInputOf = (birthday) =>
   birthday ? `${birthday.year}-${String(birthday.month).padStart(2, "0")}-${String(birthday.day).padStart(2, "0")}` : "";
+
+// the server allows one change a year, so the picker waits until then rather than offering a save it will refuse
+export const nextBirthdayChangeOf = (changedAt, now = new Date()) => {
+  if (!changedAt) return null;
+  const next = new Date(new Date(changedAt).getTime() + CHANGE_INTERVAL_DAYS * DAY_MS);
+  return next > now ? next : null;
+};

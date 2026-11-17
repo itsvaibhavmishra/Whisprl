@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcrypt";
 
+import { GENDERS } from "#src/utils/accountRules.js";
 import { COVER_PALETTES, COVER_PATTERNS } from "#src/utils/coverStyles.js";
 
 const PASSWORD_COST = 12;
@@ -136,6 +137,9 @@ const userSchema = mongoose.Schema(
     activityStatus: { type: String, default: "" },
     // friends see the day and month, and the year only proves someone is old enough for Whisprl
     birthday: { type: birthdaySchema },
+    birthdayChangedAt: { type: Date },
+    // set once by its owner, and changed after that only by support
+    gender: { type: String, enum: GENDERS },
     showBirthdayToFriends: { type: Boolean, default: true },
     onlineStatus: {
       type: String,

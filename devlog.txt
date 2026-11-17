@@ -14,9 +14,11 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Sign up and setup ask for gender (male, female or prefer not to say), shown on your profile unless you prefer not to say; once set, only support can change it
 
   - Improvements:
     - Whisprl is now Whisprl: Chat & Games: the welcome page opens on a game being dealt in a chat and the real cards of every game, and page titles, the link preview image, the web app's name, emails and the terms and privacy pages call it that
+    - A birthday can be changed once a year, and never in a way that moves you between under 18 and adult
 
   - Fixed:
 
