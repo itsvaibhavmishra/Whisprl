@@ -34,7 +34,7 @@ export const CATEGORIES = [
     tint: accent("blue"),
     group: 1,
   },
-  { slug: "security", label: "Security", description: "Password, passkeys and your recovery key", icon: ShieldCheckIcon, tint: accent("cyan"), group: 1 },
+  { slug: "security", label: "Security", description: "Other devices, passkeys and your recovery key", icon: ShieldCheckIcon, tint: accent("cyan"), group: 1 },
   { slug: "privacy", label: "Privacy", description: "Who sees your status, suggestions and birthday", icon: LockKeyIcon, tint: accent("orange"), group: 1 },
   { slug: "whats-new", label: "What's new", description: "The highlights of each release", icon: SparkleIcon, tint: accent("red"), group: 2 },
   { slug: "about", label: "About Whisprl", description: "Terms, source code and reporting a problem", icon: InfoIcon, tint: "grey.600", group: 2 },

@@ -1,7 +1,7 @@
 import { greeting, mail, panel, paragraph } from "#src/templates/mail/layout.js";
 
 const ADDED = "A new passkey was just added to your Whisprl account, and it can now be used to log in.";
-const NOT_YOU = "Remove it in Settings, under Passkeys, then change your password, which logs out every other device.";
+const NOT_YOU = "Remove it in Settings, under Passkeys, then choose Log out other devices under Security.";
 
 export default (name) =>
   mail({

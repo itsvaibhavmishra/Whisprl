@@ -1,15 +1,5 @@
-import {
-  findSessionUser,
-  loginWithPassword,
-  registerUser,
-  resendVerificationCode,
-  resetPasswordWithToken,
-  sendPasswordReset,
-  sendVerificationCode,
-  toSessionUser,
-  verifyEmail,
-} from "#src/services/authService.js";
-import { endSession, issueAccessToken, issueChallenge, renewSession, signOutEverywhere, signOutSession, startSession } from "#src/services/sessionService.js";
+import { findSessionUser, signInReviewer, toSessionUser } from "#src/services/authService.js";
+import { endSession, issueAccessToken, issueChallenge, renewSession, signOutSession, startSession } from "#src/services/sessionService.js";
 import { platformOf } from "#src/services/activityService.js";
 import { noteLoginDevice, noteRenewingDevice } from "#src/services/deviceService.js";
 import { settleOnboarding } from "#src/services/onboardingService.js";
@@ -28,45 +18,9 @@ export const respondWithSession = async (req, res, user, message, extra = {}) =>
 };
 
 export const login = async (req, res) => {
-  const user = await loginWithPassword(req.body.identifier, req.body.password);
+  const user = await signInReviewer(req.body.email, req.body.password);
 
-  if (!user.verified) {
-    return res.status(200).json({ status: "info", message: `Hello ${user.firstName}, please verify to login` });
-  }
-
-  await respondWithSession(req, res, user, "Logged in successfully");
-};
-
-export const register = async (req, res) => {
-  const user = await registerUser(req.body);
-  await sendVerificationCode(user);
-
-  res.status(200).json({ status: "success", message: "We emailed you a code" });
-};
-
-export const sendOtp = async (req, res) => {
-  await resendVerificationCode(req.body.email);
-
-  res.status(200).json({ status: "success", message: "We emailed you a code" });
-};
-
-export const verifyOTP = async (req, res) => {
-  const user = await verifyEmail(req.body.email, req.body.otp);
-
-  await respondWithSession(req, res, user, "Email verified");
-};
-
-export const forgotPassword = async (req, res) => {
-  await sendPasswordReset(req.body.email);
-
-  res.status(200).json({ status: "success", message: "Reset Password link sent" });
-};
-
-export const resetPassword = async (req, res) => {
-  const user = await resetPasswordWithToken(req.body);
-  signOutEverywhere(req.app.get("io"), user._id);
-
-  res.status(200).json({ status: "success", message: "Password Reset Successfully" });
+  await respondWithSession(req, res, user, "Logged in");
 };
 
 export const logout = async (req, res) => {

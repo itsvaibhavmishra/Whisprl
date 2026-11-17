@@ -19,12 +19,6 @@ export const assertValidName = (firstName, lastName) => {
   }
 };
 
-export const assertStrongPassword = (password) => {
-  if (!isText(password) || !validator.isStrongPassword(password.trim())) {
-    throw createHttpError.BadRequest("Password must be at least 8 characters long, with a number, a lowercase letter, an uppercase letter and a symbol");
-  }
-};
-
 export const normalizeEmail = (email) =>
   String(email ?? "")
     .trim()

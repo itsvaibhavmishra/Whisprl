@@ -4,7 +4,7 @@ import { useRoutes, Navigate } from "react-router-dom";
 
 import LoadingScreen from "@/components/LoadingScreen";
 import { DEFAULT_AUTH, DEFAULT_DOCS, DEFAULT_PATH } from "@/config";
-import { PATH_DASHBOARD } from "@/routes/paths";
+import { PATH_AUTH, PATH_DASHBOARD } from "@/routes/paths";
 import DashboardLayout from "@/layouts/dashboard";
 import StaffOnly from "@/layouts/admin/StaffOnly";
 import AuthLayout from "@/layouts/auth";
@@ -51,10 +51,8 @@ export default function Router() {
         { element: <Navigate to={DEFAULT_AUTH} replace />, index: true },
         { path: "welcome", element: isApp ? <Navigate to={DEFAULT_AUTH} replace /> : <WelcomePage /> },
         { path: "login", element: <LoginPage /> },
-        { path: "register", element: <RegisterPage /> },
-        { path: "verify", element: <VerifyPage /> },
-        { path: "forgot-password", element: <ForgotPasswordPage /> },
-        { path: "reset-password", element: <ResetPasswordPage /> },
+        { path: "review", element: <ReviewPage /> },
+        { path: "register", element: <Navigate to={PATH_AUTH.general.login} replace /> },
       ],
     },
     { path: "/invite/:code", element: <InviteLayout />, children: [{ index: true, element: <InvitePage /> }] },
@@ -122,10 +120,7 @@ const WelcomePage = Loadable(lazy(() => import("@/pages/auth/WelcomePage")));
 const LoginPage = Loadable(lazy(() => import("@/pages/auth/Login")));
 const InvitePage = Loadable(lazy(() => import("@/pages/auth/Invite")));
 const TestersPage = Loadable(lazy(() => import("@/pages/auth/Testers")));
-const RegisterPage = Loadable(lazy(() => import("@/pages/auth/Register")));
-const VerifyPage = Loadable(lazy(() => import("@/pages/auth/Verify")));
-const ForgotPasswordPage = Loadable(lazy(() => import("@/pages/auth/ForgotPassword")));
-const ResetPasswordPage = Loadable(lazy(() => import("@/pages/auth/ResetPassword")));
+const ReviewPage = Loadable(lazy(() => import("@/pages/auth/Review")));
 
 // admin pages, fetched only once the guard has let someone through
 const AdminLayout = Loadable(lazy(() => import("@/layouts/admin")));

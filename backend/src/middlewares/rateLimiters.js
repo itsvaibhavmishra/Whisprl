@@ -7,8 +7,7 @@ const MINUTE = 60 * 1000;
 
 // one IPv6 visitor holds a whole block of addresses, so the block counts as one
 const byIp = (req) => ipKeyGenerator(req.ip);
-const byIpAndEmail = (req) => `${byIp(req)}:${normalizeEmail(req.body.email)}`;
-const byIpAndAccount = (req) => `${byIp(req)}:${normalizeEmail(req.body.identifier)}`;
+const byIpAndAccount = (req) => `${byIp(req)}:${normalizeEmail(req.body.email)}`;
 const byUser = (req) => String(req.user._id);
 
 const tooManyRequests = (req, res, next) => {
@@ -30,8 +29,6 @@ const limit = (windowMinutes, max, keyGenerator, options = {}) =>
 
 // only failed attempts count, so someone who logs in and out often is never locked out
 export const loginLimit = () => limit(15, 10, byIpAndAccount, { skipSuccessfulRequests: true });
-export const signupLimit = () => limit(60, 10, byIp);
-export const emailLimit = () => limit(60, 5, byIpAndEmail);
 export const codeLimit = () => limit(15, 10, byIp);
 // a tab refreshes about once per access token, so this leaves room for many people behind one address
 export const sessionLimit = () => limit(15, 300, byIp);

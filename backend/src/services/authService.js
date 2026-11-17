@@ -1,35 +1,17 @@
 import crypto from "crypto";
 import createHttpError from "http-errors";
-import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
-import { isDisposableEmail } from "#src/utils/checkDispose.js";
-import {
-  assertStrongPassword,
-  assertValidName,
-  genderFrom,
-  normalizeEmail,
-  normalizeUsername,
-  oldEnoughBirthdayFrom,
-  trimmed,
-} from "#src/utils/accountRules.js";
+import { normalizeEmail } from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
-import { randomCoverStyle } from "#src/utils/coverStyles.js";
-import otpMail from "#src/templates/mail/otp.js";
-import resetMail from "#src/templates/mail/reset.js";
 import { formatRemainingTime, sendMail } from "#src/services/mailer.js";
-import { endAllSessions, isSessionActive, sessionEnded, verifyAccessToken } from "#src/services/sessionService.js";
+import { isSessionActive, sessionEnded, verifyAccessToken } from "#src/services/sessionService.js";
 import { onboardingOf } from "#src/services/onboardingService.js";
 import { permissionsOf, roleOf } from "#src/services/roleService.js";
 import { assertNotShutOut } from "#src/services/moderationService.js";
-import { availableUsername } from "#src/services/usernameService.js";
-import { markReached, startJourney } from "#src/services/journeyService.js";
-import { befriendWhisprl } from "#src/services/whisprlService.js";
-import { welcomeToWhisprl } from "#src/services/whisprlMessageService.js";
-import { reportError } from "#src/utils/errorReports.js";
+import { openAccount } from "#src/services/socialAuthService.js";
 
 export const CODE_LIFETIME = 10 * 60 * 1000;
-const RESET_LIFETIME = 10 * 60 * 1000;
 const RESEND_COOLDOWN = 90 * 1000;
 export const MAX_CODE_ATTEMPTS = 5;
 
@@ -95,163 +77,10 @@ export const authenticate = async (token) => {
   return { user, sessionId: sid };
 };
 
-// a username never holds an @, and only verified accounts log in by one, so an account still verifying goes by its email
-const accountFilterOf = (identifier) => {
-  const value = String(identifier).trim();
-  if (value.indexOf("@") > 0) return { email: normalizeEmail(value) };
-  const username = normalizeUsername(value);
-  // a hidden account, such as one waiting to be deleted, still logs in by the username it set aside
-  return { $or: [{ username }, { "hiddenProfile.username": username }], verified: true };
-};
-
-export const loginWithPassword = async (identifier, password) => {
-  if (!identifier || !password) throw createHttpError.BadRequest("Required fields: email or username & password");
-
-  const user = await UserModel.findOne(accountFilterOf(identifier)).select("+password");
-  if (!user || !(await user.correctPassword(String(password)))) {
-    throw createHttpError.Unauthorized("Incorrect email, username or password");
-  }
-
-  return user;
-};
-
-export const registerUser = async ({ email, password, ...typed }) => {
-  const [firstName, lastName, birthday] = [typed.firstName, typed.lastName, typed.birthday].map(trimmed);
-  if (!firstName || !lastName || !email || !password || !birthday) {
-    throw createHttpError.BadRequest("Required fields: firstName, lastName, email, password & birthday");
-  }
-
-  const address = normalizeEmail(email);
-  assertValidName(firstName, lastName);
-  if (!validator.isEmail(address)) throw createHttpError.BadRequest("Invalid email");
-  assertStrongPassword(password);
-  const born = oldEnoughBirthdayFrom(birthday);
-  const gender = genderFrom(typed.gender);
-  if (await isDisposableEmail(address)) throw createHttpError.BadRequest("Disposable emails are not allowed");
-
-  // an account still waiting on its code is never signed up over, or the owner's code would verify someone else's password
-  if (await UserModel.exists({ email: address })) throw createHttpError.Conflict("Email is already registered, please log in");
-
-  const user = new UserModel({
-    email: address,
-    firstName,
-    lastName,
-    password,
-    birthday: born,
-    gender,
-    isNewAccount: true,
-    username: await availableUsername(firstName, lastName),
-    coverStyle: randomCoverStyle(),
-  });
-  startJourney(user, "email", ["birthday"]);
-  return user.save();
-};
-
-export const sendVerificationCode = async (user) => {
-  assertCooledDown(user.verification?.sentAt, "code");
-
-  const code = newCode();
-  const now = Date.now();
-  user.verification = { codeHash: sha256(code), expiresAt: now + CODE_LIFETIME, sentAt: now, attempts: 0 };
-  await user.save();
-
-  try {
-    await mailOrFail(user.email, `${code} is your Whisprl code`, otpMail(user.firstName, code));
-  } catch (error) {
-    user.verification = undefined;
-    await user.save();
-    throw error;
-  }
-};
-
-export const resendVerificationCode = async (email) => {
-  const user = await UserModel.findOne({ email: normalizeEmail(email) }).select("+verification");
-
-  if (!user) throw createHttpError.NotFound("No account uses that email, please sign up");
-  if (user.verified) throw createHttpError.Conflict("Email is already verified, please log in");
-
-  await sendVerificationCode(user);
-};
-
-const whyCodeWasRefused = async (email) => {
-  const user = await UserModel.findOne({ email }).select("+verification");
-
-  if (!user) return createHttpError.NotFound("No account uses that email, please sign up");
-  if (user.verified) return createHttpError.Conflict("Email is already verified, please log in");
-  if (!user.verification || user.verification.expiresAt <= Date.now()) {
-    return createHttpError.BadRequest("That code expired, please request a new one");
-  }
-  return createHttpError.TooManyRequests("Too many attempts, please request a new code");
-};
-
-// counting the attempt in the same write that checks the limit, so parallel guesses cannot slip past it
-export const verifyEmail = async (email, typedCode) => {
-  const code = trimmed(typedCode);
-  if (!email || !code) throw createHttpError.BadRequest("Required fields: email & otp");
-
-  const address = normalizeEmail(email);
-  const user = await UserModel.findOneAndUpdate(
-    {
-      email: address,
-      verified: false,
-      "verification.expiresAt": { $gt: new Date() },
-      "verification.attempts": { $lt: MAX_CODE_ATTEMPTS },
-    },
-    { $inc: { "verification.attempts": 1 } },
-    { returnDocument: "after" }
-  ).select("+verification");
-
-  if (!user) throw await whyCodeWasRefused(address);
-  if (!matchesHash(code, user.verification.codeHash)) throw createHttpError.BadRequest("Incorrect code");
-
-  user.verified = true;
-  user.verification = undefined;
-  befriendWhisprl(user);
-  markReached(user, "verified");
-  await user.save();
-  // a welcome that fails to send is reported, but never stops the account being verified
-  await welcomeToWhisprl(user._id).catch((error) => reportError(error, user._id));
-
-  return user;
-};
-
-export const sendPasswordReset = async (email) => {
-  const user = await UserModel.findOne({ email: normalizeEmail(email) }).select("+passwordReset");
-  if (!user) throw createHttpError.NotFound("Email is not registered");
-
-  assertCooledDown(user.passwordReset?.sentAt, "reset link");
-
-  const token = crypto.randomBytes(32).toString("hex");
-  const now = Date.now();
-  user.passwordReset = { tokenHash: sha256(token), expiresAt: now + RESET_LIFETIME, sentAt: now };
-  await user.save();
-
-  const resetUrl = `${process.env.FRONT_URL}/auth/reset-password/?code=${token}`;
-  try {
-    await mailOrFail(user.email, "Reset your Whisprl password", resetMail(user.firstName, resetUrl));
-  } catch (error) {
-    user.passwordReset = undefined;
-    await user.save();
-    throw error;
-  }
-};
-
-export const resetPasswordWithToken = async ({ token, password, passwordConfirm }) => {
-  if (!token) throw createHttpError.BadRequest("Required field: token");
-
-  const user = await UserModel.findOne({
-    "passwordReset.tokenHash": sha256(token),
-    "passwordReset.expiresAt": { $gt: new Date() },
-  }).select("+passwordReset");
-
-  if (!user) throw createHttpError.BadRequest("That reset link expired, please request a new one");
-  if (trimmed(password) !== trimmed(passwordConfirm)) throw createHttpError.BadRequest("Password and Confirm Password do not match");
-  assertStrongPassword(password);
-
-  user.password = password;
-  user.passwordReset = undefined;
-  await user.save();
-
-  await endAllSessions(user._id);
-  return user;
+// Play's reviewers cannot sign in with a Google account of their own, so one account named in the environment signs in with a password
+export const signInReviewer = async (email, password) => {
+  const { REVIEW_ACCOUNT_EMAIL: reviewer, REVIEW_ACCOUNT_PASSWORD: secret } = process.env;
+  const isReviewer = Boolean(reviewer && secret) && normalizeEmail(email) === normalizeEmail(reviewer) && matchesHash(String(password ?? ""), sha256(secret));
+  if (!isReviewer) throw createHttpError.Unauthorized("Incorrect email or password");
+  return openAccount({ email: reviewer, name: "Play Review" });
 };

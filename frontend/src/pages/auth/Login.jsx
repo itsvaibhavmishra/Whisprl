@@ -1,25 +1,32 @@
 import { Link } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
-import AuthChoices from "@/sections/auth/AuthChoices";
+import AgreeToTerms from "@/sections/auth/AgreeToTerms";
 import AuthHeader from "@/sections/auth/AuthHeader";
-import AuthSocial from "@/sections/auth/AuthSocial";
-import LoginForm from "@/sections/auth/LoginForm";
+import ContinueWithGoogle from "@/sections/auth/ContinueWithGoogle";
 import { PATH_AUTH } from "@/routes/paths";
 import { isApp } from "@/utils/platform";
 
+// Google both signs people in and makes their account, so there is one screen for both
 const Login = () => (
   <>
-    <AuthHeader title="Log in to Whisprl" hasLogo>
-      New here?{" "}
-      <Link component={RouterLink} to={PATH_AUTH.general.register} underline="hover">
-        Create an account
-      </Link>
+    <AuthHeader title="Chat and play with your friends" hasLogo>
+      Continue with Google to sign in, or to make your account.
     </AuthHeader>
-    <AuthChoices moreLabel={isApp ? "Log in with email" : "More ways to log in"}>
-      <LoginForm />
-      <AuthSocial />
-    </AuthChoices>
+    <ContinueWithGoogle />
+    <AgreeToTerms sx={{ mt: 3 }} />
+    {isApp && (
+      <Link
+        component={RouterLink}
+        to={PATH_AUTH.general.review}
+        variant="caption"
+        color="text.disabled"
+        underline="hover"
+        sx={{ display: "block", mt: 6, textAlign: "center" }}
+      >
+        App review sign in
+      </Link>
+    )}
   </>
 );
 

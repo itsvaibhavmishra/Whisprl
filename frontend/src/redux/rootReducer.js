@@ -17,7 +17,7 @@ import {
 } from "@/redux/slices";
 
 // loading flags and decrypted text never reach disk: a saved flag would keep a button spinning on every later visit
-const PERSISTED_FIELDS = { auth: ["isLoggedIn", "otpEmail"], user: ["user"] };
+const PERSISTED_FIELDS = { auth: ["isLoggedIn"], user: ["user"] };
 
 const lastingFieldsOf = (slice, key) =>
   Object.fromEntries((PERSISTED_FIELDS[key] ?? []).filter((field) => field in slice).map((field) => [field, slice[field]]));

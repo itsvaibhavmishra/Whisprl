@@ -7,15 +7,15 @@ import { Link as RouterLink } from "react-router-dom";
 import { AccentPicker, ThemeModePicker } from "@/components/AppearancePickers";
 import Pane, { READING_WIDTH } from "@/components/Pane";
 import { SOURCE_URL } from "@/config";
+import useIsLoading from "@/hooks/useIsLoading";
 import useSettings from "@/hooks/useSettings";
 import { ForgetPushDevice } from "@/redux/slices/actions/pushActions";
-import { GetMyProfile } from "@/redux/slices/actions/userActions";
+import { GetMyProfile, LogOutOtherDevices } from "@/redux/slices/actions/userActions";
 import { tourRestarted } from "@/redux/slices/userSlice";
 import { PATH_DASHBOARD, PATH_DOCS } from "@/routes/paths";
 import ProfileEditor from "@/sections/profile/ProfileEditor";
 import BirthdaySetting from "@/sections/settings/BirthdaySetting";
 import BlockedPeopleSetting from "@/sections/settings/BlockedPeopleSetting";
-import ChangePasswordDialog from "@/sections/settings/ChangePasswordDialog";
 import ChatPreview from "@/sections/settings/ChatPreview";
 import DeleteAccountDialog from "@/sections/settings/DeleteAccountDialog";
 import AppLockSetting from "@/sections/settings/AppLockSetting";
@@ -173,18 +173,18 @@ const AccountSettings = () => {
 };
 
 const SecuritySettings = () => {
-  const [changingPassword, setChangingPassword] = useState(false);
+  const dispatch = useDispatch();
+  const isLoggingOut = useIsLoading(LogOutOtherDevices);
   return (
     <SettingsSection>
-      <SettingRow label="Password" description="The password you log in with.">
-        <Button variant="outlined" color="inherit" onClick={() => setChangingPassword(true)}>
-          Change password
+      <SettingRow label="Other devices" description="Ends every session but this one, wherever Whisprl is open.">
+        <Button variant="outlined" color="inherit" loading={isLoggingOut} onClick={() => dispatch(LogOutOtherDevices())}>
+          Log out other devices
         </Button>
       </SettingRow>
       <PasskeySetting />
       {isApp && <AppLockSetting />}
       <RecoveryKeySetting />
-      {changingPassword && <ChangePasswordDialog onClose={() => setChangingPassword(false)} />}
     </SettingsSection>
   );
 };

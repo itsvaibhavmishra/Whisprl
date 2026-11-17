@@ -10,7 +10,7 @@ import { presenceShownTo } from "#src/services/blockService.js";
 import { ownBadgesOf, shownBadgesOf } from "#src/services/badgeService.js";
 import { escapeRegex } from "#src/utils/escapeRegex.js";
 import { QUICK_REACTION_COUNT, areQuickReactions } from "#src/utils/emoji.js";
-import { assertBirthdayChange, assertStrongPassword, genderFrom, isSameDay, normalizeUsername } from "#src/utils/accountRules.js";
+import { assertBirthdayChange, genderFrom, isSameDay, normalizeUsername } from "#src/utils/accountRules.js";
 
 const PROFILE_IMAGES = {
   avatar: {
@@ -155,20 +155,6 @@ export const getOwnProfile = async (user) => {
     conversationCount,
     messageCount,
   };
-};
-
-export const changePassword = async (user_id, currentPassword, newPassword) => {
-  const user = await UserModel.findById(user_id).select("+password");
-  if (!user.password) {
-    throw createHttpError.BadRequest("You have no password yet. Log out and use Forgot your password to set one");
-  }
-  if (!(await user.correctPassword(String(currentPassword)))) {
-    throw createHttpError.BadRequest("Your current password is incorrect");
-  }
-  assertStrongPassword(newPassword);
-
-  user.password = newPassword;
-  await user.save();
 };
 
 const SEARCH_PAGE_SIZE = 10;

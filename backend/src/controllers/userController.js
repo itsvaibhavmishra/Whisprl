@@ -2,7 +2,6 @@ import createHttpError from "http-errors";
 import validator from "validator";
 
 import {
-  changePassword,
   getOwnProfile,
   getPublicProfile,
   birthdayFieldsFor,
@@ -120,19 +119,11 @@ export const updateBirthdaySetting = async (req, res) => {
   return res.status(200).json({ status: "success", showBirthdayToFriends });
 };
 
-export const updatePassword = async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-
-  if (!currentPassword || !newPassword) {
-    throw createHttpError.BadRequest("Required fields: currentPassword, newPassword");
-  }
-
-  await changePassword(req.user._id, currentPassword, newPassword);
-
+export const logOutOtherDevices = async (req, res) => {
   await endOtherSessions(req.user._id, req.sessionId);
   await signOutOtherDevices(req.app.get("io"), req.user._id, req.sessionId);
 
-  return res.status(200).json({ status: "success", message: "Password changed" });
+  return res.status(200).json({ status: "success", message: "Logged out of your other devices" });
 };
 
 export const searchUsers = async (req, res) => {

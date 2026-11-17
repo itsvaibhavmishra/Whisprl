@@ -35,7 +35,7 @@ const Games = () => {
       >
         {SHOWN.map((id) => (
           <Box component="li" key={id}>
-            <GameCard game={GAMES[id]} onClick={() => navigate(PATH_AUTH.general.register)} />
+            <GameCard game={GAMES[id]} onClick={() => navigate(PATH_AUTH.general.login)} />
           </Box>
         ))}
       </Box>

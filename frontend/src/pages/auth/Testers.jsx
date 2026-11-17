@@ -10,7 +10,6 @@ import AuthHeader from "@/sections/auth/AuthHeader";
 import { Claimed, GetApp, JoinGroup, OpenApp, SignIn } from "@/sections/testers/TesterStages";
 import { openThenReturn } from "@/utils/openThenReturn";
 import { isAndroidBrowser } from "@/utils/platform";
-import { forgetTesterLink } from "@/utils/testerLink";
 
 // the room of the tallest stage, which has a QR code off Android, so the badge stays put between steps
 const TALLEST_STAGE = isAndroidBrowser ? 500 : 610;
@@ -30,7 +29,6 @@ const Testers = () => {
   }, [dispatch, code]);
 
   useEffect(() => {
-    if (isLoggedIn) forgetTesterLink();
     const open = isLoggedIn ? JoinPromotion : GetPromotion;
     dispatch(open(code)).then((result) => setFailure(open.rejected.match(result) ? result.payload : null));
   }, [dispatch, code, isLoggedIn]);
@@ -60,7 +58,7 @@ const Testers = () => {
 
   return (
     <Box sx={{ minHeight: TALLEST_STAGE }}>
-      {stage === "sign-in" && <SignIn badge={badge} code={code} />}
+      {stage === "sign-in" && <SignIn badge={badge} />}
       {stage === "group" && <JoinGroup badge={badge} onOpenGroup={openGroup} />}
       {stage === "play" && <GetApp badge={badge} onOpenPlay={openPlay} onOpenGroup={openGroup} />}
       {stage === "app" && <OpenApp badge={badge} email={email} />}

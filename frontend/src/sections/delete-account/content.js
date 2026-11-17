@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "11 November 2026";
+export const LAST_UPDATED = "18 November 2026";
 
 export const INTRO = ["You can delete your Whisprl account at any time, from the website or the Android app. Nothing needs installing, and it takes a minute."];
 
@@ -37,7 +37,7 @@ export const SECTIONS = [
     blocks: [
       {
         list: [
-          "your email address and password, so nobody can log in to the account again",
+          "your email address, so nobody can log in to the account again",
           "your name, username, profile picture, cover, status line and birthday",
           "your statuses, with their photos and videos",
           "your passkeys, and every device you were logged in on",

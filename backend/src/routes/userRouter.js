@@ -10,11 +10,11 @@ import {
   getMyProfile,
   updateGameAudio,
   getUserData,
+  logOutOtherDevices,
   requestAccountDeletion,
   searchUsers,
   sendAccountDeletionCode,
   updateBirthdaySetting,
-  updatePassword,
   updateProfile,
   updateQuickReactions,
   updateSuggestionSetting,
@@ -32,7 +32,7 @@ const profileImages = upload.fields([
 
 userRouter.route("/update-profile").post(protect, uploadLimit(), profileImages, updateProfile);
 
-userRouter.route("/change-password").post(protect, writeLimit(), updatePassword);
+userRouter.route("/log-out-others").post(protect, writeLimit(), logOutOtherDevices);
 
 userRouter.route("/username").get(protect, readLimit(), checkUsernameAvailable).put(protect, writeLimit(), updateUsername);
 

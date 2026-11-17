@@ -75,7 +75,7 @@ const AccountSummary = () => {
             })}
           </Stack>
         ) : (
-          "Email and password only"
+          "Email only"
         )}
       </Fact>
     </Box>

@@ -12,7 +12,7 @@ FRONT_URL = "http://localhost:3000"
 # (can be skipped without the app)
 APP_ORIGIN = "https://localhost"
 
-# Nodemailer Config (Can be skipped | required for otp and reset password)
+# Nodemailer Config (Can be skipped | required for the account deletion code and new device emails)
 MAIL_USER = ''
 MAIL_PASS = ''
 
@@ -21,21 +21,12 @@ CLOUDINARY_CLOUD_NAME = ""
 CLOUDINARY_API_KEY = ""
 CLOUDINARY_API_SECRET = ""
 
-# ----Social Auths---- (Can be skipped)
-# Google OAuth (the same client id as the frontend's REACT_APP_GOOGLE_AUTH_CLIENT_ID)
+# Google sign in, the only way in (the same client id as the frontend's REACT_APP_GOOGLE_AUTH_CLIENT_ID)
 GOOGLE_AUTH_CLIENT_ID = ""
 
-# GitHub OAuth
-GITHUB_AUTH_CLIENT_ID = ""
-GITHUB_AUTH_CLIENT_SECRET = ""
-
-# LinkedIn OAuth
-LINKEDIN_AUTH_CLIENT_ID = ""
-LINKEDIN_AUTH_CLIENT_SECRET = ""
-# -------------------
-
-# Google reCAPTCHA
-GOOGLE_RECAPTCHA_SECRET = ""
+# The one account Play's reviewers sign in to with a password (can be skipped, nobody can then)
+REVIEW_ACCOUNT_EMAIL = ""
+REVIEW_ACCOUNT_PASSWORD = ""
 
 # Push notifications for the Android app (can be skipped, the server then sends none)
 # The Firebase service account's JSON, on one line

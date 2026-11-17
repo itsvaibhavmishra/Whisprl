@@ -124,7 +124,10 @@ tells them apart by shape and verifies the ID token's signature, issuer, expiry 
 `google-auth-library`. Both carry the same audience, the web client id in
 `GOOGLE_AUTH_CLIENT_ID`, so one account works from either.
 
-The app offers Google and email sign-in only. GitHub and LinkedIn are for the website.
+Google is the only way in, on the website and in the app. Play's reviewers cannot use a Google
+account of their own, so the app's sign-in screen has a small App review sign in link: it takes
+the one email and password set in the backend's `REVIEW_ACCOUNT_EMAIL` and `REVIEW_ACCOUNT_PASSWORD`,
+and refuses everything when they are unset. Give that pair to Play in App access.
 
 **Links.** A link to the website's chat, contacts, status or settings pages opens the app when it
 is installed, and the website when it is not, so a shared profile link works for everyone. The
@@ -318,7 +321,7 @@ then rather than letting it back in.
 A deleted account stays as a placeholder, the same "Whisprl user" a ban shows, because the
 people it chatted with need its public keys to open what it sent them. Everything else goes:
 the email becomes an unusable `<id>@deleted.invalid`, which frees the address for a new account,
-and the password, username, birthday, photos, statuses, passkeys, friends, requests and settings
+and any old password, the username, birthday, photos, statuses, passkeys, friends, requests and settings
 are removed. It leaves every group, handing on any it owned. The reason, and any note, stay on
 the placeholder as the only record of why people leave. No email is sent when the account is
 actually deleted.

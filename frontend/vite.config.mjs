@@ -27,7 +27,6 @@ const emojiData = () => ({
 });
 
 const GOOGLE_SIGN_IN = "https://accounts.google.com/gsi/";
-const RECAPTCHA = ["https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/"];
 const ANALYTICS = ["https://www.googletagmanager.com", "https://*.google-analytics.com", "https://*.analytics.google.com"];
 // pictures people sign up with stay on the provider that hosts them
 const AVATAR_HOSTS = ["https://*.googleusercontent.com", "https://avatars.githubusercontent.com", "https://media.licdn.com"];
@@ -42,7 +41,7 @@ const policyFor = (env) => {
   const analytics = env.REACT_APP_GA_ID ? ANALYTICS : [];
   const directives = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", GOOGLE_SIGN_IN, ...RECAPTCHA, ...analytics],
+    "script-src": ["'self'", GOOGLE_SIGN_IN, ...analytics],
     // MUI writes its styles into the page as it renders, so style tags it adds have to be allowed
     "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", GOOGLE_SIGN_IN],
     "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
@@ -50,7 +49,7 @@ const policyFor = (env) => {
     "media-src": ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
     // blob: because saving a decrypted photo or file fetches it back from the address it was decrypted to
     "connect-src": ["'self'", "blob:", api, socket, "https://res.cloudinary.com", GOOGLE_SIGN_IN, errorReports, ...analytics].filter(Boolean),
-    "frame-src": [GOOGLE_SIGN_IN, ...RECAPTCHA, "https://recaptcha.google.com/recaptcha/"],
+    "frame-src": [GOOGLE_SIGN_IN],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],

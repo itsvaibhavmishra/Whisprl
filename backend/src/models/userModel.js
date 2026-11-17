@@ -1,11 +1,8 @@
 import mongoose from "mongoose";
 import validator from "validator";
-import bcrypt from "bcrypt";
 
 import { GENDERS } from "#src/utils/accountRules.js";
 import { COVER_PALETTES, COVER_PATTERNS } from "#src/utils/coverStyles.js";
-
-const PASSWORD_COST = 12;
 
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
@@ -147,7 +144,7 @@ const userSchema = mongoose.Schema(
       enum: ["online", "offline"],
     },
 
-    // accounts made through Google, GitHub or LinkedIn have none until they reset one
+    // only older accounts hold a hash here, kept in the schema so deleting an account can clear it
     password: { type: String, select: false },
 
     verified: { type: Boolean, default: false },
@@ -222,19 +219,10 @@ const userSchema = mongoose.Schema(
 userSchema.index({ "deletion.dueAt": 1 }, { sparse: true });
 userSchema.index({ "journey.startedAt": 1 }, { sparse: true });
 
-// every stored password was trimmed before hashing, so each one typed is trimmed the same way to match
-userSchema.pre("save", async function () {
-  if (this.isModified("password") && this.password) {
-    this.password = await bcrypt.hash(this.password.trim(), PASSWORD_COST);
-  }
-
+userSchema.pre("save", function () {
   // everyone is their own friend, which is what lets them message themselves
   if (this.friends.length === 0) this.friends.push(this._id);
 });
-
-userSchema.methods.correctPassword = async function (candidatePassword) {
-  return Boolean(this.password) && bcrypt.compare(candidatePassword.trim(), this.password);
-};
 
 const UserModel = mongoose.model("User", userSchema);
 

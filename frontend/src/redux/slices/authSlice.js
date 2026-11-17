@@ -1,34 +1,25 @@
 import { createSlice, isAnyOf } from "@reduxjs/toolkit";
 
-import { EndSession, GithubLogin, GoogleLogin, LinkedinLogin, LoginUser, PasskeyLogin, VerifyOTP } from "@/redux/slices/actions/authActions";
+import { EndSession, GoogleLogin, ReviewerLogin } from "@/redux/slices/actions/authActions";
 
 const initialState = {
   isLoggedIn: false,
-  otpEmail: "",
 };
 
 const slice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-    updateOtpEmail(state, action) {
-      state.otpEmail = action.payload.otpEmail;
-    },
-  },
+  reducers: {},
   // the thunks import this slice too, so they are only read once the reducer is built
   extraReducers(builder) {
-    const signIns = [LoginUser, PasskeyLogin, GoogleLogin, GithubLogin, LinkedinLogin, VerifyOTP];
-
     builder
       .addCase(EndSession.fulfilled, (state) => {
         state.isLoggedIn = false;
       })
-      .addMatcher(isAnyOf(...signIns.map((thunk) => thunk.fulfilled)), (state, action) => {
+      .addMatcher(isAnyOf(GoogleLogin.fulfilled, ReviewerLogin.fulfilled), (state, action) => {
         state.isLoggedIn = Boolean(action.payload.user);
       });
   },
 });
-
-export const { updateOtpEmail } = slice.actions;
 
 export default slice.reducer;

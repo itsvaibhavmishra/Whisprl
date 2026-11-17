@@ -13,7 +13,7 @@ ${paragraph(`You asked us to delete your Whisprl account, so it is hidden now an
 ${panel("What goes", WHAT_GOES)}
 ${panel("Changed your mind?", `Log in before ${day} and your account comes back exactly as it was.`)}
 <div style="margin:4px 0 26px;">${button(loginUrl, "Keep my account")}</div>
-${paragraph('<span style="color:#5F6E86;" class="muted">If you did not ask for this, log in now to keep your account, then change your password.</span>')}`,
+${paragraph('<span style="color:#5F6E86;" class="muted">If you did not ask for this, log in now to keep your account, then choose Log out other devices in Settings, under Security.</span>')}`,
     text: [
       `Hey ${name},`,
       "",
@@ -24,6 +24,6 @@ ${paragraph('<span style="color:#5F6E86;" class="muted">If you did not ask for t
       "",
       `Changed your mind? Log in before ${day} and your account comes back exactly as it was: ${loginUrl}`,
       "",
-      "If you did not ask for this, log in now to keep your account, then change your password.",
+      "If you did not ask for this, log in now to keep your account, then choose Log out other devices in Settings, under Security.",
     ],
   });

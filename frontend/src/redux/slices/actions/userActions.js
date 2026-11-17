@@ -43,8 +43,8 @@ export const UpdateProfile = createApiThunk(
 
 export const GetMyProfile = createApiThunk("user/me", async () => (await axios.get("/user/me")).data, { notifyErrors: false });
 
-export const ChangePassword = createApiThunk("user/change-password", async (passwords) => {
-  const { data } = await axios.post("/user/change-password", passwords);
+export const LogOutOtherDevices = createApiThunk("user/log-out-others", async () => {
+  const { data } = await axios.post("/user/log-out-others");
   notifyResult(data);
   return data;
 });

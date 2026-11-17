@@ -29,7 +29,6 @@
     "react-dom": "^19.3.1",
     "react-easy-crop": "^6.2.4",
     "react-ga4": "^3.0.1",
-    "react-google-recaptcha": "^3.1.0",
     "react-helmet-async": "^3.0.0",
     "react-hook-form": "^7.91.0",
     "react-redux": "^9.3.0",

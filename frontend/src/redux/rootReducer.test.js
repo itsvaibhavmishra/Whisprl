@@ -57,7 +57,7 @@ test("a request in flight when the page closed does not leave a button loading f
   const { store } = await openTheApp();
   const { auth, user, contact, requests } = store.getState();
 
-  expect(auth).toEqual({ isLoggedIn: false, otpEmail: "a@example.com" });
+  expect(auth).toEqual({ isLoggedIn: false });
   expect(user).not.toHaveProperty("isLoading");
   expect(contact).not.toHaveProperty("isSearchLoading");
   expect(requests).toEqual({ inFlight: {}, settled: {} });

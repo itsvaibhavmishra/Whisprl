@@ -49,9 +49,6 @@ const JoinChoices = ({ code }) => {
   return (
     <>
       <ContinueWithGoogle />
-      <Button size="large" color="inherit" fullWidth component={RouterLink} to={PATH_AUTH.general.register} state={{ withEmail: true }} sx={{ mt: 1.5 }}>
-        Sign up with email
-      </Button>
       <AgreeToTerms sx={{ mt: 3 }} />
     </>
   );
@@ -87,8 +84,8 @@ const Invite = () => {
     return (
       <>
         <AuthHeader title="This invite link doesn't work">Ask your friend for a new one, or join Whisprl on your own.</AuthHeader>
-        <Button size="large" variant="contained" fullWidth component={RouterLink} to={PATH_AUTH.general.register}>
-          Sign up
+        <Button size="large" variant="contained" fullWidth component={RouterLink} to={PATH_AUTH.general.login}>
+          Get started
         </Button>
       </>
     );

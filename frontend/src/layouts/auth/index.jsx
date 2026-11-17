@@ -12,7 +12,6 @@ import { DEFAULT_AUTH } from "@/config";
 import { PATH_AUTH } from "@/routes/paths";
 import useIsLoading from "@/hooks/useIsLoading";
 import { isApp } from "@/utils/platform";
-import { rememberedTesterLink, testerLinkPathOf } from "@/utils/testerLink";
 
 const SLOW_START_AFTER = 10000;
 
@@ -34,17 +33,13 @@ const AuthLayout = ({ isOpenToSignedIn = false }) => {
     dispatch(StartServer());
   }, [dispatch]);
 
-  if (isLoggedIn && !isOpenToSignedIn) {
-    // someone who chose email on a tester link goes back to its steps rather than into the app
-    const testerCode = rememberedTesterLink();
-    return <Navigate to={testerCode ? testerLinkPathOf(testerCode) : "/"} replace />;
-  }
+  if (isLoggedIn && !isOpenToSignedIn) return <Navigate to="/" replace />;
 
   const page = pathname.replace(/\/+$/, "");
   if (page === PATH_AUTH.general.welcome) {
     return <Outlet />;
   }
-  const showsLogo = [PATH_AUTH.general.login, PATH_AUTH.general.register].includes(page);
+  const showsLogo = page === PATH_AUTH.general.login;
   // in the app logging in is the first page, with nothing to go back to
   const canGoBack = isApp && page !== DEFAULT_AUTH;
 

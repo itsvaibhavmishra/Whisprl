@@ -14,16 +14,18 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
-    - Sign up and setup ask for gender (male, female or prefer not to say), shown on your profile unless you prefer not to say; once set, only support can change it
+    - Setup asks for gender (male, female or prefer not to say), shown on your profile unless you prefer not to say; once set, only support can change it
 
   - Improvements:
     - Whisprl is now Whisprl: Chat & Games: the welcome page opens on a game being dealt in a chat and the real cards of every game, and page titles, the link preview image, the web app's name, emails and the terms and privacy pages call it that
     - A birthday can be changed once a year, and never in a way that moves you between under 18 and adult
     - Jackaroo previews a move as lit dots in each hole it steps through and a ring where it lands, glows softly round each marble you can pick, draws the marbles a little smaller, and always lets you pick both marbles for a jack and how a seven is shared
+    - Signing in is one tap with Google, on the website and in the app, on a single screen: email sign up and its emailed code, passwords, GitHub, LinkedIn and passkey sign in are gone, passkeys still unlock your messages, and Settings, Security can log out your other devices
 
   - Fixed:
     - Two against two Jackaroo: a marble can jump one marble, yours included, and land on the next to knock it out; a seven can move either marble first; your partner's marble in front of your home no longer shuts it; the five shows all four colours; numbers on crowded marbles stay on screen; the home rings sit centred; and the sleeping cat's eyes no longer sparkle
 
   - Developers:
+    - The backend's REVIEW_ACCOUNT_EMAIL and REVIEW_ACCOUNT_PASSWORD give Play's reviewers the one password sign in, behind App review sign in in the app; the GitHub, LinkedIn and reCAPTCHA settings are no longer read
 
   - Internal:

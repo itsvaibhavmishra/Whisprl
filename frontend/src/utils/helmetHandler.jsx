@@ -11,12 +11,8 @@ const WELCOME = {
 const PAGES = {
   "/auth/welcome": WELCOME,
   "/auth/login": {
-    title: "Log in | Whisprl",
-    description: "Log in to Whisprl: Chat & Games, and pick up your chats and games where you left off.",
-  },
-  "/auth/register": {
-    title: "Create a free account | Whisprl",
-    description: "Create a free Whisprl account to chat and play games with your friends, with every message end-to-end encrypted.",
+    title: "Sign in | Whisprl",
+    description: "Sign in to Whisprl: Chat & Games with Google to chat and play games with your friends, with every message end-to-end encrypted.",
   },
   "/docs/tnc": {
     title: "Terms and conditions | Whisprl",
@@ -40,7 +36,7 @@ const PAGES = {
 };
 
 // Steps inside a flow, which a search result should never land someone in the middle of.
-const UNLISTED = ["/auth/verify", "/auth/forgot-password", "/auth/reset-password", "/testers", "/404"];
+const UNLISTED = ["/auth/review", "/testers", "/404"];
 
 // pages opened with an id or a code, which stays out of titles and canonical links
 const OPENED_BY_CODE = ["/chat", "/testers"];

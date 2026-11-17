@@ -1,9 +1,6 @@
-import { Box, Link, Typography } from "@mui/material";
-import { CaretLeftIcon } from "@phosphor-icons/react";
-import { Link as RouterLink } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
 
 import whisprlLogo from "@/assets/icons/logo/Whisprl.webp";
-import { PATH_AUTH } from "@/routes/paths";
 
 const CENTRED = { display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" };
 
@@ -16,21 +13,6 @@ const AuthHeader = ({ title, hasLogo = false, children }) => (
     </Typography>
     {children && <Typography sx={{ mt: 1, color: "text.secondary", textWrap: "pretty" }}>{children}</Typography>}
   </Box>
-);
-
-export const BackToLogin = ({ sx }) => (
-  <Link
-    component={RouterLink}
-    to={PATH_AUTH.general.login}
-    state={{ withEmail: true }}
-    color="text.secondary"
-    variant="body2"
-    underline="hover"
-    sx={{ mt: 4, display: "inline-flex", alignItems: "center", gap: 0.5, ...sx }}
-  >
-    <CaretLeftIcon size={16} />
-    Back to log in
-  </Link>
 );
 
 export default AuthHeader;
