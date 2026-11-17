@@ -114,7 +114,7 @@ const footer = (extra) => `
   <td class="pad" style="padding:22px 36px 34px;">
     ${extra}
     <p class="muted" style="margin:0 0 6px;font-family:${FONTS};font-size:12.5px;line-height:1.6;color:#5F6E86;">
-      Whisprl, the real-time chat app for you and your friends.
+      Whisprl: Chat &amp; Games, for you and your friends.
       <a href="${SITE}" style="color:#5F6E86;text-decoration:underline;">whisprl.netlify.app</a>
     </p>
     <p class="muted" style="margin:0;font-family:${FONTS};font-size:12.5px;line-height:1.6;color:#5F6E86;">
@@ -150,5 +150,5 @@ ${body}
 </table>
 </body>
 </html>`,
-  text: [...text, "", "--", "Whisprl, the real-time chat app for you and your friends.", SITE, `Questions? Write to ${SUPPORT}.`].join("\n"),
+  text: [...text, "", "--", "Whisprl: Chat & Games, for you and your friends.", SITE, `Questions? Write to ${SUPPORT}.`].join("\n"),
 });

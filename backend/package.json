@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "2.5.15",
-  "description": "Whisprl Backend",
+  "description": "Whisprl: Chat & Games, the API and real-time server",
   "main": "server.js",
   "type": "module",
   "imports": {
@@ -21,12 +21,12 @@
   "keywords": [
     "Whisprl",
     "Chat",
-    "ChatApp",
-    "MERN",
+    "Games",
+    "ChatGames",
     "NodeJS",
     "Express",
     "MongoDB",
-    "MERNChat"
+    "SocketIO"
   ],
   "author": "Vaibhaw Mishra",
   "license": "CC0-1.0",
