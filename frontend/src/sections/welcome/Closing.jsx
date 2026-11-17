@@ -22,9 +22,9 @@ const Closing = () => (
   >
     <Box sx={{ alignSelf: "center", pb: { md: 6 } }}>
       <Typography id="closing-title" component="h2" sx={sectionHeading}>
-        Your friends are one message away
+        Your next game is one message away
       </Typography>
-      <Typography sx={sectionIntro}>Create a free account, add your friends and say hello.</Typography>
+      <Typography sx={sectionIntro}>Create a free account, add your friends and challenge them to a game.</Typography>
       <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained" size="large" sx={{ mt: 4 }}>
         Create a free account
       </Button>

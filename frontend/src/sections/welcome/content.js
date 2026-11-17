@@ -10,23 +10,11 @@ import {
   UsersThreeIcon,
 } from "@phosphor-icons/react";
 
-import { COMMUNITY } from "@/config";
-
 export const CONVERSATION = [
-  { from: "you", parts: ["psst… anyone here?"] },
-  { from: "whisprl", parts: ["Always. Messages land the moment you hit send."] },
-  { from: "you", parts: ["how many people chat on here?"] },
-  {
-    from: "whisprl",
-    parts: [
-      { strong: COMMUNITY.people },
-      " people, ",
-      { strong: COMMUNITY.conversations },
-      " conversations and ",
-      { strong: COMMUNITY.messages },
-      " messages so far. You'd fit right in.",
-    ],
-  },
+  { from: "you", parts: ["psst… anyone up for a game?"] },
+  { from: "whisprl", parts: ["Always. Jackaroo, Chain Reaction or Dots and Boxes?"] },
+  { from: "you", parts: ["jackaroo. deal me in!"] },
+  { from: "whisprl", game: "jackaroo" },
 ];
 
 export const FEATURES = [
@@ -38,7 +26,7 @@ export const FEATURES = [
   {
     Icon: LockSimpleIcon,
     title: "End-to-end encrypted",
-    body: "Messages, photos, videos, voice messages and statuses for friends are locked in your browser before they leave it, so only the people they are for can open them.",
+    body: "Messages, photos, videos, voice messages and statuses for friends are locked on your device before they leave it, so only the people they are for can open them.",
   },
   {
     Icon: UsersThreeIcon,
@@ -77,48 +65,25 @@ export const FEATURES = [
   },
 ];
 
-export const STACK = [
-  {
-    letter: "M",
-    name: "MongoDB",
-    role: "Stores accounts, conversations and every message, encrypted before it arrives.",
-  },
-  {
-    letter: "E",
-    name: "Express",
-    role: "Serves the API the app talks to, rate limited and sanitised.",
-  },
-  {
-    letter: "R",
-    name: "React",
-    role: "Draws the interface, with Redux keeping each chat in step.",
-  },
-  {
-    letter: "N",
-    name: "Node.js",
-    role: "Runs the server, where Socket.io pushes each message out live.",
-  },
-];
-
 export const FAQS = [
   {
     question: "What is Whisprl?",
     answer:
-      "Whisprl is a free, real-time chat app that runs in your browser. Add your friends, message them one to one or in groups, share photos, videos, voice messages and documents, post a status for 24 hours, and see when they are online or typing.",
+      "Whisprl is a free chat app with games built in. Start a game of Jackaroo, Chain Reaction, Dots and Boxes or Tic-tac-toe inside any chat, and keep talking while you play. Message friends one to one or in groups, share photos, videos, voice messages and documents, and post a status for 24 hours.",
   },
   {
     question: "Is Whisprl free?",
-    answer: "Yes. Creating an account and chatting with your friends costs nothing.",
+    answer: "Yes. Creating an account, chatting and playing with your friends costs nothing.",
   },
   {
     question: "Can anyone else read my messages?",
     answer:
-      "No. Your messages, photos, videos, voice messages, documents, reactions and the statuses you share with friends are encrypted in your browser before they leave it, and only the people they are for hold the keys to open them. Whisprl's servers store them, but cannot read them.",
+      "No. Your messages, photos, videos, voice messages, documents, reactions and the statuses you share with friends are encrypted on your device before they leave it, and only the people they are for hold the keys to open them. Whisprl's servers store them, but cannot read them. Games are the one exception: the server runs every move, so nobody can cheat.",
   },
   {
-    question: "What is a MERN chat app?",
+    question: "Who can I play with?",
     answer:
-      "A MERN chat app is built with MongoDB, Express, React and Node.js. Whisprl is built on that stack, with Socket.io delivering every message in real time.",
+      "Anyone you chat with. Play a friend one to one, start a game for your whole group, or take on one of Whisprl's bots when nobody else is around. Each chat keeps its own leaderboard for every game.",
   },
   {
     question: "Is Whisprl open source?",
@@ -126,10 +91,11 @@ export const FAQS = [
   },
   {
     question: "Does Whisprl work on my phone?",
-    answer: "Yes. Whisprl works in any modern browser and fits phones, tablets and desktops alike.",
+    answer: "Yes. Whisprl works in any modern browser and fits phones, tablets and desktops alike. The Android app is in testing on Google Play.",
   },
   {
     question: "How do I start chatting?",
-    answer: "Sign up with your email, or with Google, GitHub or LinkedIn. Then add your friends and start a conversation with any of them.",
+    answer:
+      "Sign up with your email, or with Google, GitHub or LinkedIn. Then add your friends, say hello and challenge them to a game. Whisprl, the official account, is your first friend and always up for one.",
   },
 ];
