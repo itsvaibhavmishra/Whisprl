@@ -1,14 +1,15 @@
 <div align="center">
 
-<img src="docs/screenshots/feature.jpg" alt="Whisprl: chat and play with friends" />
+<img src="docs/screenshots/feature.jpg" alt="The Whisprl cat rising behind the Whisprl: Chat & Games wordmark, beside a wall of its game and chat screens" />
 
-# Whisprl
+# Whisprl: Chat & Games
 
-### End-to-end encrypted chats, voice notes, games and more
+### Play games with your friends, right where you talk
 
 Start a game of Jackaroo, Chain Reaction, Dots and Boxes or Tic-tac-toe right inside any chat,
 with a friend, your whole group or one of Whisprl's bots, and keep talking while you play.
-Free and open source, on Android and in your browser.
+Every message, photo and voice note is end-to-end encrypted. Free and open source, on Android
+and in your browser.
 
 **[Open Whisprl](https://whisprl.netlify.app)**&nbsp; · &nbsp;[What's new](CHANGELOG.md)&nbsp; · &nbsp;[Terms](https://whisprl.netlify.app/docs/tnc)
 
@@ -183,9 +184,11 @@ licence.
 ![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
 ![Motion](https://img.shields.io/static/v1?style=for-the-badge&message=Motion&color=242424&label=)
 ![NodeMailer](https://img.shields.io/static/v1?style=for-the-badge&message=NodeMailer&color=1CB674&logo=Node.js&logoColor=FFFFFF&label=)
+![Capacitor](https://img.shields.io/static/v1?style=for-the-badge&message=Capacitor&color=119EFF&logo=Capacitor&logoColor=FFFFFF&label=)
 
-Two packages, not a workspace: `frontend/` (React 19, MUI, Redux Toolkit) and `backend/`
-(Express, Socket.io, MongoDB). Each has its own `package.json`.
+Two packages, not a workspace: `frontend/` (React 19, MUI, Redux Toolkit), which is both the
+website and, inside a Capacitor shell, the Android app, and `backend/` (Express, Socket.io,
+MongoDB), which also runs every game. Each has its own `package.json`.
 
 ### Running it
 
@@ -455,7 +458,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   ├── icon-192.png
 │   │   ├── icon-512.png
 │   │   ├── manifest.json
-│   │   ├── og-image.png
+│   │   ├── og-image.jpg
 │   │   ├── robots.txt
 │   │   ├── sitemap.txt
 │   │   ├── sitemap.xml
@@ -958,9 +961,9 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── content.js
 │   │   │   │   ├── Faq.jsx
 │   │   │   │   ├── Features.jsx
+│   │   │   │   ├── Games.jsx
 │   │   │   │   ├── Hero.jsx
 │   │   │   │   ├── HeroConversation.jsx
-│   │   │   │   ├── MernStack.jsx
 │   │   │   │   ├── styles.js
 │   │   │   ├── whats-new/
 │   │   │   │   ├── ReleaseBanner.jsx

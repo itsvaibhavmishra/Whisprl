@@ -1,10 +1,10 @@
 import { CONTACT_EMAIL, PORTFOLIO_URL, SOURCE_URL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "11 November 2026";
+export const LAST_UPDATED = "17 November 2026";
 
 export const INTRO = [
-  "These terms cover your use of Whisprl, a free real-time chat app run by ",
+  "These terms cover your use of Whisprl: Chat & Games, a free chat app with games built in, run by ",
   { label: "Vaibhaw Mishra", href: PORTFOLIO_URL },
   " at whisprl.netlify.app and on Android. By creating an account or using Whisprl, you agree to them. If you do not agree, please do not use Whisprl.",
 ];

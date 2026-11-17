@@ -72,7 +72,7 @@ const BrandPanel = () => (
         <Wordmark name="Whisprl" fontSize="3.5rem" />
       </Box>
       <Typography sx={{ mt: 2, fontSize: 22, fontWeight: 600, lineHeight: 1.3, maxWidth: "22ch", textWrap: "balance" }}>
-        The real-time MERN chat app for you and your friends.
+        Chat and play games with your friends, right where you talk.
       </Typography>
     </Box>
 
