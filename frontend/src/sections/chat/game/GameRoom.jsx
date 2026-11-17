@@ -234,7 +234,7 @@ const GameRoom = ({ conversation, session }) => {
       }}
     >
       {isAnchored && sceneWidth && <Scenery art={game.art} width={sceneWidth} />}
-      <SceneSparkle fireflies={game.art.fireflies} />
+      <SceneSparkle fireflies={game.art.fireflies} quietStars={game.art.quietStars} />
       <Stack
         direction="row"
         spacing={1}

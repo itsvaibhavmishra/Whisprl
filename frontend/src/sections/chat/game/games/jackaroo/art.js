@@ -11,6 +11,8 @@ const art = {
   ratio: masthead.scene.width / masthead.scene.height,
   // a phone is taller than the design, so the scene keeps the design's width and fades into the room's colour below it
   fadesAtFoot: true,
+  // the sleeping cat lies under this star, which lit its eyes
+  quietStars: ["low-left"],
   title: `${FOLDER}/title.webp`,
   wordmark: `${FOLDER}/wordmark.webp`,
   startBoard: `${FOLDER}/start-board.webp`,

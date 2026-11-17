@@ -188,8 +188,8 @@ more than from the engine, and these are the parts of that a game here follows:
   [game-art.md](game-art.md)). A piece is placed by looking up its point, never by typing a
   position.
 - **Sizes come from the layout too.** Anything drawn over a hole takes its size from the hole's
-  measured radius or the sprite already drawn there, as Jackaroo's move preview reuses the home
-  ring for the hole a marble stops in. A guessed multiple of something else drifts off the circles.
+  measured radius or the sprite already drawn there, as Jackaroo's move preview sizes its dots from
+  the hole radius and its landing ring from the measured lip round each hole. A guessed multiple of something else drifts off the circles.
 - **Animation runs on transform and opacity,** played back from the move the server sent, after
   React has drawn where everything ends up, so a phone's compositor does the work.
 - **One set of timings.** When the server waits for a move to finish showing, it reads the same
