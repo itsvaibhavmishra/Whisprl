@@ -1,6 +1,6 @@
 import { memo, useId } from "react";
 import { Box, ButtonBase } from "@mui/material";
-import { alpha, keyframes } from "@mui/material/styles";
+import { keyframes, lighten } from "@mui/material/styles";
 
 import art from "@/sections/chat/game/games/jackaroo/art";
 import FONTS from "@/sections/chat/game/games/jackaroo/fonts";
@@ -71,6 +71,8 @@ const Swirls = memo(({ view, isStill }) =>
 );
 
 const BALL_SHARE = SPRITES.marble / SPRITES.shadow;
+// the cut marbles stand a little proud of the holes, so the board draws them smaller, about the size of a hole's ring
+const MARBLE_SIZE = SPRITES.shadow * 0.86;
 
 // a marble on its own start sits in a glassy shield with light turning inside it, a moment after it lands there
 const Shield = () => (
@@ -104,7 +106,7 @@ const Glow = ({ x, y, delay }) => (
   <Box
     sx={{
       ...sprite,
-      ...centredAt({ x, y }, SPRITES.shadow * 0.46),
+      ...centredAt({ x, y }, MARBLE_SIZE * 0.46),
       animation: `${appear} 400ms ease ${delay}ms both`,
       "@media (prefers-reduced-motion: reduce)": { animation: "none" },
     }}
@@ -123,7 +125,7 @@ const Glow = ({ x, y, delay }) => (
 
 // a marble and its shadow: the shadow stays on the wood while the ball lifts off it on each hop
 const Marble = memo(({ owner, id, x, y, tone, isHome, isShielded, register }) => (
-  <Box ref={(element) => register(`${owner}.${id}`, element)} sx={{ ...sprite, ...centredAt({ x, y }, SPRITES.shadow) }}>
+  <Box ref={(element) => register(`${owner}.${id}`, element)} sx={{ ...sprite, ...centredAt({ x, y }, MARBLE_SIZE) }}>
     <Box data-size sx={{ ...sprite, inset: 0, transform: isHome ? `scale(${HOME_SIZE})` : "none" }}>
       <Box component="img" alt="" data-shadow src={art.shadow} sx={{ ...sprite, inset: 0, width: "100%", height: "100%" }} />
       <Box
@@ -164,7 +166,16 @@ export const Marbles = ({ marbles, tones, view, winners, glowsAfter, register })
   ),
 ];
 
-// a white halo pulsing round each marble that can be chosen; tapping one hands its own marble back
+// the marble art leaves a clear margin round its ball, which fills this share of it
+const BALL_FILL = 0.85;
+const BALL_ACROSS = MARBLE_SIZE * BALL_SHARE * BALL_FILL;
+const HALO = MARBLE_SIZE * BALL_SHARE * 1.8;
+const HALO_SPILL = ((HALO / TARGET - 1) / 2) * 100;
+const HALO_CLEAR = (BALL_ACROSS / HALO) * 100;
+// only its brightness breathes, since growing would pull its clear middle off the ball
+const glowAround = keyframes`0%, 100% { opacity: 0.55; } 50% { opacity: 1; }`;
+
+// a pale halo round each marble that can be chosen, clear over the ball itself; tapping one hands its own marble back
 const Target = memo(({ x, y, label, value, onPick }) => (
   <ButtonBase
     aria-label={label}
@@ -177,11 +188,11 @@ const Target = memo(({ x, y, label, value, onPick }) => (
       "&::after": {
         content: '""',
         position: "absolute",
-        inset: 0,
+        inset: `-${HALO_SPILL}%`,
         borderRadius: "50%",
-        border: "3px solid #fff8ea",
-        boxShadow: "0 0 10px 2px rgba(255, 248, 234, 0.8)",
-        ...pulse(1.1),
+        background: `radial-gradient(circle closest-side, transparent ${HALO_CLEAR}%, rgba(255, 252, 240, 0.85) ${HALO_CLEAR + 1}%, rgba(255, 252, 240, 0.6) 76%, rgba(255, 252, 240, 0.2) 92%, transparent 100%)`,
+        animation: `${glowAround} 1.2s ease-in-out infinite`,
+        "@media (prefers-reduced-motion: reduce)": { animation: "none" },
       },
     }}
   />
@@ -191,6 +202,7 @@ export const Targets = ({ targets, onPick }) =>
   targets.map(({ value, x, y, label }) => <Target key={value} value={value} x={x} y={y} label={label} onPick={onPick} />);
 
 const BUBBLE = 28;
+const BUBBLE_GAP = 4;
 const popIn = keyframes`from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); }`;
 
 // a numbered bubble just off its marble, turned to point back at it, with the number kept upright
@@ -202,7 +214,7 @@ const CrowdChoice = ({ x, y, angle, number, value, label, onPick }) => (
       onClick={onPick}
       sx={{
         position: "absolute",
-        left: "calc(100% + 4px)",
+        left: `calc(100% + ${BUBBLE_GAP}px)`,
         top: "50%",
         width: BUBBLE,
         height: BUBBLE,
@@ -239,8 +251,31 @@ const CrowdChoice = ({ x, y, angle, number, value, label, onPick }) => (
   </Box>
 );
 
-// marbles too close to tap apart are numbered in reading order, each bubble set off away from the rest so none sits over another marble's
-export const Crowd = ({ targets, onPick }) => {
+const TURNS = [0, 45, -45, 90, -90, 135, -135, 180];
+
+// each bubble points away from the crowd's middle, turned only as far as it takes to stay on screen and clear of the other marbles and bubbles
+const anglesOf = (ordered, centre, { left, right, scale }) => {
+  const half = (BUBBLE / 2 + BUBBLE_GAP) / scale;
+  const reach = TARGET / 2 + half;
+  const placed = [];
+  return ordered.map((target) => {
+    const away = (Math.atan2(target.y - centre.y, target.x - centre.x) * 180) / Math.PI;
+    const bubbleAt = (angle) => ({ x: target.x + Math.cos((angle * Math.PI) / 180) * reach, y: target.y + Math.sin((angle * Math.PI) / 180) * reach });
+    const isOnScreen = (angle) => bubbleAt(angle).x - half >= left && bubbleAt(angle).x + half <= right;
+    const isClear = (angle) => {
+      const at = bubbleAt(angle);
+      const near = (point, gap) => Math.hypot(point.x - at.x, point.y - at.y) < gap;
+      return !placed.some((other) => near(other, half * 2)) && !ordered.some((other) => other !== target && near(other, half + SPRITES.marble / 2));
+    };
+    const angles = TURNS.map((turn) => away + turn).filter(isOnScreen);
+    const angle = angles.find(isClear) ?? angles[0] ?? away;
+    placed.push(bubbleAt(angle));
+    return angle;
+  });
+};
+
+// marbles too close to tap apart are numbered in reading order
+export const Crowd = ({ targets, span, onPick }) => {
   const centre = {
     x: targets.reduce((sum, target) => sum + target.x, 0) / targets.length,
     y: targets.reduce((sum, target) => sum + target.y, 0) / targets.length,
@@ -249,15 +284,8 @@ export const Crowd = ({ targets, onPick }) => {
   const ys = targets.map((target) => target.y);
   const isAcross = Math.max(...xs) - Math.min(...xs) >= Math.max(...ys) - Math.min(...ys);
   const ordered = [...targets].sort((one, two) => (isAcross ? one.x - two.x : one.y - two.y));
-  return ordered.map((target, index) => (
-    <CrowdChoice
-      key={target.value}
-      {...target}
-      number={index + 1}
-      angle={(Math.atan2(target.y - centre.y, target.x - centre.x) * 180) / Math.PI}
-      onPick={onPick}
-    />
-  ));
+  const angles = anglesOf(ordered, centre, span);
+  return ordered.map((target, index) => <CrowdChoice key={target.value} {...target} number={index + 1} angle={angles[index]} onPick={onPick} />);
 };
 
 // the red cross marking a marble a move would knock out
@@ -284,85 +312,46 @@ export const ShutHome = memo(({ holes, view }) =>
   ))
 );
 
-const STILL = { "@media (prefers-reduced-motion: reduce)": { animation: "none" } };
+const isTaken = (marbles, owner, place) =>
+  place.at === "track"
+    ? marbles.some((places) => places.some((other) => other.at === "track" && other.index === place.index))
+    : marbles[owner].some((other) => other.at === "home" && other.slot === place.slot);
 
-const breathe = keyframes`0%, 100% { transform: scale(0.94); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; }`;
+const RING_GAP = 0.8;
+const RING_WIDTH = 2.6;
+// a step's dot leaves the hole's dark rim showing round it
+const DOT_SHARE = 0.7;
 
-// where a move stops: a ring of the marble's colour round the hole, faintly filled, so the hole or the marble in it still shows
-const Stop = ({ x, y, colour }) => (
-  <Box
-    sx={{
-      ...sprite,
-      ...centredAt({ x, y }, SPRITES.marble * 1.3),
-      borderRadius: "50%",
-      border: `3px solid ${colour}`,
-      bgcolor: alpha(colour, 0.18),
-      boxShadow: `0 0 0 2px rgba(255, 250, 235, 0.85), 0 0 10px ${alpha(colour, 0.8)}`,
-      animation: `${breathe} 1.2s ease-in-out infinite`,
-      ...STILL,
-    }}
-  />
-);
-
-// where a move would go: one soft trail of the marble's colour from where it stands to a ring round where it stops, and a cross beside each marble it knocks out
+// where a move would go: a lit dot in each empty hole it steps through, a ring outside the lip where it stops, and a cross on each marble it knocks out
 export const Preview = ({ moves, marbles, tones, view }) => {
-  const { holeRadius } = view.layout;
-  // the ids name gradients and a filter, where the colons React puts in an id are not safe
+  const { holeRadius, lipRadius } = view.layout;
+  // the ids name gradients, where the colons React puts in an id are not safe
   const prefix = useId().replaceAll(":", "");
   return (
     <>
       <Box component="svg" viewBox={`0 0 ${BOARD} ${BOARD}`} aria-hidden sx={{ ...sprite, inset: 0, width: "100%", height: "100%", overflow: "visible" }}>
-        <defs>
-          <filter id={`${prefix}soft`} x="-10%" y="-10%" width="120%" height="120%">
-            <feGaussianBlur stdDeviation={holeRadius * 0.35} />
-          </filter>
-        </defs>
         {moves.map((move, index) => {
-          const { owner, id } = move.marble;
-          const stops = [marbles[owner][id], ...move.path].map((place) => pointOf(place, owner, view));
-          // the trail ends at the landing ring's edge, so it never covers the hole or the marble it lands on
-          const end = stops.at(-1);
-          const before = stops.at(-2) ?? end;
-          const gap = Math.hypot(end.x - before.x, end.y - before.y) || 1;
-          const reach = Math.min(gap, SPRITES.marble * 0.75) / gap;
-          const points = [...stops.slice(0, -1), { x: end.x - (end.x - before.x) * reach, y: end.y - (end.y - before.y) * reach }];
-          const [first, last] = [points[0], points.at(-1)];
-          const line = points.map(({ x, y }) => `${x},${y}`).join(" ");
-          const fade = `${prefix}fade${index}`;
+          const { owner } = move.marble;
+          const colour = PALETTE[tones[owner]];
+          const end = pointOf(move.path.at(-1), owner, view);
+          const lit = `${prefix}lit${index}`;
           return (
-            <g key={index}>
-              <linearGradient id={fade} gradientUnits="userSpaceOnUse" x1={first.x} y1={first.y} x2={last.x} y2={last.y}>
-                <stop offset="0" stopColor={PALETTE[tones[owner]]} stopOpacity="0.2" />
-                <stop offset="0.5" stopColor={PALETTE[tones[owner]]} stopOpacity="0.24" />
-                <stop offset="1" stopColor={PALETTE[tones[owner]]} stopOpacity="0.42" />
-              </linearGradient>
-              {/* a soft shade under the trail, so a light colour shows on the light wood as clearly as a dark one */}
-              <polyline
-                points={line}
-                fill="none"
-                stroke="rgba(50, 25, 5, 0.18)"
-                strokeWidth={holeRadius * 2.6}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter={`url(#${prefix}soft)`}
-              />
-              <polyline
-                points={line}
-                fill="none"
-                stroke={`url(#${fade})`}
-                strokeWidth={holeRadius * 2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter={`url(#${prefix}soft)`}
-              />
-              <polyline points={line} fill="none" stroke={`url(#${fade})`} strokeWidth={holeRadius * 0.7} strokeLinecap="round" strokeLinejoin="round" />
+            <g key={index} fill={`url(#${lit})`}>
+              <radialGradient id={lit} cx="0.4" cy="0.38" r="0.65">
+                <stop offset="0" stopColor={lighten(colour, 0.45)} />
+                <stop offset="0.7" stopColor={colour} />
+              </radialGradient>
+              {move.path
+                .filter((place) => !isTaken(marbles, owner, place))
+                .map((place) => {
+                  const { x, y } = pointOf(place, owner, view);
+                  return <circle key={`${x},${y}`} cx={x} cy={y} r={holeRadius * DOT_SHARE} />;
+                })}
+              <circle cx={end.x} cy={end.y} r={lipRadius + RING_GAP + RING_WIDTH / 2} fill="none" stroke={colour} strokeWidth={RING_WIDTH} />
             </g>
           );
         })}
       </Box>
-      {moves.map((move, index) => (
-        <Stop key={index} {...pointOf(move.path.at(-1), move.marble.owner, view)} colour={PALETTE[tones[move.marble.owner]]} />
-      ))}
       {moves.flatMap((move) =>
         move.captured.map((marble) => {
           const { x, y } = pointOf(marbles[marble.owner][marble.id], marble.owner, view);

@@ -34,11 +34,14 @@ const isOnOwnStart = (state, marble) => {
   return place.at === "track" && place.index === tableOf(state).start[marble.owner];
 };
 
-// another player's marble on the hole in front of a home shuts it, so its owner can neither turn in nor move on inside
+// a rival's marble on the hole in front of a home shuts it, so its owner can neither turn in nor move on inside; a partner's lets them by
 export const blockerOf = (state, owner) => {
   const occupant = marbleAt(state, tableOf(state).homeEntry[owner]);
-  return occupant && occupant.owner !== owner ? occupant : null;
+  return occupant && !isPartner(state, owner, occupant.owner) ? occupant : null;
 };
+
+// any marble may be jumped, your own too, but only one in a move; landing on the next one knocks it out
+const JUMP_LIMIT = 1;
 
 const homeSlotTaken = (state, owner, slot) => state.players[owner].marbles.some((place) => place.at === "home" && place.slot === slot);
 
@@ -78,9 +81,8 @@ const walk = (state, marble, steps, { forward = true, byOwner = true, sweep = fa
       if (isOnOwnStart(state, occupant)) return null;
       if (sweep || step === steps) captured.push({ marble: occupant, step });
       else {
-        if (!table.jumpsOwn && occupant.owner === marble.owner) return null;
         jumped += 1;
-        if (jumped > table.jumpLimit) return null;
+        if (jumped > JUMP_LIMIT) return null;
       }
     }
     place = { at: "track", index };

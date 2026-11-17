@@ -2,18 +2,20 @@ import { useEffect } from "react";
 import * as Yup from "yup";
 import { useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, Button, Paper, Slide, Stack, Typography } from "@mui/material";
+import { Box, Button, Paper, Slide, Stack, TextField, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
-import FormProvider, { RHFBirthdayPicker, RHFTextField } from "@/components/hook-form";
+import FormProvider, { RHFBirthdayPicker, RHFGenderPicker, RHFTextField } from "@/components/hook-form";
 import ProfileIdentity from "@/components/profile/ProfileIdentity";
 import { UpdateProfile } from "@/redux/slices/actions/userActions";
 import AccountSummary from "@/sections/profile/AccountSummary";
 import ImageMenu from "@/components/ImageMenu";
 import CoverPicker from "@/sections/profile/CoverPicker";
 import UsernameField from "@/sections/profile/UsernameField";
-import { dateInputOf } from "@/utils/birthdays";
+import { CONTACT_EMAIL } from "@/config";
+import { dateInputOf, nextBirthdayChangeOf } from "@/utils/birthdays";
 import { coverStyleOf } from "@/utils/covers";
+import { genderLabelOf } from "@/utils/genders";
 import { BIO_LIMIT, bioRule, nameRule, profileBirthdayRule } from "@/utils/formRules";
 
 const ProfileSchema = Yup.object({
@@ -21,6 +23,7 @@ const ProfileSchema = Yup.object({
   lastName: nameRule("Last name"),
   activityStatus: bioRule,
   birthday: profileBirthdayRule,
+  gender: Yup.string(),
   avatar: Yup.string(),
   cover: Yup.string(),
 });
@@ -32,12 +35,30 @@ const toFormValues = (user) => {
     lastName: user.lastName || "",
     activityStatus: user.activityStatus || "",
     birthday: dateInputOf(user.birthday),
+    gender: user.gender || "",
     avatar: user.avatar || "",
     cover: user.cover || "",
     coverPattern: pattern,
     coverPalette: palette,
   };
 };
+
+const birthdayHelpOf = (nextChange) =>
+  nextChange
+    ? `You can change it again on ${nextChange.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}.`
+    : "Friends see the day and month, never the year. You can change it once a year, and hide it in Settings.";
+
+const GenderField = ({ gender }) =>
+  gender ? (
+    <TextField
+      label="Gender"
+      value={genderLabelOf(gender)}
+      helperText={`Only Whisprl support can change it. Write to ${CONTACT_EMAIL}.`}
+      slotProps={{ input: { readOnly: true } }}
+    />
+  ) : (
+    <RHFGenderPicker name="gender" />
+  );
 
 const SectionTitle = ({ id, children }) => (
   <Typography id={id} component="h2" sx={{ m: 0, mb: 2.5, fontSize: 18, fontWeight: 700 }}>
@@ -99,6 +120,7 @@ const ProfileEditor = () => {
     formState: { isDirty, isSubmitting },
   } = methods;
   const live = useWatch({ control });
+  const nextBirthdayChange = nextBirthdayChangeOf(user.birthdayChangedAt);
 
   useEffect(() => {
     if (!isDirty) reset(toFormValues(user));
@@ -143,7 +165,8 @@ const ProfileEditor = () => {
               <RHFTextField name="lastName" label="Last name" autoComplete="family-name" />
             </Stack>
             <UsernameField />
-            <RHFBirthdayPicker name="birthday" label="Birthday" helperText="Friends see the day and month, never the year. You can hide it in Settings." />
+            <RHFBirthdayPicker name="birthday" label="Birthday" disabled={Boolean(nextBirthdayChange)} helperText={birthdayHelpOf(nextBirthdayChange)} />
+            <GenderField gender={user.gender} />
             <RHFTextField
               name="activityStatus"
               label="Bio"

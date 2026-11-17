@@ -4,7 +4,15 @@ import validator from "validator";
 
 import { UserModel } from "#src/models/index.js";
 import { isDisposableEmail } from "#src/utils/checkDispose.js";
-import { assertStrongPassword, assertValidName, normalizeEmail, normalizeUsername, oldEnoughBirthdayFrom, trimmed } from "#src/utils/accountRules.js";
+import {
+  assertStrongPassword,
+  assertValidName,
+  genderFrom,
+  normalizeEmail,
+  normalizeUsername,
+  oldEnoughBirthdayFrom,
+  trimmed,
+} from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
 import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import otpMail from "#src/templates/mail/otp.js";
@@ -40,6 +48,8 @@ export const toSessionUser = async (user) => ({
   quickReactions: user.quickReactions,
   gameAudio: Object.fromEntries(user.gameAudio ?? []),
   birthday: user.birthday ?? null,
+  birthdayChangedAt: user.birthdayChangedAt ?? null,
+  gender: user.gender ?? null,
   showBirthdayToFriends: user.showBirthdayToFriends,
   suggestToFriendsOfFriends: user.suggestToFriendsOfFriends,
   blocked: user.blocked,
@@ -116,6 +126,7 @@ export const registerUser = async ({ email, password, ...typed }) => {
   if (!validator.isEmail(address)) throw createHttpError.BadRequest("Invalid email");
   assertStrongPassword(password);
   const born = oldEnoughBirthdayFrom(birthday);
+  const gender = genderFrom(typed.gender);
   if (await isDisposableEmail(address)) throw createHttpError.BadRequest("Disposable emails are not allowed");
 
   // an account still waiting on its code is never signed up over, or the owner's code would verify someone else's password
@@ -127,6 +138,7 @@ export const registerUser = async ({ email, password, ...typed }) => {
     lastName,
     password,
     birthday: born,
+    gender,
     isNewAccount: true,
     username: await availableUsername(firstName, lastName),
     coverStyle: randomCoverStyle(),

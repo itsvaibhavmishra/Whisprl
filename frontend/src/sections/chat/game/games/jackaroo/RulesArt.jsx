@@ -1,3 +1,4 @@
+import { useContext } from "react";
 import { Box, Stack } from "@mui/material";
 
 import art, { boardArtOf } from "@/sections/chat/game/games/jackaroo/art";
@@ -13,7 +14,7 @@ const PARTNER = 2;
 const SECOND_OPPONENT = 3;
 // you play blue from the bottom against red, as the design's screens show it; two against two your partner is green and the other opponent purple
 const TONES = { single: [4, 0], teams: [4, 0, 2, 5] };
-const CARD_TONES = { mine: 4, theirs: 0 };
+const cardTonesOf = (mode) => ({ mine: TONES[mode][0], theirs: TONES[mode][1], around: TONES[mode] });
 const MAROON = "#8c1a1d";
 
 const track = (index) => ({ at: "track", index });
@@ -288,34 +289,37 @@ const BoardWindow = ({ scene }) => {
 };
 
 // cards laid out in a straight row, as the hand is
-const Cards = ({ cards, width, picked }) => (
-  <Stack direction="row" sx={{ alignItems: "flex-end", justifyContent: "center", height: "100%", pb: 1 }}>
-    {cards.map((shown) => (
-      <Box
-        key={shown.id}
-        sx={{
-          width,
-          mx: "-3px",
-          position: "relative",
-          zIndex: shown === picked ? 1 : 0,
-          transform: `translateY(${shown === picked ? -6 : 0}px)`,
-          filter: "drop-shadow(0 4px 7px rgba(0, 0, 0, 0.45))",
-          ...(shown === picked && {
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              inset: 0,
-              borderRadius: "6.5% / 4.6%",
-              boxShadow: "0 0 0 2px #9bd5ff, 0 0 0 3.5px rgba(61, 155, 255, 0.9), 0 0 12px 3px rgba(40, 130, 255, 0.7)",
-            },
-          }),
-        }}
-      >
-        <CardFace card={shown} tones={CARD_TONES} />
-      </Box>
-    ))}
-  </Stack>
-);
+const Cards = ({ cards, width, picked }) => {
+  const tones = cardTonesOf(useContext(ModeContext));
+  return (
+    <Stack direction="row" sx={{ alignItems: "flex-end", justifyContent: "center", height: "100%", pb: 1 }}>
+      {cards.map((shown) => (
+        <Box
+          key={shown.id}
+          sx={{
+            width,
+            mx: "-3px",
+            position: "relative",
+            zIndex: shown === picked ? 1 : 0,
+            transform: `translateY(${shown === picked ? -6 : 0}px)`,
+            filter: "drop-shadow(0 4px 7px rgba(0, 0, 0, 0.45))",
+            ...(shown === picked && {
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                inset: 0,
+                borderRadius: "6.5% / 4.6%",
+                boxShadow: "0 0 0 2px #9bd5ff, 0 0 0 3.5px rgba(61, 155, 255, 0.9), 0 0 12px 3px rgba(40, 130, 255, 0.7)",
+              },
+            }),
+          }}
+        >
+          <CardFace card={shown} tones={tones} />
+        </Box>
+      ))}
+    </Stack>
+  );
+};
 
 // the rules drawn with the game's own board, marbles and cards, so a picture looks like the moment it explains; two against two names its pictures "team-"
 const JackarooRulesArt = ({ picture }) => {
@@ -334,7 +338,7 @@ const JackarooRulesArt = ({ picture }) => {
       <BoardWindow scene={scene} />
       {scene.card && (
         <Box sx={{ width: 74, flexShrink: 0, transform: "rotate(5deg)", filter: "drop-shadow(0 4px 7px rgba(0, 0, 0, 0.45))" }}>
-          <CardFace card={scene.card} tones={CARD_TONES} />
+          <CardFace card={scene.card} tones={cardTonesOf(scene.mode ?? "single")} />
         </Box>
       )}
     </Stack>

@@ -73,11 +73,12 @@ const FACES = {
   number: { drawing: (card) => <Numeral text={card.rank} size={card.rank > 9 ? 44 : 52} /> },
   back: { drawing: () => <Numeral text="−4" size={46} /> },
   anyone: {
+    // one marble per seat counted round from the card's holder, so two against two shows all four colours and a table of two repeats its pair
     marbles: [
-      { who: "mine", x: 29, y: 99, size: 11 },
-      { who: "theirs", x: 43, y: 99, size: 11 },
-      { who: "mine", x: 57, y: 99, size: 11 },
-      { who: "theirs", x: 71, y: 99, size: 11 },
+      { who: 0, x: 29, y: 99, size: 11 },
+      { who: 1, x: 43, y: 99, size: 11 },
+      { who: 2, x: 57, y: 99, size: 11 },
+      { who: 3, x: 71, y: 99, size: 11 },
     ],
     drawing: () => <Numeral text="5" y={62} />,
   },
@@ -163,6 +164,8 @@ const FACES = {
   },
 };
 
+const toneOf = (tones, who) => (typeof who === "number" ? tones.around[who % tones.around.length] : tones[who]);
+
 const Marble = ({ tone, x, y, size }) => (
   <Box
     component="img"
@@ -206,7 +209,7 @@ const CardFace = ({ card, tones }) => {
         {face.drawing(card)}
       </Box>
       {face.marbles?.map((marble, index) => (
-        <Marble key={index} tone={tones[marble.who]} x={marble.x} y={marble.y} size={marble.size} />
+        <Marble key={index} tone={toneOf(tones, marble.who)} x={marble.x} y={marble.y} size={marble.size} />
       ))}
     </Box>
   );
@@ -215,5 +218,9 @@ const CardFace = ({ card, tones }) => {
 // a card never changes once dealt, so its face redraws only when it is a different card or its marbles change colour
 export default memo(
   CardFace,
-  (before, after) => before.card.id === after.card.id && before.tones.mine === after.tones.mine && before.tones.theirs === after.tones.theirs
+  (before, after) =>
+    before.card.id === after.card.id &&
+    before.tones.mine === after.tones.mine &&
+    before.tones.theirs === after.tones.theirs &&
+    before.tones.around?.join() === after.tones.around?.join()
 );

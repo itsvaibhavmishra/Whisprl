@@ -5,6 +5,8 @@ import {
   changePassword,
   getOwnProfile,
   getPublicProfile,
+  birthdayFieldsFor,
+  genderFieldsFor,
   saveProfile,
   searchEveryone,
   searchForUsers,
@@ -22,7 +24,13 @@ import { assertCoverStyle } from "#src/utils/coverStyles.js";
 
 export const updateProfile = async (req, res) => {
   const { coverPattern, coverPalette } = req.body;
-  const [firstName, lastName, activityStatus = "", birthday] = [req.body.firstName, req.body.lastName, req.body.activityStatus, req.body.birthday].map(trimmed);
+  const [firstName, lastName, activityStatus = "", birthday, gender] = [
+    req.body.firstName,
+    req.body.lastName,
+    req.body.activityStatus,
+    req.body.birthday,
+    req.body.gender,
+  ].map(trimmed);
   const user = req.user;
 
   if (!firstName || !lastName) {
@@ -37,7 +45,13 @@ export const updateProfile = async (req, res) => {
   }
 
   // a birthday can be changed but never removed, so an empty one leaves it as it was
-  const fields = { firstName, lastName, activityStatus, ...(birthday && { birthday: oldEnoughBirthdayFrom(birthday) }) };
+  const fields = {
+    firstName,
+    lastName,
+    activityStatus,
+    ...(birthday && birthdayFieldsFor(user, oldEnoughBirthdayFrom(birthday))),
+    ...genderFieldsFor(user, gender),
+  };
   if (coverPattern || coverPalette) {
     assertCoverStyle(coverPattern, coverPalette);
     fields.coverStyle = { pattern: coverPattern, palette: coverPalette };
@@ -58,6 +72,8 @@ export const updateProfile = async (req, res) => {
       coverStyle: user.coverStyle,
       activityStatus: user.activityStatus,
       birthday: user.birthday ?? null,
+      birthdayChangedAt: user.birthdayChangedAt ?? null,
+      gender: user.gender ?? null,
     },
   });
 };

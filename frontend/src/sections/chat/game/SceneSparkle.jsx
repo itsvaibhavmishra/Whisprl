@@ -17,11 +17,11 @@ const drift = keyframes`
 
 // placed over the sparkles already painted into the scene, so the artwork keeps its own composition
 const STARS = [
-  { left: 36, top: 7, size: 7, every: 3.1, from: 0 },
-  { left: 52, top: 4, size: 5, every: 2.6, from: 0.9 },
-  { left: 64, top: 12, size: 6, every: 3.6, from: 1.7 },
-  { left: 18, top: 16, size: 4, every: 2.9, from: 0.4 },
-  { left: 74, top: 5, size: 4, every: 3.3, from: 2.2 },
+  { name: "upper-middle", left: 36, top: 7, size: 7, every: 3.1, from: 0 },
+  { name: "top-middle", left: 52, top: 4, size: 5, every: 2.6, from: 0.9 },
+  { name: "right", left: 64, top: 12, size: 6, every: 3.6, from: 1.7 },
+  { name: "low-left", left: 18, top: 16, size: 4, every: 2.9, from: 0.4 },
+  { name: "top-right", left: 74, top: 5, size: 4, every: 3.3, from: 2.2 },
 ];
 
 const FIREFLIES = [
@@ -32,16 +32,16 @@ const FIREFLIES = [
 
 const WARM = "255, 214, 110";
 
-// every game gets the same few, and a game whose scene wants more of them brings its own
-const SceneSparkle = ({ fireflies = [] }) => {
+// every game gets the same few; a game brings more of its own, or quiets a star its art has something under
+const SceneSparkle = ({ fireflies = [], quietStars = [] }) => {
   const isStill = useReducedMotion();
   if (isStill) return null;
 
   return (
     <Box aria-hidden sx={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
-      {STARS.map(({ left, top, size, every, from }) => (
+      {STARS.filter((star) => !quietStars.includes(star.name)).map(({ name, left, top, size, every, from }) => (
         <Box
-          key={`star-${left}-${top}`}
+          key={name}
           sx={{
             position: "absolute",
             left: `${left}%`,

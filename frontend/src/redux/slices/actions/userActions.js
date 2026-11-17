@@ -11,13 +11,14 @@ const blobUrlToFile = async (blobUrl, fileName) => {
 
 export const UpdateProfile = createApiThunk(
   "user/update-profile",
-  async ({ firstName, lastName, activityStatus, birthday, coverPattern, coverPalette, ...images }, { getState }) => {
+  async ({ firstName, lastName, activityStatus, birthday, gender, coverPattern, coverPalette, ...images }, { getState }) => {
     const saved = getState().user.user;
     const formData = new FormData();
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
     formData.append("activityStatus", activityStatus);
     formData.append("birthday", birthday);
+    formData.append("gender", gender);
     formData.append("coverPattern", coverPattern);
     formData.append("coverPalette", coverPalette);
     for (const [kind, removeField] of [

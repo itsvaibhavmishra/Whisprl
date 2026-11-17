@@ -31,7 +31,9 @@ export const normalizeEmail = (email) =>
     .toLowerCase();
 
 const MIN_AGE = 13;
+const ADULT_AGE = 18;
 const EARLIEST_YEAR = 1900;
+const BIRTHDAY_CHANGE_INTERVAL_MS = 365 * 24 * 60 * 60 * 1000;
 
 const ageOn = (today, { day, month, year }) => {
   const hasHadBirthday = today.getUTCMonth() + 1 > month || (today.getUTCMonth() + 1 === month && today.getUTCDate() >= day);
@@ -57,6 +59,28 @@ export const oldEnoughBirthdayFrom = (value) => {
   const birthday = birthdayFrom(value);
   if (birthday && !isOldEnough(birthday)) throw createHttpError.BadRequest(`You must be at least ${MIN_AGE} to use Whisprl`);
   return birthday;
+};
+
+// under-18s and adults never meet strangers from the other band, so this is the one place the line is drawn
+export const bandOf = (birthday, today = new Date()) => (ageOn(today, birthday) >= ADULT_AGE ? "adult" : "minor");
+
+export const isSameDay = (one, other) => one.day === other.day && one.month === other.month && one.year === other.year;
+
+// the birthday given at sign up never started the clock, so the first change is always free
+export const assertBirthdayChange = ({ birthday, birthdayChangedAt }, wanted, now = new Date()) => {
+  if (now - (birthdayChangedAt ?? 0) < BIRTHDAY_CHANGE_INTERVAL_MS) {
+    throw createHttpError.TooManyRequests("A birthday can be changed once a year");
+  }
+  if (bandOf(birthday, now) !== bandOf(wanted, now)) {
+    throw createHttpError.Forbidden("This change would move you between under 18 and adult, so only Whisprl support can make it");
+  }
+};
+
+export const GENDERS = ["male", "female", "undisclosed"];
+
+export const genderFrom = (value) => {
+  if (!GENDERS.includes(value)) throw createHttpError.BadRequest("Choose male, female or prefer not to say");
+  return value;
 };
 
 const USERNAME = /^(?=.{3,20}$)[a-z0-9]+(?:[._][a-z0-9]+)*$/;

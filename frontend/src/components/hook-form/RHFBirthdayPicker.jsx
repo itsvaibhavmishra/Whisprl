@@ -32,7 +32,7 @@ const partsOf = (value) => {
 const twoDigits = (number) => String(number).padStart(2, "0");
 
 // the phone's own list for each part is easier than a calendar, and the form still keeps the server's YYYY-MM-DD text
-const RHFBirthdayPicker = ({ name, label, helperText }) => {
+const RHFBirthdayPicker = ({ name, label, helperText, disabled = false }) => {
   const { control } = useFormContext();
   const [chosen, setChosen] = useState(NOTHING_CHOSEN);
 
@@ -58,6 +58,7 @@ const RHFBirthdayPicker = ({ name, label, helperText }) => {
                   select
                   label={partLabel}
                   value={shown[part]}
+                  disabled={disabled}
                   error={Boolean(error)}
                   onChange={(event) => choose(part, Number(event.target.value))}
                   onBlur={field.onBlur}
