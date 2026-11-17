@@ -65,9 +65,29 @@ test("a king only brings a marble out, every jack swaps and every queen moves tw
   assert.deepEqual(endsOf(playsOf(teamBoard({ marbles: [[track(5)]], hand: [card(12, "H")] }), "move")), [track(17)]);
 });
 
-test("a marble never passes its own player's others, but passes anyone else's", () => {
-  assert.deepEqual(endsOf(playsOf(teamBoard({ marbles: [[track(3), track(5)]], hand: [card(3)] }), "move")), [track(8)]);
-  assert.deepEqual(endsOf(playsOf(teamBoard({ marbles: [[track(3)], [track(4)], [track(5)]], hand: [card(3)] }), "move")), [track(6)]);
+test("a marble jumps one marble in a move, its own player's too, but never two", () => {
+  assert.deepEqual(endsOf(playsOf(teamBoard({ marbles: [[track(3), track(5)]], hand: [card(3)] }), "move")), [track(6), track(8)]);
+  assert.deepEqual(endsOf(playsOf(teamBoard({ marbles: [[track(3)], [track(4)], [track(5)]], hand: [card(3)] }), "move")), []);
+});
+
+test("a marble may jump one marble to knock out the next, or stop in the hole between them", () => {
+  const knock = playsOf(teamBoard({ marbles: [[track(3), track(4)], [track(5)]], hand: [card(2)] }), "move").find((play) => play.moves[0].marble.id === 0);
+  assert.deepEqual(
+    knock.moves[0].captured.map(({ marble }) => marble),
+    [{ owner: 1, id: 0 }]
+  );
+  const between = playsOf(teamBoard({ marbles: [[track(3)], [track(4), track(6)]], hand: [card(2)] }), "move");
+  assert.deepEqual(endsOf(between), [track(5)]);
+});
+
+test("a partner's marble in front of your home lets you in, and only an opponent's shuts it", () => {
+  const partnerAtDoor = teamBoard({ marbles: [[track(72)], [], [track(74)]], hand: [card(3)] });
+  assert.deepEqual(endsOf(playsOf(partnerAtDoor, "move").filter((play) => play.moves[0].marble.owner === 0)), [home(0)]);
+  const opponentAtDoor = teamBoard({ marbles: [[track(72)], [track(74)]], hand: [card(3)] });
+  assert.deepEqual(
+    playsOf(opponentAtDoor, "move").filter((play) => play.moves[0].marble.owner === 0),
+    []
+  );
 });
 
 test("a partner's marble sitting on its own start blocks everyone, its partner too", () => {
@@ -110,6 +130,16 @@ test("a seven may finish on a partner's marble only when its first part takes yo
   assert.ok(splits.some((play) => play.moves[0].marble.owner === 0 && play.moves[1].marble.owner === 2));
   const notLast = teamBoard({ marbles: [[home(2), home(3), track(20), track(72)], [], [track(40)]], hand: [card(7)] });
   assert.ok(playsOf(notLast, "split").every((play) => play.moves.every((move) => move.marble.owner === 0)));
+});
+
+test("a seven's first part may clear the hole its second part lands in", () => {
+  const state = teamBoard({ marbles: [[track(0), track(4)]], hand: [card(7)] });
+  const split = playsOf(state, "split").find((play) => play.moves[0].marble.id === 1 && play.moves[0].path.length === 3);
+  assert.deepEqual(
+    split.moves.map((move) => move.to),
+    [track(7), track(4)]
+  );
+  assert.deepEqual(split.moves[1].captured, []);
 });
 
 test("a five moves anyone's marble, and only its own team takes it home", () => {

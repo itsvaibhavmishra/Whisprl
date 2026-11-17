@@ -50,6 +50,14 @@ const parseMarble = (value) => {
   return { owner, id };
 };
 
+// the part of the board on screen, in board units, since two against two runs the board past both sides
+const spanOf = (stage, room) => {
+  const board = stage.getBoundingClientRect();
+  const shown = room.getBoundingClientRect();
+  const scale = board.width / BOARD;
+  return { left: Math.max(0, (shown.left - board.left) / scale), right: Math.min(BOARD, (shown.right - board.left) / scale), scale };
+};
+
 const homeOf = (places) => places.filter((place) => place.at === "home").length;
 
 const NO_HOMES = [];
@@ -88,8 +96,11 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   const victim = nextOf(Math.max(mySeat, 0));
   const toneKey = state.marbles.map((_, seat) => toneOf(state, seat)).join(",");
   const tones = useMemo(() => toneKey.split(",").map(Number), [toneKey]);
-  const handTones = useMemo(() => ({ mine: tones[Math.max(mySeat, 0)], theirs: tones[victim] }), [tones, mySeat, victim]);
-  const tonesOf = useCallback((seat) => ({ mine: tones[seat], theirs: tones[nextOf(seat)] }), [tones, nextOf]);
+  const tonesOf = useCallback(
+    (seat) => ({ mine: tones[seat], theirs: tones[nextOf(seat)], around: [...tones.slice(seat), ...tones.slice(0, seat)] }),
+    [tones, nextOf]
+  );
+  const handTones = useMemo(() => tonesOf(Math.max(mySeat, 0)), [tonesOf, mySeat]);
 
   // a turn only begins once the last play has finished showing, which is when its clock starts
   const receivedAt = useSelector(selectViewReceivedAt);
@@ -254,7 +265,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
     const tapped = all.find((target) => target.value === event.currentTarget.dataset.value);
     const scale = stageRef.current.offsetWidth / BOARD;
     const near = all.filter((target) => Math.hypot(target.x - tapped.x, target.y - tapped.y) * scale < CROWD_PX);
-    if (near.length > 1) setCrowd({ chosen: current, values: near.map((target) => target.value) });
+    if (near.length > 1) setCrowd({ chosen: current, values: near.map((target) => target.value), span: spanOf(stageRef.current, roomRef.current) });
     else pick(tapped.value);
   }, []);
   const onCrowdPick = useCallback((event) => latest.current.pickMarble(event.currentTarget.dataset.value), []);
@@ -306,6 +317,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
   })();
 
   const stageRef = useRef(null);
+  const roomRef = useRef(null);
   const effectsRef = useRef(null);
   const pileTopRef = useRef(null);
   const shoeRef = useRef(null);
@@ -396,6 +408,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
         {isMyTurn && pickedCard && !chosen.isPlayed && <Banner key={pickedCard.id} card={pickedCard} tones={handTones} />}
         {/* the board is measured against both sides of the space it is given, keeping room for the players at its corners */}
         <Box
+          ref={roomRef}
           sx={{
             flex: 1,
             minHeight: 0,
@@ -453,7 +466,7 @@ const JackarooBoard = ({ state, seats, conversation, session, onMove, onLeave })
               <TurnTrail turn={isPlaying ? session.turn : null} startsAt={timing.turnStartsAt} view={view} isStill={isStill} />
               <Box ref={effectsRef} sx={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
               <Targets targets={targets} onPick={onTarget} />
-              {crowded.length > 0 && <Crowd targets={crowded} onPick={onCrowdPick} />}
+              {crowded.length > 0 && <Crowd targets={crowded} span={crowd.span} onPick={onCrowdPick} />}
               {isPickShown && (
                 <TheirCards
                   count={livePick?.count ?? state.hands[victim]}

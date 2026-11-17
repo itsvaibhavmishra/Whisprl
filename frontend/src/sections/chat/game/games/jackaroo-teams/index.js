@@ -52,7 +52,7 @@ const jackarooTeams = {
     },
     {
       heading: "Moving",
-      text: "A card moves a marble that many holes forward. Your marble can pass anyone else's, but never your own. Nobody can pass or land on a marble sitting on its own start, your partner's included.",
+      text: "A card moves a marble that many holes forward. On the way it can jump one marble, yours or anyone's, but never two, and can land on the next to knock it out. Nobody can pass or land on a marble sitting on its own start, your partner's included.",
       picture: "team-moving",
     },
     {
@@ -67,7 +67,7 @@ const jackarooTeams = {
     },
     {
       heading: "Home",
-      text: "Your home is the lane of four ringed holes in the middle of your arm. A marble goes in on an exact count and never runs past it. While another player's marble sits in the hole in front of your home, it is shut until that marble moves.",
+      text: "Your home is the lane of four ringed holes in the middle of your arm. A marble goes in on an exact count and never runs past it. While an opponent's marble sits in the hole in front of your home, it is shut until that marble moves. Your partner's marble there lets you by.",
       picture: "team-home",
     },
     {

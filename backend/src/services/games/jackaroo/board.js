@@ -19,9 +19,6 @@ const SINGLE = {
   combo: true,
   // the reference game starts each player with one marble already out
   startsOut: 1,
-  // any marble may be jumped, your own too, but only one in a move
-  jumpsOwn: true,
-  jumpLimit: 1,
 };
 
 // turns pass counter-clockwise, against the marbles, so the next seat sits to the right; partners sit opposite, so the teams alternate
@@ -38,9 +35,6 @@ const TEAMS = {
   combo: false,
   // every marble starts in its base, so an ace or a king is needed to begin
   startsOut: 0,
-  // a marble never passes its own player's others, but passes anyone else's
-  jumpsOwn: false,
-  jumpLimit: Infinity,
 };
 
 export const TABLES = { single: SINGLE, teams: TEAMS };
