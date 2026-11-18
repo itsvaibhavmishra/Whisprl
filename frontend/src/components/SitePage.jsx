@@ -21,14 +21,9 @@ const DOCS = [
 ];
 
 const AccountLinks = () => (
-  <>
-    <Button component={RouterLink} to={PATH_AUTH.general.login} color="inherit">
-      Log in
-    </Button>
-    <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained">
-      Create account
-    </Button>
-  </>
+  <Button component={RouterLink} to={PATH_AUTH.general.login} variant="contained">
+    Sign in
+  </Button>
 );
 
 const SiteHeader = () => {

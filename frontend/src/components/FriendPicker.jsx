@@ -7,8 +7,6 @@ import useIsLoading from "@/hooks/useIsLoading";
 import getAvatar from "@/utils/avatars";
 import { isOfficial } from "@/utils/relationship";
 
-const fullNameOf = (friend) => `${friend.firstName} ${friend.lastName}`;
-
 // a friend without keys could not open a single message, so they cannot be added yet
 const hasKeys = (friend) => friend.publicKeys?.length > 0;
 
@@ -27,7 +25,7 @@ const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true,
   // Whisprl joins no group and has nothing to be shown or sent
   const choosable = friends
     .filter((friend) => friend._id !== user._id && !excludeIds.includes(friend._id) && !isOfficial(friend))
-    .filter((friend) => fullNameOf(friend).toLowerCase().includes(query.trim().toLowerCase()));
+    .filter((friend) => friend.name.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
     <>
@@ -43,17 +41,14 @@ const FriendPicker = ({ excludeIds = [], selected, onChange, requireKeys = true,
           {choosable.map((friend) => (
             <ListItem key={friend._id} disablePadding>
               <ListItemButton onClick={() => toggle(friend._id)} disabled={requireKeys && !hasKeys(friend)}>
-                <ListItemAvatar>{getAvatar(friend.avatar, friend.firstName, 36)}</ListItemAvatar>
-                <ListItemText
-                  primary={fullNameOf(friend)}
-                  secondary={!requireKeys || hasKeys(friend) ? null : "Has not opened Whisprl since encryption arrived"}
-                />
+                <ListItemAvatar>{getAvatar(friend.avatar, friend.name, 36)}</ListItemAvatar>
+                <ListItemText primary={friend.name} secondary={!requireKeys || hasKeys(friend) ? null : "Has not opened Whisprl since encryption arrived"} />
                 <Checkbox
                   edge="end"
                   checked={selected.includes(friend._id)}
                   tabIndex={-1}
                   disableRipple
-                  slotProps={{ input: { "aria-label": `Choose ${fullNameOf(friend)}` } }}
+                  slotProps={{ input: { "aria-label": `Choose ${friend.name}` } }}
                 />
               </ListItemButton>
             </ListItem>

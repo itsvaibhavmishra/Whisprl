@@ -2,19 +2,20 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { ConversationModel, FriendRequestModel, RequestCooldownModel, UserModel } from "#src/models/index.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 const SUGGESTION_LIMIT = 20;
 // ranked before the slower lookups, with room for the ones those lookups drop
 const CANDIDATE_LIMIT = 100;
 const NAMED_LINKS = 2;
-const SUGGESTION_FIELDS = "firstName lastName username avatar tag badge cover coverStyle activityStatus createdAt suggestToFriendsOfFriends";
+const SUGGESTION_FIELDS = "name username avatar tag badge cover coverStyle activityStatus createdAt suggestToFriendsOfFriends";
 
 // for each person, the user's friends who are friends with them and the groups they are both in
 const linksOf = async (user) => {
   const others = user.friends.filter((friend_id) => !friend_id.equals(user._id));
   const [friends, groups] = await Promise.all([
     UserModel.find({ _id: { $in: others } })
-      .select("firstName friends")
+      .select("name friends")
       .lean(),
     ConversationModel.find({ isGroup: true, users: user._id }).select("name users").lean(),
   ]);
@@ -25,7 +26,7 @@ const linksOf = async (user) => {
     if (!links.has(key)) links.set(key, { friends: [], groups: [] });
     return links.get(key);
   };
-  friends.forEach((friend) => friend.friends.forEach((person_id) => linkTo(person_id).friends.push(friend.firstName)));
+  friends.forEach((friend) => friend.friends.forEach((person_id) => linkTo(person_id).friends.push(firstWordOf(friend.name))));
   groups.forEach((group) => group.users.forEach((person_id) => linkTo(person_id).groups.push(group.name)));
   return links;
 };
@@ -52,9 +53,7 @@ const withoutOpenRequests = async (user, ids) => {
 const summaryOf = (labels) => ({ count: labels.length, names: labels.slice(0, NAMED_LINKS) });
 
 const byStrongestLink = (one, other) =>
-  other.friendsInCommon.count - one.friendsInCommon.count ||
-  other.groupsInCommon.count - one.groupsInCommon.count ||
-  one.firstName.localeCompare(other.firstName);
+  other.friendsInCommon.count - one.friendsInCommon.count || other.groupsInCommon.count - one.groupsInCommon.count || one.name.localeCompare(other.name);
 
 export const suggestionsFor = async (user) => {
   const links = await linksOf(user);

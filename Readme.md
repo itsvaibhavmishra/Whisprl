@@ -128,7 +128,7 @@ on a laptop or a phone.
 **Keep it yours**
 
 - Light and dark, six accent colours, and chat wallpapers
-- Sign in with a passkey, or with Google, GitHub or LinkedIn
+- One way in: your Google account, with no password to remember
 - Seven languages
 - Mute, archive, favourite or block, and report anything that needs it
 
@@ -252,6 +252,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 ```
 ├── backend/
 │   ├── scripts/
+│   │   ├── joinNames.js
 │   │   ├── uploadEmailMedia.js
 │   ├── src/
 │   │   ├── controllers/
@@ -276,7 +277,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── authMiddleware.js
 │   │   │   ├── plainBody.js
 │   │   │   ├── rateLimiters.js
-│   │   │   ├── recaptchaMiddleware.js
 │   │   │   ├── sessionKeyMiddleware.js
 │   │   │   ├── socketMiddleware.js
 │   │   │   ├── socketRateLimit.js
@@ -400,12 +400,10 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── deletionScheduled.js
 │   │   │   │   ├── layout.js
 │   │   │   │   ├── layout.test.js
-│   │   │   │   ├── otp.js
-│   │   │   │   ├── reset.js
 │   │   ├── utils/
 │   │   │   ├── accountRules.js
 │   │   │   ├── allowedOrigins.js
-│   │   │   ├── checkDispose.js
+│   │   │   ├── avatarPresets.js
 │   │   │   ├── coverStyles.js
 │   │   │   ├── emoji.js
 │   │   │   ├── errorReports.js
@@ -494,9 +492,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── hook-form/
 │   │   │   │   ├── FormProvider.jsx
 │   │   │   │   ├── index.js
-│   │   │   │   ├── PasswordChecklist.jsx
 │   │   │   │   ├── RHFBirthdayPicker.jsx
-│   │   │   │   ├── RHFOtp.jsx
 │   │   │   │   ├── RHFPasswordField.jsx
 │   │   │   │   ├── RHFTextField.jsx
 │   │   │   ├── image-cropper/
@@ -573,6 +569,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useScreenBack.js
 │   │   │   ├── useSettings.js
+│   │   │   ├── useUsernameCheck.js
 │   │   ├── layouts/
 │   │   │   ├── admin/
 │   │   │   │   ├── index.jsx
@@ -590,11 +587,8 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── Team.jsx
 │   │   │   ├── auth/
 │   │   │   │   ├── AppTour.jsx
-│   │   │   │   ├── ForgotPassword.jsx
 │   │   │   │   ├── Login.jsx
-│   │   │   │   ├── Register.jsx
-│   │   │   │   ├── ResetPassword.jsx
-│   │   │   │   ├── Verify.jsx
+│   │   │   │   ├── Review.jsx
 │   │   │   │   ├── WelcomePage.jsx
 │   │   │   ├── dashboard/
 │   │   │   │   ├── Chat.jsx
@@ -655,13 +649,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── TeamMember.jsx
 │   │   │   ├── auth/
 │   │   │   │   ├── AuthHeader.jsx
-│   │   │   │   ├── AuthSocial.jsx
-│   │   │   │   ├── ForgotPasswordForm.jsx
-│   │   │   │   ├── LoginForm.jsx
-│   │   │   │   ├── RegisterForm.jsx
-│   │   │   │   ├── ResetPasswordForm.jsx
-│   │   │   │   ├── SignUpPaused.jsx
-│   │   │   │   ├── VerifyForm.jsx
+│   │   │   │   ├── ReviewLoginForm.jsx
 │   │   │   ├── chat/
 │   │   │   │   ├── attachments/
 │   │   │   │   │   ├── FileBody.jsx
@@ -910,7 +898,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── AppLockSetting.jsx
 │   │   │   │   ├── BirthdaySetting.jsx
 │   │   │   │   ├── BlockedPeopleSetting.jsx
-│   │   │   │   ├── ChangePasswordDialog.jsx
 │   │   │   │   ├── ChatPreview.jsx
 │   │   │   │   ├── DeleteAccountDialog.jsx
 │   │   │   │   ├── PasskeySetting.jsx
@@ -925,16 +912,14 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── UsernameSetting.jsx
 │   │   │   │   ├── WallpaperSetting.jsx
 │   │   │   ├── setup/
+│   │   │   │   ├── AvatarCarousel.jsx
 │   │   │   │   ├── BirthdayStep.jsx
-│   │   │   │   ├── CopiedKeyDialog.jsx
-│   │   │   │   ├── NotificationsStep.jsx
-│   │   │   │   ├── PasskeyStep.jsx
+│   │   │   │   ├── BirthdayWheel.jsx
 │   │   │   │   ├── ProfileStep.jsx
 │   │   │   │   ├── ProtectMessagesStep.jsx
 │   │   │   │   ├── SetupFrame.jsx
 │   │   │   │   ├── SetupPaused.jsx
 │   │   │   │   ├── SetupSteps.jsx
-│   │   │   │   ├── UsernameStep.jsx
 │   │   │   ├── status/
 │   │   │   │   ├── AudienceDialog.jsx
 │   │   │   │   ├── DeleteUpdateDialog.jsx
@@ -1037,11 +1022,14 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── appBack.js
 │   │   │   ├── appBack.test.js
 │   │   │   ├── attachments.js
+│   │   │   ├── avatarPresets.js
 │   │   │   ├── avatars.jsx
+│   │   │   ├── avatars.test.js
 │   │   │   ├── axios.js
 │   │   │   ├── backSwipe.js
 │   │   │   ├── birthdays.js
 │   │   │   ├── birthdays.test.js
+│   │   │   ├── blobFile.js
 │   │   │   ├── chats.js
 │   │   │   ├── chats.test.js
 │   │   │   ├── colorPresets.js
@@ -1075,6 +1063,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── messagePayload.js
 │   │   │   ├── messageSummary.js
 │   │   │   ├── messageSummary.test.js
+│   │   │   ├── names.js
 │   │   │   ├── newVersion.js
 │   │   │   ├── notifications.js
 │   │   │   ├── notify.js
@@ -1092,9 +1081,6 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── screenMotion.js
 │   │   │   ├── screenMotion.test.js
 │   │   │   ├── session.js
-│   │   │   ├── signUpPause.js
-│   │   │   ├── signUpPause.test.js
-│   │   │   ├── socialLoginHelpers.js
 │   │   │   ├── socket.js
 │   │   │   ├── sounds.js
 │   │   │   ├── spokenOnly.js

@@ -131,9 +131,6 @@ jobs:
           REACT_APP_API_ORIGIN: ${{ steps.plan.outputs.kind == 'test' && vars.RC_API_ORIGIN || vars.REACT_APP_API_ORIGIN }}
           REACT_APP_GA_ID: ${{ vars.REACT_APP_GA_ID }}
           REACT_APP_GOOGLE_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GOOGLE_AUTH_CLIENT_ID }}
-          REACT_APP_GITHUB_AUTH_CLIENT_ID: ${{ vars.REACT_APP_GITHUB_AUTH_CLIENT_ID }}
-          REACT_APP_LINKEDIN_AUTH_CLIENT_ID: ${{ vars.REACT_APP_LINKEDIN_AUTH_CLIENT_ID }}
-          REACT_APP_RECAPTCHA_CLIENT: ${{ vars.REACT_APP_RECAPTCHA_CLIENT }}
           # a test build takes no live update, so the next release can never swap it onto production code
           REACT_APP_UPDATE_URL: ${{ steps.plan.outputs.kind != 'test' && format('https://github.com/{0}/releases/latest/download/app-update.json', github.repository) || '' }}
         run: |

@@ -1,15 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, TextField } from "@mui/material";
 import { useDispatch } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
-import { CheckUsername, UpdateUsername } from "@/redux/slices/actions/userActions";
+import useUsernameCheck from "@/hooks/useUsernameCheck";
+import { UpdateUsername } from "@/redux/slices/actions/userActions";
 
 const RENAME_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
-const CHECK_PAUSE_MS = 400;
-
-const normalized = (value) => value.trim().replace(/^@/, "").toLowerCase();
-
 export const nextChangeOn = (changedAt) => {
   if (!changedAt) return null;
   const next = new Date(new Date(changedAt).getTime() + RENAME_INTERVAL_MS);
@@ -20,28 +17,8 @@ const UsernameDialog = ({ current, onClose }) => {
   const dispatch = useDispatch();
   const isSaving = useIsLoading(UpdateUsername);
   const [draft, setDraft] = useState(current);
-  const [check, setCheck] = useState({ username: current, problem: null });
-
-  const wanted = normalized(draft);
-  const isChecked = check.username === wanted;
-  const isFree = wanted !== current && isChecked && !check.problem;
+  const { wanted, isFree, problem, status } = useUsernameCheck(draft, current);
   const canSave = isFree && !isSaving;
-
-  // the server holds the rules and knows what is taken, so it is asked once typing pauses
-  useEffect(() => {
-    if (!wanted || wanted === current) return;
-    const timer = setTimeout(async () => {
-      const result = await dispatch(CheckUsername(wanted));
-      if (CheckUsername.fulfilled.match(result)) setCheck(result.payload);
-    }, CHECK_PAUSE_MS);
-    return () => clearTimeout(timer);
-  }, [dispatch, wanted, current]);
-
-  const helperText = () => {
-    if (!wanted || wanted === current) return "Letters, numbers, dots and underscores.";
-    if (!isChecked) return "Checking…";
-    return check.problem ?? `@${wanted} is free`;
-  };
 
   // the sheet renders in a portal yet still sits inside the page's own form in React's tree, so its submit stops here
   const save = async (event) => {
@@ -63,8 +40,8 @@ const UsernameDialog = ({ current, onClose }) => {
             label="Username"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            error={isChecked && Boolean(check.problem)}
-            helperText={helperText()}
+            error={Boolean(problem)}
+            helperText={status ?? "Letters, numbers, dots and underscores."}
             slotProps={{
               input: { startAdornment: <InputAdornment position="start">@</InputAdornment> },
               htmlInput: { maxLength: 21, autoCapitalize: "none", spellCheck: false },

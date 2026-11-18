@@ -8,7 +8,7 @@ import { isShutOut } from "#src/services/moderationService.js";
 import { permissionsOf, roleOf } from "#src/services/roleService.js";
 import { normalizeEmail } from "#src/utils/accountRules.js";
 
-const MEMBER_FIELDS = "firstName lastName username email avatar role permissions";
+const MEMBER_FIELDS = "name username email avatar role permissions";
 
 const assertPermissions = (permissions) => {
   const chosen = Array.isArray(permissions) ? [...new Set(permissions)] : [];

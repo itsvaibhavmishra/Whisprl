@@ -26,8 +26,7 @@ const keyNobodyHolds = () => {
 
 const whisprlProfile = () => ({
   email: WHISPRL_EMAIL,
-  firstName: "Whisprl",
-  lastName: "",
+  name: "Whisprl",
   username: "whisprl",
   avatar: `${process.env.FRONT_URL}/whisprl-avatar.webp`,
   tag: "official",

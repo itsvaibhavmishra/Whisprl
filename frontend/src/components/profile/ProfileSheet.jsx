@@ -3,6 +3,7 @@ import { ArrowLeftIcon, XIcon } from "@phosphor-icons/react";
 
 import { onCover } from "@/components/ProfileCover";
 import ProfileView from "@/components/profile/ProfileView";
+import { firstWordOf } from "@/utils/names";
 
 // mounted inside cards, message bubbles and the status player, so its taps and keys must not reach theirs
 const keepInside = (event) => event.stopPropagation();
@@ -25,7 +26,7 @@ const ProfileSheet = ({ person, startWithComposer = false, onClose }) => {
       sx={{ "& .MuiDialog-container": { alignItems: { sm: "flex-start" } } }}
       slotProps={{
         paper: {
-          "aria-label": person.firstName ? `${person.firstName}'s profile` : "Profile",
+          "aria-label": firstWordOf(person.name) ? `${firstWordOf(person.name)}'s profile` : "Profile",
           sx: {
             width: { sm: 480 },
             maxWidth: "100%",

@@ -33,7 +33,7 @@ export const birthdaysThisWeek = (people, today = new Date()) =>
     .filter((person) => person.birthday)
     .map((person) => ({ person, days: daysUntilBirthday(person.birthday, today) }))
     .filter(({ days }) => days < WEEK)
-    .sort((one, other) => one.days - other.days || one.person.firstName.localeCompare(other.person.firstName))
+    .sort((one, other) => one.days - other.days || one.person.name.localeCompare(other.person.name))
     .map(({ person }) => person);
 
 export const dateInputOf = (birthday) =>

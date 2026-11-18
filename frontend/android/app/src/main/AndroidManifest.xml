@@ -35,6 +35,7 @@
                 <data android:pathPrefix="/chat" />
                 <data android:pathPrefix="/status" />
                 <data android:pathPrefix="/settings" />
+                <data android:pathPrefix="/auth/review" />
             </intent-filter>
 
         </activity>

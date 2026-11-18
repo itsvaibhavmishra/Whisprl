@@ -24,9 +24,9 @@ const Closing = () => (
       <Typography id="closing-title" component="h2" sx={sectionHeading}>
         Your next game is one message away
       </Typography>
-      <Typography sx={sectionIntro}>Create a free account, add your friends and challenge them to a game.</Typography>
-      <Button component={RouterLink} to={PATH_AUTH.general.register} variant="contained" size="large" sx={{ mt: 4 }}>
-        Create a free account
+      <Typography sx={sectionIntro}>Sign in with Google, add your friends and challenge them to a game.</Typography>
+      <Button component={RouterLink} to={PATH_AUTH.general.login} variant="contained" size="large" sx={{ mt: 4 }}>
+        Get started
       </Button>
     </Box>
     <Box

@@ -4,10 +4,10 @@ import createHttpError from "http-errors";
 import mongoose from "mongoose";
 
 import { PasskeyChallengeModel, PasskeyModel } from "#src/models/index.js";
-import { findSessionUser } from "#src/services/authService.js";
 import { sendMail } from "#src/services/mailer.js";
 import { isStaff } from "#src/services/roleService.js";
 import passkeyAddedMail from "#src/templates/mail/passkeyAdded.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 const CHALLENGE_LIFETIME = 5 * 60 * 1000;
 
@@ -48,7 +48,7 @@ export const passkeyRegistrationOptions = async (user) => {
     rpName: "Whisprl",
     rpID: relyingParty().rpID,
     userName: user.email,
-    userDisplayName: `${user.firstName} ${user.lastName}`,
+    userDisplayName: user.name,
     userID: new TextEncoder().encode(String(user._id)),
     attestationType: "none",
     excludeCredentials: existing.map(({ credentialId, transports }) => ({ id: credentialId, transports })),
@@ -85,7 +85,7 @@ export const registerPasskey = async (user, response, confirmation) => {
     transports: credential.transports,
     backedUp: credentialBackedUp,
   });
-  sendMail(user.email, "A passkey was added to your Whisprl account", passkeyAddedMail(user.firstName)).catch((error) =>
+  sendMail(user.email, "A passkey was added to your Whisprl account", passkeyAddedMail(firstWordOf(user.name))).catch((error) =>
     console.error(`[passkey mail] ${error.message}`)
   );
 };
@@ -94,13 +94,6 @@ export const removePasskey = async (user, passkey_id, confirmation) => {
   await assertStaffConfirmed(user, confirmation);
   const { deletedCount } = mongoose.isValidObjectId(passkey_id) ? await PasskeyModel.deleteOne({ _id: passkey_id, user: user._id }) : { deletedCount: 0 };
   if (!deletedCount) throw createHttpError.NotFound("Passkey not found");
-};
-
-export const passkeyLoginOptions = async () => {
-  // a passkey stands in for a password, so the device has to confirm it is its owner, not just that someone tapped it
-  const options = await generateAuthenticationOptions({ rpID: relyingParty().rpID, userVerification: "required" });
-  await rememberChallenge(options.challenge, "login");
-  return options;
 };
 
 // a staff action asks for the passkey again, so a session someone else is holding cannot act on its own
@@ -141,33 +134,4 @@ export const assertConfirmed = async (user, response) => {
   passkey.counter = authenticationInfo.newCounter;
   passkey.lastUsedAt = new Date();
   await passkey.save();
-};
-
-// the passkey's own copy of the account key comes back with the session, so a browser that can unlock does so at once
-export const loginWithPasskey = async (response) => {
-  const credentialId = typeof response?.id === "string" ? response.id : null;
-  const passkey = credentialId && (await PasskeyModel.findOne({ credentialId }).select("+keyBackup"));
-  if (!passkey) throw createHttpError.Unauthorized("That passkey is not registered with Whisprl");
-
-  const { origin, rpID } = relyingParty();
-  const { verified, authenticationInfo } = await verifyAuthenticationResponse({
-    response,
-    expectedChallenge: consumeChallenge("login"),
-    expectedOrigin: origin,
-    expectedRPID: rpID,
-    credential: {
-      id: passkey.credentialId,
-      publicKey: isoBase64URL.toBuffer(passkey.publicKey),
-      counter: passkey.counter,
-      transports: passkey.transports,
-    },
-  }).catch(() => ({ verified: false }));
-
-  if (!verified) throw createHttpError.Unauthorized("That passkey could not be checked, please try again");
-
-  passkey.counter = authenticationInfo.newCounter;
-  passkey.lastUsedAt = new Date();
-  await passkey.save();
-
-  return { user: await findSessionUser(passkey.user), keyBackup: passkey.keyBackup ?? null };
 };

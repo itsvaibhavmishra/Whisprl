@@ -19,9 +19,7 @@ import { clearSearch } from "@/redux/slices/userSlice";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import ChatRow from "@/sections/chat/list/ChatRow";
 import ChatRowSkeletons from "@/sections/chat/list/ChatRowSkeletons";
-import PhotoCard from "@/sections/chat/list/PhotoCard";
 import { identityOf, isDeleted, peerOf } from "@/utils/chats";
-import { isOfferedStep } from "@/utils/onboarding";
 
 const SEARCH_PAUSE_MS = 400;
 
@@ -47,7 +45,7 @@ const SectionLabel = ({ children }) => (
 
 const PersonSummary = ({ person, name, detail }) => (
   <>
-    <ChatAvatar src={person.avatar} name={person.firstName} size={44} />
+    <ChatAvatar src={person.avatar} name={person.name} size={44} />
     <Box sx={{ minWidth: 0, flex: 1 }}>
       <Typography noWrap sx={{ fontSize: 15, fontWeight: 700 }}>
         {name}
@@ -63,7 +61,6 @@ const atUsername = (person) => (person.username ? `@${person.username}` : "");
 
 const FriendRow = ({ person, isMe }) => {
   const dispatch = useDispatch();
-  const fullName = `${person.firstName} ${person.lastName}`;
 
   return (
     <Box component="li" sx={{ listStyle: "none" }}>
@@ -71,7 +68,11 @@ const FriendRow = ({ person, isMe }) => {
         onClick={() => dispatch(CreateOpenConversation(person._id))}
         sx={{ width: "100%", gap: 1.5, px: 1, py: 1, borderRadius: 3, justifyContent: "flex-start", textAlign: "left", "&:hover": { bgcolor: "action.hover" } }}
       >
-        <PersonSummary person={person} name={isMe ? `${fullName} (You)` : fullName} detail={isMe ? "Message yourself" : atUsername(person) || "Start a chat"} />
+        <PersonSummary
+          person={person}
+          name={isMe ? `${person.name} (You)` : person.name}
+          detail={isMe ? "Message yourself" : atUsername(person) || "Start a chat"}
+        />
       </ButtonBase>
     </Box>
   );
@@ -79,7 +80,7 @@ const FriendRow = ({ person, isMe }) => {
 
 const StrangerRow = ({ person }) => (
   <Box component="li" sx={{ listStyle: "none", display: "flex", alignItems: "center", gap: 1.5, px: 1, py: 1 }}>
-    <PersonSummary person={person} name={`${person.firstName} ${person.lastName}`} detail={atUsername(person)} />
+    <PersonSummary person={person} name={person.name} detail={atUsername(person)} />
     <RequestButton person={person} size="small" sx={{ borderRadius: 99, flexShrink: 0 }} />
   </Box>
 );
@@ -103,7 +104,6 @@ const ChatList = ({ onNewGroup }) => {
   const activeId = useSelector((state) => state.chat.activeConversation?._id);
   // the list is asked for only once this device's key is loaded, so until then an empty list means nothing yet
   const hasListLoaded = useSelector((state) => state.chat.hasLoadedConversations || state.chat.hasConversationsFailed);
-  const isPhotoOffered = useSelector((state) => isOfferedStep(state.user.user.onboarding, "profile"));
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [isShowingArchived, setIsShowingArchived] = useState(false);
@@ -235,7 +235,6 @@ const ChatList = ({ onNewGroup }) => {
           <ChatRowSkeletons />
         ) : (
           <>
-            {!isShowingArchived && !needle && isPhotoOffered && <PhotoCard />}
             {!isShowingArchived && !needle && archivedCount > 0 && (
               <ButtonBase
                 onClick={() => setIsShowingArchived(true)}

@@ -4,6 +4,8 @@ export const GENDERS = [
   { value: "undisclosed", label: "Prefer not to say" },
 ];
 
+export const GENDER_NOTE = "Gender can't be changed later.";
+
 export const genderLabelOf = (gender) => GENDERS.find((choice) => choice.value === gender)?.label;
 
 // prefer not to say is a choice to keep it off the profile, so only the other two are ever shown

@@ -9,7 +9,7 @@ const FIRST_YEAR = Number(EARLIEST_BIRTHDAY.slice(0, 4));
 
 const numbersFrom = (first, count) => Array.from({ length: count }, (_, index) => first + index);
 
-const PARTS = [
+export const BIRTHDAY_PARTS = [
   { part: "day", label: "Day", width: "26%", options: numbersFrom(1, 31).map((day) => ({ value: day, label: day })) },
   { part: "month", label: "Month", width: "40%", options: MONTHS.map((month, index) => ({ value: index + 1, label: month })) },
   {
@@ -31,6 +31,8 @@ const partsOf = (value) => {
 
 const twoDigits = (number) => String(number).padStart(2, "0");
 
+export const dateValueOf = ({ day, month, year }) => `${year}-${twoDigits(month)}-${twoDigits(day)}`;
+
 // the phone's own list for each part is easier than a calendar, and the form still keeps the server's YYYY-MM-DD text
 const RHFBirthdayPicker = ({ name, label, helperText, disabled = false }) => {
   const { control } = useFormContext();
@@ -46,13 +48,13 @@ const RHFBirthdayPicker = ({ name, label, helperText, disabled = false }) => {
         const choose = (part, picked) => {
           const next = { ...shown, [part]: picked };
           setChosen(next);
-          if (next.day && next.month && next.year) field.onChange(`${next.year}-${twoDigits(next.month)}-${twoDigits(next.day)}`);
+          if (next.day && next.month && next.year) field.onChange(dateValueOf(next));
         };
 
         return (
           <Stack role="group" aria-label={label} sx={{ mt: 1 }}>
             <Stack direction="row" spacing={1.5}>
-              {PARTS.map(({ part, label: partLabel, width, options }) => (
+              {BIRTHDAY_PARTS.map(({ part, label: partLabel, width, options }) => (
                 <TextField
                   key={part}
                   select

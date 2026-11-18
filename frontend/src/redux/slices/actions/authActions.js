@@ -1,25 +1,18 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
-import { ForgetDeviceKeys, keepKeyFromPasskey } from "@/redux/slices/actions/encryptionActions";
+import { ForgetDeviceKeys } from "@/redux/slices/actions/encryptionActions";
 import { DisconnectSocket } from "@/redux/slices/actions/socketActions";
-import { updateOtpEmail } from "@/redux/slices/authSlice";
 import { clearChat } from "@/redux/slices/chatSlice";
 import { logout, updateUser } from "@/redux/slices/userSlice";
 import { releaseAllAttachments } from "@/utils/attachments";
 import axios from "@/utils/axios";
 import { createSessionKeys } from "@/utils/crypto/sessionKeys";
 import { notify } from "@/utils/notify";
-import { authenticateWithPasskey } from "@/utils/passkeys";
 import { isApp } from "@/utils/platform";
 import { stopPush } from "@/utils/push";
 import { forgetChats } from "@/utils/savedChats";
 import { deviceIdOrNone, forgetSession, startSession } from "@/utils/session";
-
-const withRecaptcha = async (recaptchaRef, values) => {
-  recaptchaRef.current.reset();
-  return { ...values, recaptchaToken: await recaptchaRef.current.executeAsync() };
-};
 
 // every way in sends the public half of a new key only this browser holds, which is what renews the session later
 const logIn = async (path, body) => {
@@ -34,37 +27,17 @@ const signedIn = (dispatch, data) => {
   return { user: data.user };
 };
 
-export const LoginUser = createApiThunk("auth/login", async ({ recaptchaRef, ...values }, { dispatch }) => {
-  const data = await logIn("/auth/login", await withRecaptcha(recaptchaRef, values));
-  notifyResult(data);
-
-  if (data.user) return signedIn(dispatch, data);
-
-  dispatch(updateOtpEmail({ otpEmail: values.identifier }));
-  return { user: null };
-});
-
-// a passkey that can unlock messages does it here, before the chats load, so this browser never asks for the recovery key
-export const PasskeyLogin = createApiThunk("auth/passkey", async (_, { dispatch }) => {
-  const { data: challenge } = await axios.post("/auth/passkeys/options");
-  const { response, prfSecret } = await authenticateWithPasskey(challenge.options);
-  const data = await logIn("/auth/passkeys/login", { response });
-
-  if (prfSecret && data.keyBackup) await keepKeyFromPasskey(data.user._id, data.keyBackup, prfSecret).catch(() => {});
+export const GoogleLogin = createApiThunk("auth/google", async (code, { dispatch }) => {
+  const data = await logIn("/auth/google", { code });
   notifyResult(data);
   return signedIn(dispatch, data);
 });
 
-const socialLogin = (provider) =>
-  createApiThunk(`auth/${provider}`, async (code, { dispatch }) => {
-    const data = await logIn(`/auth/${provider}`, { code });
-    notifyResult(data);
-    return signedIn(dispatch, data);
-  });
-
-export const GoogleLogin = socialLogin("google");
-export const GithubLogin = socialLogin("github");
-export const LinkedinLogin = socialLogin("linkedin");
+export const ReviewerLogin = createApiThunk("auth/review", async (values, { dispatch }) => {
+  const data = await logIn("/auth/login", values);
+  notifyResult(data);
+  return signedIn(dispatch, data);
+});
 
 export const EndSession = createAsyncThunk("auth/end-session", async ({ keepDeviceKeys = false, sessionId } = {}, { dispatch, getState }) => {
   const userId = getState().user.user._id;
@@ -85,43 +58,6 @@ export const LogoutUser = createAsyncThunk("auth/logout", async (_, { dispatch }
   const { data } = await axios.post("/auth/logout", null, { endsSession: true }).catch(() => ({ data: null }));
   await dispatch(EndSession());
   notify({ severity: "success", message: data?.message || "Logged out" });
-});
-
-export const RegisterUser = createApiThunk("auth/register", async ({ recaptchaRef, ...values }, { dispatch }) => {
-  const { data } = await axios.post("/auth/register", await withRecaptcha(recaptchaRef, values));
-  dispatch(updateOtpEmail({ otpEmail: values.email }));
-  notifyResult(data);
-  return data;
-});
-
-export const VerifyOTP = createApiThunk("auth/verify-otp", async ({ recaptchaRef, ...values }, { dispatch }) => {
-  const data = await logIn("/auth/verify-otp", await withRecaptcha(recaptchaRef, values));
-  notifyResult(data);
-  return signedIn(dispatch, data);
-});
-
-export const SendOTP = createApiThunk("auth/send-otp", async (values, { dispatch }) => {
-  dispatch(updateOtpEmail({ otpEmail: values.email }));
-  const { data } = await axios.post("/auth/send-otp", values);
-  notifyResult(data);
-  return data;
-});
-
-export const AddOtpEmail = (values) => (dispatch) => {
-  dispatch(updateOtpEmail({ otpEmail: values.email }));
-  notify({ severity: "success", message: "Email Added Successfully" });
-};
-
-export const ForgotPassword = createApiThunk("auth/forgot-password", async ({ recaptchaRef, ...values }) => {
-  const { data } = await axios.post("/auth/forgot-password", await withRecaptcha(recaptchaRef, values));
-  notifyResult(data);
-  return data;
-});
-
-export const ResetPassword = createApiThunk("auth/reset-password", async (values) => {
-  const { data } = await axios.post("/auth/reset-password", values);
-  notifyResult(data);
-  return data;
 });
 
 // a free server sleeps when idle, so the auth pages wake it before anyone presses a button

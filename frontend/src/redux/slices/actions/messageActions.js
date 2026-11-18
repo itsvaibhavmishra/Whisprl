@@ -131,9 +131,7 @@ export const ForwardMessages =
     });
 
 export const ShareContacts = (friends) => (dispatch) =>
-  friends.forEach(({ _id, firstName, lastName, username, avatar }) =>
-    dispatch(SendTextMessage({ text: "", contact: { _id, firstName, lastName, username, avatar } }))
-  );
+  friends.forEach(({ _id, name, username, avatar }) => dispatch(SendTextMessage({ text: "", contact: { _id, name, username, avatar } })));
 
 // the server cannot read messages, so searching a chat means decrypting its history here
 export const LoadHistory = createApiThunk(

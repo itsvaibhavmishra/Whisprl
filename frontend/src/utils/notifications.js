@@ -2,6 +2,7 @@ import { SETTINGS_STORAGE_KEY } from "@/config";
 import { summaryOf } from "@/utils/messageSummary";
 import { isApp } from "@/utils/platform";
 import { askForPush, clearPushedChat, pushPermission } from "@/utils/push";
+import { firstWordOf } from "@/utils/names";
 
 const APP_ICON = `${import.meta.env.BASE_URL}icon-192.png`;
 
@@ -57,8 +58,8 @@ export const notifyArrival = (message, conversation) => {
 
   const { sender } = message;
   const text = summaryOf(message);
-  const notification = new Notification(conversation.isGroup ? conversation.name : `${sender.firstName} ${sender.lastName}`, {
-    body: conversation.isGroup ? `${sender.firstName}: ${text}` : text,
+  const notification = new Notification(conversation.isGroup ? conversation.name : sender.name, {
+    body: conversation.isGroup ? `${firstWordOf(sender.name)}: ${text}` : text,
     icon: sender.avatar || APP_ICON,
     tag: conversation._id,
   });

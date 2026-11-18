@@ -1,6 +1,7 @@
 import { PATH_DOCS } from "@/routes/paths";
 import { contactPathOf } from "@/sections/contacts/contactsRoute";
 import { reportSubjectOf } from "@/utils/messageSummary";
+import { firstWordOf } from "@/utils/names";
 
 // names are typed by people, so any markup in them is dropped rather than followed
 const plain = (name) => name.replace(/[*[\]()]/g, "");
@@ -20,7 +21,7 @@ export const noticeOf = ({ type, user, name, username, gameName, about, text, bu
     // the challenger reads what they sent, and only the one challenged is asked to answer
     if (sender._id === me._id) return { text: `You challenged **${plain(name)}** to **${gameName}** 🎮`, actions: [] };
     return {
-      text: `**${plain(sender.firstName)}** challenged you to **${gameName}** 🎮`,
+      text: `**${plain(firstWordOf(sender.name))}** challenged you to **${gameName}** 🎮`,
       actions: [
         { kind: "accept", label: "Play", whileInvited: true },
         { kind: "decline", label: "Not now", whileInvited: true },
@@ -29,13 +30,16 @@ export const noticeOf = ({ type, user, name, username, gameName, about, text, bu
   }
   if (type === "welcome") {
     return {
-      text: `Hi ${plain(me.firstName)}, I'm **Whisprl** 👋\n\nI don't chat, but I'm always up for a game: **Tic-tac-toe**, **Dots and Boxes**, **Chain Reaction** or **Jackaroo**. Pick one and I'll be ready.\n\nGames are better with company, so [invite your friends](/contacts) too.`,
+      text: `Hi ${plain(firstWordOf(me.name))}, I'm **Whisprl** 👋\n\nI don't chat, but I'm always up for a game: **Tic-tac-toe**, **Dots and Boxes**, **Chain Reaction** or **Jackaroo**. Pick one and I'll be ready.\n\nGames are better with company, so [invite your friends](/contacts) too.`,
       actions: [{ kind: "challenge", label: "Challenge Whisprl" }],
     };
   }
   if (REPORT_TEXTS[type]) return { text: REPORT_TEXTS[type](reportSubjectOf({ about, name: plain(name) }), about), actions: [] };
   if (type === "birthday") {
-    return { text: `Happy birthday, **${plain(me.firstName)}** 🎂\n\nHope your day is full of good things. Thanks for being part of Whisprl 💙`, actions: [] };
+    return {
+      text: `Happy birthday, **${plain(firstWordOf(me.name))}** 🎂\n\nHope your day is full of good things. Thanks for being part of Whisprl 💙`,
+      actions: [],
+    };
   }
   if (type === "gameAdded") {
     return {

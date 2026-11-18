@@ -65,7 +65,7 @@ const SidebarLink = ({ path, label, Icon, isActive }) => (
 
 const Sidebar = ({ destinations }) => {
   const { pathname } = useLocation();
-  const { firstName, lastName, avatar, role } = useSelector((state) => state.user.user);
+  const { name, avatar, role } = useSelector((state) => state.user.user);
 
   return (
     <Stack
@@ -90,9 +90,11 @@ const Sidebar = ({ destinations }) => {
 
       <Stack spacing={1.5} sx={{ mt: "auto", pt: 2, borderTop: 1, borderColor: alpha(ON_RAIL, 0.15) }}>
         <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", px: 1 }}>
-          {getAvatar(avatar, `${firstName} ${lastName}`, 36)}
+          {getAvatar(avatar, name, 36)}
           <Box sx={{ minWidth: 0 }}>
-            <Typography noWrap sx={{ fontSize: 14, fontWeight: 700, color: "common.white" }}>{`${firstName} ${lastName}`}</Typography>
+            <Typography noWrap sx={{ fontSize: 14, fontWeight: 700, color: "common.white" }}>
+              {name}
+            </Typography>
             <Box sx={{ display: "flex", mt: 0.5 }}>
               <RoleBadge role={role} />
             </Box>

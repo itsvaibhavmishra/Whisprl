@@ -34,7 +34,7 @@ export const ViewsPill = ({ views, pillRef, onOpen }) => {
         <Stack direction="row" sx={{ "& > *:not(:first-of-type)": { ml: -1 } }}>
           {faces.map(({ user }) => (
             <Box key={user._id} sx={{ borderRadius: "50%", border: "2px solid #121316", display: "grid" }}>
-              {getAvatar(user.avatar, user.firstName, 24)}
+              {getAvatar(user.avatar, user.name, 24)}
             </Box>
           ))}
         </Stack>
@@ -74,10 +74,10 @@ const SeenBy = ({ views, onClose }) => {
       <Box component="ul" aria-labelledby="seen-by-title" sx={{ flex: 1, overflowY: "auto", m: 0, p: 0, pb: 1 }}>
         {newestFirst(views).map(({ user, viewedAt, reaction }) => (
           <Stack key={user._id} component="li" direction="row" spacing={1.5} sx={{ alignItems: "center", listStyle: "none", px: 2.5, py: 1 }}>
-            {getAvatar(user.avatar, user.firstName, 40)}
+            {getAvatar(user.avatar, user.name, 40)}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography noWrap sx={{ fontSize: 14, fontWeight: 700 }}>
-                {`${user.firstName} ${user.lastName}`}
+                {user.name}
               </Typography>
               <Typography sx={{ fontSize: 12, fontWeight: 500, opacity: 0.65 }}>{messageTime(viewedAt)}</Typography>
             </Box>

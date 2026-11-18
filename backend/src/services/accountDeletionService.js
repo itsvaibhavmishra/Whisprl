@@ -19,7 +19,7 @@ import { sendMail } from "#src/services/mailer.js";
 import { PLACEHOLDER_PROFILE, endsOn, profileOf } from "#src/services/moderationService.js";
 import { isStaff } from "#src/services/roleService.js";
 import { endAllSessions, signOutEverywhere } from "#src/services/sessionService.js";
-import { trimmed } from "#src/utils/accountRules.js";
+import { firstWordOf, trimmed } from "#src/utils/accountRules.js";
 import { sha256 } from "#src/utils/sha256.js";
 import deletionCodeMail from "#src/templates/mail/deletionCode.js";
 import deletionScheduledMail from "#src/templates/mail/deletionScheduled.js";
@@ -47,7 +47,6 @@ const FORGOTTEN_FIELDS = [
   "hiddenProfile",
   "socialsConnected",
   "quickReactions",
-  "skippedSteps",
   "notificationsAllowedAt",
   "agePausedUntil",
   "journey",
@@ -75,7 +74,7 @@ export const sendDeletionCode = async (user) => {
   await UserModel.updateOne({ _id: user._id }, { deletionCode: { codeHash: sha256(code), expiresAt: now + CODE_LIFETIME, sentAt: now, attempts: 0 } });
 
   try {
-    await mailOrFail(user.email, `${code} is your code to delete your Whisprl account`, deletionCodeMail(user.firstName, code));
+    await mailOrFail(user.email, `${code} is your code to delete your Whisprl account`, deletionCodeMail(firstWordOf(user.name), code));
   } catch (error) {
     await UserModel.updateOne({ _id: user._id }, { $unset: { deletionCode: 1 } });
     throw error;
@@ -102,11 +101,11 @@ const assertCodeMatches = async (user_id, typedCode) => {
   if (!matchesHash(String(code), user.deletionCode.codeHash)) throw createHttpError.BadRequest("Incorrect code");
 };
 
-const tellScheduled = ({ email, firstName }, dueAt) =>
+const tellScheduled = ({ email, name }, dueAt) =>
   sendMail(
     email,
     "Your Whisprl account will be deleted",
-    deletionScheduledMail({ name: firstName, day: endsOn(dueAt), loginUrl: `${process.env.FRONT_URL}/auth/login` })
+    deletionScheduledMail({ name: firstWordOf(name), day: endsOn(dueAt), loginUrl: `${process.env.FRONT_URL}/auth/login` })
   ).catch((error) => console.error(`[deletion mail] ${error.message}`));
 
 export const scheduleDeletion = async (io, user, body) => {

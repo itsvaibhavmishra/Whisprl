@@ -1,3 +1,5 @@
+import { firstWordOf } from "@/utils/names";
+
 export const MAX_GROUP_SIZE = 32;
 export const MAX_GROUP_NAME = 40;
 
@@ -18,14 +20,14 @@ export const roleOf = (group, userId) => {
 
 export const mayRemove = (group, meId, memberId) => memberId !== meId && (isOwnerOf(group, meId) || (isAdminOf(group, meId) && !canManage(group, memberId)));
 
-const nameIn = (group, userId, meId) => (userId === meId ? "you" : (memberOf(group, userId)?.firstName ?? "someone"));
+const nameIn = (group, userId, meId) => (userId === meId ? "you" : firstWordOf(memberOf(group, userId)?.name) || "someone");
 
 export const listOf = (names) => (names.length < 3 ? names.join(" and ") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
 
 export const typingNamesIn = (conversation, typingConversation, meId) =>
   typingConversation
     .filter((typist) => typist.typing && typist.conversation_id === conversation._id && typist.user_id !== meId)
-    .map((typist) => memberOf(conversation, typist.user_id)?.firstName)
+    .map((typist) => firstWordOf(memberOf(conversation, typist.user_id)?.name))
     .filter(Boolean);
 
 export const typingLabel = (names, isGroup) => (isGroup ? `${listOf(names)} ${names.length === 1 ? "is" : "are"} typing…` : "typing…");

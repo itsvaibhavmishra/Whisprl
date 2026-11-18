@@ -85,7 +85,7 @@ const PasskeySetting = () => {
 
   const isSupported = canUsePasskeys();
   const description = isSupported
-    ? "Log in without a password, and unlock your messages on a new browser."
+    ? "Unlock your messages on a new browser without the recovery key."
     : `This ${deviceNoun} cannot use passkeys, but you can still remove them here.`;
 
   return (

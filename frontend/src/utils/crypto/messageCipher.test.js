@@ -188,7 +188,7 @@ test("a member who has left can still be read by those who stayed", async () => 
 });
 
 test("a shared contact and mentions come back from the encrypted content, and plain text stays plain", async () => {
-  const contact = { _id: "carol", firstName: "Carol", lastName: "Lane" };
+  const contact = { _id: "carol", name: "Carol Lane" };
   const structured = await sendFromAlice(encodePayload({ text: "meet @Bob", mentions: ["bob"], contact }));
   const plain = await sendFromAlice(encodePayload({ text: "just words" }));
   setDeviceKeys(deviceOf(bob));

@@ -32,6 +32,7 @@ import { linksIn } from "@/utils/links";
 import { fileKeyOf, filesOf } from "@/utils/messageFiles";
 import { formatDuration } from "@/utils/video";
 import { gradientOf } from "@/utils/gradients";
+import { firstWordOf } from "@/utils/names";
 
 const MEDIA_PAGE = 60;
 
@@ -164,7 +165,7 @@ const SharedContent = ({ conversation }) => {
             <VoiceMessage file={file} isMine={isMine} />
           </Box>
           <Typography sx={{ mt: 0.5, px: 1, fontSize: 12, fontWeight: 600, color: "text.secondary" }}>
-            {isMine ? "You" : message.sender?.firstName}, {messageTime(message.createdAt)}
+            {isMine ? "You" : firstWordOf(message.sender?.name)}, {messageTime(message.createdAt)}
           </Typography>
         </Box>
       ))}

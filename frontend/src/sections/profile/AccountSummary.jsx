@@ -43,9 +43,9 @@ const AccountSummary = () => {
         {friendCount ? (
           <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
             <AvatarGroup max={5} total={friendCount} sx={{ "& .MuiAvatar-root": { width: 32, height: 32, fontSize: 14, borderColor: "background.default" } }}>
-              {friendPreviews.map(({ _id, firstName, avatar }) => (
-                <Avatar key={_id} src={avatar || undefined} alt={firstName} sx={{ background: avatarLookOf(firstName).background, color: "common.white" }}>
-                  {avatarLookOf(firstName).initial}
+              {friendPreviews.map(({ _id, name, avatar }) => (
+                <Avatar key={_id} src={avatar || undefined} alt={name} sx={{ background: avatarLookOf(name).background, color: "common.white" }}>
+                  {avatarLookOf(name).initial}
                 </Avatar>
               ))}
             </AvatarGroup>
@@ -75,7 +75,7 @@ const AccountSummary = () => {
             })}
           </Stack>
         ) : (
-          "Email and password only"
+          "Email only"
         )}
       </Fact>
     </Box>

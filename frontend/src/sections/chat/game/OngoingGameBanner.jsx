@@ -6,8 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { GAMES } from "@/sections/chat/game/catalog";
 import { peerOf } from "@/utils/chats";
+import { firstWordOf } from "@/utils/names";
 
-const placeOf = (conversation, meId) => (conversation.isGroup ? `in ${conversation.name}` : `with ${peerOf(conversation, meId).firstName}`);
+const placeOf = (conversation, meId) => (conversation.isGroup ? `in ${conversation.name}` : `with ${firstWordOf(peerOf(conversation, meId).name)}`);
 
 // a game still being played stays a tap away from the main pages, in its own colour, over the status bar as a call does
 const OngoingGameBanner = () => {

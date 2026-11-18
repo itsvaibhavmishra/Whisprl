@@ -8,6 +8,7 @@ import AccessDialog from "@/sections/admin/AccessDialog";
 import PersonStatus from "@/sections/admin/PersonStatus";
 import getAvatar from "@/utils/avatars";
 import { permissionLabel } from "@/utils/roles";
+import { firstWordOf } from "@/utils/names";
 
 const RemoveDialog = ({ member, onClose, onDone }) => {
   const dispatch = useDispatch();
@@ -23,7 +24,7 @@ const RemoveDialog = ({ member, onClose, onDone }) => {
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>{`Remove ${member.firstName} from the team?`}</DialogTitle>
+      <DialogTitle>{`Remove ${firstWordOf(member.name)} from the team?`}</DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ fontSize: 14.5 }}>They lose the admin panel straight away. Their Whisprl account stays as it is.</DialogContentText>
         <TextField
@@ -53,7 +54,7 @@ const RemoveDialog = ({ member, onClose, onDone }) => {
 const TeamMember = ({ member, onChanged }) => {
   const [open, setOpen] = useState(null);
   const isOwner = member.role === "owner";
-  const name = `${member.firstName} ${member.lastName}`;
+  const { name } = member;
 
   return (
     <Stack component="li" direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ py: 2, borderTop: 1, borderColor: "divider" }}>
@@ -65,7 +66,7 @@ const TeamMember = ({ member, onChanged }) => {
             <PersonStatus person={member} />
           </Stack>
           <Typography sx={{ fontSize: 13, color: "text.secondary", overflowWrap: "anywhere" }}>{member.email}</Typography>
-          <Stack direction="row" aria-label={`What ${member.firstName} can use`} sx={{ flexWrap: "wrap", mt: 1, gap: 0.75 }}>
+          <Stack direction="row" aria-label={`What ${firstWordOf(member.name)} can use`} sx={{ flexWrap: "wrap", mt: 1, gap: 0.75 }}>
             {isOwner ? (
               <Chip size="small" color="primary" variant="outlined" label="Everything, and the team" />
             ) : (

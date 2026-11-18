@@ -2,8 +2,8 @@ import { describeEvent } from "@/utils/groups";
 
 const chat = {
   users: [
-    { _id: "ava", firstName: "Ava" },
-    { _id: "riya", firstName: "Riya" },
+    { _id: "ava", name: "Ava" },
+    { _id: "riya", name: "Riya" },
   ],
 };
 const eventFrom = (sender, event) => ({ sender: { _id: sender }, event });

@@ -34,6 +34,7 @@ import { firstNameIn, memberOf } from "@/utils/groups";
 import { filesOf, isMediaFile } from "@/utils/messageFiles";
 import { bareEmojiSizeOf, emojiScaleOf } from "@/utils/emoji";
 import { myReactionOn, quickReactionsOf } from "@/utils/reactions";
+import { firstWordOf } from "@/utils/names";
 
 const UNREADABLE = "This message can't be opened on this device";
 const WAITING = "This message arrives when the sender is next online";
@@ -122,7 +123,7 @@ const MessageContainer = ({
   const mentionNames = (message.mentions ?? [])
     .flatMap((userId) => {
       const member = memberOf(conversation, userId);
-      return member ? [member.username, member.firstName] : [];
+      return member ? [member.username, firstWordOf(member.name)] : [];
     })
     .filter(Boolean);
   const quotedSenderId = message.replyTo?.sender?._id ?? message.replyTo?.sender;
@@ -273,7 +274,7 @@ const MessageContainer = ({
         }}
       >
         {!isMine && isEndOfSequence && (
-          <Box sx={{ position: "absolute", bottom: 0, left: -36 }}>{getAvatar(message.sender.avatar, message.sender.firstName, 28)}</Box>
+          <Box sx={{ position: "absolute", bottom: 0, left: -36 }}>{getAvatar(message.sender.avatar, message.sender.name, 28)}</Box>
         )}
         {swipe.progress > 0 && <SwipeReplyHint progress={swipe.progress} side={isMine ? "right" : "left"} />}
         {/* the anchor is the bubble itself, so room opening below it for reactions moves what follows, never the bubble */}

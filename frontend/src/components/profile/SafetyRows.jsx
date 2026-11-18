@@ -8,6 +8,7 @@ import ReportDialog from "@/components/ReportDialog";
 import SecurityCode from "@/components/profile/SecurityCode";
 import { BlockUser, ReportChat, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { RemoveFriend } from "@/redux/slices/actions/contactActions";
+import { firstWordOf } from "@/utils/names";
 
 const NONE = [];
 
@@ -17,7 +18,7 @@ const SafetyRows = ({ person, conversationId, canRemoveFriend = false }) => {
   const blocked = useSelector((state) => state.user.user.blocked ?? NONE);
   const [dialog, setDialog] = useState(null);
   const hasBlocked = blocked.includes(person._id);
-  const { firstName } = person;
+  const firstName = firstWordOf(person.name);
   const close = () => setDialog(null);
 
   return (

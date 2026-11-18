@@ -37,12 +37,14 @@ const Tile = ({ icon: Icon, tint, color = "common.white" }) => (
 );
 
 const ProfileCard = ({ isSelected, isWide }) => {
-  const { firstName, lastName, username, avatar } = useSelector((state) => state.user.user);
+  const { name, username, avatar } = useSelector((state) => state.user.user);
   return (
     <ButtonBase component={Link} to={settingsPathOf(PROFILE)} aria-current={isSelected ? "page" : undefined} sx={{ ...rowLook(isSelected), py: 1.25 }}>
-      {getAvatar(avatar, firstName, 52)}
+      {getAvatar(avatar, name, 52)}
       <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography noWrap sx={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em" }}>{`${firstName} ${lastName}`}</Typography>
+        <Typography noWrap sx={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em" }}>
+          {name}
+        </Typography>
         <Typography noWrap component="p" sx={{ m: 0, mt: 0.25, fontSize: 13, fontWeight: 500, color: "text.secondary" }}>
           {username ? `@${username}` : "Edit your profile"}
         </Typography>

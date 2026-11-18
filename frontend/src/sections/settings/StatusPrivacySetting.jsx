@@ -66,14 +66,9 @@ const HiddenFromDialog = ({ onClose }) => {
           {friends.map((friend) => (
             <ListItem key={friend._id} disablePadding>
               <ListItemButton onClick={() => toggle(friend._id)} sx={{ px: 0, borderRadius: 2 }}>
-                <ListItemAvatar>{getAvatar(friend.avatar, friend.firstName, 36)}</ListItemAvatar>
-                <ListItemText primary={`${friend.firstName} ${friend.lastName}`} secondary={friend.username && `@${friend.username}`} />
-                <Checkbox
-                  edge="end"
-                  checked={hiddenIds.has(friend._id)}
-                  tabIndex={-1}
-                  slotProps={{ input: { "aria-label": `Hide from ${friend.firstName} ${friend.lastName}` } }}
-                />
+                <ListItemAvatar>{getAvatar(friend.avatar, friend.name, 36)}</ListItemAvatar>
+                <ListItemText primary={friend.name} secondary={friend.username && `@${friend.username}`} />
+                <Checkbox edge="end" checked={hiddenIds.has(friend._id)} tabIndex={-1} slotProps={{ input: { "aria-label": `Hide from ${friend.name}` } }} />
               </ListItemButton>
             </ListItem>
           ))}

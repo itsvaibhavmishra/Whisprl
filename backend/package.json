@@ -33,7 +33,6 @@
   "dependencies": {
     "@sentry/node": "^11.9.0",
     "@simplewebauthn/server": "^14.0.3",
-    "bcrypt": "^6.0.0",
     "cloudinary": "^2.11.0",
     "compression": "^1.8.2",
     "cors": "^2.8.6",

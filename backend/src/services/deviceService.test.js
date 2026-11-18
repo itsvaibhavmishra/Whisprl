@@ -50,5 +50,5 @@ test("the mail names the device and puts the person's name in as text", () => {
   assert.ok(html.includes("Hey Tom &lt;b&gt;,"));
   assert.ok(html.includes("from Chrome on Windows"));
   assert.ok(text.includes("Hey Tom <b>,"));
-  assert.ok(text.includes("Reset your password"));
+  assert.ok(text.includes("Log out other devices"));
 });

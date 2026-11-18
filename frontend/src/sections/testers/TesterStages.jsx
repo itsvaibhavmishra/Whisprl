@@ -1,16 +1,13 @@
 import { Box, Button, Link, Stack, Typography } from "@mui/material";
 import { GooglePlayLogoIcon } from "@phosphor-icons/react";
 import { QRCodeSVG } from "qrcode.react";
-import { Link as RouterLink } from "react-router-dom";
 
 import { PLAY_STORE_URL } from "@/config";
-import { PATH_AUTH } from "@/routes/paths";
 import AgreeToTerms from "@/sections/auth/AgreeToTerms";
 import AuthHeader from "@/sections/auth/AuthHeader";
 import ContinueWithGoogle from "@/sections/auth/ContinueWithGoogle";
 import { badgeArtAt } from "@/utils/badges";
 import { isAndroidBrowser } from "@/utils/platform";
-import { rememberTesterLink } from "@/utils/testerLink";
 
 const ART = 112;
 const NEW_TAB = { target: "_blank", rel: "noopener" };
@@ -25,25 +22,13 @@ const Stage = ({ badge, step, title, text, children }) => (
   </>
 );
 
-export const SignIn = ({ badge, code }) => (
+export const SignIn = ({ badge }) => (
   <Stage
     badge={badge}
     title="Become a Whisprl tester"
     text={`Help test the Android app before it reaches everyone. Testers get the ${badge.name} badge on their profile.`}
   >
     <ContinueWithGoogle />
-    <Button
-      size="large"
-      color="inherit"
-      fullWidth
-      component={RouterLink}
-      to={PATH_AUTH.general.login}
-      state={{ withEmail: true }}
-      onClick={() => rememberTesterLink(code)}
-      sx={{ mt: 1.5 }}
-    >
-      Sign up or log in with email
-    </Button>
     <AgreeToTerms sx={{ mt: 3 }} />
   </Stage>
 );

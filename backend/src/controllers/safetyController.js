@@ -11,9 +11,9 @@ export const block = async (req, res) => {
   const blocked = await blockUser(req.user, req.params.user_id);
   announceRequests(req, req.user._id, "ended");
   announceRequests(req, blocked._id, "ended");
-  const { _id, firstName, lastName, avatar } = req.user;
+  const { _id, name, avatar } = req.user;
   if (req.user.friends.some((friendId) => friendId.equals(blocked._id))) {
-    req.app.get("io").to(String(blocked._id)).emit("online_friends", { _id, firstName, lastName, avatar, onlineStatus: "offline" });
+    req.app.get("io").to(String(blocked._id)).emit("online_friends", { _id, name, avatar, onlineStatus: "offline" });
   }
   res.status(200).json({ status: "success", blocked });
 };

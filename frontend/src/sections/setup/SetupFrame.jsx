@@ -1,34 +1,17 @@
-import { Box, Button, Stack } from "@mui/material";
-import { SignOutIcon } from "@phosphor-icons/react";
-import { useDispatch } from "react-redux";
+import { Box, Stack } from "@mui/material";
 
-import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
-import AppearanceMenu from "@/components/AppearanceMenu";
 import BrandPanel from "@/layouts/auth/BrandPanel";
-import { LogoutUser } from "@/redux/slices/actions/authActions";
 
-// the same frame as signing up, with Log out as the only way off the page
-const SetupFrame = ({ children }) => {
-  const dispatch = useDispatch();
-
-  return (
-    <Box sx={{ display: "grid", gridTemplateColumns: { md: "5fr 7fr" }, minHeight: "100dvh" }}>
-      <BrandPanel />
-      <Stack sx={{ px: { xs: 2.5, sm: 4 }, pt: { xs: "calc(24px + env(safe-area-inset-top))", md: 6 }, pb: { xs: 3, md: 6 } }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Box component="img" src={whisprlMark} alt="Whisprl" width={48} height={52} sx={{ display: { md: "none" } }} />
-          <Box sx={{ flex: 1 }} />
-          <AppearanceMenu />
-          <Button color="inherit" startIcon={<SignOutIcon />} onClick={() => dispatch(LogoutUser())}>
-            Log out
-          </Button>
-        </Stack>
-        <Box component="main" sx={{ width: "100%", maxWidth: 420, mx: "auto", my: "auto", py: 4 }}>
-          {children}
-        </Box>
-      </Stack>
-    </Box>
-  );
-};
+// the same frame as signing in, with nothing to leave by, since setup is the way into the app
+const SetupFrame = ({ children }) => (
+  <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 5fr) minmax(0, 7fr)" }, minHeight: "100dvh" }}>
+    <BrandPanel />
+    <Stack sx={{ px: { xs: 2.5, sm: 4 }, pt: { xs: "calc(24px + env(safe-area-inset-top))", md: 6 }, pb: { xs: 3, md: 6 } }}>
+      <Box component="main" sx={{ width: "100%", maxWidth: 420, mx: "auto", my: "auto", py: 4 }}>
+        {children}
+      </Box>
+    </Stack>
+  </Box>
+);
 
 export default SetupFrame;

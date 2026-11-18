@@ -27,6 +27,7 @@ import RoomBar from "@/sections/chat/game/RoomBar";
 import SeatSwitchDialog from "@/sections/chat/game/SeatSwitchDialog";
 import useGameSounds from "@/sections/chat/game/useGameSounds";
 import { peerOf } from "@/utils/chats";
+import { firstWordOf } from "@/utils/names";
 
 const ComposerNotice = ({ children, action }) => (
   <Box sx={{ ...COMPOSER_GUTTER, pt: 0.5 }}>
@@ -217,14 +218,14 @@ const Conversation = () => {
             </Button>
           }
         >
-          You blocked {peer.firstName}.
+          You blocked {firstWordOf(peer.name)}.
         </ComposerNotice>
       );
     }
     if (!activeConvoFriendship) {
       return (
         <ComposerNotice>
-          {isFriend ? `You can't message ${peer.firstName} right now.` : "You are no longer friends, so you can't send messages here."}
+          {isFriend ? `You can't message ${firstWordOf(peer.name)} right now.` : "You are no longer friends, so you can't send messages here."}
         </ComposerNotice>
       );
     }
@@ -239,7 +240,7 @@ const Conversation = () => {
       <>
         {peerHasNoKey && (
           <ChatNote sx={{ mb: 0.5, mt: 0, mx: "auto", width: "fit-content" }}>
-            {peer.firstName} has not opened Whisprl since messages became end-to-end encrypted. Your messages arrive once they do.
+            {firstWordOf(peer.name)} has not opened Whisprl since messages became end-to-end encrypted. Your messages arrive once they do.
           </ChatNote>
         )}
         <Composer key={conversationId} />

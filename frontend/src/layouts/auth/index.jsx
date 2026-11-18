@@ -5,14 +5,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeftIcon, ArrowsCounterClockwiseIcon } from "@phosphor-icons/react";
 
 import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
-import AppearanceMenu from "@/components/AppearanceMenu";
 import BrandPanel from "@/layouts/auth/BrandPanel";
 import { StartServer } from "@/redux/slices/actions/authActions";
 import { DEFAULT_AUTH } from "@/config";
 import { PATH_AUTH } from "@/routes/paths";
 import useIsLoading from "@/hooks/useIsLoading";
 import { isApp } from "@/utils/platform";
-import { rememberedTesterLink, testerLinkPathOf } from "@/utils/testerLink";
 
 const SLOW_START_AFTER = 10000;
 
@@ -34,17 +32,13 @@ const AuthLayout = ({ isOpenToSignedIn = false }) => {
     dispatch(StartServer());
   }, [dispatch]);
 
-  if (isLoggedIn && !isOpenToSignedIn) {
-    // someone who chose email on a tester link goes back to its steps rather than into the app
-    const testerCode = rememberedTesterLink();
-    return <Navigate to={testerCode ? testerLinkPathOf(testerCode) : "/"} replace />;
-  }
+  if (isLoggedIn && !isOpenToSignedIn) return <Navigate to="/" replace />;
 
   const page = pathname.replace(/\/+$/, "");
   if (page === PATH_AUTH.general.welcome) {
     return <Outlet />;
   }
-  const showsLogo = [PATH_AUTH.general.login, PATH_AUTH.general.register].includes(page);
+  const showsLogo = page === PATH_AUTH.general.login;
   // in the app logging in is the first page, with nothing to go back to
   const canGoBack = isApp && page !== DEFAULT_AUTH;
 
@@ -58,7 +52,7 @@ const AuthLayout = ({ isOpenToSignedIn = false }) => {
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { md: "5fr 7fr" },
+        gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 5fr) minmax(0, 7fr)" },
         minHeight: "100vh",
       }}
     >
@@ -76,9 +70,6 @@ const AuthLayout = ({ isOpenToSignedIn = false }) => {
               <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
             </Box>
           )}
-          <Box sx={{ ml: "auto" }}>
-            <AppearanceMenu />
-          </Box>
         </Stack>
         <Box component="main" sx={{ width: "100%", maxWidth: 420, mx: "auto", my: "auto", py: 4 }}>
           <Outlet />

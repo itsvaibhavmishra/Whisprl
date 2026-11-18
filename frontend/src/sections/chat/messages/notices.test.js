@@ -1,8 +1,8 @@
 import { noticeOf } from "@/sections/chat/messages/notices";
 import { summaryOf } from "@/utils/messageSummary";
 
-const ME = { _id: "me", firstName: "Mei" };
-const WHISPRL = { _id: "whisprl", firstName: "Whisprl" };
+const ME = { _id: "me", name: "Mei" };
+const WHISPRL = { _id: "whisprl", name: "Whisprl" };
 
 const reportNotice = (type, about, name) => noticeOf({ type, about, name }, ME, WHISPRL);
 

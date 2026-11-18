@@ -9,7 +9,7 @@ import { validateCipher } from "#src/services/messageService.js";
 import { usernameProblemOf } from "#src/utils/accountRules.js";
 
 const STATUS_LIFETIME_MS = 24 * 60 * 60 * 1000;
-const PERSON_FIELDS = "firstName lastName username avatar";
+const PERSON_FIELDS = "name username avatar";
 const KEYED_FIELDS = `${PERSON_FIELDS} publicKeys`;
 const SWEEP_BATCH = 500;
 

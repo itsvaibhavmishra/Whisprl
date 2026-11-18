@@ -13,6 +13,7 @@ import AuthHeader from "@/sections/auth/AuthHeader";
 import ContinueWithGoogle from "@/sections/auth/ContinueWithGoogle";
 import getAvatar from "@/utils/avatars";
 import { isAndroidBrowser } from "@/utils/platform";
+import { firstWordOf } from "@/utils/names";
 
 const playLinkOf = (code) => `${PLAY_STORE_URL}&referrer=${encodeURIComponent(`invite=${code}`)}`;
 
@@ -49,9 +50,6 @@ const JoinChoices = ({ code }) => {
   return (
     <>
       <ContinueWithGoogle />
-      <Button size="large" color="inherit" fullWidth component={RouterLink} to={PATH_AUTH.general.register} state={{ withEmail: true }} sx={{ mt: 1.5 }}>
-        Sign up with email
-      </Button>
       <AgreeToTerms sx={{ mt: 3 }} />
     </>
   );
@@ -87,20 +85,20 @@ const Invite = () => {
     return (
       <>
         <AuthHeader title="This invite link doesn't work">Ask your friend for a new one, or join Whisprl on your own.</AuthHeader>
-        <Button size="large" variant="contained" fullWidth component={RouterLink} to={PATH_AUTH.general.register}>
-          Sign up
+        <Button size="large" variant="contained" fullWidth component={RouterLink} to={PATH_AUTH.general.login}>
+          Get started
         </Button>
       </>
     );
   }
 
-  const name = `${inviter.firstName} ${inviter.lastName}`;
+  const { name } = inviter;
   return (
     <>
       <Box sx={{ mb: 2.5 }}>{getAvatar(inviter.avatar, name, 72)}</Box>
-      <AuthHeader title={`${inviter.firstName} invited you to play on Whisprl`}>
-        Jackaroo, Chain Reaction, Dots and Boxes and more, with private chats only the two of you can read. Once you join, you can send {inviter.firstName} a
-        friend request in one tap. <LogInInstead />
+      <AuthHeader title={`${firstWordOf(inviter.name)} invited you to play on Whisprl`}>
+        Jackaroo, Chain Reaction, Dots and Boxes and more, with private chats only the two of you can read. Once you join, you can send{" "}
+        {firstWordOf(inviter.name)} a friend request in one tap. <LogInInstead />
       </AuthHeader>
       <JoinChoices code={code} />
     </>

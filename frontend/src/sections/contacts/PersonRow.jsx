@@ -18,7 +18,7 @@ const SETTLE = { duration: 0.28, ease: [0.33, 1, 0.68, 1] };
 // the row is a link, so the avatar's status button and the trailing action sit beside it as siblings rather than inside it
 const PersonRow = ({ person, isSelected = false, isOnline = false, detail, action, backLabel }) => {
   const statuses = useLiveStatuses(person._id);
-  const name = `${person.firstName} ${person.lastName}`;
+  const { name } = person;
 
   return (
     <Box
@@ -77,7 +77,7 @@ const PersonRow = ({ person, isSelected = false, isOnline = false, detail, actio
           "&.Mui-focusVisible": { outline: 2, outlineColor: "primary.main", outlineOffset: -2 },
         }}
       >
-        <ChatAvatar src={person.avatar} name={person.firstName} size={AVATAR_SIZE} isOnline={isOnline} statuses={statuses} />
+        <ChatAvatar src={person.avatar} name={person.name} size={AVATAR_SIZE} isOnline={isOnline} statuses={statuses} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
             <Typography noWrap sx={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>

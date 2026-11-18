@@ -1,14 +1,8 @@
-import { signInWithProvider } from "#src/services/socialAuthService.js";
+import { signInWithGoogle } from "#src/services/socialAuthService.js";
 import { respondWithSession } from "#src/controllers/authController.js";
 
-const socialLogin = (provider) => async (req, res) => {
-  const user = await signInWithProvider(provider, req.body.code);
+export const googleAuth = async (req, res) => {
+  const user = await signInWithGoogle(req.body.code);
 
-  await respondWithSession(req, res, user, "Logged In");
+  await respondWithSession(req, res, user, "Logged in");
 };
-
-export const googleAuth = socialLogin("google");
-
-export const githubAuth = socialLogin("github");
-
-export const linkedinAuth = socialLogin("linkedin");

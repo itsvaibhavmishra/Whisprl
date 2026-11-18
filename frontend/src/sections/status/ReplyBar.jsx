@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 
 import { ReactToStatus, ReplyToStatus } from "@/redux/slices/actions/statusActions";
 import uuidv4 from "@/utils/uuidv4";
+import { firstWordOf } from "@/utils/names";
 
 const QUICK_REACTIONS = ["❤️", "😂", "😮", "😢", "👏", "🔥"];
 const MAX_REPLY = 1000;
@@ -64,7 +65,7 @@ const ReplyBar = ({ status, canReply, fieldRef, isPicking, onPicking, onTyping }
   const [sentReaction, setSentReaction] = useState(null);
   const [picked, setPicked] = useState(null);
   const closeTimer = useRef(null);
-  const name = status.owner.firstName;
+  const name = firstWordOf(status.owner.name);
 
   useEffect(() => () => clearTimeout(closeTimer.current), []);
 

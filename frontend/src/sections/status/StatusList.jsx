@@ -53,8 +53,8 @@ const SectionLabel = ({ children }) => (
 const PersonRow = ({ group, onOpen }) => (
   <Box component="li" sx={{ listStyle: "none" }}>
     <ButtonBase onClick={() => onOpen(group.owner._id)} sx={rowSx}>
-      <ChatAvatar src={group.owner.avatar} name={group.owner.firstName} size={AVATAR_SIZE} statuses={group.statuses} />
-      <RowText title={`${group.owner.firstName} ${group.owner.lastName}`} detail={ageOf(group.latestAt)} isStrong={group.hasUnseen} />
+      <ChatAvatar src={group.owner.avatar} name={group.owner.name} size={AVATAR_SIZE} statuses={group.statuses} />
+      <RowText title={group.owner.name} detail={ageOf(group.latestAt)} isStrong={group.hasUnseen} />
     </ButtonBase>
   </Box>
 );
@@ -72,7 +72,7 @@ const PeopleSection = ({ label, groups, onOpen }) =>
   );
 
 const PostingAvatar = ({ percent }) => {
-  const { avatar, firstName } = useSelector((state) => state.user.user);
+  const { avatar, name } = useSelector((state) => state.user.user);
   return (
     <Box sx={{ position: "relative", width: AVATAR_SIZE, height: AVATAR_SIZE, flexShrink: 0, display: "grid", placeItems: "center" }}>
       <CircularProgress
@@ -82,7 +82,7 @@ const PostingAvatar = ({ percent }) => {
         thickness={2.5}
         sx={{ position: "absolute" }}
       />
-      <ChatAvatar src={avatar} name={firstName} size={AVATAR_SIZE} />
+      <ChatAvatar src={avatar} name={name} size={AVATAR_SIZE} />
     </Box>
   );
 };
@@ -108,7 +108,7 @@ const MyStatusRow = ({ group, isSelected, onOpen, onCreate }) => {
         aria-current={isSelected ? "page" : undefined}
         sx={{ ...rowSx, ...(isSelected && selectedSx), pr: isPosting ? 7 : 1.25 }}
       >
-        {isPosting ? <PostingAvatar percent={posting} /> : <ChatAvatar src={user.avatar} name={user.firstName} size={AVATAR_SIZE} statuses={group?.statuses} />}
+        {isPosting ? <PostingAvatar percent={posting} /> : <ChatAvatar src={user.avatar} name={user.name} size={AVATAR_SIZE} statuses={group?.statuses} />}
         <RowText title="My status" detail={detail()} />
       </ButtonBase>
       {isPosting && (

@@ -5,9 +5,9 @@ import { lobbyLineOf, resultLineOf } from "@/sections/chat/game/gameStatus";
 const conversation = {
   isGroup: true,
   users: [
-    { _id: "me", firstName: "Sam" },
-    { _id: "ava", firstName: "Ava" },
-    { _id: "leo", firstName: "Leo" },
+    { _id: "me", name: "Sam" },
+    { _id: "ava", name: "Ava" },
+    { _id: "leo", name: "Leo" },
   ],
 };
 
@@ -30,8 +30,8 @@ describe("the lobby line between two at a table of four", () => {
   const direct = {
     isGroup: false,
     users: [
-      { _id: "me", firstName: "Sam" },
-      { _id: "ava", firstName: "Ava" },
+      { _id: "me", name: "Sam" },
+      { _id: "ava", name: "Ava" },
     ],
   };
   const bot = { bot: true, ready: true };
@@ -42,7 +42,7 @@ describe("the lobby line between two at a table of four", () => {
   });
 
   test("plays the bots in a chat with yourself", () => {
-    const yourself = { isGroup: false, users: [{ _id: "me", firstName: "Sam" }] };
+    const yourself = { isGroup: false, users: [{ _id: "me", name: "Sam" }] };
     expect(lobbyLineOf({ seats: [{ user: "me", ready: false }, bot, bot, bot] }, yourself, "me")).toBe("Press Ready to play the bot");
   });
 

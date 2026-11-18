@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import otpMail from "#src/templates/mail/otp.js";
+import deletionCodeMail from "#src/templates/mail/deletionCode.js";
 import { escapeHtml } from "#src/templates/mail/layout.js";
 
 const MARKUP = `<img src=x onerror="alert(1)">`;
@@ -14,7 +14,7 @@ describe("escapeHtml", () => {
 
 describe("emails", () => {
   it("put a name into the HTML as text, and into the plain version as typed", () => {
-    const { html, text } = otpMail(`Tom & ${MARKUP}`, "123456");
+    const { html, text } = deletionCodeMail(`Tom & ${MARKUP}`, "123456");
     assert.ok(html.includes("Hey Tom &amp; &lt;img src=x onerror=&quot;alert(1)&quot;&gt;,"));
     assert.ok(!html.includes(MARKUP));
     assert.ok(text.includes(`Hey Tom & ${MARKUP},`));

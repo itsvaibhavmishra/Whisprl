@@ -1,5 +1,6 @@
 import { Avatar } from "@mui/material";
 
+import { isPresetAvatar } from "@/utils/avatarPresets";
 import { gradientOf } from "@/utils/gradients";
 
 // deep enough to keep white initials readable
@@ -24,12 +25,36 @@ export const avatarLookOf = (name) => ({ initial: (name ?? "").charAt(0).toUpper
 
 export const nameColorOf = (name, mode) => (mode === "dark" ? NIGHT_NAME_COLORS[seedOf(name)] : AVATAR_GRADIENTS[seedOf(name)][0]);
 
+const SMALL_SIDE = 192;
+const LARGE_SIDE = 1024;
+// drawn this big or smaller, a picture is in a list, where the small copy looks the same and loads far faster
+const SMALL_UP_TO = 64;
+const GOOGLE_PHOTO_SIZE = /=s\d+-c$/;
+const CLOUDINARY_UPLOAD = "/image/upload/";
+
+const isGooglePhoto = (avatar) => Boolean(avatar?.includes("googleusercontent.com"));
+
+// Google and Cloudinary resize from the address, and Whisprl's own small file is already small
+export const smallAvatarOf = (avatar) => {
+  if (isGooglePhoto(avatar)) return avatar.replace(GOOGLE_PHOTO_SIZE, `=s${SMALL_SIDE}-c`);
+  if (avatar?.startsWith("https://res.cloudinary.com/")) {
+    return avatar.replace(CLOUDINARY_UPLOAD, `${CLOUDINARY_UPLOAD}c_fill,w_${SMALL_SIDE},h_${SMALL_SIDE},f_auto,q_auto/`);
+  }
+  return avatar;
+};
+
+export const largeAvatarOf = (avatar) => {
+  if (isPresetAvatar(avatar)) return avatar.replace("/avatars/", "/avatars/large/");
+  if (isGooglePhoto(avatar)) return avatar.replace(GOOGLE_PHOTO_SIZE, `=s${LARGE_SIDE}-c`);
+  return avatar;
+};
+
 // a picture that fails to load shows the initial on its colour, instead of MUI's grey letter that reads as an inactive account
 export default function getAvatar(avatar, name, size = 40) {
   const { initial, background } = avatarLookOf(name);
   return (
     <Avatar
-      src={avatar || undefined}
+      src={(size > SMALL_UP_TO ? largeAvatarOf(avatar) : smallAvatarOf(avatar)) || undefined}
       alt={name}
       sx={{
         width: size,

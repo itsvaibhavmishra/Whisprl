@@ -55,8 +55,8 @@ export const FEATURES = [
   },
   {
     Icon: ShieldCheckIcon,
-    title: "Sign in your way",
-    body: "Log in with your email or username and a password, a passkey, or your Google, GitHub or LinkedIn account.",
+    title: "One tap to get in",
+    body: "Sign in with your Google account. There is no password to make or remember.",
   },
   {
     Icon: PaletteIcon,
@@ -96,6 +96,6 @@ export const FAQS = [
   {
     question: "How do I start chatting?",
     answer:
-      "Sign up with your email, or with Google, GitHub or LinkedIn. Then add your friends, say hello and challenge them to a game. Whisprl, the official account, is your first friend and always up for one.",
+      "Continue with your Google account. Then add your friends, say hello and challenge them to a game. Whisprl, the official account, is your first friend and always up for one.",
   },
 ];

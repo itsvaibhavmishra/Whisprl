@@ -2,7 +2,6 @@ import createHttpError from "http-errors";
 import validator from "validator";
 
 import {
-  changePassword,
   getOwnProfile,
   getPublicProfile,
   birthdayFieldsFor,
@@ -19,25 +18,14 @@ import { endOtherSessions, signOutOtherDevices } from "#src/services/sessionServ
 import { scheduleDeletion, sendDeletionCode } from "#src/services/accountDeletionService.js";
 import { setSuggestToFriendsOfFriends } from "#src/services/suggestionService.js";
 import { changeUsername, checkUsername } from "#src/services/usernameService.js";
-import { assertText, assertValidName, oldEnoughBirthdayFrom, trimmed } from "#src/utils/accountRules.js";
+import { assertText, nameFrom, oldEnoughBirthdayFrom, trimmed } from "#src/utils/accountRules.js";
 import { assertCoverStyle } from "#src/utils/coverStyles.js";
 
 export const updateProfile = async (req, res) => {
   const { coverPattern, coverPalette } = req.body;
-  const [firstName, lastName, activityStatus = "", birthday, gender] = [
-    req.body.firstName,
-    req.body.lastName,
-    req.body.activityStatus,
-    req.body.birthday,
-    req.body.gender,
-  ].map(trimmed);
+  const [activityStatus = "", birthday, gender] = [req.body.activityStatus, req.body.birthday, req.body.gender].map(trimmed);
   const user = req.user;
-
-  if (!firstName || !lastName) {
-    throw createHttpError.BadRequest("Required fields: firstName, lastName");
-  }
-
-  assertValidName(firstName, lastName);
+  const name = nameFrom(req.body.name);
   assertText(activityStatus);
 
   if (!validator.isLength(activityStatus, { max: 50 })) {
@@ -46,8 +34,7 @@ export const updateProfile = async (req, res) => {
 
   // a birthday can be changed but never removed, so an empty one leaves it as it was
   const fields = {
-    firstName,
-    lastName,
+    name,
     activityStatus,
     ...(birthday && birthdayFieldsFor(user, oldEnoughBirthdayFrom(birthday))),
     ...genderFieldsFor(user, gender),
@@ -65,8 +52,7 @@ export const updateProfile = async (req, res) => {
     status: "success",
     message: "Profile saved",
     user: {
-      firstName: user.firstName,
-      lastName: user.lastName,
+      name: user.name,
       avatar: user.avatar,
       cover: user.cover,
       coverStyle: user.coverStyle,
@@ -120,19 +106,11 @@ export const updateBirthdaySetting = async (req, res) => {
   return res.status(200).json({ status: "success", showBirthdayToFriends });
 };
 
-export const updatePassword = async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-
-  if (!currentPassword || !newPassword) {
-    throw createHttpError.BadRequest("Required fields: currentPassword, newPassword");
-  }
-
-  await changePassword(req.user._id, currentPassword, newPassword);
-
+export const logOutOtherDevices = async (req, res) => {
   await endOtherSessions(req.user._id, req.sessionId);
   await signOutOtherDevices(req.app.get("io"), req.user._id, req.sessionId);
 
-  return res.status(200).json({ status: "success", message: "Password changed" });
+  return res.status(200).json({ status: "success", message: "Logged out of your other devices" });
 };
 
 export const searchUsers = async (req, res) => {

@@ -101,7 +101,7 @@ export const UnlockWithRecoveryKey = createApiThunk(
   { notifyErrors: false }
 );
 
-export const keepKeyFromPasskey = async (userId, keyBackup, prfSecret) =>
+const keepKeyFromPasskey = async (userId, keyBackup, prfSecret) =>
   keepOnThisDevice(userId, { keyId: keyBackup.keyId, privateKey: await unlockWithPasskey(keyBackup, prfSecret) });
 
 const NO_PASSKEY_UNLOCK = "This browser cannot unlock your messages with a passkey. Use your recovery key instead.";

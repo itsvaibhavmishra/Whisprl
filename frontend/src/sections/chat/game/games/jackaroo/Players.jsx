@@ -111,7 +111,7 @@ const Face = ({ seat, sayer, member, colour, clock, tag, team, isHere: here, onL
         boxShadow: clock ? "none" : `0 0 0 3px ${colour}, 0 0 14px ${alpha(colour, 0.55)}`,
       }}
     >
-      {seat.bot || seat.away ? <BotFace seat={seat} size={FACE} /> : member && getAvatar(member.avatar, member.firstName, FACE)}
+      {seat.bot || seat.away ? <BotFace seat={seat} size={FACE} /> : member && getAvatar(member.avatar, member.name, FACE)}
     </Box>
     {clock && <TurnClock key={clock.startsAt} startsAt={clock.startsAt} ms={clock.ms} seconds={clock.seconds} colour={colour} />}
     <AvatarReaction user={sayer} size={FACE} />

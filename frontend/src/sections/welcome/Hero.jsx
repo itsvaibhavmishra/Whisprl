@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 
 import HeroConversation from "@/sections/welcome/HeroConversation";
@@ -49,14 +49,9 @@ const Hero = () => (
         encrypted. Free, open source, on Android and in your browser.
       </Typography>
 
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mt: 4 }}>
-        <Button component={Link} to={PATH_AUTH.general.register} variant="contained" size="large">
-          Create a free account
-        </Button>
-        <Button component={Link} to={PATH_AUTH.general.login} variant="outlined" color="inherit" size="large">
-          Log in
-        </Button>
-      </Stack>
+      <Button component={Link} to={PATH_AUTH.general.login} variant="contained" size="large" sx={{ mt: 4 }}>
+        Get started
+      </Button>
     </Box>
 
     <HeroConversation />

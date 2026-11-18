@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL, PORTFOLIO_URL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "17 November 2026";
+export const LAST_UPDATED = "18 November 2026";
 
 export const INTRO = [
   "This privacy policy covers Whisprl: Chat & Games, the free chat app with games built in at whisprl.netlify.app and on Android, run by ",
@@ -30,7 +30,7 @@ export const SECTIONS = [
     blocks: [
       {
         list: [
-          "your name, email address and password when you sign up. Signing in with Google, GitHub or LinkedIn gives Whisprl your name, email address and profile picture from that account instead of a password",
+          "your name, email address and profile picture from your Google account, when you sign in with it. Whisprl never has a password of yours",
           "your birthday, to check you are at least 13 and so Whisprl can wish you a happy birthday. Friends see the day and month, never the year, unless you hide it",
           "a username, profile picture, cover and status line, which other people on Whisprl can see",
           "the messages, photos, videos, voice messages, documents, reactions and statuses you send",
@@ -56,7 +56,7 @@ export const SECTIONS = [
           "the days you open Whisprl, which staff see only as a count of active people",
           "for each device you log in on, the kind of browser or device it is and, in the Android app, a token for sending it notifications",
           "the public half of your encryption keys, of each device's login key and of any passkey you add. A public key can only lock a message or check a sign-in, never open or make one",
-          "your password and one-time codes, as one-way hashes only, so nobody can read them, including the people who run Whisprl",
+          "one-time codes, such as the one that confirms deleting your account, as one-way hashes only, so nobody can read them, including the people who run Whisprl",
           "error reports when something in Whisprl breaks, described under Services that handle your data",
         ],
       },
@@ -106,8 +106,7 @@ export const SECTIONS = [
           "Cloudinary, which stores the files you send, encrypted, and profile pictures, covers and statuses shared with everyone, which are not",
           "Gmail, which sends your codes and account emails, so it receives your email address",
           "Firebase Cloud Messaging, by Google, which delivers notifications to the Android app. A notification of a message from someone you talk to carries it still encrypted, while a game invite or a message from Whisprl carries its words as they are",
-          "Google, GitHub and LinkedIn, if you sign in with them",
-          "Google reCAPTCHA, on sign-up and log-in, to keep bots out. It receives information about your device and how you use the page",
+          "Google, which you sign in with",
           "Google Analytics, to count visits and see which pages are used. It receives the pages you open and information about your device, never your messages",
           "Sentry, to tell us when something breaks. A report, stored in Frankfurt, holds what went wrong, your device, your Whisprl version and your account number, never your messages, anything on your screen or your IP address",
         ],
@@ -119,7 +118,7 @@ export const SECTIONS = [
     title: "Who else sees it",
     blocks: [
       "The people you talk to see what you send them, your profile, and whether you are online. Your email address is never shown to anyone.",
-      "Staff, meaning the owner and any admins, can see account details other than passwords, the reports and game requests sent to them, and what the server holds unencrypted, so they can keep Whisprl safe. They can also send a message from Whisprl to everyone. Suspending, banning or restoring an account and changing who is on the staff need a passkey, and those actions, dismissing a report and sending a message from Whisprl are all recorded.",
+      "Staff, meaning the owner and any admins, can see account details, the reports and game requests sent to them, and what the server holds unencrypted, so they can keep Whisprl safe. They can also send a message from Whisprl to everyone. Suspending, banning or restoring an account and changing who is on the staff need a passkey, and those actions, dismissing a report and sending a message from Whisprl are all recorded.",
       "Whisprl does not sell your data or share it for advertising. It discloses data only when the law requires it, and even then it cannot hand over what it cannot read.",
     ],
   },
@@ -127,7 +126,7 @@ export const SECTIONS = [
     id: "storage",
     title: "Cookies and storage on your device",
     blocks: [
-      "Whisprl sets no cookies of its own. It keeps the key that keeps you logged in, your encryption key and preferences such as dark mode in your browser's storage, or the app's. Google Analytics and reCAPTCHA set cookies of their own.",
+      "Whisprl sets no cookies of its own. It keeps the key that keeps you logged in, your encryption key and preferences such as dark mode in your browser's storage, or the app's. Google Analytics sets cookies of its own.",
     ],
   },
   {
@@ -158,7 +157,7 @@ export const SECTIONS = [
     id: "security",
     title: "How it is protected",
     blocks: [
-      "Everything travels over HTTPS. Messages and files between friends are end-to-end encrypted. Passwords and codes are stored only as one-way hashes. Each login is tied to a key your device keeps and never shares, so a stolen token alone cannot keep someone signed in. Staff need a passkey to suspend, ban or restore an account or to change who is on the staff, and those actions are recorded.",
+      "Everything travels over HTTPS. Messages and files between friends are end-to-end encrypted. One-time codes are stored only as one-way hashes. Each login is tied to a key your device keeps and never shares, so a stolen token alone cannot keep someone signed in. Staff need a passkey to suspend, ban or restore an account or to change who is on the staff, and those actions are recorded.",
     ],
   },
   {

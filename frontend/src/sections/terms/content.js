@@ -1,7 +1,7 @@
 import { CONTACT_EMAIL, PORTFOLIO_URL, SOURCE_URL } from "@/config";
 import { PATH_DOCS } from "@/routes/paths";
 
-export const LAST_UPDATED = "17 November 2026";
+export const LAST_UPDATED = "18 November 2026";
 
 export const INTRO = [
   "These terms cover your use of Whisprl: Chat & Games, a free chat app with games built in, run by ",
@@ -14,7 +14,7 @@ export const SECTIONS = [
     id: "your-account",
     title: "Your account",
     blocks: [
-      "You need an account to chat. You can sign up with your email address, which is confirmed with a one-time code, or with a Google, GitHub or LinkedIn account. The Android app offers Google and email.",
+      "You need an account to chat, and you sign in with a Google account, in the Android app and on the web.",
       "You must be at least 13 years old to use Whisprl.",
       "Use your real name and an email address you control. Disposable email addresses are not accepted.",
       "Keep your login details to yourself. You are responsible for what happens under your account, so get in touch straight away if you think someone else has got into it.",
@@ -34,7 +34,7 @@ export const SECTIONS = [
           "send spam, scams or unwanted bulk messages",
           "share malware, or links meant to harm someone",
           "pretend to be someone else",
-          "try to get into other accounts, get around reCAPTCHA or rate limits, or overload the service",
+          "try to get into other accounts, get around rate limits, or overload the service",
         ],
       },
       {

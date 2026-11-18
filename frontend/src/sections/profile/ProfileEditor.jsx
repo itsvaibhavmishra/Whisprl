@@ -19,8 +19,7 @@ import { genderLabelOf } from "@/utils/genders";
 import { BIO_LIMIT, bioRule, nameRule, profileBirthdayRule } from "@/utils/formRules";
 
 const ProfileSchema = Yup.object({
-  firstName: nameRule("First name"),
-  lastName: nameRule("Last name"),
+  name: nameRule,
   activityStatus: bioRule,
   birthday: profileBirthdayRule,
   gender: Yup.string(),
@@ -31,8 +30,7 @@ const ProfileSchema = Yup.object({
 const toFormValues = (user) => {
   const { pattern, palette } = coverStyleOf(user);
   return {
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
+    name: user.name || "",
     activityStatus: user.activityStatus || "",
     birthday: dateInputOf(user.birthday),
     gender: user.gender || "",
@@ -160,10 +158,7 @@ const ProfileEditor = () => {
         <Box component="section" aria-labelledby="details-title">
           <SectionTitle id="details-title">About you</SectionTitle>
           <Stack spacing={2.5}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: "flex-start" }}>
-              <RHFTextField name="firstName" label="First name" autoComplete="given-name" />
-              <RHFTextField name="lastName" label="Last name" autoComplete="family-name" />
-            </Stack>
+            <RHFTextField name="name" label="Name" autoComplete="name" />
             <UsernameField />
             <RHFBirthdayPicker name="birthday" label="Birthday" disabled={Boolean(nextBirthdayChange)} helperText={birthdayHelpOf(nextBirthdayChange)} />
             <GenderField gender={user.gender} />

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { assertBirthdayChange, bandOf, genderFrom } from "#src/utils/accountRules.js";
+import { assertBirthdayChange, bandOf, firstWordOf, genderFrom, nameFrom } from "#src/utils/accountRules.js";
 
 const TODAY = new Date(Date.UTC(2026, 10, 17));
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -40,5 +40,22 @@ describe("genderFrom", () => {
     assert.equal(genderFrom("undisclosed"), "undisclosed");
     assert.throws(() => genderFrom("other"), { status: 400 });
     assert.throws(() => genderFrom(undefined), { status: 400 });
+  });
+});
+
+describe("nameFrom", () => {
+  it("takes one name in any language, tidying its spaces", () => {
+    assert.equal(nameFrom("  Li   Na "), "Li Na");
+    assert.equal(nameFrom("José O'Neil-Ávila"), "José O'Neil-Ávila");
+    assert.equal(nameFrom("प्रिया शर्मा"), "प्रिया शर्मा");
+  });
+
+  it("refuses one letter, more than thirty, and digits or symbols", () => {
+    for (const name of ["A", "x".repeat(31), "R2D2", "Ann <b>", "-Ann"]) assert.throws(() => nameFrom(name), { status: 400 });
+    assert.throws(() => nameFrom(["Ann"]), { status: 400 });
+  });
+
+  it("greets by the first word", () => {
+    assert.equal(firstWordOf("Bianca Rossi"), "Bianca");
   });
 });

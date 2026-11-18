@@ -2,7 +2,7 @@ import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 
 import { UserModel } from "#src/models/index.js";
-import { normalizeEmail } from "#src/utils/accountRules.js";
+import { NAME_LIMIT, normalizeEmail } from "#src/utils/accountRules.js";
 import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import { fetchJson } from "#src/utils/fetchJson.js";
 import { markReached, startJourney } from "#src/services/journeyService.js";
@@ -11,9 +11,7 @@ import { befriendWhisprl } from "#src/services/whisprlService.js";
 import { welcomeToWhisprl } from "#src/services/whisprlMessageService.js";
 import { reportError } from "#src/utils/errorReports.js";
 
-const PROVIDER_NAMES = { google: "Google", github: "GitHub", linkedin: "LinkedIn" };
-
-const notVerified = (provider) => createHttpError.Unauthorized(`Verify your email with ${PROVIDER_NAMES[provider]} first, then try again`);
+const notVerified = () => createHttpError.Unauthorized("Verify your email with Google first, then try again");
 
 const googleClient = new OAuth2Client();
 
@@ -25,7 +23,7 @@ const fetchGoogleIdTokenProfile = async (idToken) => {
   const ticket = await googleClient.verifyIdToken({ idToken, audience: process.env.GOOGLE_AUTH_CLIENT_ID }).catch(() => null);
   const payload = ticket?.getPayload();
   if (!payload) throw createHttpError.Unauthorized("Unable to sign in using Google");
-  if (!payload.email_verified) throw notVerified("google");
+  if (!payload.email_verified) throw notVerified();
 
   return { email: payload.email, name: payload.name, picture: payload.picture };
 };
@@ -38,86 +36,44 @@ const fetchGoogleAccessTokenProfile = async (accessToken) => {
   }
 
   const data = await fetchJson("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${accessToken}` } });
-  if (!data.email_verified) throw notVerified("google");
+  if (!data.email_verified) throw notVerified();
 
   return { email: data.email, name: data.name, picture: data.picture };
 };
 
 const fetchGoogleProfile = (credential) => (isIdToken(credential) ? fetchGoogleIdTokenProfile(credential) : fetchGoogleAccessTokenProfile(credential));
 
-const fetchGithubProfile = async (code) => {
-  const token = await fetchJson("https://github.com/login/oauth/access_token", {
-    method: "POST",
-    headers: { accept: "application/json", "Content-Type": "application/json" },
-    body: JSON.stringify({ client_id: process.env.GITHUB_AUTH_CLIENT_ID, client_secret: process.env.GITHUB_AUTH_CLIENT_SECRET, code }),
-  });
-  if (!token.access_token) throw createHttpError.Unauthorized("Unable to sign in using GitHub");
+const nameOf = (name, email) => (name?.trim() || email.split("@")[0]).replace(/\s+/g, " ").slice(0, NAME_LIMIT);
 
-  const headers = { Authorization: `Bearer ${token.access_token}`, "User-Agent": "Whisprl" };
-  const [emails, profile] = await Promise.all([
-    fetchJson("https://api.github.com/user/emails", { headers }),
-    fetchJson("https://api.github.com/user", { headers }),
-  ]);
+export const openAccount = async ({ email: typedEmail, name, picture }, via) => {
+  const email = normalizeEmail(typedEmail);
+  const user = (await UserModel.findOne({ email })) ?? new UserModel({ email, name: nameOf(name, email), avatar: picture });
 
-  const primary = emails.find((entry) => entry.primary && entry.verified);
-  if (!primary) throw notVerified("github");
-
-  return { email: primary.email, name: profile.name || profile.login, picture: profile.avatar_url };
-};
-
-const fetchLinkedinProfile = async (code) => {
-  const token = await fetchJson("https://linkedin.com/oauth/v2/accessToken", {
-    query: {
-      client_id: process.env.LINKEDIN_AUTH_CLIENT_ID,
-      client_secret: process.env.LINKEDIN_AUTH_CLIENT_SECRET,
-      redirect_uri: `${process.env.FRONT_URL}/auth/login`,
-      grant_type: "authorization_code",
-      code,
-    },
-    headers: { "Content-Type": "x-www-form-urlencoded" },
-  });
-
-  const data = await fetchJson("https://api.linkedin.com/v2/userinfo", {
-    headers: { Authorization: `Bearer ${token.access_token}`, "User-Agent": "Whisprl" },
-  });
-  if (!data.email_verified) throw notVerified("linkedin");
-
-  return { email: data.email, name: data.name, picture: data.picture };
-};
-
-const PROFILE_FETCHERS = { google: fetchGoogleProfile, github: fetchGithubProfile, linkedin: fetchLinkedinProfile };
-
-const splitName = (name, email) => {
-  const [firstName, ...rest] = (name?.trim() || email.split("@")[0]).split(/\s+/);
-  return { firstName, lastName: rest.join(" ") || "onWhisprl" };
-};
-
-export const signInWithProvider = async (provider, credential) => {
-  if (!credential) throw createHttpError.BadRequest(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
-
-  const profile = await PROFILE_FETCHERS[provider](credential).catch((error) => {
-    throw createHttpError.isHttpError(error) ? error : createHttpError.Unauthorized(`Unable to sign in using ${PROVIDER_NAMES[provider]}`);
-  });
-
-  const email = normalizeEmail(profile.email);
-  const user = (await UserModel.findOne({ email })) ?? new UserModel({ email, ...splitName(profile.name, email), avatar: profile.picture });
-
-  // nobody proved they own an unverified account's password, so the provider's proof replaces it
+  // an unverified account is an old email sign up still waiting on its code, so it goes to whoever proves the email
   if (!user.verified) {
     user.verified = true;
     user.isNewAccount = true;
     user.password = undefined;
     user.verification = undefined;
     befriendWhisprl(user);
-    startJourney(user, provider);
+    if (via) startJourney(user, via);
     markReached(user, "verified");
   }
-  user.socialsConnected.addToSet(provider);
-  if (!user.avatar) user.avatar = profile.picture;
-  user.username ??= await availableUsername(user.firstName, user.lastName);
+  if (via) user.socialsConnected.addToSet(via);
+  if (!user.avatar) user.avatar = picture;
+  user.username ??= await availableUsername(user.name);
   user.coverStyle ??= randomCoverStyle();
   await user.save();
   await welcomeToWhisprl(user._id).catch((error) => reportError(error, user._id));
 
   return user;
+};
+
+export const signInWithGoogle = async (credential) => {
+  if (!credential) throw createHttpError.BadRequest("Unable to sign in using Google");
+
+  const profile = await fetchGoogleProfile(credential).catch((error) => {
+    throw createHttpError.isHttpError(error) ? error : createHttpError.Unauthorized("Unable to sign in using Google");
+  });
+  return openAccount(profile, "google");
 };

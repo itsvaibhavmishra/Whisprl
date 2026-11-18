@@ -23,21 +23,22 @@ import PersonRow, { PersonSkeletons } from "@/sections/contacts/PersonRow";
 import { birthdaysThisWeek, isBirthdayToday, whenLabel } from "@/utils/birthdays";
 import { isOnline } from "@/utils/chats";
 import { SPOKEN_ONLY } from "@/utils/spokenOnly";
+import { firstWordOf } from "@/utils/names";
 
 const AVATAR_SIZE = 50;
 // every friend is already here for the rest of the app, so the list shows them a page at a time rather than fetching pages
 const ROWS_PER_PAGE = 20;
 
-const byName = (one, other) => `${one.firstName} ${one.lastName}`.localeCompare(`${other.firstName} ${other.lastName}`);
+const byName = (one, other) => one.name.localeCompare(other.name);
 
 // typed with or without its @, a search also finds a username
 const matches = (needle) => (person) => {
   const handle = needle.replace(/^@/, "");
-  return `${person.firstName} ${person.lastName}`.toLowerCase().includes(needle) || Boolean(handle && person.username?.includes(handle));
+  return person.name.toLowerCase().includes(needle) || Boolean(handle && person.username?.includes(handle));
 };
 
 const namesOf = (people) => {
-  const names = people.map((person) => person.firstName);
+  const names = people.map((person) => firstWordOf(person.name));
   if (names.length === 1) return `${names[0]} wants to connect`;
   if (names.length === 2) return `${names[0]} and ${names[1]} want to connect`;
   return `${names[0]}, ${names[1]} and ${names.length - 2} more want to connect`;

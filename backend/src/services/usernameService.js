@@ -15,8 +15,14 @@ const plainPart = (name) =>
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
 
-const baseFor = (firstName, lastName) => {
-  const base = [plainPart(firstName), plainPart(lastName)].filter(Boolean).join(".").slice(0, MAX_BASE_LENGTH).replace(/\.$/, "");
+const baseFor = (name) => {
+  const base = String(name ?? "")
+    .split(" ")
+    .map(plainPart)
+    .filter(Boolean)
+    .join(".")
+    .slice(0, MAX_BASE_LENGTH)
+    .replace(/\.$/, "");
   return usernameProblemOf(base) ? FALLBACK_BASE : base;
 };
 
@@ -24,8 +30,8 @@ const baseFor = (firstName, lastName) => {
 const isTaken = (username) => UserModel.exists({ $or: [{ username }, { "hiddenProfile.username": username }] });
 
 // a taken name gets up to six digits, which keeps it within the twenty character limit
-export const availableUsername = async (firstName, lastName) => {
-  const base = baseFor(firstName, lastName);
+export const availableUsername = async (name) => {
+  const base = baseFor(name);
   if (base !== FALLBACK_BASE && !(await isTaken(base))) return base;
 
   for (let attempt = 0; attempt < 20; attempt += 1) {

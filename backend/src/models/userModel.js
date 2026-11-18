@@ -1,11 +1,8 @@
 import mongoose from "mongoose";
 import validator from "validator";
-import bcrypt from "bcrypt";
 
 import { GENDERS } from "#src/utils/accountRules.js";
 import { COVER_PALETTES, COVER_PATTERNS } from "#src/utils/coverStyles.js";
-
-const PASSWORD_COST = 12;
 
 // the owner is not stored: it is whichever account OWNER_EMAIL names
 const ROLES = ["user", "admin"];
@@ -65,8 +62,6 @@ const coverStyleSchema = mongoose.Schema(
   { _id: false }
 );
 
-const skippedStepSchema = mongoose.Schema({ version: { type: Number, required: true }, at: { type: Date, required: true } }, { _id: false });
-
 const journeySchema = mongoose.Schema(
   {
     startedAt: { type: Date, required: true },
@@ -102,22 +97,13 @@ const deletionSchema = mongoose.Schema(
   { _id: false }
 );
 
-export const HIDDEN_PROFILE_FIELDS = ["firstName", "lastName", "username", "avatar", "cover", "activityStatus"];
+export const HIDDEN_PROFILE_FIELDS = ["name", "username", "avatar", "cover", "activityStatus"];
 
-const profileSchema = mongoose.Schema(
-  { firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String },
-  { _id: false }
-);
-
-// Whisprl's own account goes by one name; mongoose calls this with the account as this
-function needsLastName() {
-  return this.tag !== "official";
-}
+const profileSchema = mongoose.Schema({ name: String, username: String, avatar: String, cover: String, activityStatus: String }, { _id: false });
 
 const userSchema = mongoose.Schema(
   {
-    firstName: { type: String, required: [true, "First Name is required"] },
-    lastName: { type: String, required: [needsLastName, "Last Name is required"] },
+    name: { type: String, required: [true, "Name is required"] },
     username: { type: String, unique: true, sparse: true },
     usernameChangedAt: { type: Date },
     usernameConfirmedAt: { type: Date },
@@ -147,7 +133,7 @@ const userSchema = mongoose.Schema(
       enum: ["online", "offline"],
     },
 
-    // accounts made through Google, GitHub or LinkedIn have none until they reset one
+    // only older accounts hold a hash here, kept in the schema so deleting an account can clear it
     password: { type: String, select: false },
 
     verified: { type: Boolean, default: false },
@@ -198,7 +184,6 @@ const userSchema = mongoose.Schema(
     // set only when an account is made, so every account from before setup existed counts as returning
     isNewAccount: { type: Boolean, default: false },
     agePausedUntil: { type: Date },
-    skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
 
     // nothing sets it now, but the schema keeps it so deleting an account still clears it from older ones
     notificationsAllowedAt: { type: Date },
@@ -222,19 +207,10 @@ const userSchema = mongoose.Schema(
 userSchema.index({ "deletion.dueAt": 1 }, { sparse: true });
 userSchema.index({ "journey.startedAt": 1 }, { sparse: true });
 
-// every stored password was trimmed before hashing, so each one typed is trimmed the same way to match
-userSchema.pre("save", async function () {
-  if (this.isModified("password") && this.password) {
-    this.password = await bcrypt.hash(this.password.trim(), PASSWORD_COST);
-  }
-
+userSchema.pre("save", function () {
   // everyone is their own friend, which is what lets them message themselves
   if (this.friends.length === 0) this.friends.push(this._id);
 });
-
-userSchema.methods.correctPassword = async function (candidatePassword) {
-  return Boolean(this.password) && bcrypt.compare(candidatePassword.trim(), this.password);
-};
 
 const UserModel = mongoose.model("User", userSchema);
 

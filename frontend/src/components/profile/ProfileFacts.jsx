@@ -4,11 +4,12 @@ import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { avatarLookOf } from "@/utils/avatars";
 import { birthdayLabel, isBirthdayToday } from "@/utils/birthdays";
 import { shownGenderOf } from "@/utils/genders";
+import { firstWordOf } from "@/utils/names";
 
 const joinedOn = (date) => new Date(date).toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
 const namesOf = ({ count, people }) => {
-  const names = people.map((person) => person.firstName);
+  const names = people.map((person) => firstWordOf(person.name));
   const others = count - names.length;
   if (others > 0) return `${names.join(", ")} and ${others} more`;
   return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
@@ -40,9 +41,9 @@ const ProfileFacts = ({ person }) => {
           <Fact label="Mutual friends">
             <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
               <AvatarGroup sx={{ "& .MuiAvatar-root": { width: 28, height: 28, fontSize: 13, borderColor: "background.paper" } }}>
-                {mutualFriends.people.map(({ _id, firstName, avatar }) => (
-                  <Avatar key={_id} src={avatar || undefined} alt="" sx={{ background: avatarLookOf(firstName).background, color: "common.white" }}>
-                    {avatarLookOf(firstName).initial}
+                {mutualFriends.people.map(({ _id, name, avatar }) => (
+                  <Avatar key={_id} src={avatar || undefined} alt="" sx={{ background: avatarLookOf(name).background, color: "common.white" }}>
+                    {avatarLookOf(name).initial}
                   </Avatar>
                 ))}
               </AvatarGroup>

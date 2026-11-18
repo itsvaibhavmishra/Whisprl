@@ -44,8 +44,8 @@ const BlockedPeopleSetting = () => {
                   </Button>
                 }
               >
-                <ListItemAvatar>{getAvatar(person.avatar, person.firstName, 36)}</ListItemAvatar>
-                <ListItemText primary={`${person.firstName} ${person.lastName}`} secondary={person.username && `@${person.username}`} />
+                <ListItemAvatar>{getAvatar(person.avatar, person.name, 36)}</ListItemAvatar>
+                <ListItemText primary={person.name} secondary={person.username && `@${person.username}`} />
               </ListItem>
             ))}
           </List>
