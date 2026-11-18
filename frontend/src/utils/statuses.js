@@ -1,3 +1,5 @@
+import { firstWordOf } from "@/utils/names";
+
 // a text status names one of these by its place, so what it shows is always one of them
 export const TEXT_BACKGROUNDS = ["#4F46C8", "#0F766E", "#B4471A", "#A3245E", "#1F2A37", "#1D6FA5"];
 
@@ -33,7 +35,7 @@ export const quoteOfStatus = ({ _id, owner, content, expiresAt }, about) => ({
   _id,
   about,
   ownerId: owner._id,
-  ownerName: owner.firstName,
+  ownerName: firstWordOf(owner.name),
   preview: about === "share" ? undefined : content.file?.preview,
   expiresAt,
 });

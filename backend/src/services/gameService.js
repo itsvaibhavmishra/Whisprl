@@ -677,7 +677,7 @@ const TABLE_EVENTS = { open: "game_opened", close: "game_closed" };
 
 // between two people opening a game is a challenge, answered from the message it sends
 const challenge = async (io, members, challenger, guest, game) => {
-  const notice = { type: "challenge", user: guest._id, name: guest.firstName, game: game.id, gameName: game.name };
+  const notice = { type: "challenge", user: guest._id, name: guest.name, game: game.id, gameName: game.name };
   const { message } = await saveMessage(members, { sender: challenger._id, notice });
   io.to(memberRooms(members)).emit("message_received", message);
   io.to(String(guest._id)).emit("game_invited", { conversationId: String(members._id), game: game.id, from: String(challenger._id) });

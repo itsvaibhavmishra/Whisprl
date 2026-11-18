@@ -66,7 +66,7 @@ const MediaViewer = ({ items, startIndex = 0, conversation, tileOf, onClose }) =
   const item = items[index];
   const { message } = item;
   const isMine = message.sender?._id === meId;
-  const senderName = isMine ? "You" : `${message.sender?.firstName ?? ""} ${message.sender?.lastName ?? ""}`.trim();
+  const senderName = isMine ? "You" : (message.sender?.name ?? "");
   const isChromeShown = !isChromeHidden && !isZoomed;
 
   // gone at once on landing, so focus has gone back to the photo before anything chained after closing moves it on
@@ -145,7 +145,7 @@ const MediaViewer = ({ items, startIndex = 0, conversation, tileOf, onClose }) =
                   "&:hover": { bgcolor: "rgba(255, 255, 255, 0.08)" },
                 }}
               >
-                {getAvatar(message.sender?.avatar, message.sender?.firstName, 40)}
+                {getAvatar(message.sender?.avatar, message.sender?.name, 40)}
                 <Box sx={{ minWidth: 0 }}>
                   <Typography id={TITLE_ID} component="h2" noWrap sx={{ fontSize: 15, fontWeight: 700 }}>
                     {senderName}

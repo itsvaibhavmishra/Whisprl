@@ -6,6 +6,7 @@ import ChatPreferenceModel from "#src/models/chatPreferenceModel.js";
 import SessionModel from "#src/models/sessionModel.js";
 import UserModel from "#src/models/userModel.js";
 import { memberRooms } from "#src/services/conversationService.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 const LONGEST_TOKEN = 4096;
 const MOST_PER_SEND = 500;
@@ -80,8 +81,8 @@ const sealedFor = (message, sender, keyId) => {
 // a group's push is titled with the group and names who it came from, a chat with one person is titled with them
 const namesOf = (conversation, sender) => ({
   senderId: String(sender._id),
-  title: conversation.isGroup ? conversation.name : `${sender.firstName} ${sender.lastName}`.trim(),
-  ...(conversation.isGroup && { sender: sender.firstName }),
+  title: conversation.isGroup ? conversation.name : sender.name,
+  ...(conversation.isGroup && { sender: firstWordOf(sender.name) }),
 });
 
 export const pushDataFor = (conversation, sender, message, recipientId, keyId) => {

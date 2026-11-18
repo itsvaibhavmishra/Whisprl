@@ -20,13 +20,13 @@ test("29 February falls on the 28th in a year without one, and on the 29th in a 
 
 test("the next seven days come soonest first, and nobody without a birthday shows", () => {
   const people = [
-    { firstName: "Cal", birthday: { day: 15, month: 10 } },
-    { firstName: "Ari", birthday: { day: 9, month: 10 } },
-    { firstName: "Bea", birthday: { day: 16, month: 10 } },
-    { firstName: "Dot" },
-    { firstName: "Eli", birthday: { day: 10, month: 10 } },
+    { name: "Cal", birthday: { day: 15, month: 10 } },
+    { name: "Ari", birthday: { day: 9, month: 10 } },
+    { name: "Bea", birthday: { day: 16, month: 10 } },
+    { name: "Dot" },
+    { name: "Eli", birthday: { day: 10, month: 10 } },
   ];
-  expect(birthdaysThisWeek(people, on(2026, 10, 9)).map((person) => person.firstName)).toEqual(["Ari", "Eli", "Cal"]);
+  expect(birthdaysThisWeek(people, on(2026, 10, 9)).map((person) => person.name)).toEqual(["Ari", "Eli", "Cal"]);
 });
 
 test("labels say today, tomorrow, then the weekday", () => {

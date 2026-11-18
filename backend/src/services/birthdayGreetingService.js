@@ -1,6 +1,7 @@
 import { UserModel } from "#src/models/index.js";
 import { sendFromWhisprl } from "#src/services/whisprlMessageService.js";
 import { reportError } from "#src/utils/errorReports.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 // nobody's time zone is known, so every greeting goes out at one morning hour by India's clock, where most people are
 const INDIA_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
@@ -27,7 +28,7 @@ const whoseBirthdayIsOn = (indiaDate) =>
     bannedAt: { $exists: false },
     tag: { $ne: "official" },
   })
-    .select("firstName")
+    .select("name")
     .lean();
 
 // each person is marked for this year before being greeted, so two servers or a restart never greet anyone twice
@@ -46,7 +47,7 @@ export const greetBirthdays = async (io) => {
   const people = await claimedForYear(await whoseBirthdayIsOn(indiaDate), indiaDate.getUTCFullYear());
   // each greeting names its own person, so they go out one by one; a day holds few birthdays
   for (const person of people) {
-    await sendFromWhisprl(io, person._id, { type: "birthday", name: person.firstName }).catch((error) => reportError(error, person._id));
+    await sendFromWhisprl(io, person._id, { type: "birthday", name: firstWordOf(person.name) }).catch((error) => reportError(error, person._id));
   }
   lastGreetedDay = day;
 };

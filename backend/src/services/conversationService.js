@@ -88,7 +88,7 @@ export const openDirectConversation = async (sender, receiver_id) => {
   if (!isValidFriendShip) throw createHttpError.Forbidden("You are not friends with this user");
 
   const created = await ConversationModel.create({
-    name: `${receiver.firstName} ${receiver.lastName}`,
+    name: receiver.name,
     isGroup: false,
     users: members,
   });

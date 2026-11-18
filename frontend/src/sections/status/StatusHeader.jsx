@@ -33,7 +33,7 @@ const StatusHeader = ({ status, isOwn, isPaused, hasClose, onTogglePause, onMore
   const messageTime = useMessageTime();
   const [moreAnchor, setMoreAnchor] = useState(null);
   const { owner } = status;
-  const name = isOwn ? "My status" : `${owner.firstName} ${owner.lastName}`;
+  const name = isOwn ? "My status" : owner.name;
   const items = [
     status.isPublic && { key: "share", icon: PaperPlaneTiltIcon, label: "Send to friends", onClick: onShare },
     status.isPublic && !isOwn && { key: "report", icon: FlagIcon, label: "Report this update", onClick: onReport, isDanger: true },
@@ -52,7 +52,7 @@ const StatusHeader = ({ status, isOwn, isPaused, hasClose, onTogglePause, onMore
 
   const who = (
     <>
-      {getAvatar(owner.avatar, owner.firstName, 32)}
+      {getAvatar(owner.avatar, owner.name, 32)}
       <Box sx={{ minWidth: 0, textAlign: "left" }}>
         <Typography noWrap sx={{ fontSize: 14, fontWeight: 700, lineHeight: 1.35, mb: 0.375 }}>
           {name}

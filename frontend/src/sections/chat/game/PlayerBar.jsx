@@ -34,7 +34,7 @@ const nameOf = (seat, conversation, meId) => {
 const faceOf = (seat, conversation, size) => {
   if (seat.bot || seat.away) return <BotFace seat={seat} size={size} iconScale={0.55} />;
   const member = seat.user && memberOf(conversation, seat.user);
-  return member ? getAvatar(member.avatar, member.firstName, size) : null;
+  return member ? getAvatar(member.avatar, member.name, size) : null;
 };
 
 // the seconds sit over the face, which darkens beneath them, so the clock is where the eye already is

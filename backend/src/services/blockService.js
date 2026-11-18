@@ -5,7 +5,7 @@ import { FriendRequestModel, UserModel } from "#src/models/index.js";
 import { assertNotWhisprl } from "#src/services/whisprlService.js";
 import { startCooldown } from "#src/services/requestCooldownService.js";
 
-const BLOCKED_FIELDS = "firstName lastName username avatar";
+const BLOCKED_FIELDS = "name username avatar";
 
 const assertSomeoneElse = (user, other_id) => {
   if (!mongoose.isValidObjectId(other_id) || user._id.equals(other_id)) throw createHttpError.BadRequest("Choose someone else");

@@ -1,5 +1,6 @@
-import { Box } from "@mui/material";
-import { DownloadSimpleIcon, KeyIcon } from "@phosphor-icons/react";
+import { useState } from "react";
+import { Box, IconButton } from "@mui/material";
+import { CheckIcon, CopyIcon, DownloadSimpleIcon, KeyIcon } from "@phosphor-icons/react";
 
 import { saveToPasswordManager } from "@/utils/crypto/keyVault";
 import { notify } from "@/utils/notify";
@@ -29,24 +30,43 @@ export const keepRecoveryKey = async (recoveryKey, username) => {
   return outcome === "saved";
 };
 
-const RecoveryKeyBox = ({ recoveryKey }) => (
-  <Box
-    sx={{
-      py: 2,
-      px: 1.5,
-      borderRadius: 2,
-      bgcolor: "action.hover",
-      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-      fontSize: { xs: 15, sm: 19 },
-      fontWeight: 600,
-      letterSpacing: "0.06em",
-      textAlign: "center",
-      userSelect: "all",
-      overflowWrap: "anywhere",
-    }}
-  >
-    {recoveryKey}
-  </Box>
-);
+const RecoveryKeyBox = ({ recoveryKey, canCopy = false }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(recoveryKey);
+    setIsCopied(true);
+  };
+
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        py: 2,
+        px: canCopy ? 6 : 1.5,
+        borderRadius: 2,
+        bgcolor: "action.hover",
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+        fontSize: { xs: 15, sm: 19 },
+        fontWeight: 600,
+        letterSpacing: "0.06em",
+        textAlign: "center",
+        userSelect: "all",
+        overflowWrap: "anywhere",
+      }}
+    >
+      {recoveryKey}
+      {canCopy && (
+        <IconButton
+          aria-label={isCopied ? "Copied" : "Copy your recovery key"}
+          onClick={copy}
+          sx={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", color: isCopied ? "success.main" : "text.secondary" }}
+        >
+          {isCopied ? <CheckIcon size={20} weight="bold" /> : <CopyIcon size={20} />}
+        </IconButton>
+      )}
+    </Box>
+  );
+};
 
 export default RecoveryKeyBox;

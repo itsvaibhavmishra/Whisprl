@@ -4,13 +4,14 @@ import { useSelector } from "react-redux";
 import { bubbleShape, ChatWindow } from "@/sections/welcome/HeroConversation";
 import useSettings from "@/hooks/useSettings";
 import { ACCENT_NAMES, MODES } from "@/components/AppearancePickers";
+import { firstWordOf } from "@/utils/names";
 
 const ChatPreview = () => {
-  const { firstName } = useSelector((state) => state.user.user);
+  const { name } = useSelector((state) => state.user.user);
   const { themeMode, themeColorPresets } = useSettings();
 
   const messages = [
-    { mine: false, text: `Hi ${firstName}! Pick a look and this chat changes with it.` },
+    { mine: false, text: `Hi ${firstWordOf(name)}! Pick a look and this chat changes with it.` },
     { mine: true, text: `Trying ${ACCENT_NAMES[themeColorPresets]} ${MODES[themeMode].phrase}.` },
     { mine: false, text: "Suits you." },
   ];

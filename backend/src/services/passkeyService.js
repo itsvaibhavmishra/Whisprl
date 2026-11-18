@@ -7,6 +7,7 @@ import { PasskeyChallengeModel, PasskeyModel } from "#src/models/index.js";
 import { sendMail } from "#src/services/mailer.js";
 import { isStaff } from "#src/services/roleService.js";
 import passkeyAddedMail from "#src/templates/mail/passkeyAdded.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 const CHALLENGE_LIFETIME = 5 * 60 * 1000;
 
@@ -47,7 +48,7 @@ export const passkeyRegistrationOptions = async (user) => {
     rpName: "Whisprl",
     rpID: relyingParty().rpID,
     userName: user.email,
-    userDisplayName: `${user.firstName} ${user.lastName}`,
+    userDisplayName: user.name,
     userID: new TextEncoder().encode(String(user._id)),
     attestationType: "none",
     excludeCredentials: existing.map(({ credentialId, transports }) => ({ id: credentialId, transports })),
@@ -84,7 +85,7 @@ export const registerPasskey = async (user, response, confirmation) => {
     transports: credential.transports,
     backedUp: credentialBackedUp,
   });
-  sendMail(user.email, "A passkey was added to your Whisprl account", passkeyAddedMail(user.firstName)).catch((error) =>
+  sendMail(user.email, "A passkey was added to your Whisprl account", passkeyAddedMail(firstWordOf(user.name))).catch((error) =>
     console.error(`[passkey mail] ${error.message}`)
   );
 };

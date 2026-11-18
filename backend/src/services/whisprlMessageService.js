@@ -42,7 +42,7 @@ const PUSHED_WORDS = {
 export const sendFromWhisprlToEach = async (io, userIds, notice, { isPushed = true } = {}) => {
   const whisprlId = whisprlAccountId();
   if (!whisprlId || !userIds.length) return 0;
-  const [chats, whisprl] = await Promise.all([chatsWith(whisprlId, userIds), UserModel.findById(whisprlId).select("firstName lastName avatar").lean()]);
+  const [chats, whisprl] = await Promise.all([chatsWith(whisprlId, userIds), UserModel.findById(whisprlId).select("name avatar").lean()]);
   const messages = await saveNoticeInEach(chats, whisprlId, notice);
   const chatOf = new Map(chats.map((chat) => [String(chat._id), chat]));
   const reached = messages.map((message) => chatOf.get(String(message.conversation)));
@@ -54,14 +54,12 @@ export const sendFromWhisprlToEach = async (io, userIds, notice, { isPushed = tr
 
 export const sendFromWhisprl = (io, userId, notice) => sendFromWhisprlToEach(io, [userId], notice);
 
-const fullName = ({ firstName, lastName }) => `${firstName} ${lastName}`.trim();
-
 // a ban swaps a profile for a placeholder, so the name the reporter knew comes from the profile set aside
 const reportedNameOf = async ({ reportedUser, conversation }) => {
   if (!reportedUser) return (await ConversationModel.findById(conversation).select("name").lean())?.name;
-  const person = await UserModel.findById(reportedUser).select("firstName lastName +hiddenProfile").lean();
+  const person = await UserModel.findById(reportedUser).select("name +hiddenProfile").lean();
   if (!person) return null;
-  return fullName(person.hiddenProfile?.firstName ? person.hiddenProfile : person);
+  return person.hiddenProfile?.name ?? person.name;
 };
 
 const aboutOf = ({ reportedStatus, reportedUser }) => {

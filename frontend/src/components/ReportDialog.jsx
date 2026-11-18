@@ -17,6 +17,7 @@ import { useDispatch } from "react-redux";
 import useIsLoading from "@/hooks/useIsLoading";
 import { BlockUser } from "@/redux/slices/actions/chatSettingsActions";
 import { notify } from "@/utils/notify";
+import { firstWordOf } from "@/utils/names";
 
 const REASONS = [
   { value: "spam", label: "Spam" },
@@ -75,7 +76,7 @@ const ReportDialog = ({ subject, explanation, report, details, person, evidence,
           {person && (
             <FormControlLabel
               control={<Checkbox checked={alsoBlock} onChange={(event) => setAlsoBlock(event.target.checked)} />}
-              label={`Also block ${person.firstName}`}
+              label={`Also block ${firstWordOf(person.name)}`}
               sx={{ mt: 1 }}
             />
           )}

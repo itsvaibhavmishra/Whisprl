@@ -27,7 +27,7 @@ const sinceOf = (time) => {
 
 const RequestItem = ({ request, isMine }) => {
   const { person } = request;
-  const name = `${person.firstName} ${person.lastName}`;
+  const { name } = person;
 
   return (
     <Box
@@ -47,7 +47,7 @@ const RequestItem = ({ request, isMine }) => {
         aria-label={`View ${name}'s profile`}
         sx={{ alignSelf: "start", borderRadius: "50%" }}
       >
-        <ChatAvatar src={person.avatar} name={person.firstName} size={48} />
+        <ChatAvatar src={person.avatar} name={person.name} size={48} />
       </ButtonBase>
       <Stack spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
         <Box>

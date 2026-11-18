@@ -2,6 +2,7 @@ import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
 import { OpenConversation } from "@/redux/slices/actions/chatActions";
 import { groupUpdated } from "@/redux/slices/chatSlice";
 import axios from "@/utils/axios";
+import { fileFromBlobUrl } from "@/utils/blobFile";
 
 // the same update whether it came back from this tab's request or from another member's change
 export const GroupUpdated = (group) => (dispatch, getState) => dispatch(groupUpdated({ group, userId: getState().user.user._id }));
@@ -21,7 +22,7 @@ export const CreateGroup = createApiThunk("groups/create", async ({ name, member
   return data;
 });
 
-const pictureOf = async (blobUrl) => new File([await (await fetch(blobUrl)).blob()], "group.jpg", { type: "image/jpeg" });
+const pictureOf = (blobUrl) => fileFromBlobUrl(blobUrl, "group.jpg");
 
 export const UpdateGroup = changeGroup(
   "groups/update",

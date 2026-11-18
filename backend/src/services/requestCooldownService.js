@@ -1,6 +1,7 @@
 import createHttpError from "http-errors";
 
 import { RequestCooldownModel } from "#src/models/index.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 const HOUR_MS = 60 * 60 * 1000;
 const COOLDOWN_MS = 24 * HOUR_MS;
@@ -17,7 +18,7 @@ export const assertNoCooldown = async (sender_id, receiver) => {
   if (!cooldown) return;
 
   const hours = hoursUntil(cooldown.until);
-  throw createHttpError(429, `You can send ${receiver.firstName} a new request in ${hours} hour${hours === 1 ? "" : "s"}`, {
+  throw createHttpError(429, `You can send ${firstWordOf(receiver.name)} a new request in ${hours} hour${hours === 1 ? "" : "s"}`, {
     code: "request_cooldown",
   });
 };

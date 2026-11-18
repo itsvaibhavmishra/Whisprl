@@ -2,8 +2,8 @@ import { ConfirmRecoveryKeySaved, GetOnboarding } from "@/redux/slices/actions/o
 import { FinishTour, GetMyProfile, UpdateProfile, UpdateSuggestionSetting } from "@/redux/slices/actions/userActions";
 import userReducer, { tourRestarted, updateUser } from "@/redux/slices/userSlice";
 
-const stale = { user: { firstName: "Aria", activityStatus: "", friendCount: 3 } };
-const saved = { user: { firstName: "Aria", activityStatus: "Out climbing until Sunday" } };
+const stale = { user: { name: "Aria", activityStatus: "", friendCount: 3 } };
+const saved = { user: { name: "Aria", activityStatus: "Out climbing until Sunday" } };
 
 test("a profile load that a save overtook keeps the save, and still fills the summary", () => {
   const actions = [

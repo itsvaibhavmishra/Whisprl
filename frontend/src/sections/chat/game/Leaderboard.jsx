@@ -92,7 +92,7 @@ const OverallWins = ({ rows, played, conversation, meId }) => {
                 }}
               >
                 <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-                  {getAvatar(member?.avatar, member?.firstName, 28)}
+                  {getAvatar(member?.avatar, member?.name, 28)}
                   <Typography noWrap sx={{ fontSize: 14, fontWeight: isMe ? 800 : 600 }}>
                     {name}
                   </Typography>

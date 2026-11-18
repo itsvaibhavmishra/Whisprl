@@ -13,6 +13,7 @@ import AuthHeader from "@/sections/auth/AuthHeader";
 import ContinueWithGoogle from "@/sections/auth/ContinueWithGoogle";
 import getAvatar from "@/utils/avatars";
 import { isAndroidBrowser } from "@/utils/platform";
+import { firstWordOf } from "@/utils/names";
 
 const playLinkOf = (code) => `${PLAY_STORE_URL}&referrer=${encodeURIComponent(`invite=${code}`)}`;
 
@@ -91,13 +92,13 @@ const Invite = () => {
     );
   }
 
-  const name = `${inviter.firstName} ${inviter.lastName}`;
+  const { name } = inviter;
   return (
     <>
       <Box sx={{ mb: 2.5 }}>{getAvatar(inviter.avatar, name, 72)}</Box>
-      <AuthHeader title={`${inviter.firstName} invited you to play on Whisprl`}>
-        Jackaroo, Chain Reaction, Dots and Boxes and more, with private chats only the two of you can read. Once you join, you can send {inviter.firstName} a
-        friend request in one tap. <LogInInstead />
+      <AuthHeader title={`${firstWordOf(inviter.name)} invited you to play on Whisprl`}>
+        Jackaroo, Chain Reaction, Dots and Boxes and more, with private chats only the two of you can read. Once you join, you can send{" "}
+        {firstWordOf(inviter.name)} a friend request in one tap. <LogInInstead />
       </AuthHeader>
       <JoinChoices code={code} />
     </>

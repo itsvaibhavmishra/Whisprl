@@ -1,12 +1,14 @@
 import * as Yup from "yup";
 
-export const nameRule = (label) =>
-  Yup.string()
-    .trim()
-    .required(`${label} required`)
-    .min(3, `${label} must be at least 3 characters long`)
-    .max(16, `${label} cannot be more than 16 characters long`)
-    .matches(/^[a-zA-Z]+$/, `${label} can only contain letters`);
+const NAME_LIMIT = 30;
+
+// the server's rule: letters of any language, with the spaces, hyphens, apostrophes and full stops names carry
+export const nameRule = Yup.string()
+  .trim()
+  .required("Your name is required")
+  .min(2, "Your name must be at least 2 characters long")
+  .max(NAME_LIMIT, `Your name can be up to ${NAME_LIMIT} characters long`)
+  .matches(/^\p{L}[\p{L}\p{M} '.-]*$/u, "Your name can only have letters, spaces, hyphens and apostrophes");
 
 const MIN_AGE = 13;
 export const EARLIEST_BIRTHDAY = "1900-01-01";

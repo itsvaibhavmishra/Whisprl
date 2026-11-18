@@ -1,5 +1,4 @@
 import createHttpError from "http-errors";
-import validator from "validator";
 
 const isText = (...values) => values.every((value) => typeof value === "string");
 
@@ -9,15 +8,19 @@ export const assertText = (...values) => {
 
 export const trimmed = (value) => (typeof value === "string" ? value.trim() : value);
 
-export const assertValidName = (firstName, lastName) => {
-  assertText(firstName, lastName);
-  if (!validator.isLength(firstName, { min: 3, max: 16 }) || !validator.isLength(lastName, { min: 3, max: 16 })) {
-    throw createHttpError.BadRequest("First and last name must each be 3 to 16 characters long");
-  }
-  if (!validator.isAlpha(firstName) || !validator.isAlpha(lastName)) {
-    throw createHttpError.BadRequest("First and last name can only contain letters");
-  }
+export const NAME_LIMIT = 30;
+// letters of any language, with the spaces, hyphens, apostrophes and full stops names carry
+const NAME = /^\p{L}[\p{L}\p{M} '.-]*$/u;
+
+export const nameFrom = (value) => {
+  assertText(value);
+  const name = value.trim().replace(/\s+/g, " ");
+  if (name.length < 2 || name.length > NAME_LIMIT) throw createHttpError.BadRequest(`Your name must be 2 to ${NAME_LIMIT} characters long`);
+  if (!NAME.test(name)) throw createHttpError.BadRequest("Your name can only have letters, spaces, hyphens and apostrophes");
+  return name;
 };
+
+export const firstWordOf = (name) => String(name ?? "").split(" ")[0];
 
 export const normalizeEmail = (email) =>
   String(email ?? "")

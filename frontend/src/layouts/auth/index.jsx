@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeftIcon, ArrowsCounterClockwiseIcon } from "@phosphor-icons/react";
 
 import whisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
-import AppearanceMenu from "@/components/AppearanceMenu";
 import BrandPanel from "@/layouts/auth/BrandPanel";
 import { StartServer } from "@/redux/slices/actions/authActions";
 import { DEFAULT_AUTH } from "@/config";
@@ -53,7 +52,7 @@ const AuthLayout = ({ isOpenToSignedIn = false }) => {
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { md: "5fr 7fr" },
+        gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "minmax(0, 5fr) minmax(0, 7fr)" },
         minHeight: "100vh",
       }}
     >
@@ -71,9 +70,6 @@ const AuthLayout = ({ isOpenToSignedIn = false }) => {
               <Box component="img" src={whisprlMark} alt="Whisprl home" width={48} height={52} />
             </Box>
           )}
-          <Box sx={{ ml: "auto" }}>
-            <AppearanceMenu />
-          </Box>
         </Stack>
         <Box component="main" sx={{ width: "100%", maxWidth: 420, mx: "auto", my: "auto", py: 4 }}>
           <Outlet />

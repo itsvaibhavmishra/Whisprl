@@ -14,9 +14,13 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
-    - Setup asks for gender (male, female or prefer not to say), shown on your profile unless you prefer not to say; once set, only support can change it
+    - Setup's profile step: slide through an endless row of eight Whisprl characters and your own photo, or upload one, check your name and username, and choose your gender (male, female or prefer not to say), which can't be changed later
 
   - Improvements:
+    - Profiles and the full-screen profile picture show pictures in detail, profile and group photos upload at up to 1024 pixels, and chat lists load small copies of every picture, so they open faster
+    - Whisprl opens in light mode until you pick another in Settings, sign in and setup show no theme or colour menu, setup has no Log out, and setup fits narrow phones without spilling off the screen
+    - Setup is three steps, birthday, profile and protecting your messages, with the birthday typed or turned on day, month and year wheels that start empty; showing your birthday to friends and suggesting you to friends of friends start on, to change in Settings
+    - Everyone has one full name instead of a first and last name, in any language, up to 30 characters
     - Whisprl is now Whisprl: Chat & Games: the welcome page opens on a game being dealt in a chat and the real cards of every game, and page titles, the link preview image, the web app's name, emails and the terms and privacy pages call it that
     - A birthday can be changed once a year, and never in a way that moves you between under 18 and adult
     - Jackaroo previews a move as lit dots in each hole it steps through and a ring where it lands, glows softly round each marble you can pick, draws the marbles a little smaller, and always lets you pick both marbles for a jack and how a seven is shared
@@ -26,6 +30,7 @@
     - Two against two Jackaroo: a marble can jump one marble, yours included, and land on the next to knock it out; a seven can move either marble first; your partner's marble in front of your home no longer shuts it; the five shows all four colours; numbers on crowded marbles stay on screen; the home rings sit centred; and the sleeping cat's eyes no longer sparkle
 
   - Developers:
-    - The backend's REVIEW_ACCOUNT_EMAIL and REVIEW_ACCOUNT_PASSWORD give Play's reviewers the one password sign in, behind App review sign in in the app; the GitHub, LinkedIn and reCAPTCHA settings are no longer read
+    - Run backend/scripts/joinNames.js against the production database before this release: it gives every account a name joined from its first and last name, and leaves those two in place for the server still running
+    - The backend's REVIEW_ACCOUNT_EMAIL and REVIEW_ACCOUNT_PASSWORD give Play's reviewers the one password sign in, at https://whisprl.netlify.app/auth/review, which the app opens and nothing links to; the GitHub, LinkedIn and reCAPTCHA settings are no longer read
 
   - Internal:

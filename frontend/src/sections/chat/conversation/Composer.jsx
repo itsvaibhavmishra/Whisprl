@@ -28,13 +28,13 @@ import { thumbnailFileOf } from "@/utils/messageFiles";
 import { quoteSummaryOf, summaryOf } from "@/utils/messageSummary";
 import { gradientOf } from "@/utils/gradients";
 import { isApp } from "@/utils/platform";
+import { firstWordOf } from "@/utils/names";
 
 const MAX_SUGGESTIONS = 6;
 
 const mentionQueryBefore = (text, caret) => text.slice(0, caret).match(/(?:^|\s)@([^\s@]*)$/)?.[1] ?? null;
 
-const isMentionMatch = (member, query) =>
-  [`${member.firstName} ${member.lastName}`, member.username].some((name) => name?.toLowerCase().startsWith(query.toLowerCase()));
+const isMentionMatch = (member, query) => [member.name, member.username].some((name) => name?.toLowerCase().startsWith(query.toLowerCase()));
 
 // 36 is the gutter the avatars sit in, so the composer lines up with both edges of the messages
 export const COLUMN_WIDTH = MESSAGE_COLUMN_WIDTH + 36;
@@ -279,7 +279,7 @@ const Composer = () => {
   };
 
   const isReplyToSelf = replyingTo?.sender?._id === meId;
-  const replyAuthor = isReplyToSelf ? "yourself" : (replyingTo?.sender?.firstName ?? "message");
+  const replyAuthor = isReplyToSelf ? "yourself" : firstWordOf(replyingTo?.sender?.name) || "message";
   const replyPerson = isReplyToSelf ? user : replyingTo?.sender;
 
   // a computer goes back to typing, while a phone keeps its keyboard down until the field is tapped
@@ -318,7 +318,7 @@ const Composer = () => {
               {replyingTo && (
                 <Banner
                   icon={ArrowBendUpLeftIcon}
-                  leading={conversation.isGroup && replyPerson ? getAvatar(replyPerson.avatar, replyPerson.firstName, 24) : undefined}
+                  leading={conversation.isGroup && replyPerson ? getAvatar(replyPerson.avatar, replyPerson.name, 24) : undefined}
                   title={`Replying to ${replyAuthor}`}
                   text={quoteSummaryOf(replyingTo, meId)}
                   thumbnail={thumbnailFileOf(replyingTo)}

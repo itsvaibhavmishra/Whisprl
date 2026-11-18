@@ -13,6 +13,7 @@ import { GetCommonGroups } from "@/redux/slices/actions/messageActions";
 import { DetailsSection } from "@/sections/chat/details/DetailsSection";
 import { isOnline } from "@/utils/chats";
 import { isOfficial } from "@/utils/relationship";
+import { firstWordOf } from "@/utils/names";
 
 const GUTTER = { page: { xs: 2, md: 4 }, sheet: 3 };
 // each section already insets its text by 2.5, so it moves by the rest of the gutter to line up with the name
@@ -40,7 +41,7 @@ const ProfileView = ({ person: known, size = "sheet", surface, startWithComposer
   return (
     <Box sx={{ pb: 3 }}>
       <ProfileIdentity person={person} size={size} surface={surface} isOnline={isFriend && isOnline(person, onlineFriends)} />
-      {person.firstName && (
+      {firstWordOf(person.name) && (
         <>
           <Box sx={{ px: GUTTER[size], pt: 2.5, display: "flex", flexDirection: "column" }}>
             <RelationshipActions person={person} relationship={relationship} startWithComposer={startWithComposer} />

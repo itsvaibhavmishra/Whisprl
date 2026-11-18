@@ -46,8 +46,7 @@ const useMatchHighlight = (needle) => {
   }, [needle]);
 };
 
-const searchableTextOf = (message) =>
-  [message.message, message.contact && `${message.contact.firstName} ${message.contact.lastName}`, message.file?.name].filter(Boolean).join(" ").toLowerCase();
+const searchableTextOf = (message) => [message.message, message.contact && message.contact.name, message.file?.name].filter(Boolean).join(" ").toLowerCase();
 
 const newestMatchesFor = (needle, messages) => {
   if (!needle) return [];

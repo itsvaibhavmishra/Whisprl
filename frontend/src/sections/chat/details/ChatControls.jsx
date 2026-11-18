@@ -13,6 +13,7 @@ import { identityOf } from "@/utils/chats";
 import { evidenceAround } from "@/utils/reportEvidence";
 import { DAY_SECONDS, canManage, durationOf } from "@/utils/groups";
 import { isOfficial } from "@/utils/relationship";
+import { firstWordOf } from "@/utils/names";
 
 const DISAPPEAR_CHOICES = [null, DAY_SECONDS, 7 * DAY_SECONDS, 90 * DAY_SECONDS];
 
@@ -84,7 +85,7 @@ const ChatControls = ({ conversation }) => {
           title="Delete this chat?"
           text={
             person
-              ? `It leaves your chats and its messages are cleared for you. ${person.firstName} keeps the chat, and a new message brings it back.`
+              ? `It leaves your chats and its messages are cleared for you. ${firstWordOf(person.name)} keeps the chat, and a new message brings it back.`
               : "It leaves your chats and its notes are cleared."
           }
           action="Delete chat"

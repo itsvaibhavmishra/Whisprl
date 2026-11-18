@@ -125,9 +125,11 @@ tells them apart by shape and verifies the ID token's signature, issuer, expiry 
 `GOOGLE_AUTH_CLIENT_ID`, so one account works from either.
 
 Google is the only way in, on the website and in the app. Play's reviewers cannot use a Google
-account of their own, so the app's sign-in screen has a small App review sign in link: it takes
-the one email and password set in the backend's `REVIEW_ACCOUNT_EMAIL` and `REVIEW_ACCOUNT_PASSWORD`,
-and refuses everything when they are unset. Give that pair to Play in App access.
+account of their own, so `/auth/review` takes the one email and password set in the backend's
+`REVIEW_ACCOUNT_EMAIL` and `REVIEW_ACCOUNT_PASSWORD`, and refuses everything when they are unset.
+Nothing in the app links to it: Play's App access notes give reviewers that pair and ask them to open
+`https://whisprl.netlify.app/auth/review` on the phone once Whisprl is installed, which the app opens
+as one of its own links.
 
 **Links.** A link to the website's chat, contacts, status or settings pages opens the app when it
 is installed, and the website when it is not, so a shared profile link works for everyone. The

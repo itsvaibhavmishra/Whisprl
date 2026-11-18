@@ -5,6 +5,7 @@ import { PATH_DASHBOARD, PATH_INVITE } from "@/routes/paths";
 import { notify } from "@/utils/notify";
 import { isApp } from "@/utils/platform";
 import { shareLink } from "@/utils/share";
+import { firstWordOf } from "@/utils/names";
 
 const ROOT = PATH_DASHBOARD.general.contacts;
 
@@ -32,7 +33,8 @@ export const copyProfileLink = async (person) => {
   notify({ severity: "success", message: "Profile link copied" });
 };
 
-export const shareProfile = (person) => shareLink({ title: `${person.firstName} on Whisprl`, url: profileLinkOf(person), copied: "Profile link copied" });
+export const shareProfile = (person) =>
+  shareLink({ title: `${firstWordOf(person.name)} on Whisprl`, url: profileLinkOf(person), copied: "Profile link copied" });
 
 export const shareInvite = (code) =>
   shareLink({ title: "Join me on Whisprl", text: "Let's play and chat on Whisprl", url: `${linkOrigin}${PATH_INVITE}/${code}`, copied: "Invite link copied" });

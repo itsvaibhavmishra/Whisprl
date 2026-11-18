@@ -17,8 +17,7 @@ export const MAX_CODE_ATTEMPTS = 5;
 
 export const toSessionUser = async (user) => ({
   _id: user._id,
-  firstName: user.firstName,
-  lastName: user.lastName,
+  name: user.name,
   avatar: user.avatar,
   tag: user.tag,
   badge: user.tag,

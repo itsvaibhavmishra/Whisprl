@@ -17,14 +17,13 @@ import { dismissSuggestion, suggestionsFor } from "#src/services/suggestionServi
 import { searchFriendsOf } from "#src/services/userService.js";
 import { assertText, trimmed } from "#src/utils/accountRules.js";
 
-const summaryOf = ({ _id, firstName, lastName, avatar }) => ({ _id, firstName, lastName, avatar });
+const summaryOf = ({ _id, name, avatar }) => ({ _id, name, avatar });
 
-const fullNameOf = (person) => `${person.firstName} ${person.lastName}`.trim();
 const profilePathOf = (person) => `/contacts/${person.username ? `@${person.username}` : person._id}`;
 
 // the note stays out of the push, since it is end-to-end encrypted and the server cannot read it
 const pushRequestNews = (recipientId, person, { text, path }) =>
-  pushNotice(recipientId, { title: fullNameOf(person), text, path, tag: `request-${person._id}` }).catch(() => {});
+  pushNotice(recipientId, { title: person.name, text, path, tag: `request-${person._id}` }).catch(() => {});
 
 export const announceRequests = (req, user_id, kind, details = {}) =>
   req.app
@@ -132,6 +131,6 @@ export const hideSuggestion = async (req, res) => {
 };
 
 export const emitFriendStatus = async (io, user, onlineStatus) => {
-  const { _id, firstName, lastName, avatar } = user;
-  io.to(await presenceAudienceOf(user)).emit("online_friends", { _id, firstName, lastName, avatar, onlineStatus });
+  const { _id, name, avatar } = user;
+  io.to(await presenceAudienceOf(user)).emit("online_friends", { _id, name, avatar, onlineStatus });
 };

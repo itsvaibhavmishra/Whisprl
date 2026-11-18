@@ -11,7 +11,7 @@ import {
 } from "#src/services/statusService.js";
 
 // the owner opens a viewer's reaction with that viewer's public key
-const viewerOf = ({ _id, firstName, lastName, username, avatar, publicKeys }) => ({ _id, firstName, lastName, username, avatar, publicKeys });
+const viewerOf = ({ _id, name, username, avatar, publicKeys }) => ({ _id, name, username, avatar, publicKeys });
 
 export const getStatuses = async (req, res) => {
   res.status(200).json({ status: "success", statuses: await listStatuses(req.user) });

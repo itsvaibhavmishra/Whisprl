@@ -13,6 +13,7 @@ import { GetPublicStatusesOf } from "@/redux/slices/actions/statusActions";
 import EveryoneResults from "@/sections/contacts/EveryoneResults";
 import PersonRow, { PersonRows, PersonSkeletons } from "@/sections/contacts/PersonRow";
 import ProfilePass from "@/sections/contacts/ProfilePass";
+import { firstWordOf } from "@/utils/names";
 
 const SEARCH_LABEL = "Search everyone by name or @username";
 // the pane is grey on a computer and white on a phone, so the field takes whichever stands out
@@ -38,7 +39,7 @@ const SuggestionActions = ({ person }) => {
       <Tooltip title="Hide">
         <IconButton
           size="small"
-          aria-label={`Hide ${person.firstName} from your suggestions`}
+          aria-label={`Hide ${firstWordOf(person.name)} from your suggestions`}
           onClick={() => dispatch(HideSuggestion(person._id))}
           sx={{ color: "text.secondary" }}
         >

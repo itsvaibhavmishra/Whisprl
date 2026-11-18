@@ -8,9 +8,9 @@ import { notify } from "@/utils/notify";
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const KINDS = {
-  photo: { noun: "photo", crop: { title: "Crop your photo", aspect: 1, round: true, maxWidth: 512 } },
+  photo: { noun: "photo", crop: { title: "Crop your photo", aspect: 1, round: true, maxWidth: 1024 } },
   cover: { noun: "cover", crop: { title: "Crop your cover", aspect: 3, round: false, maxWidth: 1500 } },
-  group: { noun: "group photo", crop: { title: "Crop the group photo", aspect: 1, round: true, maxWidth: 512 } },
+  group: { noun: "group photo", crop: { title: "Crop the group photo", aspect: 1, round: true, maxWidth: 1024 } },
 };
 
 // the returned picker holds the hidden file input and the cropper, so it has to be rendered once

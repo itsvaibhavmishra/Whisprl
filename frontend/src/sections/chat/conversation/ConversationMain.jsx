@@ -31,6 +31,7 @@ import JumpToLatest from "@/sections/chat/conversation/JumpToLatest";
 import useIsLoading from "@/hooks/useIsLoading";
 import usePullToRefresh from "@/hooks/usePullToRefresh";
 import { PullIndicator } from "@/components/PullToRefresh";
+import { firstWordOf } from "@/utils/names";
 
 const messageTypeOf = (message) => {
   const hasFiles = filesOf(message).length > 0;
@@ -136,7 +137,7 @@ const ConversationMain = () => {
   const statusOf = (item) => {
     const { message } = item;
     if (isGroup) return isSeen(item) ? `Seen by ${readersOf(item).length}` : "Sent";
-    if (message.awaitingKey) return `Waiting for ${peer.firstName} to open Whisprl`;
+    if (message.awaitingKey) return `Waiting for ${firstWordOf(peer.name)} to open Whisprl`;
     if (message.seenAt) return "Seen";
     return message.deliveredAt ? "Delivered" : "Sent";
   };
@@ -154,7 +155,7 @@ const ConversationMain = () => {
   const markerFor = (message) => {
     if (isGroup) return null;
     if (!peer) return message._id === lastConfirmed?._id ? { person: user } : null;
-    return message._id === lastSeenOwnId ? { person: peer, label: `Seen by ${peer.firstName}` } : null;
+    return message._id === lastSeenOwnId ? { person: peer, label: `Seen by ${firstWordOf(peer.name)}` } : null;
   };
 
   // each member's photo sits under the newest message they have read, unless they wrote it
@@ -352,7 +353,7 @@ const ConversationMain = () => {
                       isFresh={canRise && index > lastKnownIndex}
                       onJumpTo={jumpTo}
                       onHoldStill={holdStill}
-                      senderName={isGroup && !isMine && isStartOfSequence ? message.sender.firstName : undefined}
+                      senderName={isGroup && !isMine && isStartOfSequence ? firstWordOf(message.sender.name) : undefined}
                       seenBy={seenRows.get(item)}
                       isQueued={item.type === "queued"}
                       isStartOfSequence={isStartOfSequence}

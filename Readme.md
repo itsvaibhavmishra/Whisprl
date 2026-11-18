@@ -252,6 +252,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 ```
 ├── backend/
 │   ├── scripts/
+│   │   ├── joinNames.js
 │   │   ├── uploadEmailMedia.js
 │   ├── src/
 │   │   ├── controllers/
@@ -402,6 +403,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   ├── utils/
 │   │   │   ├── accountRules.js
 │   │   │   ├── allowedOrigins.js
+│   │   │   ├── avatarPresets.js
 │   │   │   ├── coverStyles.js
 │   │   │   ├── emoji.js
 │   │   │   ├── errorReports.js
@@ -567,6 +569,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── useResponsive.js
 │   │   │   ├── useScreenBack.js
 │   │   │   ├── useSettings.js
+│   │   │   ├── useUsernameCheck.js
 │   │   ├── layouts/
 │   │   │   ├── admin/
 │   │   │   │   ├── index.jsx
@@ -909,16 +912,14 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── UsernameSetting.jsx
 │   │   │   │   ├── WallpaperSetting.jsx
 │   │   │   ├── setup/
+│   │   │   │   ├── AvatarCarousel.jsx
 │   │   │   │   ├── BirthdayStep.jsx
-│   │   │   │   ├── CopiedKeyDialog.jsx
-│   │   │   │   ├── NotificationsStep.jsx
-│   │   │   │   ├── PasskeyStep.jsx
+│   │   │   │   ├── BirthdayWheel.jsx
 │   │   │   │   ├── ProfileStep.jsx
 │   │   │   │   ├── ProtectMessagesStep.jsx
 │   │   │   │   ├── SetupFrame.jsx
 │   │   │   │   ├── SetupPaused.jsx
 │   │   │   │   ├── SetupSteps.jsx
-│   │   │   │   ├── UsernameStep.jsx
 │   │   │   ├── status/
 │   │   │   │   ├── AudienceDialog.jsx
 │   │   │   │   ├── DeleteUpdateDialog.jsx
@@ -1021,11 +1022,14 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── appBack.js
 │   │   │   ├── appBack.test.js
 │   │   │   ├── attachments.js
+│   │   │   ├── avatarPresets.js
 │   │   │   ├── avatars.jsx
+│   │   │   ├── avatars.test.js
 │   │   │   ├── axios.js
 │   │   │   ├── backSwipe.js
 │   │   │   ├── birthdays.js
 │   │   │   ├── birthdays.test.js
+│   │   │   ├── blobFile.js
 │   │   │   ├── chats.js
 │   │   │   ├── chats.test.js
 │   │   │   ├── colorPresets.js
@@ -1059,6 +1063,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── messagePayload.js
 │   │   │   ├── messageSummary.js
 │   │   │   ├── messageSummary.test.js
+│   │   │   ├── names.js
 │   │   │   ├── newVersion.js
 │   │   │   ├── notifications.js
 │   │   │   ├── notify.js

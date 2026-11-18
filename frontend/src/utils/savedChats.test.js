@@ -57,7 +57,7 @@ describe("restoredFrom", () => {
 });
 
 describe("withArrivals", () => {
-  const ava = { _id: "ava", firstName: "Ava", lastName: "Stone", avatar: "ava.png", publicKeys: [] };
+  const ava = { _id: "ava", name: "Ava Stone", avatar: "ava.png", publicKeys: [] };
   const snapshot = {
     conversations: [
       { _id: "c1", users: [ava], latestMessage: messageOf(5), unread: 0 },
@@ -77,7 +77,7 @@ describe("withArrivals", () => {
     const { conversations, chats } = withArrivals(snapshot, [arrivalOf(4, "c2")]);
     expect(conversations.map((conversation) => conversation._id)).toEqual(["c2", "c1"]);
     expect(conversations[0].unread).toBe(3);
-    expect(conversations[0].latestMessage).toMatchObject({ _id: "m004", message: "pushed 4", sender: { _id: "ava", firstName: "Ava" } });
+    expect(conversations[0].latestMessage).toMatchObject({ _id: "m004", message: "pushed 4", sender: { _id: "ava", name: "Ava Stone" } });
     expect(chats.c2.map((message) => message._id)).toEqual(["m002", "m003", "m004"]);
   });
 

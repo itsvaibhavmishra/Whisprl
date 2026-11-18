@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import ControlRow from "@/components/ControlRow";
 import useSafetyNumber from "@/hooks/useSafetyNumber";
 import { SetVerified } from "@/redux/slices/actions/encryptionActions";
+import { firstWordOf } from "@/utils/names";
 
 const statusOf = (verifiedKeyId, keyId) => {
   if (!verifiedKeyId) return "unchecked";
@@ -23,7 +24,7 @@ export const SecurityCodeDialog = ({ person, onClose }) => {
   const { digits, keyId } = useSafetyNumber(person);
   const verifiedKeyId = useSelector((state) => state.encryption.verified[person._id]);
   const status = statusOf(verifiedKeyId, keyId);
-  const { firstName } = person;
+  const firstName = firstWordOf(person.name);
 
   return (
     <Dialog open fullWidth maxWidth="xs" onClose={onClose} aria-labelledby="security-code-title" slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
@@ -95,7 +96,7 @@ const SecurityCode = ({ person }) => {
 
   return (
     <>
-      <ControlRow icon={row.icon} label={row.label} detail={row.detail(person.firstName)} isDanger={row.isDanger} onClick={() => setIsOpen(true)} />
+      <ControlRow icon={row.icon} label={row.label} detail={row.detail(firstWordOf(person.name))} isDanger={row.isDanger} onClick={() => setIsOpen(true)} />
       {isOpen && <SecurityCodeDialog person={person} onClose={() => setIsOpen(false)} />}
     </>
   );

@@ -32,6 +32,7 @@ import formatTime from "@/utils/formatTime";
 import { describeEvent, memberOf, typingLabel, typingNamesIn } from "@/utils/groups";
 import { quoteSummaryOf, summaryOf } from "@/utils/messageSummary";
 import { SPOKEN_ONLY } from "@/utils/spokenOnly";
+import { firstWordOf } from "@/utils/names";
 
 const ROW_SLIDE = { type: "spring", stiffness: 520, damping: 42 };
 const REORDER = { duration: 0.28, ease: [0.33, 1, 0.68, 1] };
@@ -108,11 +109,11 @@ const ChatRow = ({ conversation, isActive, hasChatOpen }) => {
 
   const authorOf = (message) => {
     if (!conversation.isGroup) return "";
-    return message.sender?._id === meId ? "You: " : `${message.sender?.firstName}: `;
+    return message.sender?._id === meId ? "You: " : `${firstWordOf(message.sender?.name)}: `;
   };
 
   const reactionLine = ({ user, emoji, message, isForAlbum }) => {
-    const reactor = user === meId ? "You" : (memberOf(conversation, user)?.firstName ?? "Someone");
+    const reactor = user === meId ? "You" : firstWordOf(memberOf(conversation, user)?.name) || "Someone";
     return `${reactor} reacted ${emoji} to “${isForAlbum ? "Photos" : quoteSummaryOf(message, meId)}”`;
   };
 

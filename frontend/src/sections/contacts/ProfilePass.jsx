@@ -21,7 +21,6 @@ const MARK = { src: WhisprlMark, width: 26, height: 26, excavate: true };
 const halfOf = (sizes) => Object.fromEntries(Object.entries(sizes).map(([breakpoint, size]) => [breakpoint, `-${size / 2}px`]));
 
 const ProfilePass = ({ person }) => {
-  const fullName = `${person.firstName} ${person.lastName}`;
   const canShare = canShareNatively();
 
   return (
@@ -55,13 +54,13 @@ const ProfilePass = ({ person }) => {
             fgColor={INK}
             bgColor={PAPER}
             imageSettings={MARK}
-            title={`QR code that opens ${fullName}'s profile`}
+            title={`QR code that opens ${person.name}'s profile`}
             style={{ display: "block", width: "100%", height: "100%" }}
           />
         </Box>
         <Box sx={{ minWidth: 0, pt: { xs: 1.5, md: 2 } }}>
           <Typography component="h3" sx={{ m: 0, overflowWrap: "anywhere" }}>
-            <Wordmark name={fullName} fontSize={{ xs: "1.5rem", md: "1.75rem" }} />
+            <Wordmark name={person.name} fontSize={{ xs: "1.5rem", md: "1.75rem" }} />
           </Typography>
           {person.username && <Typography sx={{ mt: 0.75, fontSize: 14, fontWeight: 600, color: "text.secondary" }}>@{person.username}</Typography>}
         </Box>

@@ -63,7 +63,7 @@ const initialOf = (seat, conversation) => {
   if (!seat) return "";
   if (seat.bot && !seat.user) return personaOf(seat)?.name.charAt(0) ?? "B";
   const member = seat.user && memberOf(conversation, seat.user);
-  return (member?.firstName ?? "").charAt(0).toUpperCase();
+  return (member?.name ?? "").charAt(0).toUpperCase();
 };
 
 const labelFor = (grid, line) => {

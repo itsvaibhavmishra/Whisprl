@@ -2,6 +2,7 @@ import { personaOf } from "@/sections/chat/game/bots";
 import { isChosenBot, isTaken } from "@/sections/chat/game/seats";
 import { peerOf } from "@/utils/chats";
 import { firstNameIn, listOf } from "@/utils/groups";
+import { firstWordOf } from "@/utils/names";
 
 export const PRACTICE_NOTE = "Bot games don't count on the leaderboard";
 
@@ -16,12 +17,12 @@ const twoPlayerLineOf = (session, conversation, meId) => {
   const isFriendsSeat = (seat) => peer._id !== meId && (seat.user === peer._id || seat.invited === peer._id);
   // at a bigger table between two the other seats are always bots, so it is the bot only once the other person's seat has gone to one
   const hasBot = session.seats.length > 2 ? !session.seats.some(isFriendsSeat) && session.seats.every(isTaken) : session.seats.some(isChosenBot);
-  if (!mine && hasBot) return `${peer.firstName} is playing the bot. Take its seat to play instead.`;
-  if (!mine) return theirs ? `${peer.firstName} wants to play. Take the other seat.` : "Take a seat to play";
+  if (!mine && hasBot) return `${firstWordOf(peer.name)} is playing the bot. Take its seat to play instead.`;
+  if (!mine) return theirs ? `${firstWordOf(peer.name)} wants to play. Take the other seat.` : "Take a seat to play";
   if (hasBot) return "Press Ready to play the bot";
-  if (!theirs) return `Waiting for ${peer.firstName} to sit down`;
-  if (mine.ready) return `Waiting for ${peer.firstName} to be ready`;
-  return theirs.ready ? `${peer.firstName} is ready. Are you?` : "Press Ready when you are";
+  if (!theirs) return `Waiting for ${firstWordOf(peer.name)} to sit down`;
+  if (mine.ready) return `Waiting for ${firstWordOf(peer.name)} to be ready`;
+  return theirs.ready ? `${firstWordOf(peer.name)} is ready. Are you?` : "Press Ready when you are";
 };
 
 export const lobbyLineOf = (session, conversation, meId) => {

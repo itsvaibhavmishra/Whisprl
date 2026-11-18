@@ -24,7 +24,7 @@ const Person = ({ conversation, row, meId, size, theme }) => {
   const member = memberOf(conversation, row.user);
   return (
     <Stack spacing={0.5} sx={{ alignItems: "center", minWidth: 0, maxWidth: "100%" }}>
-      {getAvatar(member?.avatar, member?.firstName, size)}
+      {getAvatar(member?.avatar, member?.name, size)}
       <Typography noWrap sx={{ maxWidth: "100%", fontSize: 14, fontWeight: 800, color: theme.ink }}>
         {firstNameIn(conversation, row.user, meId)}
       </Typography>
@@ -140,7 +140,7 @@ const Standings = ({ game, conversation, standings, meId }) => {
           >
             <Typography sx={{ fontSize: 13, fontWeight: 800, color: alpha(theme.ink, 0.6) }}>{row.place}</Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-              {getAvatar(member?.avatar, member?.firstName, 28)}
+              {getAvatar(member?.avatar, member?.name, 28)}
               <Typography noWrap sx={{ fontSize: 14, fontWeight: isMe ? 800 : 600 }}>
                 {firstNameIn(conversation, row.user, meId)}
               </Typography>

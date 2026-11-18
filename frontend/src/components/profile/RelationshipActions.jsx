@@ -13,6 +13,7 @@ import { AcceptRejectRequest, CancelRequest, DeclineRequest, SendRequest } from 
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { shareProfile } from "@/sections/contacts/contactsRoute";
 import { waitLabel } from "@/utils/relationship";
+import { firstWordOf } from "@/utils/names";
 
 // tinted from the text rather than filled, so it shows on the white list and the grey canvas alike
 export const SOFT = {
@@ -39,7 +40,7 @@ const RelationshipActions = ({ person, relationship, startWithComposer = false }
   const isCancelling = useIsLoading(CancelRequest, person._id);
   const isSending = useIsLoading(SendRequest);
   const isInviter = useSelector((state) => state.contact.inviter?._id === person._id);
-  const { firstName } = person;
+  const firstName = firstWordOf(person.name);
   const { request } = relationship;
 
   switch (relationship.state) {

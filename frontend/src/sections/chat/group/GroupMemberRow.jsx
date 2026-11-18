@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { RemoveGroupMember, SetGroupAdmin } from "@/redux/slices/actions/groupActions";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import { isAdminOf, isOwnerOf, mayRemove, roleOf } from "@/utils/groups";
+import { firstWordOf } from "@/utils/names";
 
 const GroupMemberRow = ({ group, member, meId }) => {
   const dispatch = useDispatch();
@@ -36,19 +37,19 @@ const GroupMemberRow = ({ group, member, meId }) => {
       sx={{ pl: 1.5, minHeight: 56 }}
       secondaryAction={
         actions.length > 0 && (
-          <IconButton aria-label={`Options for ${member.firstName}`} onClick={(event) => setAnchor(event.currentTarget)}>
+          <IconButton aria-label={`Options for ${firstWordOf(member.name)}`} onClick={(event) => setAnchor(event.currentTarget)}>
             <DotsThreeVerticalIcon />
           </IconButton>
         )
       }
     >
       <ListItemAvatar sx={{ minWidth: 0, mr: 1.5 }}>
-        <ChatAvatar src={member.avatar} name={member.firstName} size={40} />
+        <ChatAvatar src={member.avatar} name={member.name} size={40} />
       </ListItemAvatar>
       <ListItemText
         primary={
           <>
-            {isMe ? "You" : `${member.firstName} ${member.lastName}`}
+            {isMe ? "You" : member.name}
             {role && (
               <Box
                 component="span"

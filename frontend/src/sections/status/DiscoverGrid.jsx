@@ -21,7 +21,7 @@ const grid = {
 const DiscoverTile = ({ group, onOpen }) => {
   const { owner } = group;
   const latest = group.statuses.at(-1);
-  const name = `${owner.firstName} ${owner.lastName}`;
+  const { name } = owner;
 
   return (
     <li>
@@ -75,7 +75,7 @@ const DiscoverTile = ({ group, onOpen }) => {
           )}
         </Box>
         <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", px: 0.25 }}>
-          <ChatAvatar src={owner.avatar} name={owner.firstName} size={28} statuses={group.statuses} />
+          <ChatAvatar src={owner.avatar} name={owner.name} size={28} statuses={group.statuses} />
           <Box sx={{ minWidth: 0 }}>
             <Typography noWrap sx={{ fontSize: 14, fontWeight: 700 }}>
               {name}

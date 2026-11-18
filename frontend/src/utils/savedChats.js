@@ -29,11 +29,11 @@ export const snapshotOf = (chat) => {
 const ascendingBy = (field) => (one, other) => (one[field] < other[field] ? -1 : 1);
 
 const arrivedMessageOf = ({ messageId, conversationId, senderId, createdAt, expiresAt, plaintext }, conversation) => {
-  const { firstName, lastName, avatar } = conversation.users.find((member) => member._id === senderId) ?? {};
+  const { name, avatar } = conversation.users.find((member) => member._id === senderId) ?? {};
   return {
     _id: messageId,
     conversation: conversationId,
-    sender: { _id: senderId, firstName, lastName, avatar },
+    sender: { _id: senderId, name, avatar },
     createdAt,
     expiresAt,
     ...readableText(plaintext),

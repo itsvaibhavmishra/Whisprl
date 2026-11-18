@@ -4,6 +4,7 @@ import { UserModel } from "#src/models/index.js";
 import { platformOf } from "#src/services/activityService.js";
 import { sendMail } from "#src/services/mailer.js";
 import newDeviceMail from "#src/templates/mail/newDevice.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 const KNOWN_DEVICES_KEPT = 10;
 const DEVICE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -74,7 +75,7 @@ const mailIfNewDevice = async (user, deviceId, req) => {
   if (!knownBefore?.length) return;
 
   const device = deviceNameOf(req.get("user-agent"), platformOf(req));
-  await sendMail(user.email, "New login to your Whisprl account", newDeviceMail(user.firstName, device));
+  await sendMail(user.email, "New login to your Whisprl account", newDeviceMail(firstWordOf(user.name), device));
 };
 
 // noticing a new device must never stand in the way of signing in

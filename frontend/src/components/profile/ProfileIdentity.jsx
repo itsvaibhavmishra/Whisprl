@@ -11,7 +11,7 @@ import PhotoViewer from "@/sections/chat/details/PhotoViewer";
 import AvatarChoices from "@/sections/chat/status/AvatarChoices";
 import useLiveStatuses from "@/sections/chat/status/useLiveStatuses";
 import { bubbleShape } from "@/sections/welcome/HeroConversation";
-import { avatarLookOf } from "@/utils/avatars";
+import { avatarLookOf, largeAvatarOf } from "@/utils/avatars";
 
 const RING = 6;
 
@@ -32,12 +32,12 @@ const useSizeOf = (size) => {
 };
 
 const Photo = ({ person, look, isOnline, statuses, children }) => {
-  const { initial, background } = avatarLookOf(person.firstName);
+  const { initial, background } = avatarLookOf(person.name);
   const outer = look.photo + 2 * RING;
   return (
     <Box sx={{ position: "relative", alignSelf: "start", width: outer, height: outer, mt: `-${outer / 2}px` }}>
       <Avatar
-        src={person.avatar || undefined}
+        src={largeAvatarOf(person.avatar) || undefined}
         alt=""
         sx={{
           width: look.photo,
@@ -116,10 +116,9 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
   const statuses = useLiveStatuses(person._id);
   const [isViewingPhoto, setIsViewingPhoto] = useState(false);
 
-  const isKnown = person.firstName !== undefined;
+  const isKnown = person.name !== undefined;
   if (!isKnown) return <IdentitySkeleton look={look} />;
 
-  const fullName = `${person.firstName} ${person.lastName}`.trim();
   const photoAt = { xs: { x: look.gutter + RING + look.photo / 2, radius: look.photo / 2 + RING } };
   const photoView = person.avatar
     ? { noun: "profile picture", label: "View profile picture", icon: ImageSquareIcon, onChoose: () => setIsViewingPhoto(true) }
@@ -133,7 +132,7 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
 
       <Box sx={{ display: "grid", gridTemplateColumns: "auto minmax(0, 1fr)", columnGap: 2, px: `${look.gutter}px` }}>
         <Photo person={person} look={look} isOnline={isOnline} statuses={statuses}>
-          <AvatarChoices name={fullName} ownerId={person._id} hasStatus={statuses.length > 0} other={photoView} sx={{ position: "absolute", inset: RING }} />
+          <AvatarChoices name={person.name} ownerId={person._id} hasStatus={statuses.length > 0} other={photoView} sx={{ position: "absolute", inset: RING }} />
           {photoAction && <Box sx={{ position: "absolute", right: 0, bottom: 4 }}>{photoAction}</Box>}
         </Photo>
         {person.activityStatus && <BioBubble bio={person.activityStatus} surface={look.surface} />}
@@ -141,7 +140,7 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
 
       <Box sx={{ px: `${look.gutter}px`, mt: 2 }}>
         <Typography component="h2" sx={{ m: 0, overflowWrap: "anywhere" }}>
-          <Wordmark name={fullName} fontSize={look.name} />
+          <Wordmark name={person.name} fontSize={look.name} />
         </Typography>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mt: 0.75, color: "text.secondary", fontWeight: 600 }}>
           {person.username && <Typography sx={{ fontWeight: "inherit" }}>@{person.username}</Typography>}
@@ -151,7 +150,7 @@ const ProfileIdentity = ({ person, size = "sheet", surface, isOnline = false, co
         <BadgeStrip badges={person.badges} personId={person._id} />
       </Box>
 
-      {isViewingPhoto && <PhotoViewer src={person.avatar} name={fullName} onClose={() => setIsViewingPhoto(false)} />}
+      {isViewingPhoto && <PhotoViewer src={largeAvatarOf(person.avatar)} name={person.name} onClose={() => setIsViewingPhoto(false)} />}
     </Box>
   );
 };

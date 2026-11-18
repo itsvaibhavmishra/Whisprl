@@ -14,14 +14,13 @@ import {
 } from "@/redux/slices/actions/userActions";
 import { AddPasskey, GetPasskeys, LinkPasskey, RemovePasskey } from "@/redux/slices/actions/passkeyActions";
 import { BlockUser, GetBlocked, UnblockUser } from "@/redux/slices/actions/chatSettingsActions";
-import { ConfirmRecoveryKeySaved, ConfirmUsername, GetOnboarding, SaveBirthdayStep, SkipSetupStep } from "@/redux/slices/actions/onboardingActions";
+import { ConfirmRecoveryKeySaved, GetOnboarding, SaveBirthdayStep, SaveProfileStep } from "@/redux/slices/actions/onboardingActions";
 import { GetMyBadges } from "@/redux/slices/actions/badgeActions";
 
 const initialState = {
   user: {
     _id: "",
-    firstName: "",
-    lastName: "",
+    name: "",
     avatar: "",
     cover: "",
     email: "",
@@ -56,7 +55,7 @@ const slice = createSlice({
 
     // update online users
     updateOnlineUsers: (state, action) => {
-      const { _id, firstName, lastName, avatar, onlineStatus } = action.payload;
+      const { _id, name, avatar, onlineStatus } = action.payload;
       const index = state.onlineFriends.findIndex((friend) => friend._id === _id);
 
       if (index !== -1) {
@@ -66,8 +65,7 @@ const slice = createSlice({
         // If user is not in onlineFriends array, add the whole object to the array
         state.onlineFriends.push({
           _id,
-          firstName,
-          lastName,
+          name,
           avatar,
           onlineStatus,
         });
@@ -94,8 +92,7 @@ const slice = createSlice({
     logout: (state) => {
       state.user = {
         _id: "",
-        firstName: "",
-        lastName: "",
+        name: "",
         avatar: "",
         cover: "",
         email: "",
@@ -172,11 +169,11 @@ const slice = createSlice({
         state.latestProfileRead = action.meta.requestId;
       })
       .addCase(GetMyProfile.fulfilled, (state, action) => {
-        const { firstName, lastName, username, usernameChangedAt, avatar, tag, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
+        const { name, username, usernameChangedAt, avatar, tag, cover, coverStyle, email, activityStatus, ...summary } = action.payload.user;
         state.accountSummary = summary;
         // a save that landed while this was loading is newer than what it brought back
         if (action.meta.requestId !== state.latestProfileRead) return;
-        state.user = { ...state.user, firstName, lastName, username, usernameChangedAt, avatar, tag, cover, coverStyle, email, activityStatus };
+        state.user = { ...state.user, name, username, usernameChangedAt, avatar, tag, cover, coverStyle, email, activityStatus };
       })
       // kept with the signed-in user, so their badges show at once when the app opens again and refresh behind it
       .addCase(GetMyBadges.fulfilled, (state, action) => {
@@ -192,15 +189,12 @@ const slice = createSlice({
       .addCase(GetOnlineFriends.fulfilled, (state, action) => {
         state.onlineFriends = action.payload.onlineFriends;
       })
-      .addMatcher(isAnyOf(SaveBirthdayStep.pending, ConfirmUsername.pending, ConfirmRecoveryKeySaved.pending, SkipSetupStep.pending), (state) => {
+      .addMatcher(isAnyOf(SaveBirthdayStep.pending, SaveProfileStep.pending, ConfirmRecoveryKeySaved.pending), (state) => {
         state.latestOnboardingRead = null;
       })
-      .addMatcher(
-        isAnyOf(SaveBirthdayStep.fulfilled, ConfirmUsername.fulfilled, ConfirmRecoveryKeySaved.fulfilled, SkipSetupStep.fulfilled),
-        (state, action) => {
-          state.user = { ...state.user, ...action.payload.user };
-        }
-      )
+      .addMatcher(isAnyOf(SaveBirthdayStep.fulfilled, SaveProfileStep.fulfilled, ConfirmRecoveryKeySaved.fulfilled), (state, action) => {
+        state.user = { ...state.user, ...action.payload.user };
+      })
       .addMatcher(isAnyOf(GetPasskeys.fulfilled, AddPasskey.fulfilled, LinkPasskey.fulfilled, RemovePasskey.fulfilled), (state, action) => {
         state.passkeys = action.payload.passkeys;
       });

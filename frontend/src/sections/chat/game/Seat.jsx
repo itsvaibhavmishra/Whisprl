@@ -16,7 +16,7 @@ import { firstNameIn, memberOf } from "@/utils/groups";
 
 const faceOf = (seat, member, size) => {
   if (seat.bot || seat.away) return <BotFace seat={seat} size={size} />;
-  if (member) return getAvatar(member.avatar, member.firstName, size);
+  if (member) return getAvatar(member.avatar, member.name, size);
   if (seat.locked) return <LockSimpleIcon size={size * 0.4} weight="bold" />;
   return <PlusIcon size={size * 0.4} weight="bold" color={alpha("#fff", 0.85)} />;
 };

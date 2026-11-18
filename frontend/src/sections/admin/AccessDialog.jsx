@@ -20,6 +20,7 @@ import { useDispatch } from "react-redux";
 import useIsLoading from "@/hooks/useIsLoading";
 import { AddAdmin, ChangeAccess } from "@/redux/slices/actions/adminActions";
 import { PERMISSIONS } from "@/utils/roles";
+import { firstWordOf } from "@/utils/names";
 
 // with no member it adds someone new, otherwise it changes what an admin can already do
 const AccessDialog = ({ member, onClose, onDone }) => {
@@ -44,7 +45,7 @@ const AccessDialog = ({ member, onClose, onDone }) => {
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{member ? `Change what ${member.firstName} can do` : "Add an admin"}</DialogTitle>
+      <DialogTitle>{member ? `Change what ${firstWordOf(member.name)} can do` : "Add an admin"}</DialogTitle>
       <DialogContent>
         {!member && (
           <TextField

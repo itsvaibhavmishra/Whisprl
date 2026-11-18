@@ -2,7 +2,7 @@ import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 
 import { UserModel } from "#src/models/index.js";
-import { normalizeEmail } from "#src/utils/accountRules.js";
+import { NAME_LIMIT, normalizeEmail } from "#src/utils/accountRules.js";
 import { randomCoverStyle } from "#src/utils/coverStyles.js";
 import { fetchJson } from "#src/utils/fetchJson.js";
 import { markReached, startJourney } from "#src/services/journeyService.js";
@@ -43,14 +43,11 @@ const fetchGoogleAccessTokenProfile = async (accessToken) => {
 
 const fetchGoogleProfile = (credential) => (isIdToken(credential) ? fetchGoogleIdTokenProfile(credential) : fetchGoogleAccessTokenProfile(credential));
 
-const splitName = (name, email) => {
-  const [firstName, ...rest] = (name?.trim() || email.split("@")[0]).split(/\s+/);
-  return { firstName, lastName: rest.join(" ") || "onWhisprl" };
-};
+const nameOf = (name, email) => (name?.trim() || email.split("@")[0]).replace(/\s+/g, " ").slice(0, NAME_LIMIT);
 
 export const openAccount = async ({ email: typedEmail, name, picture }, via) => {
   const email = normalizeEmail(typedEmail);
-  const user = (await UserModel.findOne({ email })) ?? new UserModel({ email, ...splitName(name, email), avatar: picture });
+  const user = (await UserModel.findOne({ email })) ?? new UserModel({ email, name: nameOf(name, email), avatar: picture });
 
   // an unverified account is an old email sign up still waiting on its code, so it goes to whoever proves the email
   if (!user.verified) {
@@ -64,7 +61,7 @@ export const openAccount = async ({ email: typedEmail, name, picture }, via) => 
   }
   if (via) user.socialsConnected.addToSet(via);
   if (!user.avatar) user.avatar = picture;
-  user.username ??= await availableUsername(user.firstName, user.lastName);
+  user.username ??= await availableUsername(user.name);
   user.coverStyle ??= randomCoverStyle();
   await user.save();
   await welcomeToWhisprl(user._id).catch((error) => reportError(error, user._id));

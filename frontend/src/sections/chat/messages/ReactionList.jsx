@@ -25,7 +25,7 @@ import { memberOf } from "@/utils/groups";
 import { filesOf } from "@/utils/messageFiles";
 import { rankedReactions } from "@/utils/reactions";
 
-const fullNameOf = (person) => [person?.firstName, person?.lastName].filter(Boolean).join(" ") || "Someone";
+const fullNameOf = (person) => person?.name || "Someone";
 
 const keyOfReaction = (reaction) => `${reaction.user}:${reaction.emoji}:${reaction.message?._id ?? ""}:${Boolean(reaction.isForAlbum)}`;
 
@@ -96,7 +96,7 @@ const ReactionList = ({ anchorEl, side, reactions, conversation, mine, onReact, 
           const photo = reaction.message && !reaction.isForAlbum && filesOf(reaction.message)[0];
           const details = (
             <>
-              <ListItemAvatar sx={{ minWidth: 52 }}>{getAvatar(person?.avatar, person?.firstName, 40)}</ListItemAvatar>
+              <ListItemAvatar sx={{ minWidth: 52 }}>{getAvatar(person?.avatar, person?.name, 40)}</ListItemAvatar>
               <ListItemText
                 primary={isMine ? "You" : fullNameOf(person)}
                 secondary={isMine && (canHover ? "Click to remove" : "Tap to remove")}

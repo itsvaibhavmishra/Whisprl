@@ -62,8 +62,6 @@ const coverStyleSchema = mongoose.Schema(
   { _id: false }
 );
 
-const skippedStepSchema = mongoose.Schema({ version: { type: Number, required: true }, at: { type: Date, required: true } }, { _id: false });
-
 const journeySchema = mongoose.Schema(
   {
     startedAt: { type: Date, required: true },
@@ -99,22 +97,13 @@ const deletionSchema = mongoose.Schema(
   { _id: false }
 );
 
-export const HIDDEN_PROFILE_FIELDS = ["firstName", "lastName", "username", "avatar", "cover", "activityStatus"];
+export const HIDDEN_PROFILE_FIELDS = ["name", "username", "avatar", "cover", "activityStatus"];
 
-const profileSchema = mongoose.Schema(
-  { firstName: String, lastName: String, username: String, avatar: String, cover: String, activityStatus: String },
-  { _id: false }
-);
-
-// Whisprl's own account goes by one name; mongoose calls this with the account as this
-function needsLastName() {
-  return this.tag !== "official";
-}
+const profileSchema = mongoose.Schema({ name: String, username: String, avatar: String, cover: String, activityStatus: String }, { _id: false });
 
 const userSchema = mongoose.Schema(
   {
-    firstName: { type: String, required: [true, "First Name is required"] },
-    lastName: { type: String, required: [needsLastName, "Last Name is required"] },
+    name: { type: String, required: [true, "Name is required"] },
     username: { type: String, unique: true, sparse: true },
     usernameChangedAt: { type: Date },
     usernameConfirmedAt: { type: Date },
@@ -195,7 +184,6 @@ const userSchema = mongoose.Schema(
     // set only when an account is made, so every account from before setup existed counts as returning
     isNewAccount: { type: Boolean, default: false },
     agePausedUntil: { type: Date },
-    skippedSteps: { type: Map, of: skippedStepSchema, default: undefined },
 
     // nothing sets it now, but the schema keeps it so deleting an account still clears it from older ones
     notificationsAllowedAt: { type: Date },

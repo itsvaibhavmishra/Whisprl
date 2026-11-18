@@ -94,9 +94,7 @@ const GroupDetails = ({ group, sharedContent, quickActions }) => {
   const [isConfirmingLeave, setIsConfirmingLeave] = useState(false);
 
   const isManager = canManage(group, meId);
-  const members = [...group.users].sort(
-    (first, second) => rankOf(group, first._id) - rankOf(group, second._id) || first.firstName.localeCompare(second.firstName)
-  );
+  const members = [...group.users].sort((first, second) => rankOf(group, first._id) - rankOf(group, second._id) || first.name.localeCompare(second.name));
 
   const changePicture = async (picture) => {
     await dispatch(UpdateGroup({ groupId: group._id, picture }));

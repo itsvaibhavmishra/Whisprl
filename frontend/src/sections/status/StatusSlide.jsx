@@ -14,6 +14,7 @@ import ShareStatusDialog from "@/sections/status/ShareStatusDialog";
 import StatusHeader from "@/sections/status/StatusHeader";
 import StatusMedia from "@/sections/status/StatusMedia";
 import { backgroundOf, textSizeOf } from "@/utils/statuses";
+import { firstWordOf } from "@/utils/names";
 
 const SHOW_MS = 6000;
 const HOLD_MS = 250;
@@ -309,7 +310,7 @@ const StatusSlide = ({ status, position, count, isOwn, canReply, isWide, hasClos
           {dialog === "delete" && <DeleteUpdateDialog status={status} onClose={() => setDialog(null)} />}
           {dialog === "report" && (
             <ReportDialog
-              subject={`${owner.firstName}'s update`}
+              subject={`${firstWordOf(owner.name)}'s update`}
               explanation="An update disappears after 24 hours, so tell us here what was wrong with it."
               report={ReportStatus}
               details={{ statusId: status._id }}

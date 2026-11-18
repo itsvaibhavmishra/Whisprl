@@ -155,14 +155,14 @@ const DeleteAccountSetting = () => {
 };
 
 const AccountSettings = () => {
-  const { email, firstName, lastName, avatar } = useSelector((state) => state.user.user);
+  const { email, name, avatar } = useSelector((state) => state.user.user);
   return (
     <SettingsSection>
       <SettingLink
         component={RouterLink}
         to={PATH_DASHBOARD.general.profile}
-        leading={getAvatar(avatar, firstName, 48)}
-        label={`${firstName} ${lastName}`}
+        leading={getAvatar(avatar, name, 48)}
+        label={name}
         description="Edit your photo, cover, name, birthday and bio."
       />
       <UsernameSetting />

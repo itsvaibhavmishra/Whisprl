@@ -54,7 +54,7 @@ const Ambient = ({ status }) => (
 const Neighbour = ({ status, label, onOpen }) => {
   if (!status) return <Box sx={{ width: NEIGHBOUR_WIDTH, flexShrink: 0 }} />;
   const { owner, content } = status;
-  const name = `${owner.firstName} ${owner.lastName}`;
+  const { name } = owner;
 
   return (
     <ButtonBase
@@ -78,7 +78,7 @@ const Neighbour = ({ status, label, onOpen }) => {
       )}
       <Box className="neighbour-dim" sx={{ position: "absolute", inset: 0, bgcolor: "rgba(0, 0, 0, 0.6)" }} />
       <Stack spacing={1} sx={{ alignItems: "center", position: "relative", px: 1, color: "#fff" }}>
-        <Box sx={{ borderRadius: "50%", boxShadow: "0 0 0 2px #fff", display: "grid" }}>{getAvatar(owner.avatar, owner.firstName, 44)}</Box>
+        <Box sx={{ borderRadius: "50%", boxShadow: "0 0 0 2px #fff", display: "grid" }}>{getAvatar(owner.avatar, owner.name, 44)}</Box>
         <Typography sx={{ fontSize: 13, fontWeight: 700, textAlign: "center", lineHeight: 1.3 }}>{name}</Typography>
       </Stack>
     </ButtonBase>

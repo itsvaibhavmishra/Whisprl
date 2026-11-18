@@ -4,6 +4,7 @@ import BadgeGrid from "@/sections/badges/BadgeGrid";
 import { PaneEmpty } from "@/components/Pane";
 import BadgeHero from "@/sections/badges/BadgeHero";
 import { badgeCountOf, badgesByYearAndMonth } from "@/utils/badges";
+import { firstWordOf } from "@/utils/names";
 
 const Month = ({ month, pagesThrough, personId, canShare }) => (
   <Box component="li" sx={{ position: "relative", pl: 3, pb: 2 }}>
@@ -25,7 +26,7 @@ const BadgeProgress = ({ person, isOwn }) => {
     <Stack spacing={4}>
       <BadgeHero person={person} />
       {years.length === 0 ? (
-        <PaneEmpty text={`${person.firstName} has no badges yet.`} />
+        <PaneEmpty text={`${firstWordOf(person.name)} has no badges yet.`} />
       ) : (
         years.map(({ year, count, months }) => (
           <Box component="section" key={year} aria-label={`${year}, ${badgeCountOf(count)}`}>

@@ -9,6 +9,7 @@ import { sealNote } from "@/utils/crypto/noteCipher";
 import { notifyNews } from "@/utils/notifications";
 import { notify } from "@/utils/notify";
 import { REQUESTS_PATH, contactPathOf } from "@/sections/contacts/contactsRoute";
+import { firstWordOf } from "@/utils/names";
 
 export const GetUserData = createApiThunk("user/getUserData", async (userId) => (await axios.get("/user/getUserData", { params: { userId } })).data);
 
@@ -101,15 +102,13 @@ export const DeclineRequest = (person) => (dispatch) => {
   heldDeclines.set(person._id, setTimeout(send, DECLINE_GRACE_MS));
   notify({
     severity: "info",
-    message: `Declined ${person.firstName}'s request`,
+    message: `Declined ${firstWordOf(person.name)}'s request`,
     duration: DECLINE_GRACE_MS,
     action: { label: "Undo", onClick: () => dispatch(releaseDecline(person._id)) },
   });
 };
 
-const nameOf = (person) => `${person.firstName} ${person.lastName}`;
-
-const notifyRequestNews = (person, body, path) => notifyNews({ title: nameOf(person), body, icon: person.avatar, tag: `request-${person._id}`, path });
+const notifyRequestNews = (person, body, path) => notifyNews({ title: person.name, body, icon: person.avatar, tag: `request-${person._id}`, path });
 
 // the server tells every tab of both people, the acting one too, so the lists refetch only here; the kind picks what to say
 export const RequestsChanged =
@@ -122,11 +121,11 @@ export const RequestsChanged =
       if (conversationId && getState().chat.activeConversation?._id === conversationId) dispatch(GetMessages(conversationId));
     }
     if (kind === "received") {
-      notify({ severity: "info", message: `${nameOf(person)} wants to be friends` });
+      notify({ severity: "info", message: `${person.name} wants to be friends` });
       notifyRequestNews(person, "Sent you a friend request", REQUESTS_PATH);
     }
     if (kind === "accepted") {
-      notify({ severity: "success", message: `${nameOf(person)} accepted your request` });
+      notify({ severity: "success", message: `${person.name} accepted your request` });
       notifyRequestNews(person, "Accepted your friend request", contactPathOf(person));
     }
   };

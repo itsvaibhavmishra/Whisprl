@@ -98,7 +98,7 @@ export const MAX_SEALED_FILE_SIZE = 10 * 1024 * 1024;
 export const batchOf = ({ batchId, batchIndex, batchTotal } = {}) =>
   isClientId(batchId) && Number.isInteger(batchIndex) && Number.isInteger(batchTotal) ? { batchId, batchIndex, batchTotal } : {};
 
-const SENDER_FIELDS = ["_id", "firstName", "lastName", "avatar"];
+const SENDER_FIELDS = ["_id", "name", "avatar"];
 
 const senderSummaryOf = (member) => Object.fromEntries(SENDER_FIELDS.map((field) => [field, member[field]]));
 

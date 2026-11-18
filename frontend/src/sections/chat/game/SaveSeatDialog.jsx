@@ -21,8 +21,8 @@ const SaveSeatDialog = ({ conversation, session, index, meId, onClose }) => {
         <List sx={{ pt: 0, pb: 1.5, maxHeight: 420, overflowY: "auto" }}>
           {members.map((member) => (
             <ListItemButton key={member._id} onClick={() => save(member._id)} sx={{ px: 3 }}>
-              <ListItemAvatar>{getAvatar(member.avatar, member.firstName, 36)}</ListItemAvatar>
-              <ListItemText primary={`${member.firstName} ${member.lastName}`} />
+              <ListItemAvatar>{getAvatar(member.avatar, member.name, 36)}</ListItemAvatar>
+              <ListItemText primary={member.name} />
             </ListItemButton>
           ))}
         </List>

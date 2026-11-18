@@ -12,7 +12,6 @@ const ContactCard = ({ contact, isMine }) => {
   const dispatch = useDispatch();
   const { state } = useRelationship(contact._id);
 
-  const fullName = `${contact.firstName} ${contact.lastName}`;
   const actionSx = {
     color: "inherit",
     bgcolor: isMine ? alpha("#fff", 0.18) : alpha(theme.palette.primary.main, 0.12),
@@ -22,10 +21,10 @@ const ContactCard = ({ contact, isMine }) => {
   return (
     <Stack spacing={1.25} sx={{ minWidth: 200, p: 0.5 }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-        {getAvatar(contact.avatar, contact.firstName, 40)}
+        {getAvatar(contact.avatar, contact.name, 40)}
         <Box sx={{ minWidth: 0 }}>
           <Typography data-searchable variant="subtitle2" noWrap>
-            {fullName}
+            {contact.name}
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.75 }}>
             {contact.username ? `@${contact.username}` : "Contact"}

@@ -3,7 +3,7 @@ import createHttpError from "http-errors";
 import { HIDDEN_PROFILE_FIELDS } from "#src/models/userModel.js";
 
 // what everyone else sees in place of a banned, hidden or deleted account
-export const PLACEHOLDER_PROFILE = { firstName: "Whisprl user", lastName: "", avatar: "", cover: "", activityStatus: "" };
+export const PLACEHOLDER_PROFILE = { name: "Whisprl user", avatar: "", cover: "", activityStatus: "" };
 
 export const profileOf = (user) => Object.fromEntries(HIDDEN_PROFILE_FIELDS.map((field) => [field, user[field]]).filter(([, value]) => value !== undefined));
 

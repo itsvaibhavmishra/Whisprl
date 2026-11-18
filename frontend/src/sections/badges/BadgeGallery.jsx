@@ -6,6 +6,7 @@ import BadgeGrid from "@/sections/badges/BadgeGrid";
 import { PaneEmpty, PaneSection } from "@/components/Pane";
 import { badgeProgressPathOf } from "@/routes/paths";
 import BadgeHero from "@/sections/badges/BadgeHero";
+import { firstWordOf } from "@/utils/names";
 
 const BadgeGallery = ({ person, isOwn }) => {
   const badges = person.badges ?? [];
@@ -19,7 +20,7 @@ const BadgeGallery = ({ person, isOwn }) => {
     <Stack spacing={4}>
       <BadgeHero person={person} action={progressLink} />
       {badges.length === 0 ? (
-        <PaneEmpty text={`${person.firstName} has no badges yet.`} />
+        <PaneEmpty text={`${firstWordOf(person.name)} has no badges yet.`} />
       ) : (
         <PaneSection label="Badge gallery">
           <Box sx={{ mt: 2 }}>

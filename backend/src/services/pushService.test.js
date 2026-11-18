@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { pushDataFor } from "#src/services/pushService.js";
 
-const sender = { _id: "alice", firstName: "Alice", lastName: "Reed", publicKeys: [{ keyId: "alice-key", publicKey: "alice-public" }] };
+const sender = { _id: "alice", name: "Alice Reed", publicKeys: [{ keyId: "alice-key", publicKey: "alice-public" }] };
 const direct = { _id: "chat", isGroup: false };
 const group = { _id: "group", isGroup: true, name: "Game night" };
 

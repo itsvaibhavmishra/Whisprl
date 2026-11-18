@@ -11,11 +11,12 @@ import { currentKeyIdOf } from "#src/services/keyService.js";
 import { saveMessage, validateCipher } from "#src/services/messageService.js";
 import { assertNoCooldown, cooldownsOf, startCooldown } from "#src/services/requestCooldownService.js";
 import { forgetSuggestionsBetween } from "#src/services/suggestionService.js";
+import { firstWordOf } from "#src/utils/accountRules.js";
 
 const FRIEND_FIELDS =
-  "firstName lastName username avatar tag badge cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
+  "name username avatar tag badge cover coverStyle activityStatus createdAt birthday.day birthday.month showBirthdayToFriends onlineStatus publicKeys.keyId";
 // every key they ever had, so a note still opens after its sender moves to a new one
-const REQUESTER_FIELDS = "firstName lastName username avatar tag badge cover coverStyle activityStatus createdAt publicKeys";
+const REQUESTER_FIELDS = "name username avatar tag badge cover coverStyle activityStatus createdAt publicKeys";
 
 const MAX_OPEN_REQUESTS = 30;
 // room for 200 characters once sealed, the limit the browser counts down to
@@ -39,7 +40,7 @@ const theyAskedFirst = () => createHttpError(409, "They already sent you a reque
 
 const assertReceiverHasKey = (receiver) => {
   if (!currentKeyIdOf(receiver)) {
-    throw createHttpError(409, `${receiver.firstName} hasn't set up encryption yet, so a request to them goes without a note`, {
+    throw createHttpError(409, `${firstWordOf(receiver.name)} hasn't set up encryption yet, so a request to them goes without a note`, {
       code: "recipient_has_no_key",
     });
   }
@@ -124,7 +125,7 @@ const continueChat = async (request, receiver) => {
     (await ConversationModel.findById(request.conversationId)) ??
     (await ConversationModel.create({
       _id: request.conversationId,
-      name: `${receiver.firstName} ${receiver.lastName}`,
+      name: receiver.name,
       isGroup: false,
       users: [request.sender, request.recipient],
     }));
@@ -186,9 +187,7 @@ export const listFriends = async (user) => {
 };
 
 export const listOnlineFriends = (user) =>
-  UserModel.find({ _id: { $in: user.friends, $nin: user.blocked }, blocked: { $ne: user._id }, onlineStatus: "online" }).select(
-    "firstName lastName avatar onlineStatus"
-  );
+  UserModel.find({ _id: { $in: user.friends, $nin: user.blocked }, blocked: { $ne: user._id }, onlineStatus: "online" }).select("name avatar onlineStatus");
 
 const asReceived = (requests) =>
   requests

@@ -135,7 +135,7 @@ const SideRail = () => {
   // following a link to the address already open would drop the state that lets Back close the chat
   const stayIfHere = (to) => (to === pathname ? (event) => event.preventDefault() : undefined);
   const badges = useBadgeCounts();
-  const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
+  const { avatar, name } = useSelector((state) => state.user.user);
 
   return (
     <Stack
@@ -188,7 +188,7 @@ const SideRail = () => {
       <Stack spacing={1.5} sx={{ alignItems: "center" }}>
         <ThemeToggle />
         <RailItem component={Link} to={settings} label="Profile and settings" isActive={isAtYou(pathname)}>
-          {getAvatar(avatar, `${firstName} ${lastName}`, 36)}
+          {getAvatar(avatar, name, 36)}
         </RailItem>
       </Stack>
     </Stack>
@@ -222,7 +222,7 @@ const TabItem = ({ label, isActive, badge, badgeWord, children, ...button }) => 
 export const TabBar = () => {
   const { pathname } = useLocation();
   const badges = useBadgeCounts();
-  const { avatar, firstName, lastName } = useSelector((state) => state.user.user);
+  const { avatar, name } = useSelector((state) => state.user.user);
 
   return (
     <Stack
@@ -254,7 +254,7 @@ export const TabBar = () => {
         );
       })}
       <TabItem component={Link} to={settings} label="You" isActive={isAtYou(pathname)}>
-        {getAvatar(avatar, `${firstName} ${lastName}`, 24)}
+        {getAvatar(avatar, name, 24)}
       </TabItem>
     </Stack>
   );

@@ -2,20 +2,15 @@ import { createApiThunk, notifyResult } from "@/redux/slices/actions/apiThunk";
 import { EndSession } from "@/redux/slices/actions/authActions";
 import { updateUser } from "@/redux/slices/userSlice";
 import axios from "@/utils/axios";
+import { fileFromBlobUrl } from "@/utils/blobFile";
 import { notify } from "@/utils/notify";
-
-const blobUrlToFile = async (blobUrl, fileName) => {
-  const blob = await (await fetch(blobUrl)).blob();
-  return new File([blob], fileName, { type: blob.type });
-};
 
 export const UpdateProfile = createApiThunk(
   "user/update-profile",
-  async ({ firstName, lastName, activityStatus, birthday, gender, coverPattern, coverPalette, ...images }, { getState }) => {
+  async ({ name, activityStatus, birthday, gender, coverPattern, coverPalette, ...images }, { getState }) => {
     const saved = getState().user.user;
     const formData = new FormData();
-    formData.append("firstName", firstName);
-    formData.append("lastName", lastName);
+    formData.append("name", name);
     formData.append("activityStatus", activityStatus);
     formData.append("birthday", birthday);
     formData.append("gender", gender);
@@ -26,7 +21,7 @@ export const UpdateProfile = createApiThunk(
       ["cover", "removeCover"],
     ]) {
       if (images[kind].startsWith("blob:")) {
-        formData.append(kind, await blobUrlToFile(images[kind], `${kind}.jpg`));
+        formData.append(kind, await fileFromBlobUrl(images[kind], `${kind}.jpg`));
       } else if (!images[kind] && saved[kind]) {
         formData.append(removeField, "true");
       }

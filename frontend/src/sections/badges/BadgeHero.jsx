@@ -4,7 +4,7 @@ import PersonTag from "@/components/PersonTag";
 import getAvatar from "@/utils/avatars";
 
 const BadgeHero = ({ person, action }) => {
-  const name = `${person.firstName} ${person.lastName}`.trim();
+  const { name } = person;
   const count = person.badges?.length ?? 0;
 
   return (

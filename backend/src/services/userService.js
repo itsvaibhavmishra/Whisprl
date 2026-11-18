@@ -29,7 +29,7 @@ const PROFILE_IMAGES = {
 
 const ALLOWED_FORMATS = ["jpeg", "jpg", "png", "webp"];
 
-export const PUBLIC_PROFILE_FIELDS = "firstName lastName username avatar tag badge cover coverStyle activityStatus createdAt publicKeys";
+export const PUBLIC_PROFILE_FIELDS = "name username avatar tag badge cover coverStyle activityStatus createdAt publicKeys";
 
 export const validateProfileImage = (kind, file) => {
   const { noun, maxSize, hasRightShape } = PROFILE_IMAGES[kind];
@@ -87,7 +87,7 @@ const mutualFriendsOf = async (viewer, person_id, theirFriends) => {
   const isShared = (friend_id) => theirs.has(String(friend_id)) && !friend_id.equals(viewer._id) && !friend_id.equals(person_id) && !isWhisprl(friend_id);
   const shared = viewer.friends.filter(isShared);
   const people = await UserModel.find({ _id: { $in: shared.slice(0, MUTUAL_PREVIEW) } })
-    .select("firstName lastName avatar")
+    .select("name avatar")
     .lean();
   return { count: shared.length, people };
 };
@@ -126,7 +126,7 @@ export const getOwnProfile = async (user) => {
   // counted from the accounts themselves, as the friends list is, so a friend whose account is gone is not counted
   const [friendPreviews, friendCount, conversationCount, messageCount] = await Promise.all([
     UserModel.find({ _id: { $in: friendIds } })
-      .select("firstName lastName avatar")
+      .select("name avatar")
       .limit(5),
     UserModel.countDocuments({ _id: { $in: friendIds } }),
     ConversationModel.countDocuments({ users: user._id }),
@@ -135,8 +135,7 @@ export const getOwnProfile = async (user) => {
 
   return {
     _id: user._id,
-    firstName: user.firstName,
-    lastName: user.lastName,
+    name: user.name,
     username: user.username,
     usernameChangedAt: user.usernameChangedAt,
     avatar: user.avatar,
@@ -163,21 +162,16 @@ const PEOPLE_PAGE_SIZE = 20;
 
 const skipFor = (page, size = SEARCH_PAGE_SIZE) => Math.max(0, Number.parseInt(page, 10) || 0) * size;
 
-const SEARCH_FIELDS = "firstName lastName username avatar tag badge activityStatus onlineStatus";
+const SEARCH_FIELDS = "name username avatar tag badge activityStatus onlineStatus";
 // presence is for friends, so strangers are found without it
-const STRANGER_FIELDS = "firstName lastName username avatar tag badge cover coverStyle activityStatus createdAt";
+const STRANGER_FIELDS = "name username avatar tag badge cover coverStyle activityStatus createdAt";
 
 // never by email, so nobody can find out whether an address has an account
 const nameOrUsernameFilter = (keyword) => {
   const pattern = new RegExp(escapeRegex(keyword), "i");
   const username = normalizeUsername(keyword);
   return {
-    $or: [
-      { firstName: pattern },
-      { lastName: pattern },
-      { $expr: { $regexMatch: { input: { $concat: ["$firstName", " ", "$lastName"] }, regex: pattern } } },
-      ...(username ? [{ username: new RegExp(escapeRegex(username)) }] : []),
-    ],
+    $or: [{ name: pattern }, ...(username ? [{ username: new RegExp(escapeRegex(username)) }] : [])],
   };
 };
 
@@ -193,17 +187,18 @@ export const searchForUsers = async (keyword, page, user) => {
 
 const PERSON_PROJECTION = Object.fromEntries(STRANGER_FIELDS.split(" ").map((field) => [field, 1]));
 
-// the closest matches first whoever they are: the exact username, then names and usernames that start with the words, then last names that do, then the rest
+// the closest matches first whoever they are: the exact username, then names and usernames that start with the words, then names with a later word that does, then the rest
 const closenessTo = (keyword) => {
   const startsWith = new RegExp(`^${escapeRegex(keyword)}`, "i");
+  const laterWordStartsWith = new RegExp(` ${escapeRegex(keyword)}`, "i");
   const username = normalizeUsername(keyword);
   return {
     $switch: {
       branches: [
         { case: { $eq: ["$username", username] }, then: 0 },
-        { case: { $regexMatch: { input: { $concat: ["$firstName", " ", "$lastName"] }, regex: startsWith } }, then: 1 },
+        { case: { $regexMatch: { input: "$name", regex: startsWith } }, then: 1 },
         { case: { $regexMatch: { input: { $ifNull: ["$username", ""] }, regex: new RegExp(`^${escapeRegex(username)}`) } }, then: 1 },
-        { case: { $regexMatch: { input: "$lastName", regex: startsWith } }, then: 2 },
+        { case: { $regexMatch: { input: "$name", regex: laterWordStartsWith } }, then: 2 },
       ],
       default: 3,
     },
@@ -218,7 +213,7 @@ export const searchEveryone = async (user, keyword, page) => {
     UserModel.aggregate([
       { $match: filter },
       { $addFields: { closeness: closenessTo(keyword) } },
-      { $sort: { closeness: 1, firstName: 1, lastName: 1, _id: 1 } },
+      { $sort: { closeness: 1, name: 1, _id: 1 } },
       { $skip: skipFor(page, PEOPLE_PAGE_SIZE) },
       { $limit: PEOPLE_PAGE_SIZE },
       { $project: PERSON_PROJECTION },

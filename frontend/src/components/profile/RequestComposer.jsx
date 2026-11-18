@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import useIsLoading from "@/hooks/useIsLoading";
 import { SendRequest } from "@/redux/slices/actions/contactActions";
+import { firstWordOf } from "@/utils/names";
 
 const NOTE_LIMIT = 200;
 const COUNT_FROM = 160;
@@ -42,7 +43,7 @@ const RequestComposer = ({ person, onSent, onCancel }) => {
         onChange={(event) => setText([...event.target.value].slice(0, NOTE_LIMIT).join(""))}
         onKeyDown={sendOnShortcut}
         disabled={!canSeal}
-        helperText={canSeal ? `Text only. ${person.firstName} sees it with your request.` : "Unlock your messages to add a note"}
+        helperText={canSeal ? `Text only. ${firstWordOf(person.name)} sees it with your request.` : "Unlock your messages to add a note"}
         multiline
         minRows={3}
         fullWidth
