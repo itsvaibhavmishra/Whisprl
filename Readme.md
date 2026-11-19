@@ -11,9 +11,11 @@ with a friend, your whole group or one of Whisprl's bots, and keep talking while
 Every message, photo and voice note is end-to-end encrypted. Free and open source, on Android
 and in your browser.
 
-**[Open Whisprl](https://whisprl.netlify.app)**&nbsp; · &nbsp;[What's new](CHANGELOG.md)&nbsp; · &nbsp;[Terms](https://whisprl.netlify.app/docs/tnc)
+This is Whisprl's open-source edition, kept at version 2.5.16. The Whisprl app on Google Play and
+on the web is developed separately and has moved on from it; this repository's releases carry only
+that app's signed live update files, which installed apps download from here.
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/11d93069-5655-4db9-b73d-b34de9c5deab/deploy-status)](https://app.netlify.com/sites/whisprl/deploys)
+**[What's new](CHANGELOG.md)**
 
 </div>
 
@@ -50,7 +52,7 @@ and in your browser.
 
 ## The Android app
 
-The same Whisprl and the same account, made for your phone. It is in testing on Google Play.
+This edition builds as an Android app named Whisprl Open, separate from the Whisprl app on Google Play.
 
 - Notifications that show the message itself, opened on your phone so the server still never reads it
 - Opens straight on your chats and their latest messages, even with no connection
@@ -211,11 +213,6 @@ scripts/check.sh
 Loads every backend module without a database, runs the backend and frontend tests and
 builds the frontend, so it behaves the same on your machine as in CI.
 
-[`docs/development.md`](docs/development.md) covers the branches, the release flow, staff
-roles and how the emails are built. [`docs/games.md`](docs/games.md) covers adding a game,
-from its rules through to the checks before it ships, and [`docs/game-art.md`](docs/game-art.md)
-covers its artwork: asking for it, cutting it out, and placing it where the design put it.
-
 </details>
 
 
@@ -230,9 +227,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 ├──backend/
 │   ├── ...
 ├── docs/
-│   ├── development.md
-│   ├── game-art.md
-│   ├── games.md
+│   ├── screenshots/
 ├──frontend/
 │   ├── ...
 ├── scripts/

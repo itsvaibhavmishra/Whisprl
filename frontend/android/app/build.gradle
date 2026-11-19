@@ -17,8 +17,8 @@ android {
     namespace = "com.vaibhaw.whisprl"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.vaibhaw.whisprl${packageSuffix}"
-        manifestPlaceholders = [appName: isDevBuild ? "Whisprl Dev" : (isTestBuild ? "Whisprl Test" : "@string/app_name")]
+        applicationId "com.vaibhaw.whisprl.open${packageSuffix}"
+        manifestPlaceholders = [appName: isDevBuild ? "Whisprl Open Dev" : (isTestBuild ? "Whisprl Open Test" : "@string/app_name")]
         resValue "color", "launcher_background", iconBackground
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion

@@ -21,10 +21,11 @@ permissions:
 
 jobs:
   release:
+    # a copy without the signing keys sets no PUBLISHES_RELEASES, so it skips releasing instead of failing
     if: >-
-      github.ref_name == 'production' ||
+      vars.PUBLISHES_RELEASES == 'true' && (github.ref_name == 'production' ||
       (github.event.pull_request.head.ref == 'rc' && github.event.pull_request.head.repo.full_name == github.repository &&
-      (contains(github.event.pull_request.labels.*.name, 'release: app') || contains(github.event.pull_request.labels.*.name, 'release: web')))
+      (contains(github.event.pull_request.labels.*.name, 'release: app') || contains(github.event.pull_request.labels.*.name, 'release: web'))))
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}

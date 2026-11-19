@@ -1,6 +1,6 @@
 {
-  "appId": "com.vaibhaw.whisprl",
-  "appName": "Whisprl",
+  "appId": "com.vaibhaw.whisprl.open",
+  "appName": "Whisprl Open",
   "webDir": "build",
   "plugins": {
     "App": {

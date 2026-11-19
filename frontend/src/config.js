@@ -22,7 +22,7 @@ export const DEFAULT_DOCS = PATH_DOCS.general.tnc;
 export const SITE_URL = "https://whisprl.netlify.app";
 export const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.vaibhaw.whisprl";
 export const TESTERS_GROUP_URL = "https://groups.google.com/g/whisprl-testers";
-export const SOURCE_URL = "https://github.com/itsvaibhavmishra/Whisprl";
+export const SOURCE_URL = "https://github.com/itsvaibhavmishra/whisprl-open";
 export const PORTFOLIO_URL = "https://vaibhaw.vercel.app";
 export const CONTACT_EMAIL = "whisprlai@gmail.com";
 
