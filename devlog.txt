@@ -16,7 +16,6 @@
   - New:
 
   - Improvements:
-    - Whisprl is now Whisprl: Chat & Games: the welcome page opens on a game being dealt in a chat and the real cards of every game, and page titles, the link preview image, the web app's name, emails and the terms and privacy pages call it that
 
   - Fixed:
 
