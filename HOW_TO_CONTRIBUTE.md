@@ -16,9 +16,8 @@ We take it from there.
 
 ### 1. Get the code
 
-Fork the repo, then clone your fork. To run the app, see "What you need" in
-[docs/development.md](docs/development.md). Each package has a `.env copy` file that lists
-the keys it needs.
+Fork the repo, then clone your fork. To run the app, see "Running it" in the
+[Readme](Readme.md#running-it). Each package has a `.env copy` file that lists the keys it needs.
 
 ### 2. Make a branch from `rc`
 
