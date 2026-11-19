@@ -2,14 +2,14 @@ import { DEFAULT_AUTH, DEFAULT_PATH } from "@/config";
 
 export const PREVIOUS_PAGE = "previous";
 
-// one level up, then the chats from any other tab, and past the chats the app goes to the background
+// one level up, then Play from any other tab, and past Play the app goes to the background
 export const backTargetOf = (pathname) => {
   const [section, page] = pathname.split("/").filter(Boolean);
   if (section === "auth") return `/auth/${page}` === DEFAULT_AUTH ? null : DEFAULT_AUTH;
   if (section === "setup") return null;
   if (section === "docs" || section === "admin") return PREVIOUS_PAGE;
   if (page) return `/${section}`;
-  if (section === "chat") return null;
+  if (`/${section}` === DEFAULT_PATH) return null;
   return DEFAULT_PATH;
 };
 

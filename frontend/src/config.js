@@ -14,7 +14,7 @@ export const defaultSettings = {
   wallpapers: { all: "aurora", doodles: true, chats: {} },
 };
 
-export const DEFAULT_PATH = PATH_DASHBOARD.general.chat;
+export const DEFAULT_PATH = PATH_DASHBOARD.general.play;
 // the app was installed on purpose, so it opens straight on logging in rather than on the website's welcome
 export const DEFAULT_AUTH = isApp ? PATH_AUTH.general.login : PATH_AUTH.general.welcome;
 export const DEFAULT_DOCS = PATH_DOCS.general.tnc;

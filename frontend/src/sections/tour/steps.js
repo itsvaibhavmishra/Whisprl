@@ -1,6 +1,6 @@
 import { PATH_DASHBOARD } from "@/routes/paths";
 
-const { chat, contacts, status } = PATH_DASHBOARD.general;
+const { chat, status } = PATH_DASHBOARD.general;
 
 export const WHISPRL_CHAT = "whisprl-chat";
 export const FIRST_GAME = "jackaroo";
@@ -11,7 +11,7 @@ export const TOUR_STEPS = [
     id: "welcome",
     text: "Hey there! I'm Whisprl. Welcome to your new home for private chats and fun games. Come on, let me show you around!",
   },
-  { id: "contacts", page: contacts, target: "contacts", text: "This is Contacts! Invite your friends and connect with them, right here." },
+  { id: "contacts", page: chat, target: "contacts", text: "This is Contacts! Invite your friends and connect with them, right here." },
   { id: "status", page: status, target: "status", text: "Over here is Status. Share little moments with your friends, and poof! They're gone after a day." },
   {
     id: "chats",

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Box, Button, ButtonBase, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { ArchiveIcon, ArrowLeftIcon, CaretRightIcon, ShareNetworkIcon, UsersThreeIcon } from "@phosphor-icons/react";
+import { AddressBookIcon, ArchiveIcon, ArrowLeftIcon, CaretRightIcon, ShareNetworkIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
+import CountBadge from "@/components/CountBadge";
 import MascotHalo from "@/components/MascotHalo";
 import RequestButton from "@/components/profile/RequestButton";
 import SearchPill from "@/components/SearchPill";
@@ -14,8 +16,9 @@ import { CreateOpenConversation } from "@/redux/slices/actions/chatActions";
 import { RefreshChats } from "@/redux/slices/actions/refreshActions";
 import { SearchForUsers } from "@/redux/slices/actions/contactActions";
 import { SearchFriends } from "@/redux/slices/actions/userActions";
-import { clearSearchUsers } from "@/redux/slices/contactSlice";
+import { clearSearchUsers, selectUnseenRequests } from "@/redux/slices/contactSlice";
 import { clearSearch } from "@/redux/slices/userSlice";
+import { PATH_DASHBOARD } from "@/routes/paths";
 import ChatAvatar from "@/sections/chat/ChatAvatar";
 import ChatRow from "@/sections/chat/list/ChatRow";
 import ChatRowSkeletons from "@/sections/chat/list/ChatRowSkeletons";
@@ -35,6 +38,33 @@ const matchesSearch = (conversation, meId, needle) => {
   const { name, peer } = identityOf(conversation, meId);
   const username = needle.replace(/^@/, "");
   return name.toLowerCase().includes(needle) || Boolean(username && peer?.username?.includes(username));
+};
+
+const HEADER_BUTTON = {
+  width: 40,
+  height: 40,
+  color: "primary.main",
+  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+  "&:hover": { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.18) },
+};
+
+const ContactsButton = () => {
+  const waiting = useSelector((state) => selectUnseenRequests(state).length);
+  return (
+    <Tooltip title="Contacts">
+      <IconButton
+        component={Link}
+        to={PATH_DASHBOARD.general.contacts}
+        data-tour="contacts"
+        aria-label={waiting ? `Contacts, ${waiting} waiting` : "Contacts"}
+        sx={HEADER_BUTTON}
+      >
+        <CountBadge count={waiting}>
+          <AddressBookIcon size={20} weight="bold" />
+        </CountBadge>
+      </IconButton>
+    </Tooltip>
+  );
 };
 
 const SectionLabel = ({ children }) => (
@@ -170,21 +200,14 @@ const ChatList = ({ onNewGroup }) => {
               <Wordmark name={isShowingArchived ? "Archived" : "Chats"} fontSize={30} />
             </Typography>
           </Stack>
-          <Tooltip title="New group">
-            <IconButton
-              aria-label="New group"
-              onClick={onNewGroup}
-              sx={{
-                width: 40,
-                height: 40,
-                color: "primary.main",
-                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
-                "&:hover": { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.18) },
-              }}
-            >
-              <UsersThreeIcon size={20} weight="bold" />
-            </IconButton>
-          </Tooltip>
+          <Stack direction="row" spacing={1}>
+            <ContactsButton />
+            <Tooltip title="New group">
+              <IconButton aria-label="New group" onClick={onNewGroup} sx={HEADER_BUTTON}>
+                <UsersThreeIcon size={20} weight="bold" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
         </Stack>
 
         <SearchPill value={query} onChange={setQuery} label="Search chats and people" />

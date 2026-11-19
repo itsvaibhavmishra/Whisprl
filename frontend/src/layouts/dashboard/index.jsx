@@ -40,8 +40,8 @@ const Tour = lazy(() => import("@/sections/tour/Tour"));
 // pages here run up under the status bar and pad themselves below it, so the loader steps below it too
 const PAGE_AREA = { isUnderStatusBar: true };
 
-const { chat, status, contacts, settings } = PATH_DASHBOARD.general;
-const MAIN_PAGES = [chat, status, contacts, settings];
+const { play, chat, status, contacts, settings } = PATH_DASHBOARD.general;
+const MAIN_PAGES = [play, chat, status, contacts, settings];
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
