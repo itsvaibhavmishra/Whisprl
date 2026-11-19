@@ -1,6 +1,8 @@
 const FOLDER = `${import.meta.env.BASE_URL}games/dots-and-boxes`;
 
 const art = {
+  tile: `${FOLDER}/tile.webp`,
+  icon: `${FOLDER}/icon.webp`,
   scene: `${FOLDER}/scene.webp`,
   versus: `${FOLDER}/versus.webp`,
   // the masthead is drawn onto the desk in this scene, so it is pinned to the top at full width to line up with it

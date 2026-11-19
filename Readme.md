@@ -474,6 +474,13 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   │   ├── Whisprl.webp
 │   │   │   │   │   ├── WhisprlAvatar.webp
 │   │   │   │   │   ├── WhisprlMark.webp
+│   │   │   ├── play/
+│   │   │   │   ├── friends.svg
+│   │   │   │   ├── gift.svg
+│   │   │   │   ├── ring-hole.webp
+│   │   │   │   ├── ring-shade.webp
+│   │   │   │   ├── tasks.svg
+│   │   │   │   ├── trophy.svg
 │   │   │   ├── tour/
 │   │   │   │   ├── chain-reaction.webp
 │   │   │   │   ├── dots-and-boxes.webp
@@ -530,6 +537,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── BirthdayCake.jsx
 │   │   │   ├── ConfirmDialog.jsx
 │   │   │   ├── ControlRow.jsx
+│   │   │   ├── CountBadge.jsx
 │   │   │   ├── CrashScreen.jsx
 │   │   │   ├── DocPage.jsx
 │   │   │   ├── FriendPicker.jsx
@@ -593,6 +601,7 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   ├── dashboard/
 │   │   │   │   ├── Chat.jsx
 │   │   │   │   ├── Contacts.jsx
+│   │   │   │   ├── Play.jsx
 │   │   │   │   ├── Settings.jsx
 │   │   │   │   ├── Status.jsx
 │   │   │   ├── docs/
@@ -887,6 +896,16 @@ covers its artwork: asking for it, cutting it out, and placing it where the desi
 │   │   │   │   ├── RecoveryKeyBox.jsx
 │   │   │   │   ├── RecoveryKeyDialog.jsx
 │   │   │   │   ├── UnlockDialog.jsx
+│   │   │   ├── play/
+│   │   │   │   ├── AskForGame.jsx
+│   │   │   │   ├── BannerFrame.jsx
+│   │   │   │   ├── GameBanners.jsx
+│   │   │   │   ├── lobby.js
+│   │   │   │   ├── PlayHeader.jsx
+│   │   │   │   ├── preview.js
+│   │   │   │   ├── RecentlyPlayed.jsx
+│   │   │   │   ├── RingFrame.jsx
+│   │   │   │   ├── ShortcutBadges.jsx
 │   │   │   ├── privacy/
 │   │   │   │   ├── content.js
 │   │   │   ├── profile/

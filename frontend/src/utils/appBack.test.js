@@ -8,14 +8,15 @@ describe("backTargetOf", () => {
     expect(backTargetOf("/contacts/@ava")).toBe("/contacts");
   });
 
-  it("goes to the chats from any other tab", () => {
+  it("goes to Play from any other tab", () => {
+    expect(backTargetOf("/chat")).toBe(DEFAULT_PATH);
     expect(backTargetOf("/status")).toBe(DEFAULT_PATH);
     expect(backTargetOf("/contacts")).toBe(DEFAULT_PATH);
     expect(backTargetOf("/settings/")).toBe(DEFAULT_PATH);
   });
 
-  it("leaves the app from the chats and from the start of sign-in", () => {
-    expect(backTargetOf("/chat")).toBeNull();
+  it("leaves the app from Play and from the start of sign-in", () => {
+    expect(backTargetOf("/play")).toBeNull();
     expect(backTargetOf("/auth/welcome")).toBeNull();
     expect(backTargetOf("/setup")).toBeNull();
   });

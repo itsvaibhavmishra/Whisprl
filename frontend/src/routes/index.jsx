@@ -39,7 +39,7 @@ export default function Router() {
 
   useEffect(() => {
     if (!isLoggedIn) return undefined;
-    const timer = setTimeout(() => [ChatPage, StatusPage, ContactsPage, Settings].forEach((page) => page.preload()), TAB_PRELOAD_DELAY_MS);
+    const timer = setTimeout(() => [PlayPage, ChatPage, StatusPage, ContactsPage, Settings].forEach((page) => page.preload()), TAB_PRELOAD_DELAY_MS);
     return () => clearTimeout(timer);
   }, [isLoggedIn]);
 
@@ -90,6 +90,7 @@ export default function Router() {
       element: <DashboardLayout />,
       children: [
         { element: <Navigate to={DEFAULT_PATH} replace />, index: true },
+        { path: "play", element: <PlayPage /> },
         { path: "chat/*", element: <ChatPage /> },
         { path: "app", element: <Navigate to={DEFAULT_PATH} replace /> },
         { path: "status", element: <StatusPage /> },
@@ -108,6 +109,7 @@ export default function Router() {
   ]);
 }
 // app pages
+const PlayPage = preloadable(() => import("@/pages/dashboard/Play"));
 const ChatPage = preloadable(() => import("@/pages/dashboard/Chat"));
 const StatusPage = preloadable(() => import("@/pages/dashboard/Status"));
 const ContactsPage = preloadable(() => import("@/pages/dashboard/Contacts"));

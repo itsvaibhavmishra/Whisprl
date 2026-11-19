@@ -14,6 +14,7 @@ import Dialog from "@/theme/overrides/Dialog";
 import Avatar from "@/theme/overrides/Avatar";
 import Slider from "@/theme/overrides/Slider";
 import Button from "@/theme/overrides/Button";
+import ButtonBase from "@/theme/overrides/ButtonBase";
 import Switch from "@/theme/overrides/Switch";
 import SvgIcon from "@/theme/overrides/SvgIcon";
 import Tooltip from "@/theme/overrides/Tooltip";
@@ -40,6 +41,7 @@ export default function ComponentsOverrides(theme) {
     Alert(theme),
     Switch(theme),
     Button(theme),
+    ButtonBase(theme),
     Dialog(theme),
     Avatar(theme),
     Slider(theme),

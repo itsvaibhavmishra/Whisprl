@@ -4,6 +4,8 @@ const FOLDER = `${import.meta.env.BASE_URL}games/jackaroo`;
 
 // cut from the user's designs, so every piece shares their paint and light
 const art = {
+  tile: `${FOLDER}/tile.webp`,
+  icon: `${FOLDER}/icon.webp`,
   scene: `${FOLDER}/scene.webp`,
   // the masthead is placed in this scene's own coordinates, so it is pinned to the top at the masthead's width to line up with it
   anchor: "top",

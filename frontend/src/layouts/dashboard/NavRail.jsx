@@ -1,25 +1,24 @@
-import { Badge, Box, ButtonBase, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Box, ButtonBase, Stack, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AnimatePresence, m } from "motion/react";
-import { AddressBookIcon, ChatCircleDotsIcon, CircleDashedIcon, MoonStarsIcon, SunDimIcon } from "@phosphor-icons/react";
+import { ChatCircleDotsIcon, CircleDashedIcon, GameControllerIcon, MoonStarsIcon, SunDimIcon } from "@phosphor-icons/react";
 import { Link, matchPath, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import WhisprlMark from "@/assets/icons/logo/WhisprlMark.webp";
+import CountBadge from "@/components/CountBadge";
 import useSettings from "@/hooks/useSettings";
-import { selectUnseenRequests } from "@/redux/slices/contactSlice";
 import { PATH_DASHBOARD } from "@/routes/paths";
 import { chatPath } from "@/sections/chat/chatRoute";
 import { isMuted } from "@/utils/chats";
 import getAvatar from "@/utils/avatars";
-import { NIGHT_INK } from "@/utils/colorPresets";
 
-const { chat, status, contacts, settings, profile } = PATH_DASHBOARD.general;
+const { play, chat, status, settings, profile } = PATH_DASHBOARD.general;
 // settings sits behind your photo, so the rail and the bar keep only the places you move between
 const DESTINATIONS = [
+  { path: play, label: "Play", Icon: GameControllerIcon },
   { path: chat, label: "Chats", Icon: ChatCircleDotsIcon, badgeWord: "unread" },
   { path: status, label: "Status", Icon: CircleDashedIcon },
-  { path: contacts, label: "Contacts", Icon: AddressBookIcon, badgeWord: "waiting" },
 ];
 const RAIL_WIDTH = 76;
 const TAB_BAR_HEIGHT = 65;
@@ -32,22 +31,12 @@ const useBadgeCounts = () => {
   const unreadChats = useSelector(
     (state) => state.chat.conversations.filter((conversation) => !conversation.isArchived && conversation.unread > 0 && !isMuted(conversation)).length
   );
-  const newRequests = useSelector((state) => selectUnseenRequests(state).length);
-  return { [chat]: unreadChats, [contacts]: newRequests };
+  return { [chat]: unreadChats };
 };
 
 const isAt = (pathname, path) => Boolean(matchPath({ path, end: false }, pathname));
 const isAtYou = (pathname) => isAt(pathname, profile) || isAt(pathname, settings);
 const spokenLabel = (label, badge, badgeWord) => (badge ? `${label}, ${badge} ${badgeWord}` : label);
-
-const CountBadge = ({ count, children }) => (
-  <Badge
-    badgeContent={count}
-    sx={{ "& .MuiBadge-badge": { bgcolor: "primary.glow", color: NIGHT_INK, fontWeight: 800, minWidth: 18, height: 18, fontSize: 11 } }}
-  >
-    {children}
-  </Badge>
-);
 
 const RailItem = ({ label, isActive, badge, badgeWord, children, ...button }) => (
   <Tooltip title={label} placement="right">

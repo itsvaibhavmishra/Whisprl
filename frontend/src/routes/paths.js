@@ -7,6 +7,7 @@ const ROOTS_DASHBOARD = "/";
 export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
   general: {
+    play: path(ROOTS_DASHBOARD, "play"),
     chat: path(ROOTS_DASHBOARD, "chat"),
     status: path(ROOTS_DASHBOARD, "status"),
     profile: path(ROOTS_DASHBOARD, "settings/profile"),

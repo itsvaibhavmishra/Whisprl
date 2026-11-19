@@ -14,9 +14,11 @@
 # tell an entry from an empty heading, so keep the indentation as it is.
 
   - New:
+    - Play is Whisprl's first screen: a card for every game, Ranking, Tasks and Friends, the games you played lately, Invite and asking for a new game, with XP and level shown as a preview until they are counted; the tabs are Play, Chats, Status and You, and Contacts opens from the Chats header
     - Setup's profile step: slide through an endless row of eight Whisprl characters and your own photo, or upload one, check your name and username, and choose your gender (male, female or prefer not to say), which can't be changed later
 
   - Improvements:
+    - Tapping a button no longer flashes a dark box over it
     - Profiles and the full-screen profile picture show pictures in detail, profile and group photos upload at up to 1024 pixels, and chat lists load small copies of every picture, so they open faster
     - Whisprl opens in light mode until you pick another in Settings, sign in and setup show no theme or colour menu, setup has no Log out, and setup fits narrow phones without spilling off the screen
     - Setup is three steps, birthday, profile and protecting your messages, with the birthday typed or turned on day, month and year wheels that start empty; showing your birthday to friends and suggesting you to friends of friends start on, to change in Settings
