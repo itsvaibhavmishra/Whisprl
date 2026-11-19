@@ -2,10 +2,17 @@
 
 const sameMarble = (one, two) => Boolean(one && two) && one.owner === two.owner && one.id === two.id;
 
-// the marble a play starts with: the one that moves first, or the one of yours a swap gives away
-const actorOf = (option) => option.moves?.[0]?.marble ?? option.swap?.[0] ?? null;
-const secondOf = (option) => option.moves?.[1]?.marble ?? option.swap?.[1] ?? null;
-const stepsOf = (option) => option.moves?.[0]?.steps ?? null;
+// each order a play's choices can be made in: a split starts from either of its marbles, the other then taking the rest of the seven
+const readingsOf = (option) => {
+  if (option.swap) return [{ marble: option.swap[0], steps: null, second: option.swap[1] }];
+  const [first, second] = option.moves ?? [];
+  if (!first) return [{ marble: null, steps: null, second: null }];
+  const lead = { marble: first.marble, steps: first.steps, second: second?.marble ?? null };
+  return second ? [lead, { marble: second.marble, steps: second.steps, second: first.marble }] : [lead];
+};
+
+const fits = (reading, { marble, steps, second }) =>
+  (!marble || sameMarble(reading.marble, marble)) && (!steps || reading.steps === steps) && (!second || sameMarble(reading.second, second));
 
 // a king, an ace or a two can place a new marble instead of moving one, and a ten can make the other player discard
 const actionOf = (option) => {
@@ -21,28 +28,29 @@ export const THROWS = ["discard", "discardAll", "lose"];
 
 const uniqueMarbles = (marbles) => marbles.filter((marble, index) => marble && marbles.findIndex((other) => sameMarble(other, marble)) === index);
 
-export const narrowed = (options, { card, action, marble, steps, second }) =>
+export const narrowed = (options, chosen) =>
   options.filter(
     (option) =>
-      (!card || option.card === card) &&
-      (!action || actionOf(option) === action) &&
-      (!marble || sameMarble(actorOf(option), marble)) &&
-      (!steps || stepsOf(option) === steps) &&
-      (!second || sameMarble(secondOf(option), second))
+      (!chosen.card || option.card === chosen.card) &&
+      (!chosen.action || actionOf(option) === chosen.action) &&
+      readingsOf(option).some((reading) => fits(reading, chosen))
   );
+
+// a swap always has both its marbles picked and a split its steps, even when only one answer is left, so the player sees what the card does
+const isAsked = (answers, left, kinds) => answers.length > 1 || (answers.length === 1 && left.some((option) => kinds.includes(option.kind)));
 
 // the next question for a played card, or the one play left to send
 export const nextStep = (options, chosen) => {
   const left = narrowed(options, chosen);
-  if (left.length === 1) return { play: left[0] };
+  const readings = left.flatMap((option) => readingsOf(option).filter((reading) => fits(reading, chosen)));
   const actions = ACTION_ORDER.filter((action) => left.some((option) => actionOf(option) === action));
   if (!chosen.action && actions.length > 1) return { actions };
-  const marbles = uniqueMarbles(left.map(actorOf));
-  if (!chosen.marble && marbles.length > 1) return { marbles };
-  const steps = [...new Set(left.map(stepsOf))].sort((one, two) => one - two);
-  if (!chosen.steps && steps.length > 1) return { steps };
-  const seconds = uniqueMarbles(left.map(secondOf));
-  if (!chosen.second && seconds.length > 1) return { seconds };
+  const marbles = uniqueMarbles(readings.map((reading) => reading.marble));
+  if (!chosen.marble && isAsked(marbles, left, ["swap"])) return { marbles };
+  const steps = [...new Set(readings.map((reading) => reading.steps).filter(Boolean))].sort((one, two) => one - two);
+  if (!chosen.steps && isAsked(steps, left, ["split"])) return { steps };
+  const seconds = uniqueMarbles(readings.map((reading) => reading.second));
+  if (!chosen.second && isAsked(seconds, left, ["swap"])) return { seconds };
   return { play: left[0] };
 };
 

@@ -473,6 +473,7 @@
   ]
  ],
  "holeRadius": 13.5,
+ "lipRadius": 15.65,
  "pitch": 35.1,
  "sprites": {
   "mark": 36.8,
