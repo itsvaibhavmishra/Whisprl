@@ -6,6 +6,17 @@ section, filled from `devlog.txt` at release time.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loosely, and the
 versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.16] - 2026-11-19
+
+### Improvements
+
+- Whisprl is now Whisprl: Chat & Games: the welcome page opens on a game being dealt in a chat and the real cards of every game, and page titles, the link preview image, the web app's name, emails and the terms and privacy pages call it that
+- Jackaroo previews a move as lit dots in each hole it steps through and a ring where it lands, glows softly round each marble you can pick, draws the marbles a little smaller, and always lets you pick both marbles for a jack and how a seven is shared
+
+### Fixed
+
+- Two against two Jackaroo: a marble can jump one marble, yours included, and land on the next to knock it out; a seven can move either marble first; your partner's marble in front of your home no longer shuts it; the five shows all four colours; numbers on crowded marbles stay on screen; the home rings sit centred; and the sleeping cat's eyes no longer sparkle
+
 ## [2.5.15] - 2026-11-16
 
 ### New
@@ -743,6 +754,7 @@ versioning is [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Licence declared as CC0-1.0 in both packages, matching `LICENSE`
 - `frontend/build` and `frontend/coverage` are ignored where they are actually written
 
+[2.5.16]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.16
 [2.5.15]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.15
 [2.5.14]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.14
 [2.5.13]: https://github.com/itsvaibhavmishra/Whisprl/releases/tag/v2.5.13
